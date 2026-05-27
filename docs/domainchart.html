@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bw — Domain Model</title>
+<style>
+  :root {
+    --bg: #faf9f5;
+    --card-bg: #ffffff;
+    --text: #141413;
+    --text-mid: #3d3d3a;
+    --text-sub: #87867f;
+    --accent: #d97757;
+    --accent-d: #b85c3e;
+    --oat: #e3dacc;
+    --olive: #788c5d;
+    --border: #e6e3da;
+    --border-strong: #d1cfc5;
+    --muted: #f0eee6;
+    --tree-line: #d1cfc5;
+    --shadow-sm: 0 1px 2px 0 rgb(20 20 19 / 0.04);
+    --shadow-md: 0 10px 30px rgb(20 20 19 / 0.10);
+    --radius: 12px;
+    --serif: ui-serif, Georgia, "Times New Roman", Times, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas, monospace;
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #1a1915;
+    --card-bg: #242320;
+    --text: #faf9f5;
+    --text-mid: #cbc9c0;
+    --text-sub: #9a9890;
+    --accent: #e08b6f;
+    --accent-d: #d97757;
+    --oat: #4a4438;
+    --olive: #8fa86e;
+    --border: #35332d;
+    --border-strong: #45433c;
+    --muted: #2b2a25;
+    --tree-line: #45433c;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 10px 30px rgb(0 0 0 / 0.4);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+    --bg: #1a1915;
+    --card-bg: #242320;
+    --text: #faf9f5;
+    --text-mid: #cbc9c0;
+    --text-sub: #9a9890;
+    --accent: #e08b6f;
+    --accent-d: #d97757;
+    --oat: #4a4438;
+    --olive: #8fa86e;
+    --border: #35332d;
+    --border-strong: #45433c;
+    --muted: #2b2a25;
+    --tree-line: #45433c;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 10px 30px rgb(0 0 0 / 0.4);
+    }
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    counter-reset: agg;
+  }
+
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 32px 120px;
+  }
+
+  /* ── masthead ─────────────────────────── */
+
+  .masthead {
+    padding: 64px 0 32px;
+    border-bottom: 1.5px solid var(--border-strong);
+    margin-bottom: 40px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-sub);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 24px;
+    height: 1.5px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(34px, 5vw, 50px);
+    line-height: 1.08;
+    letter-spacing: -0.018em;
+    margin-bottom: 14px;
+  }
+
+  .subtitle {
+    font-family: var(--mono);
+    color: var(--text-sub);
+    font-size: 13px;
+    letter-spacing: 0.01em;
+  }
+
+  /* ── aggregate ────────────────────────── */
+
+  .aggregate {
+    margin-bottom: 56px;
+    counter-increment: agg;
+  }
+
+  .aggregate-header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .aggregate-header::before {
+    content: counter(agg, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .aggregate-header > span:first-of-type {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 26px;
+    letter-spacing: -0.012em;
+  }
+  .aggregate-header .desc {
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 13.5px;
+    color: var(--text-sub);
+  }
+
+  .standalone {
+    margin-bottom: 24px;
+  }
+
+  /* ── tree ─────────────────────────────── */
+
+  .tree {
+    list-style: none;
+    margin-left: 20px;
+    padding-left: 20px;
+  }
+
+  .aggregate > .card {
+    margin-bottom: 0;
+    margin-left: 34px;
+  }
+
+  .aggregate > .root-tree {
+    padding-top: 0;
+    padding-bottom: 8px;
+    margin-top: 0;
+    margin-left: 54px;
+  }
+
+  .tree-node {
+    position: relative;
+    border-left: 1.5px solid var(--tree-line);
+    padding: 10px 0 0 18px;
+    margin-left: -20px;
+  }
+
+  .tree-node:last-child {
+    border-left: 1.5px solid transparent;
+  }
+
+  .tree-node::before {
+    content: "";
+    position: absolute;
+    left: -1.5px;
+    top: 26px;
+    width: 18px;
+    height: 1.5px;
+    background: var(--tree-line);
+  }
+
+  .tree-node:last-child::after {
+    content: "";
+    position: absolute;
+    left: -1.5px;
+    top: 0;
+    height: 27px;
+    width: 1.5px;
+    background: var(--tree-line);
+  }
+
+  /* ── cards ────────────────────────────── */
+
+  .card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    margin: 0;
+    overflow: hidden;
+    transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--text);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 15px;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+  }
+
+  .card-header .icon {
+    width: 14px;
+    height: 14px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .card-header .badge {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 9px;
+    border-radius: 999px;
+    color: var(--text-sub);
+    background: var(--muted);
+  }
+
+  .card-body {
+    padding: 11px 15px 13px;
+    border-top: 1.5px solid var(--border);
+    background: var(--card-bg);
+  }
+
+  .prop {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    padding: 2px 0;
+    display: flex;
+    gap: 6px;
+  }
+
+  .prop-name {
+    color: var(--text-mid);
+  }
+
+  .prop-type {
+    color: var(--accent-d);
+  }
+
+  .card.entity .card-header {
+    background: var(--muted);
+  }
+
+  .card.value-object .card-header {
+    background: var(--card-bg);
+  }
+  .card.value-object .badge {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+  }
+
+  .card.reference {
+    background: transparent;
+    border: 1.5px dashed var(--border-strong);
+    box-shadow: none;
+  }
+  .card.reference:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--accent);
+  }
+  .card.reference .card-header {
+    background: transparent;
+    color: var(--text-sub);
+  }
+  .card.reference .ref-arrow {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .card.reference .badge {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+  }
+
+  /* ── theme toggle ─────────────────────── */
+
+  .theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card-bg);
+    color: var(--text);
+    border: 1.5px solid var(--border-strong);
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+    z-index: 10;
+  }
+  .theme-toggle:hover {
+    border-color: var(--text);
+  }
+  .theme-toggle:hover .moon,
+  .theme-toggle:hover .sun {
+    color: var(--accent);
+  }
+  .theme-toggle:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .theme-toggle svg {
+    width: 16px;
+    height: 16px;
+  }
+  .theme-toggle .sun { display: none; }
+  .theme-toggle .moon { display: block; }
+  :root[data-theme="dark"] .theme-toggle .sun { display: block; }
+  :root[data-theme="dark"] .theme-toggle .moon { display: none; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .theme-toggle .sun { display: block; }
+    :root:not([data-theme="light"]) .theme-toggle .moon { display: none; }
+  }
+</style>
+<script>(function(){
+  try {
+    var s = localStorage.getItem('theme');
+    var t = s || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {}
+  window.toggleTheme = function() {
+    var cur = document.documentElement.getAttribute('data-theme') || 'light';
+    var next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch (e) {}
+  };
+})();</script>
+</head>
+<body>
+<button class="theme-toggle" type="button" aria-label="Toggle color theme" onclick="toggleTheme()">
+<svg class="sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+<svg class="moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+</button>
+<div class="wrap">
+<header class="masthead">
+  <div class="eyebrow">Domain Model</div>
+  <h1>bw — Domain Model</h1>
+  <div class="subtitle">2 Aggregates &middot; 12 Entities &middot; 7 Value Objects</div>
+</header>
+
+<div class="aggregate">
+  <div class="aggregate-header">
+    <span>Field</span>
+    <span class="desc">The live game world. Owns the runtime actors, items, props and effects, and the loaded field blocks.</span>
+  </div>
+  <div class="card entity">
+    <div class="card-header">
+      <svg class="icon" data-icon="entity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"/></svg>
+      <span>Field</span>
+      <span class="badge">Entity</span>
+    </div>
+    <div class="card-body">
+      <div class="prop"><span class="prop-name">me:</span> <span class="prop-type">Actor</span></div>
+      <div class="prop"><span class="prop-name">actors:</span> <span class="prop-type">Actor[]</span></div>
+      <div class="prop"><span class="prop-name">items:</span> <span class="prop-type">Item[]</span></div>
+      <div class="prop"><span class="prop-name">props:</span> <span class="prop-type">Prop[]</span></div>
+      <div class="prop"><span class="prop-name">effects:</span> <span class="prop-type">Array&lt;EffectLine0 | EffectLine1&gt;</span></div>
+      <div class="prop"><span class="prop-name">blocks:</span> <span class="prop-type">FieldBlock[]</span></div>
+      <div class="prop"><span class="prop-name">time:</span> <span class="prop-type">number</span></div>
+    </div>
+  </div>
+  <ul class="tree root-tree">
+    <li class="tree-node">
+      <div class="card entity">
+        <div class="card-header">
+          <svg class="icon" data-icon="entity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"/></svg>
+          <span>Actor</span>
+          <span class="badge">Entity</span>
+        </div>
+        <div class="card-body">
+          <div class="prop"><span class="prop-name">id:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">i:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">j:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">dir:</span> <span class="prop-type">Dir</span></div>
+          <div class="prop"><span class="prop-name">speed:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">buff:</span> <span class="prop-type">Record&lt;string, unknown&gt;</span></div>
+          <div class="prop"><span class="prop-name">defType:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">move:</span> <span class="prop-type">Move?</span></div>
+          <div class="prop"><span class="prop-name">actions:</span> <span class="prop-type">Action[]</span></div>
+        </div>
+      </div>
+      <ul class="tree">
+        <li class="tree-node">
+          <div class="card value-object">
+            <div class="card-header">
+              <svg class="icon" data-icon="value-object" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z"/></svg>
+              <span>Move</span>
+              <span class="badge">Value Object</span>
+            </div>
+            <div class="card-body">
+              <div class="prop"><span class="prop-name">type:</span> <span class="prop-type">string</span></div>
+              <div class="prop"><span class="prop-name">x:</span> <span class="prop-type">number</span></div>
+              <div class="prop"><span class="prop-name">y:</span> <span class="prop-type">number</span></div>
+              <div class="prop"><span class="prop-name">dir:</span> <span class="prop-type">Dir</span></div>
+              <div class="prop"><span class="prop-name">finished:</span> <span class="prop-type">boolean</span></div>
+              <div class="prop"><span class="prop-name">halfPassed:</span> <span class="prop-type">boolean</span></div>
+            </div>
+          </div>
+        </li>
+        <li class="tree-node">
+          <div class="card value-object">
+            <div class="card-header">
+              <svg class="icon" data-icon="value-object" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z"/></svg>
+              <span>Action</span>
+              <span class="badge">Value Object</span>
+            </div>
+            <div class="card-body">
+              <div class="prop"><span class="prop-name">type:</span> <span class="prop-type">string</span></div>
+              <div class="prop"><span class="prop-name">dir:</span> <span class="prop-type">Dir</span></div>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </li>
+    <li class="tree-node">
+      <div class="card entity">
+        <div class="card-header">
+          <svg class="icon" data-icon="entity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"/></svg>
+          <span>Item</span>
+          <span class="badge">Entity</span>
+        </div>
+        <div class="card-body">
+          <div class="prop"><span class="prop-name">id:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">i:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">j:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">defType:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">followState:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">move:</span> <span class="prop-type">Move?</span></div>
+        </div>
+      </div>
+    </li>
+    <li class="tree-node">
+      <div class="card entity">
+        <div class="card-header">
+          <svg class="icon" data-icon="entity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"/></svg>
+          <span>Prop</span>
+          <span class="badge">Entity</span>
+        </div>
+        <div class="card-body">
+          <div class="prop"><span class="prop-name">id:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">i:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">j:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">defType:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">data:</span> <span class="prop-type">unknown</span></div>
+        </div>
+      </div>
+    </li>
+    <li class="tree-node">
+      <div class="card entity">
+        <div class="card-header">
+          <svg class="icon" data-icon="entity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"/></svg>
+          <span>EffectLine0</span>
+          <span class="badge">Entity</span>
+        </div>
+        <div class="card-body">
+          <div class="prop"><span class="prop-name">color:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">x:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">y:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">w:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">h:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">finished:</span> <span class="prop-type">boolean</span></div>
+        </div>
+      </div>
+    </li>
+    <li class="tree-node">
+      <div class="card entity">
+        <div class="card-header">
+          <svg class="icon" data-icon="entity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"/></svg>
+          <span>EffectLine1</span>
+          <span class="badge">Entity</span>
+        </div>
+        <div class="card-body">
+          <div class="prop"><span class="prop-name">color:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">x:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">y:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">w:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">h:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">finished:</span> <span class="prop-type">boolean</span></div>
+        </div>
+      </div>
+    </li>
+    <li class="tree-node">
+      <div class="card entity">
+        <div class="card-header">
+          <svg class="icon" data-icon="entity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"/></svg>
+          <span>FieldBlock</span>
+          <span class="badge">Entity</span>
+        </div>
+        <div class="card-body">
+          <div class="prop"><span class="prop-name">id:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">i:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">j:</span> <span class="prop-type">number</span></div>
+          <div class="prop"><span class="prop-name">map:</span> <span class="prop-type">BlockMap</span></div>
+          <div class="prop"><span class="prop-name">field:</span> <span class="prop-type">string[]</span></div>
+        </div>
+      </div>
+      <ul class="tree">
+        <li class="tree-node">
+          <div class="card entity">
+            <div class="card-header">
+              <svg class="icon" data-icon="entity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"/></svg>
+              <span>BlockMap</span>
+              <span class="badge">Entity</span>
+            </div>
+            <div class="card-body">
+              <div class="prop"><span class="prop-name">url:</span> <span class="prop-type">string</span></div>
+              <div class="prop"><span class="prop-name">i:</span> <span class="prop-type">number</span></div>
+              <div class="prop"><span class="prop-name">j:</span> <span class="prop-type">number</span></div>
+              <div class="prop"><span class="prop-name">actors:</span> <span class="prop-type">ActorSpawn[]</span></div>
+              <div class="prop"><span class="prop-name">items:</span> <span class="prop-type">ItemSpawn[]</span></div>
+              <div class="prop"><span class="prop-name">props:</span> <span class="prop-type">PropSpawn[]</span></div>
+              <div class="prop"><span class="prop-name">field:</span> <span class="prop-type">string[]</span></div>
+              <div class="prop"><span class="prop-name">config:</span> <span class="prop-type">BlockConfig</span></div>
+              <div class="prop"><span class="prop-name">catalogs:</span> <span class="prop-type">string[]</span></div>
+            </div>
+          </div>
+          <ul class="tree">
+            <li class="tree-node">
+              <div class="card entity">
+                <div class="card-header">
+                  <svg class="icon" data-icon="entity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"/></svg>
+                  <span>ActorSpawn</span>
+                  <span class="badge">Entity</span>
+                </div>
+                <div class="card-body">
+                  <div class="prop"><span class="prop-name">id:</span> <span class="prop-type">string</span></div>
+                  <div class="prop"><span class="prop-name">i:</span> <span class="prop-type">number</span></div>
+                  <div class="prop"><span class="prop-name">j:</span> <span class="prop-type">number</span></div>
+                  <div class="prop"><span class="prop-name">dir:</span> <span class="prop-type">Dir</span></div>
+                  <div class="prop"><span class="prop-name">speed:</span> <span class="prop-type">number</span></div>
+                  <div class="prop"><span class="prop-name">defType:</span> <span class="prop-type">string</span></div>
+                </div>
+              </div>
+            </li>
+            <li class="tree-node">
+              <div class="card entity">
+                <div class="card-header">
+                  <svg class="icon" data-icon="entity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"/></svg>
+                  <span>ItemSpawn</span>
+                  <span class="badge">Entity</span>
+                </div>
+                <div class="card-body">
+                  <div class="prop"><span class="prop-name">id:</span> <span class="prop-type">string</span></div>
+                  <div class="prop"><span class="prop-name">i:</span> <span class="prop-type">number</span></div>
+                  <div class="prop"><span class="prop-name">j:</span> <span class="prop-type">number</span></div>
+                  <div class="prop"><span class="prop-name">defType:</span> <span class="prop-type">string</span></div>
+                </div>
+              </div>
+            </li>
+            <li class="tree-node">
+              <div class="card entity">
+                <div class="card-header">
+                  <svg class="icon" data-icon="entity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"/></svg>
+                  <span>PropSpawn</span>
+                  <span class="badge">Entity</span>
+                </div>
+                <div class="card-body">
+                  <div class="prop"><span class="prop-name">id:</span> <span class="prop-type">string</span></div>
+                  <div class="prop"><span class="prop-name">i:</span> <span class="prop-type">number</span></div>
+                  <div class="prop"><span class="prop-name">j:</span> <span class="prop-type">number</span></div>
+                  <div class="prop"><span class="prop-name">data:</span> <span class="prop-type">unknown</span></div>
+                  <div class="prop"><span class="prop-name">defType:</span> <span class="prop-type">string</span></div>
+                </div>
+              </div>
+            </li>
+            <li class="tree-node">
+              <div class="card value-object">
+                <div class="card-header">
+                  <svg class="icon" data-icon="value-object" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z"/></svg>
+                  <span>BlockConfig</span>
+                  <span class="badge">Value Object</span>
+                </div>
+                <div class="card-body">
+                  <div class="prop"><span class="prop-name">showsExitButton:</span> <span class="prop-type">boolean</span></div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<div class="aggregate">
+  <div class="aggregate-header">
+    <span>Catalog</span>
+    <span class="desc">Registry of asset definitions, keyed by name/type and loaded from catalog JSON.</span>
+  </div>
+  <div class="card entity">
+    <div class="card-header">
+      <svg class="icon" data-icon="entity" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"/></svg>
+      <span>Catalog</span>
+      <span class="badge">Entity</span>
+    </div>
+    <div class="card-body">
+      <div class="prop"><span class="prop-name">refs:</span> <span class="prop-type">string[]</span></div>
+      <div class="prop"><span class="prop-name">cells:</span> <span class="prop-type">CellDefinition[]</span></div>
+      <div class="prop"><span class="prop-name">items:</span> <span class="prop-type">ItemDefinition[]</span></div>
+      <div class="prop"><span class="prop-name">actors:</span> <span class="prop-type">ActorDefinition[]</span></div>
+      <div class="prop"><span class="prop-name">props:</span> <span class="prop-type">PropDefinition[]</span></div>
+    </div>
+  </div>
+  <ul class="tree root-tree">
+    <li class="tree-node">
+      <div class="card value-object">
+        <div class="card-header">
+          <svg class="icon" data-icon="value-object" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z"/></svg>
+          <span>CellDefinition</span>
+          <span class="badge">Value Object</span>
+        </div>
+        <div class="card-body">
+          <div class="prop"><span class="prop-name">name:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">canEnter:</span> <span class="prop-type">boolean</span></div>
+          <div class="prop"><span class="prop-name">src:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">href:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">noise:</span> <span class="prop-type">string</span></div>
+        </div>
+      </div>
+    </li>
+    <li class="tree-node">
+      <div class="card value-object">
+        <div class="card-header">
+          <svg class="icon" data-icon="value-object" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z"/></svg>
+          <span>ItemDefinition</span>
+          <span class="badge">Value Object</span>
+        </div>
+        <div class="card-body">
+          <div class="prop"><span class="prop-name">type:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">collect:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">src:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">href:</span> <span class="prop-type">string</span></div>
+        </div>
+      </div>
+    </li>
+    <li class="tree-node">
+      <div class="card value-object">
+        <div class="card-header">
+          <svg class="icon" data-icon="value-object" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z"/></svg>
+          <span>ActorDefinition</span>
+          <span class="badge">Value Object</span>
+        </div>
+        <div class="card-body">
+          <div class="prop"><span class="prop-name">type:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">moveEnd:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">idle:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">src:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">href:</span> <span class="prop-type">string</span></div>
+        </div>
+      </div>
+    </li>
+    <li class="tree-node">
+      <div class="card value-object">
+        <div class="card-header">
+          <svg class="icon" data-icon="value-object" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 3.34a10 10 0 1 1 -4.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 4.995 -8.336z"/></svg>
+          <span>PropDefinition</span>
+          <span class="badge">Value Object</span>
+        </div>
+        <div class="card-body">
+          <div class="prop"><span class="prop-name">type:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">canEnter:</span> <span class="prop-type">boolean</span></div>
+          <div class="prop"><span class="prop-name">pushed:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">onEnter:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">src:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">href:</span> <span class="prop-type">string</span></div>
+          <div class="prop"><span class="prop-name">data:</span> <span class="prop-type">Record&lt;string, unknown&gt;</span></div>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+</div>
+</body>
+</html>
+

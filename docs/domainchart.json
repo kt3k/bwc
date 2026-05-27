@@ -1,0 +1,243 @@
+{
+  "title": "bw — Domain Model",
+  "models": [
+    {
+      "name": "Field",
+      "kind": "entity",
+      "isAggregateRoot": true,
+      "description": "The live game world. Owns the runtime actors, items, props and effects, and the loaded field blocks.",
+      "properties": [
+        { "name": "me", "type": "Actor" },
+        { "name": "actors", "type": "Actor[]" },
+        { "name": "items", "type": "Item[]" },
+        { "name": "props", "type": "Prop[]" },
+        { "name": "effects", "type": "Array<EffectLine0 | EffectLine1>" },
+        { "name": "blocks", "type": "FieldBlock[]" },
+        { "name": "time", "type": "number" }
+      ]
+    },
+    {
+      "name": "Actor",
+      "kind": "entity",
+      "description": "A character on the field with position, direction and an action queue.",
+      "properties": [
+        { "name": "id", "type": "string" },
+        { "name": "i", "type": "number" },
+        { "name": "j", "type": "number" },
+        { "name": "dir", "type": "Dir" },
+        { "name": "speed", "type": "number" },
+        { "name": "buff", "type": "Record<string, unknown>" },
+        { "name": "defType", "type": "string" },
+        { "name": "move", "type": "Move?" },
+        { "name": "actions", "type": "Action[]" }
+      ]
+    },
+    {
+      "name": "Item",
+      "kind": "entity",
+      "description": "A collectible on the field.",
+      "properties": [
+        { "name": "id", "type": "string" },
+        { "name": "i", "type": "number" },
+        { "name": "j", "type": "number" },
+        { "name": "defType", "type": "string" },
+        { "name": "followState", "type": "string" },
+        { "name": "move", "type": "Move?" }
+      ]
+    },
+    {
+      "name": "Prop",
+      "kind": "entity",
+      "description": "A static or interactive object on the field (e.g. a breakable block or teleporter).",
+      "properties": [
+        { "name": "id", "type": "string" },
+        { "name": "i", "type": "number" },
+        { "name": "j", "type": "number" },
+        { "name": "defType", "type": "string" },
+        { "name": "data", "type": "unknown" }
+      ]
+    },
+    {
+      "name": "Move",
+      "kind": "value_object",
+      "description": "A single in-progress movement animation (go / bounce / jump).",
+      "properties": [
+        { "name": "type", "type": "string" },
+        { "name": "x", "type": "number" },
+        { "name": "y", "type": "number" },
+        { "name": "dir", "type": "Dir" },
+        { "name": "finished", "type": "boolean" },
+        { "name": "halfPassed", "type": "boolean" }
+      ]
+    },
+    {
+      "name": "Action",
+      "kind": "value_object",
+      "description": "A queued command for an entity (go, slide, jump, turn, speed, buff, line-pattern, wait, ...).",
+      "properties": [
+        { "name": "type", "type": "string" },
+        { "name": "dir", "type": "Dir" }
+      ]
+    },
+    {
+      "name": "EffectLine0",
+      "kind": "entity",
+      "description": "A growing line visual effect.",
+      "properties": [
+        { "name": "color", "type": "string" },
+        { "name": "x", "type": "number" },
+        { "name": "y", "type": "number" },
+        { "name": "w", "type": "number" },
+        { "name": "h", "type": "number" },
+        { "name": "finished", "type": "boolean" }
+      ]
+    },
+    {
+      "name": "EffectLine1",
+      "kind": "entity",
+      "description": "A traveling line visual effect.",
+      "properties": [
+        { "name": "color", "type": "string" },
+        { "name": "x", "type": "number" },
+        { "name": "y", "type": "number" },
+        { "name": "w", "type": "number" },
+        { "name": "h", "type": "number" },
+        { "name": "finished", "type": "boolean" }
+      ]
+    },
+    {
+      "name": "FieldBlock",
+      "kind": "entity",
+      "description": "A BLOCK_SIZE x BLOCK_SIZE region of the field, deserialized from a BlockMap.",
+      "properties": [
+        { "name": "id", "type": "string" },
+        { "name": "i", "type": "number" },
+        { "name": "j", "type": "number" },
+        { "name": "map", "type": "BlockMap" },
+        { "name": "field", "type": "string[]" }
+      ]
+    },
+    {
+      "name": "BlockMap",
+      "kind": "entity",
+      "description": "The serialized form of a FieldBlock: spawn lists, the cell grid and catalog refs.",
+      "properties": [
+        { "name": "url", "type": "string" },
+        { "name": "i", "type": "number" },
+        { "name": "j", "type": "number" },
+        { "name": "actors", "type": "ActorSpawn[]" },
+        { "name": "items", "type": "ItemSpawn[]" },
+        { "name": "props", "type": "PropSpawn[]" },
+        { "name": "field", "type": "string[]" },
+        { "name": "config", "type": "BlockConfig" },
+        { "name": "catalogs", "type": "string[]" }
+      ]
+    },
+    {
+      "name": "ActorSpawn",
+      "kind": "entity",
+      "description": "Spawn info for an actor in a block (position + definition type + initial dir/speed).",
+      "properties": [
+        { "name": "id", "type": "string" },
+        { "name": "i", "type": "number" },
+        { "name": "j", "type": "number" },
+        { "name": "dir", "type": "Dir" },
+        { "name": "speed", "type": "number" },
+        { "name": "defType", "type": "string" }
+      ]
+    },
+    {
+      "name": "ItemSpawn",
+      "kind": "entity",
+      "description": "Spawn info for an item in a block (position + definition type).",
+      "properties": [
+        { "name": "id", "type": "string" },
+        { "name": "i", "type": "number" },
+        { "name": "j", "type": "number" },
+        { "name": "defType", "type": "string" }
+      ]
+    },
+    {
+      "name": "PropSpawn",
+      "kind": "entity",
+      "description": "Spawn info for a prop in a block (position + definition type + extra data).",
+      "properties": [
+        { "name": "id", "type": "string" },
+        { "name": "i", "type": "number" },
+        { "name": "j", "type": "number" },
+        { "name": "data", "type": "unknown" },
+        { "name": "defType", "type": "string" }
+      ]
+    },
+    {
+      "name": "BlockConfig",
+      "kind": "value_object",
+      "description": "Per-block configuration flags.",
+      "properties": [
+        { "name": "showsExitButton", "type": "boolean" }
+      ]
+    },
+    {
+      "name": "Catalog",
+      "kind": "entity",
+      "isAggregateRoot": true,
+      "description": "Registry of asset definitions, keyed by name/type and loaded from catalog JSON.",
+      "properties": [
+        { "name": "refs", "type": "string[]" },
+        { "name": "cells", "type": "CellDefinition[]" },
+        { "name": "items", "type": "ItemDefinition[]" },
+        { "name": "actors", "type": "ActorDefinition[]" },
+        { "name": "props", "type": "PropDefinition[]" }
+      ]
+    },
+    {
+      "name": "CellDefinition",
+      "kind": "value_object",
+      "description": "Definition of a terrain cell type.",
+      "properties": [
+        { "name": "name", "type": "string" },
+        { "name": "canEnter", "type": "boolean" },
+        { "name": "src", "type": "string" },
+        { "name": "href", "type": "string" },
+        { "name": "noise", "type": "string" }
+      ]
+    },
+    {
+      "name": "ItemDefinition",
+      "kind": "value_object",
+      "description": "Definition of an item type and how it is collected.",
+      "properties": [
+        { "name": "type", "type": "string" },
+        { "name": "collect", "type": "string" },
+        { "name": "src", "type": "string" },
+        { "name": "href", "type": "string" }
+      ]
+    },
+    {
+      "name": "ActorDefinition",
+      "kind": "value_object",
+      "description": "Definition of an actor type and its move-end / idle behaviors.",
+      "properties": [
+        { "name": "type", "type": "string" },
+        { "name": "moveEnd", "type": "string" },
+        { "name": "idle", "type": "string" },
+        { "name": "src", "type": "string" },
+        { "name": "href", "type": "string" }
+      ]
+    },
+    {
+      "name": "PropDefinition",
+      "kind": "value_object",
+      "description": "Definition of a prop type and its pushed / onEnter behaviors.",
+      "properties": [
+        { "name": "type", "type": "string" },
+        { "name": "canEnter", "type": "boolean" },
+        { "name": "pushed", "type": "string" },
+        { "name": "onEnter", "type": "string" },
+        { "name": "src", "type": "string" },
+        { "name": "href", "type": "string" },
+        { "name": "data", "type": "Record<string, unknown>" }
+      ]
+    }
+  ]
+}
