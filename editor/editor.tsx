@@ -826,13 +826,45 @@ function CursorDropdown({ subscribe, el, query }: Context<HTMLElement>) {
       return el
     }
 
+    // A "Label: name" row, prefixed with a 16x16 sprite when the slot is filled.
+    const entityRow = (
+      label: string,
+      name: string | undefined,
+      drawThumb: (ctx: CanvasRenderingContext2D) => void,
+    ) => {
+      const row = ht.div({ class: "flex items-center gap-1" })
+      if (name !== undefined) {
+        const canvas = ht.canvas({
+          width: 16,
+          height: 16,
+          class: "crisp-edges",
+        })
+        drawThumb(canvas.getContext("2d")!)
+        row.append(canvas)
+      }
+      row.append(ht.div({}, `${label}: ${name ?? "-"}`))
+      return row
+    }
+
     const cell = fieldBlock.getCell(i, j)
-    desc.appendChild(section(false, ht.div({}, `Cell: ${cell?.name ?? "-"}`)))
+    desc.appendChild(section(
+      false,
+      entityRow("Cell", cell?.name, (ctx) => {
+        const def = cell && fieldBlock.cells[cell.name]
+        if (!def) return
+        fieldBlock.loadCellImage(def.href, { loadImage })
+          .then((img) => ctx.drawImage(img, 0, 0, 16, 16))
+      }),
+    ))
 
     const propSpawn = fieldBlock.propSpawns.get(i, j)
     const propSection = section(
       true,
-      ht.div({}, `Prop: ${propSpawn?.def.type ?? "-"}`),
+      entityRow("Prop", propSpawn?.def.type, (ctx) => {
+        const prop = Prop.fromSpawn(propSpawn!)
+        prop.loadAssets({ loadImage })
+          .then(() => ctx.drawImage(prop.image(), 0, 0, 16, 16))
+      }),
     )
     if (propSpawn?.def.dataSchema) {
       propSection.appendChild(
@@ -842,14 +874,24 @@ function CursorDropdown({ subscribe, el, query }: Context<HTMLElement>) {
     desc.appendChild(propSection)
 
     const itemSpawn = fieldBlock.itemSpawns.get(i, j)
-    desc.appendChild(
-      section(true, ht.div({}, `Item: ${itemSpawn?.def.type ?? "-"}`)),
-    )
+    desc.appendChild(section(
+      true,
+      entityRow("Item", itemSpawn?.def.type, (ctx) => {
+        const item = Item.fromSpawn(itemSpawn!)
+        item.loadAssets({ loadImage })
+          .then(() => ctx.drawImage(item.image(), 0, 0, 16, 16))
+      }),
+    ))
 
     const actorSpawn = fieldBlock.actorSpawns.get(i, j)
-    desc.appendChild(
-      section(true, ht.div({}, `Actor: ${actorSpawn?.def.type ?? "-"}`)),
-    )
+    desc.appendChild(section(
+      true,
+      entityRow("Actor", actorSpawn?.def.type, (ctx) => {
+        const actor = Actor.fromSpawn(actorSpawn!)
+        actor.loadAssets({ loadImage })
+          .then(() => ctx.drawImage(actor.image(), 0, 0, 16, 16))
+      }),
+    ))
   })
 }
 
