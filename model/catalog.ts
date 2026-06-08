@@ -1,4 +1,5 @@
 import { loadJson } from "../util/load.ts"
+import type { JSONSchema } from "../util/json-schema.ts"
 
 /** Shape of raw catalog json */
 interface CatalogSource {
@@ -21,7 +22,7 @@ interface CatalogSource {
     readonly canEnter: boolean
     readonly onEnter?: string
     readonly pushed?: string
-    readonly data?: Record<string, unknown>
+    readonly dataSchema?: JSONSchema
   }>
 }
 
@@ -59,7 +60,7 @@ export interface PropDefinition {
   readonly onEnter?: string
   readonly src: string
   readonly href: string
-  readonly data?: Record<string, unknown>
+  readonly dataSchema?: JSONSchema
 }
 
 /** The catalog class */
@@ -114,7 +115,7 @@ export class Catalog {
           pushed: data.pushed,
           src: data.src,
           href: new URL(data.src, url).href,
-          data: data.data,
+          dataSchema: data.dataSchema,
         }
       }
     }
@@ -159,7 +160,7 @@ export class Catalog {
         canEnter: def.canEnter,
         onEnter: def.onEnter,
         pushed: def.pushed,
-        data: def.data,
+        dataSchema: def.dataSchema,
       }
     }
 

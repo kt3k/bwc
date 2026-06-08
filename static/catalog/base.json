@@ -126,8 +126,13 @@
       "src": "../prop/portal.png",
       "canEnter": true,
       "onEnter": "teleport",
-      "data": {
-        "dest": ["number", "number"]
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "i": { "type": "number" },
+          "j": { "type": "number" }
+        },
+        "required": ["i", "j"]
       }
     },
     "portal-out": {

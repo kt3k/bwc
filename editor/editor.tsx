@@ -817,9 +817,9 @@ function CursorDropdown({ subscribe, el, query }: Context<HTMLElement>) {
     desc.appendChild(ht.div({}, `Cell: ${cell?.name ?? "-"}`))
     const propSpawn = fieldBlock.propSpawns.get(cursor.i, cursor.j)
     desc.appendChild(ht.div({}, `Prop: ${propSpawn?.def.type ?? "-"}`))
-    if (propSpawn?.def.data) {
+    if (propSpawn?.def.dataSchema) {
       desc.appendChild(
-        ht.div({}, `Prop Data: ${JSON.stringify(propSpawn.def.data)}`),
+        ht.div({}, `Prop Data: ${JSON.stringify(propSpawn.data)}`),
       )
     }
     const itemSpawn = fieldBlock.itemSpawns.get(cursor.i, cursor.j)
