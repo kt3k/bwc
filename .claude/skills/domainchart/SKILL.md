@@ -1,12 +1,13 @@
 ---
 description: This skill visualizes the domain object hierarchy in the project using domainchart npm package.
 metadata:
-    github-path: skills/domainchart
-    github-ref: refs/heads/main
-    github-repo: https://github.com/kt3k/domainchart
-    github-tree-sha: ca4b540ea091684b84b444bbacd87e18518b272d
+  github-path: skills/domainchart
+  github-ref: refs/heads/main
+  github-repo: https://github.com/kt3k/domainchart
+  github-tree-sha: ca4b540ea091684b84b444bbacd87e18518b272d
 name: domainchart
 ---
+
 # domainchart
 
 A skill for expressing a DDD domain as a **hierarchy of domain objects** that
