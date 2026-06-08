@@ -705,11 +705,11 @@ export class FieldBlock {
       i: this.#i,
       j: this.#j,
       catalogs: this.#map.catalog.refs,
+      config: this.config,
       actors: this.actorSpawns.toJSON(),
       items: this.itemSpawns.toJSON(),
       props: this.propSpawns.toJSON(),
       field: this.field,
-      config: this.config,
     }, this.#map.catalog)
   }
 
