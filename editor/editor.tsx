@@ -942,10 +942,9 @@ function propDataEditor(
 
   saveButton.addEventListener("click", () => {
     editBlock((b) => {
-      const old = b.propSpawns.get(i, j)
-      if (!old) return
-      b.propSpawns.remove(i, j)
-      b.propSpawns.add(new PropSpawn(i, j, old.def, draft))
+      const spawn = b.propSpawns.get(i, j)
+      if (!spawn) return
+      spawn.data = draft
     })
     base = draft
     setDirty(false)

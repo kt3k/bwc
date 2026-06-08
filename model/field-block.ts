@@ -75,7 +75,7 @@ export class PropSpawn implements IBox {
   readonly y: number
   readonly w = CELL_SIZE
   readonly h = CELL_SIZE
-  readonly data: unknown
+  data: unknown
   constructor(
     i: number,
     j: number,
