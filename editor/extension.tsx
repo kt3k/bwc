@@ -103,7 +103,7 @@ function resolveCustomTextEditor(
                   stroke-width="1"
                 />
               </svg>
-              <div class="description rounded-r rounded-bl px-2 py-1 absolute left-12 top-4 bg-neutral-900/90 border border-neutral-100 text-neutral-100">
+              <div class="description pointer-events-auto rounded-r rounded-bl px-2 py-1 absolute left-12 top-4 bg-neutral-900/90 border border-neutral-100 text-neutral-100">
               </div>
             </div>
           </div>

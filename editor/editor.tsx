@@ -38,6 +38,8 @@ import type * as type from "./types.ts"
 import { BLOCK_SIZE, CELL_SIZE } from "../util/constants.ts"
 import { Item } from "../model/item.ts"
 import { Actor } from "../model/actor.ts"
+import { buildSchemaForm } from "./schema-form.ts"
+import type { JSONSchema } from "../util/json-schema.ts"
 
 type ToolBase = { id: string }
 type CellTool = ToolBase & { kind: "cell"; name: string; def: CellDefinition }
@@ -808,25 +810,121 @@ function CursorDropdown({ subscribe, el, query }: Context<HTMLElement>) {
     el.style.left = `${modulo(cursor.i * CELL_SIZE, CANVAS_SIZE)}px`
     el.style.top = `${modulo(cursor.j * CELL_SIZE, CANVAS_SIZE)}px`
 
+    const { i, j } = cursor
     const desc = query(".description")!
+    // Keep clicks on the form from reaching the canvas (which moves the cursor).
+    desc.onclick = (e) => e.stopPropagation()
     desc.replaceChildren(
-      ht.div({}, `[${cursor.i}, ${cursor.j}]`),
+      ht.div({}, `[${i}, ${j}]`),
     )
 
-    const cell = fieldBlock.getCell(cursor.i, cursor.j)
-    desc.appendChild(ht.div({}, `Cell: ${cell?.name ?? "-"}`))
-    const propSpawn = fieldBlock.propSpawns.get(cursor.i, cursor.j)
-    desc.appendChild(ht.div({}, `Prop: ${propSpawn?.def.type ?? "-"}`))
+    // Each entity area is its own section; a thin gray rule separates them.
+    const SEPARATOR = "border-t border-neutral-600 mt-2 pt-2"
+    const section = (separated: boolean, ...children: Node[]) => {
+      const el = ht.div(separated ? { class: SEPARATOR } : {})
+      el.append(...children)
+      return el
+    }
+
+    const cell = fieldBlock.getCell(i, j)
+    desc.appendChild(section(false, ht.div({}, `Cell: ${cell?.name ?? "-"}`)))
+
+    const propSpawn = fieldBlock.propSpawns.get(i, j)
+    const propSection = section(
+      true,
+      ht.div({}, `Prop: ${propSpawn?.def.type ?? "-"}`),
+    )
     if (propSpawn?.def.dataSchema) {
-      desc.appendChild(
-        ht.div({}, `Prop Data: ${JSON.stringify(propSpawn.data)}`),
+      propSection.appendChild(
+        propDataEditor(i, j, propSpawn.def.dataSchema, propSpawn.data),
       )
     }
-    const itemSpawn = fieldBlock.itemSpawns.get(cursor.i, cursor.j)
-    desc.appendChild(ht.div({}, `Item: ${itemSpawn?.def.type ?? "-"}`))
-    const actorSpawn = fieldBlock.actorSpawns.get(cursor.i, cursor.j)
-    desc.appendChild(ht.div({}, `Actor: ${actorSpawn?.def.type ?? "-"}`))
+    desc.appendChild(propSection)
+
+    const itemSpawn = fieldBlock.itemSpawns.get(i, j)
+    desc.appendChild(
+      section(true, ht.div({}, `Item: ${itemSpawn?.def.type ?? "-"}`)),
+    )
+
+    const actorSpawn = fieldBlock.actorSpawns.get(i, j)
+    desc.appendChild(
+      section(true, ht.div({}, `Actor: ${actorSpawn?.def.type ?? "-"}`)),
+    )
   })
+}
+
+/**
+ * Editor for a prop spawn's instance data at (i, j). Edits are kept in a local
+ * draft; the Save/Cancel buttons are always shown but stay disabled until the
+ * data is touched, and the change is only committed to the document on Save.
+ */
+function propDataEditor(
+  i: number,
+  j: number,
+  schema: JSONSchema,
+  initial: unknown,
+): HTMLElement {
+  const container = ht.div({ class: "flex flex-col gap-1 mt-1" })
+
+  // `base` is the last committed value; `draft` is the in-progress edit.
+  let base = initial
+  let draft = initial
+
+  const formHolder = ht.div({})
+  const buttons = ht.div({ class: "flex gap-1" })
+  const saveButton = editorButton("Save", "bg-blue-600 hover:bg-blue-500")
+  const cancelButton = editorButton(
+    "Cancel",
+    "bg-neutral-700 hover:bg-neutral-600",
+  )
+  buttons.append(saveButton, cancelButton)
+  container.append(formHolder, buttons)
+
+  // Enable the buttons only while the draft differs from the saved value, so
+  // they stay in place instead of appearing and disappearing.
+  function setDirty(dirty: boolean) {
+    saveButton.disabled = !dirty
+    cancelButton.disabled = !dirty
+  }
+
+  function buildForm() {
+    formHolder.replaceChildren(
+      buildSchemaForm(schema, base, (value) => {
+        draft = value
+        setDirty(JSON.stringify(draft) !== JSON.stringify(base))
+      }),
+    )
+  }
+  buildForm()
+  setDirty(false)
+
+  saveButton.addEventListener("click", () => {
+    editBlock((b) => {
+      const old = b.propSpawns.get(i, j)
+      if (!old) return
+      b.propSpawns.remove(i, j)
+      b.propSpawns.add(new PropSpawn(i, j, old.def, draft))
+    })
+    base = draft
+    setDirty(false)
+  })
+
+  cancelButton.addEventListener("click", () => {
+    draft = base
+    buildForm()
+    setDirty(false)
+  })
+
+  return container
+}
+
+function editorButton(label: string, color: string): HTMLButtonElement {
+  const button = document.createElement("button")
+  button.type = "button"
+  button.textContent = label
+  button.className =
+    `px-2 py-0.5 rounded text-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed ${color}`
+  return button
 }
 
 async function NextField({ el }: Context<HTMLAnchorElement>) {
