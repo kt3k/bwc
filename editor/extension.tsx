@@ -164,6 +164,13 @@ function resolveCustomTextEditor(
         </div>
         <div class="js-info-panel fixed right-0 top-0 h-full w-48 bg-neutral-900/90 text-neutral-100 pointer-events-none">
           <div class="info-content text-xs font-mono">
+            <div class="py-1 px-2 bg-white/50 text-black">Map</div>
+            <div class="px-2 py-1">
+              <label class="js-shows-exit-button pointer-events-auto inline-flex items-center gap-1 cursor-pointer">
+                <input type="checkbox" />
+                showsExitButton
+              </label>
+            </div>
             <div class="py-1 px-2 bg-white/50 text-black">Grid</div>
             <div class="px-2 py-1">
               (i, j): <span class="grid-index text-blue-500"></span>

@@ -773,7 +773,21 @@ function KeyHandler({ on }: Context) {
 }
 
 /** Cell information panel on the right */
-function InfoPanel({ subscribe, query }: Context<HTMLElement>) {
+function InfoPanel({ subscribe, query, on }: Context<HTMLElement>) {
+  // Map-wide config toggles.
+  const exitToggle = query<HTMLInputElement>(".js-shows-exit-button input")
+  if (exitToggle) {
+    exitToggle.checked = fieldBlock.config.showsExitButton
+    on("change", ".js-shows-exit-button input", () => {
+      editBlock((b) => {
+        b.config.showsExitButton = exitToggle.checked
+      })
+    })
+    subscribe(signals.fieldBlock, (b) => {
+      exitToggle.checked = b.config.showsExitButton
+    })
+  }
+
   subscribe(signals.gridIndex, ({ i, j }) => {
     const infoContent = query(".info-content")
     if (!infoContent) return
