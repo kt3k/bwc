@@ -165,11 +165,15 @@ function resolveCustomTextEditor(
         <div class="js-info-panel fixed right-0 top-0 h-full w-48 bg-neutral-900/90 text-neutral-100 pointer-events-none">
           <div class="info-content text-xs font-mono">
             <div class="py-1 px-2 bg-white/50 text-black">Map</div>
-            <div class="px-2 py-1">
+            <div class="px-2 py-1 flex items-center gap-2">
               <label class="js-shows-exit-button pointer-events-auto inline-flex items-center gap-1 cursor-pointer">
                 <input type="checkbox" />
                 showsExitButton
               </label>
+              <span class="js-exit-button-preview inline-block bg-[#9d285c] p-1 leading-none">
+                <canvas width="16" height="16" class="crisp-edges block">
+                </canvas>
+              </span>
             </div>
             <div class="py-1 px-2 bg-white/50 text-black">Grid</div>
             <div class="px-2 py-1">

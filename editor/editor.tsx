@@ -788,6 +788,15 @@ function InfoPanel({ subscribe, query, on }: Context<HTMLElement>) {
     })
   }
 
+  // Preview of the actual exit button next to the toggle.
+  const exitPreview = query<HTMLCanvasElement>(".js-exit-button-preview canvas")
+  if (exitPreview) {
+    const href = new URL("../prop/exit.png", blockMapSource.get().uri).href
+    loadImage(href).then((img) => {
+      exitPreview.getContext("2d")!.drawImage(img, 0, 0, 16, 16)
+    })
+  }
+
   subscribe(signals.gridIndex, ({ i, j }) => {
     const infoContent = query(".info-content")
     if (!infoContent) return
