@@ -16,6 +16,10 @@ export namespace Extension {
     type: "loadImageResponse"
     id: string
     text: string
+  } | {
+    type: "loadImageResponse"
+    id: string
+    error: string
   }
   export type MessageLoadTextResponse = {
     type: "loadTextResponse"

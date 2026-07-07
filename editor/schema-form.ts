@@ -101,6 +101,11 @@ function arrayField(
   wrapper.className = "flex gap-1"
   for (const [idx, sub] of (schema.prefixItems ?? []).entries()) {
     wrapper.appendChild(buildField(sub, arr[idx], (v) => {
+      if (v === undefined) {
+        // An emptied number input; keep the previous value rather than
+        // saving null into the tuple
+        return
+      }
       arr[idx] = v
       onChange([...arr])
     }))

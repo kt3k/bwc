@@ -85,25 +85,34 @@ function onExtensionMessage({ data }: MessageEvent<type.Extension.Message>) {
 addEventListener("message", onExtensionMessage)
 
 type ResolveImage = (image: ImageBitmap) => void
-const loadImageMap: Record<string, { resolve: ResolveImage }> = {}
+type RejectImage = (error: Error) => void
+const loadImageMap: Record<
+  string,
+  { resolve: ResolveImage; reject: RejectImage }
+> = {}
 const loadImage = memoizedLoading((uri: string) => {
-  const { resolve, promise } = Promise.withResolvers<ImageBitmap>()
+  const { resolve, reject, promise } = Promise.withResolvers<ImageBitmap>()
   const id = Math.random().toString()
-  loadImageMap[id] = { resolve }
+  loadImageMap[id] = { resolve, reject }
   vscode.postMessage({ type: "loadImage", uri, id })
   return promise
 })
 function onLoadImageResponse(
   message: type.Extension.MessageLoadImageResponse,
 ) {
+  const { resolve, reject } = loadImageMap[message.id]
+  delete loadImageMap[message.id]
+  if ("error" in message) {
+    reject(new Error(message.error))
+    return
+  }
   const image = new Image()
   image.src = message.text
   image.onload = () => {
-    const bitmap = createImageBitmap(image)
-    bitmap.then((bitmap) => {
-      loadImageMap[message.id].resolve(bitmap)
-      delete loadImageMap[message.id]
-    })
+    createImageBitmap(image).then(resolve, reject)
+  }
+  image.onerror = () => {
+    reject(new Error("Failed to decode image"))
   }
 }
 
@@ -289,6 +298,10 @@ class ToolManager {
     this.#toolIndex = i
   }
 
+  hasToolById(id: string): boolean {
+    return this.tools.some((tool) => tool.id === id)
+  }
+
   currentTool(): Tool {
     return this.#get(this.#toolIndex)
   }
@@ -396,7 +409,11 @@ const catalog = await loadCatalog(uri, mapObj.catalogs, { loadJson })
 const fieldBlockSignal = blockMapSource.map(({ uri, text }) =>
   new FieldBlock(new BlockMap(uri, JSON.parse(text), catalog))
 )
-await fieldBlockSignal.get().loadAssets({ loadImage })
+await fieldBlockSignal.get().loadAssets({ loadImage }).catch((e) => {
+  // Keep the editor booting with missing images rather than showing a
+  // blank webview with no error
+  console.error("Failed to load assets", e)
+})
 
 function editBlock(cb: (block: FieldBlock) => void) {
   const block = fieldBlockSignal.get().clone()
@@ -443,7 +460,9 @@ function Toolbox({ el, on, subscribe }: Context<HTMLElement>) {
 
   on("click", (e) => {
     const { id } = e.target as HTMLDivElement
-    if (currentTool.id !== id) {
+    // Clicks can land on the toolbox background or labels, which have
+    // no tool id
+    if (id && currentTool.id !== id && toolManager.hasToolById(id)) {
       toolManager.selectById(id)
       updateTools(toolManager)
     }
@@ -608,6 +627,7 @@ async function CanvasLayers({ query, on, el, subscribe }: Context) {
 
   on("click", (e) => {
     const grid = getGridIndexFromMouseEvent(e, el)
+    if (!grid) return
     switch (mode) {
       case "dot":
       case "stroke":
@@ -622,6 +642,10 @@ async function CanvasLayers({ query, on, el, subscribe }: Context) {
   })
   on("mousemove", (e) => {
     const grid = getGridIndexFromMouseEvent(e, el)
+    if (!grid) {
+      signals.gridIndex.update({ i: null, j: null })
+      return
+    }
     signals.gridIndex.update(grid)
     if (mode === "stroke") {
       toolManager.edit(grid)
@@ -652,7 +676,7 @@ async function CanvasLayers({ query, on, el, subscribe }: Context) {
         // action === "remove"
         propsCanvasWrapper.clearCell(prop.i, prop.j)
 
-        // redraw the object below to fix overlapping area
+        // redraw the neighbor props to fix overlapping areas
         // This is necessary because some props are taller than CELL_SIZE e.g. table
         propsCanvasWrapper.clearCell(prop.i, prop.j + 1)
         const spawnBelow = block.propSpawns.get(prop.i, prop.j + 1)
@@ -660,6 +684,13 @@ async function CanvasLayers({ query, on, el, subscribe }: Context) {
           const objectBelow = Prop.fromSpawn(spawnBelow)
           await objectBelow.loadAssets({ loadImage })
           propsCanvasWrapper.drawEntity(objectBelow)
+        }
+        // A tall prop anchored above renders down into the cleared cell
+        const spawnAbove = block.propSpawns.get(prop.i, prop.j - 1)
+        if (spawnAbove) {
+          const objectAbove = Prop.fromSpawn(spawnAbove)
+          await objectAbove.loadAssets({ loadImage })
+          propsCanvasWrapper.drawEntity(objectAbove)
         }
       }
     }
@@ -730,16 +761,28 @@ function getGridIndexFromMouseEvent(
   el: HTMLElement,
 ) {
   const { left, top } = el.getBoundingClientRect()
-  const x = floorN(e.clientX - left, 16)
-  const y = floorN(e.clientY - top, 16)
-  const i = x / 16 + fieldBlock.i
-  const j = y / 16 + fieldBlock.j
-  return { i, j }
+  const x = floorN(e.clientX - left, CELL_SIZE)
+  const y = floorN(e.clientY - top, CELL_SIZE)
+  const i = x / CELL_SIZE
+  const j = y / CELL_SIZE
+  if (i < 0 || i >= BLOCK_SIZE || j < 0 || j >= BLOCK_SIZE) {
+    // The click target is larger than the canvases; editing out of
+    // bounds would wrap around (modulo) and destroy cells on the
+    // opposite edge of the map
+    return null
+  }
+  return { i: i + fieldBlock.i, j: j + fieldBlock.j }
 }
 
 function KeyHandler({ on }: Context) {
   on("keydown", (e) => {
-    if (e.key === "l") {
+    if (e.ctrlKey || e.metaKey || e.altKey) {
+      // Don't hijack shortcuts like Ctrl+S (save)
+      return
+    }
+    if (e.key === "d") {
+      signals.mode.update("dot")
+    } else if (e.key === "l") {
       toolManager.selectNext()
       updateTools(toolManager)
       signals.mode.update("dot")
@@ -760,7 +803,7 @@ function KeyHandler({ on }: Context) {
       } else {
         signals.mode.update("dot")
       }
-    } else if (e.key === "s" && !e.altKey && !e.metaKey) {
+    } else if (e.key === "s") {
       if (mode !== "stroke") {
         signals.mode.update("stroke")
       } else {

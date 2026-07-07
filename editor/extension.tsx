@@ -251,12 +251,20 @@ function resolveCustomTextEditor(
   }
 
   async function loadImage({ uri, id }: type.Webview.MessageLoadImage) {
-    postMessage({
-      type: "loadImageResponse",
-      text: "data:image/png;base64," +
-        encodeBase64(await workspace.fs.readFile(Uri.parse(uri))),
-      id,
-    })
+    try {
+      postMessage({
+        type: "loadImageResponse",
+        text: "data:image/png;base64," +
+          encodeBase64(await workspace.fs.readFile(Uri.parse(uri))),
+        id,
+      })
+    } catch (error) {
+      postMessage({
+        type: "loadImageResponse",
+        error: (error as Error).message,
+        id,
+      })
+    }
   }
 
   async function loadText({ uri, id }: type.Webview.MessageLoadText) {
