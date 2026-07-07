@@ -439,7 +439,9 @@ class BlockMapLoader {
  * doesn't belong to this scope need to be unloaded
  */
 class BlockUnloadScope extends RectScope {
-  static UNLOAD_UNIT = 200 * CELL_SIZE
+  // Larger than LOAD_UNIT so that pacing back and forth across a load
+  // boundary doesn't repeatedly unload and re-load the same blocks
+  static UNLOAD_UNIT = 400 * CELL_SIZE
   constructor() {
     super(BlockUnloadScope.UNLOAD_UNIT, BlockUnloadScope.UNLOAD_UNIT)
   }
@@ -451,6 +453,7 @@ export class Field implements IField {
   readonly #blockElements: Record<string, HTMLCanvasElement> = {}
   readonly #loadScope = new BlockLoadScope()
   readonly #unloadScope = new BlockUnloadScope()
+  readonly #loadingBlockIds = new Set<string>()
   readonly #activateScope: RectScope
   readonly #deactivateScope: RectScope
   readonly #mapLoader = new BlockMapLoader(new URL("map/", location.href).href)
@@ -521,7 +524,7 @@ export class Field implements IField {
   }
 
   colorCell(i: number, j: number, color: string): void {
-    this.#getBlock(i, j).drawCellColor(i, j, color)
+    this.#getBlockOrNull(i, j)?.drawCellColor(i, j, color)
   }
 
   async #addBlock(block: FieldBlock) {
@@ -540,22 +543,28 @@ export class Field implements IField {
   }
 
   #getBlock(i: number, j: number): FieldBlock {
-    const i_ = floorN(i, BLOCK_SIZE)
-    const j_ = floorN(j, BLOCK_SIZE)
-    const block = this.#blocks[`${i_}.${j_}`]
+    const block = this.#getBlockOrNull(i, j)
     if (!block) {
-      console.error(`Unable to get block at ${i_}, ${j_}`)
+      console.error(`Unable to get block at ${i}, ${j}`)
       throw Error("Block not found")
     }
     return block
   }
 
+  #getBlockOrNull(i: number, j: number): FieldBlock | undefined {
+    const i_ = floorN(i, BLOCK_SIZE)
+    const j_ = floorN(j, BLOCK_SIZE)
+    return this.#blocks[`${i_}.${j_}`]
+  }
+
   /**
    * Gets the cell for the given grid coordinate
-   * Mainly used by characters to get the cell they are trying to enter
+   * Mainly used by characters to get the cell they are trying to enter.
+   * Returns undefined when the block isn't loaded (e.g. a failed block
+   * fetch); throwing here would kill the game loop.
    */
-  #getCell(i: number, j: number): CellDefinition {
-    return this.#getBlock(i, j).getCell(i, j)
+  #getCell(i: number, j: number): CellDefinition | undefined {
+    return this.#getBlockOrNull(i, j)?.getCell(i, j)
   }
   step(): void {
     this.#time++
@@ -565,11 +574,13 @@ export class Field implements IField {
     this.#effects.step(this)
   }
   canEnter(i: number, j: number): boolean {
-    return this.#getCell(i, j).canEnter && !this.#actors.checkCollision(i, j) &&
+    return (this.#getCell(i, j)?.canEnter ?? false) &&
+      !this.#actors.checkCollision(i, j) &&
       this.#props.canEnter(i, j)
   }
   canEnterStatic(i: number, j: number): boolean {
-    return this.#getCell(i, j).canEnter && this.#props.canEnter(i, j)
+    return (this.#getCell(i, j)?.canEnter ?? false) &&
+      this.#props.canEnter(i, j)
   }
   peekItem(i: number, j: number): IItem | undefined {
     return this.#items.get(i, j)
@@ -581,7 +592,7 @@ export class Field implements IField {
   // Spawns a new actor at the given grid coordinate
   // if the actor type is unavailable in the given block, returns null
   spawnActor(type: string, i: number, j: number, dir: Dir): IActor | null {
-    const def = this.#getBlock(i, j).catalog.actors[type]
+    const def = this.#getBlockOrNull(i, j)?.catalog.actors[type]
 
     if (!def) {
       console.log("Unable to spawn actor of type:", type)
@@ -616,10 +627,15 @@ export class Field implements IField {
   ) {
     this.#loadScope.setCenter(i * CELL_SIZE, j * CELL_SIZE)
     const blockIdsToLoad = this.#loadScope.blockIds().filter((id) =>
-      !this.#hasBlock(id)
+      !this.#hasBlock(id) && !this.#loadingBlockIds.has(id)
     )
-    for (const map of await this.#mapLoader.loadMaps(blockIdsToLoad)) {
-      this.#addBlock(new FieldBlock(map))
+    blockIdsToLoad.forEach((id) => this.#loadingBlockIds.add(id))
+    try {
+      for (const map of await this.#mapLoader.loadMaps(blockIdsToLoad)) {
+        this.#addBlock(new FieldBlock(map))
+      }
+    } finally {
+      blockIdsToLoad.forEach((id) => this.#loadingBlockIds.delete(id))
     }
     const initialLoad = !this.#initialBlocksLoaded
     await Promise.all(this.#getChunks(i, j).map((c) => c.render(initialLoad)))
@@ -629,7 +645,11 @@ export class Field implements IField {
         i,
         j,
         { viewScope, initialLoad: true },
-      ).then(() => {
+      ).catch((e) => {
+        // Continue with fallback images rather than staying on the
+        // loading screen forever
+        console.error("Failed to load some entity assets", e)
+      }).then(() => {
         console.log("initial actors ready")
         this.#initialActivateReady = true
       })

@@ -16,7 +16,7 @@ import { ExitButton } from "./ui/exit-button.ts"
 
 import * as jsfxr from "jsfxr"
 console.log("jsfxr", jsfxr)
-;(globalThis as any).jsfxr = jsfxr
+;(globalThis as unknown as { jsfxr: unknown }).jsfxr = jsfxr
 globalThis.addEventListener("blur", clearInput)
 
 const preset = "pickupCoin"

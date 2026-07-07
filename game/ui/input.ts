@@ -13,9 +13,10 @@ export const Input = {
   right: false,
 }
 
-/** Clear the current direction input state */
+/** Clear the current direction input state and pending queued inputs */
 export function clearInput() {
   for (const dir of DIRS) {
     Input[dir] = false
   }
+  inputQueue.length = 0
 }

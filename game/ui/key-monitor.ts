@@ -14,21 +14,23 @@ let spaceQueued = false
  */
 export function KeyMonitor({ on }: Context) {
   on("keydown", (e) => {
+    // Normalize letter keys so movement works with CapsLock/Shift
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key
     if (e.metaKey || e.ctrlKey) {
       return
-    } else if (KEY_UP.has(e.key)) {
+    } else if (KEY_UP.has(key)) {
       e.preventDefault()
       Input.up = true
-    } else if (KEY_DOWN.has(e.key)) {
+    } else if (KEY_DOWN.has(key)) {
       e.preventDefault()
       Input.down = true
-    } else if (KEY_LEFT.has(e.key)) {
+    } else if (KEY_LEFT.has(key)) {
       e.preventDefault()
       Input.left = true
-    } else if (KEY_RIGHT.has(e.key)) {
+    } else if (KEY_RIGHT.has(key)) {
       e.preventDefault()
       Input.right = true
-    } else if (e.key === " ") {
+    } else if (key === " ") {
       e.preventDefault()
       if (!spaceQueued) {
         spaceQueued = true
@@ -37,15 +39,16 @@ export function KeyMonitor({ on }: Context) {
     }
   })
   on("keyup", (e) => {
-    if (KEY_UP.has(e.key)) {
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key
+    if (KEY_UP.has(key)) {
       Input.up = false
-    } else if (KEY_DOWN.has(e.key)) {
+    } else if (KEY_DOWN.has(key)) {
       Input.down = false
-    } else if (KEY_LEFT.has(e.key)) {
+    } else if (KEY_LEFT.has(key)) {
       Input.left = false
-    } else if (KEY_RIGHT.has(e.key)) {
+    } else if (KEY_RIGHT.has(key)) {
       Input.right = false
-    } else if (e.key === " ") {
+    } else if (key === " ") {
       spaceQueued = false
     }
   })

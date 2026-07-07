@@ -656,6 +656,15 @@ export class FieldBlock {
       this.#chunks[chunkKey] = true
       removeOverlay()
     }
+    worker.onerror = (e) => {
+      // Resolve (not reject) so a single failed chunk doesn't hang the
+      // initial load; the chunk state is rolled back so it gets retried
+      console.error("Failed to render chunk", this.id, k, l, e)
+      worker.terminate()
+      this.#chunks[chunkKey] = false
+      removeOverlay()
+      render.resolve()
+    }
     worker.postMessage({
       cells: this.#map.catalog.cells,
       imgMap: this.imgMap,

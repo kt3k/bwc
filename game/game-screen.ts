@@ -3,6 +3,7 @@ import { Gameloop } from "@kt3k/gameloop"
 import * as signals from "../util/signals.ts"
 import { CELL_SIZE } from "../util/constants.ts"
 import { IdleMainActor, MoveEndMainActor } from "./main-character.ts"
+import { inputQueue } from "./ui/input.ts"
 import { DrawLayer } from "./draw-layer.ts"
 import { RectScope } from "../util/rect-scope.ts"
 
@@ -86,12 +87,15 @@ export function GameScreen({ el, query }: Context) {
   const field = new Field(query(".field")!, me, activateScope, deactivateScope)
   signals.centerPixel.update({ x: field.me.centerX, y: field.me.centerY })
 
-  signals.centerGrid10.subscribe(() => {
+  const loadBlocks = () => {
     field.checkBlockLoad(field.me.i, field.me.j, viewScope).then(() => {
       signals.currentBlock.update(field.currentBlock())
+    }).catch((e) => {
+      console.error("Failed to load blocks", e)
     })
     field.checkBlockUnload(field.me.i, field.me.j)
-  })
+  }
+  signals.centerGrid10.subscribe(loadBlocks)
 
   signals.centerPixel.subscribe(({ x, y }) => {
     viewScope.setCenter(x, y)
@@ -107,6 +111,9 @@ export function GameScreen({ el, query }: Context) {
   const loop = new Gameloop(60, () => {
     if (!field.assetsReady) {
       signals.isGameLoading.update(true)
+      // Inputs made during the loading screen shouldn't replay as a
+      // burst of actions once the game starts
+      inputQueue.length = 0
       return
     }
     signals.isGameLoading.update(false)
@@ -134,6 +141,7 @@ export function GameScreen({ el, query }: Context) {
     }
     if (time % 60 === 59) {
       field.checkActivate(field.me.i, field.me.j, { viewScope })
+        .catch((e) => console.error("Failed to activate entities", e))
     }
   })
   loop.onStep((fps, v) => {
@@ -152,6 +160,10 @@ export function GameScreen({ el, query }: Context) {
       field.fastTravel(field.me, i, j)
       field.me.unsetFollower()
       signals.centerPixel.update({ x: field.me.centerX, y: field.me.centerY })
+      // centerGrid10 doesn't fire when the destination is in the same
+      // 10-cell tile, so kick the block load explicitly; without this
+      // the game would stay on the loading curtain forever
+      loadBlocks()
       loop.start()
     }, 10)
   }
