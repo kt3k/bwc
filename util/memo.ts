@@ -18,6 +18,9 @@ export function memoizedLoading<K, A extends WeakKey>(
       // This prevents the promise from being garbage collected
       // as long as the asset is being used
       weakKeyMap.set(value, promise)
+    }, () => {
+      // Evict rejected promises so that the load is retried next time
+      weakValueMap.delete(key)
     })
     return promise
   }

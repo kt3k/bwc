@@ -28,7 +28,10 @@ export class Prop implements IProp {
     (field, action) => {
       switch (action.type) {
         case "break": {
-          this.#motion = new MotionBreak(this.#image!, action.dir)
+          this.#motion = new MotionBreak(
+            this.#image ?? fallbackImage,
+            action.dir,
+          )
           this.#motion.cb = action.cb
           return "end"
         }

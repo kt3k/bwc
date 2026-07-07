@@ -197,6 +197,9 @@ export class SpawnMap<
   }
 
   add(spawn: T): void {
+    // Evict the previous occupant of the cell from both #map and #chunks,
+    // otherwise the shadowed spawn stays in the chunk forever
+    this.remove(spawn.i, spawn.j)
     this.#map[this.#key(spawn.i, spawn.j)] = spawn
     const [k, l] = g2c(spawn.i, spawn.j)
     this.#chunks[k][l].push(spawn)
@@ -362,11 +365,10 @@ export function drawCellColor(
   i: number,
   j: number,
   color: string,
-  margin = 1,
 ) {
   const [localI, localJ] = g2l(i, j)
   const { randomInt } = seed(`${i}.${j}`)
-  margin = randomInt(3)
+  const margin = randomInt(3)
   wrapper.drawRect(
     localI * CELL_SIZE + margin,
     localJ * CELL_SIZE + margin,
@@ -520,7 +522,10 @@ export class FieldBlock {
   }
 
   clone(): FieldBlock {
-    return new FieldBlock(this.#map.clone())
+    // Clone from the live state (toMap), not from BlockMap's original source.
+    // Spawn edits only exist in the SpawnMaps, so cloning from the stale
+    // source would silently discard them (e.g. consecutive editor edits).
+    return new FieldBlock(this.toMap().clone())
   }
 
   get id(): string {
@@ -589,8 +594,8 @@ export class FieldBlock {
     }
   }
 
-  drawCellColor(i: number, j: number, color: string, margin = 1) {
-    drawCellColor(this.canvasWrapper, i, j, color, margin)
+  drawCellColor(i: number, j: number, color: string) {
+    drawCellColor(this.canvasWrapper, i, j, color)
   }
 
   renderAll(canvas = this.canvas) {

@@ -67,11 +67,7 @@ export class MoveBounce implements CommonMove {
 
   step() {
     this.#phase += this.#speed
-    if (this.#phase <= 8) {
-      this.#d += this.#speed
-    } else {
-      this.#d -= this.#speed
-    }
+    this.#d = this.#phase <= 8 ? this.#phase : 16 - this.#phase
   }
 
   get x(): number {

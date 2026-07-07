@@ -91,7 +91,7 @@ export function linePattern0(
   const baseY = j * CELL_SIZE
   const effects: EffectLine0[] = []
   for (const dir of dirs) {
-    for (const i of Array(5).keys()) {
+    for (const k of Array(5).keys()) {
       let dx = 0, dy = 0, offsetX = 0, offsetY = 0
       switch (dir) {
         case "up":
@@ -109,11 +109,11 @@ export function linePattern0(
           offsetX = CELL_SIZE
           break
       }
-      const speed = baseSpeed + (2 - Math.abs(i - 2)) * p0
+      const speed = baseSpeed + (2 - Math.abs(k - 2)) * p0
       effects.push(
         new EffectLine0(
-          offsetX + baseX + dx * i,
-          offsetY + baseY + dy * i,
+          offsetX + baseX + Math.min(dx * k, CELL_SIZE - 1),
+          offsetY + baseY + Math.min(dy * k, CELL_SIZE - 1),
           dir,
           color,
           CELL_SIZE,
