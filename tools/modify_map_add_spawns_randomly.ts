@@ -5,7 +5,7 @@ import {
   FieldBlock,
   ItemSpawn,
 } from "../model/field-block.ts"
-import type { ItemType } from "../model/types.ts"
+import { loadCatalog } from "../model/catalog.ts"
 
 const randomInt = (n: number) => Math.floor(Math.random() * n)
 
@@ -29,7 +29,8 @@ async function addCharactersRandomly(mapFile: string) {
     JSON.parse,
   )
 
-  const bm = new BlockMap(mapJson.href, map)
+  const catalog = await loadCatalog(mapJson.href, map.catalogs)
+  const bm = new BlockMap(mapJson.href, map, catalog)
   const fb = new FieldBlock(bm)
   let c = 0
   for (const _ of Array(400)) {
@@ -43,16 +44,14 @@ async function addCharactersRandomly(mapFile: string) {
         new ActorSpawn(
           i + bm.i,
           j + bm.j,
-          isRandom ? "random" : "random-walk",
-          isRandom ? "../char/joob/" : "../char/not-found/",
-          mapJson.href,
+          catalog.actors[isRandom ? "random" : "random-walk"]!,
         ),
       )
     }
   }
   if (mapFile === "block_0.0") {
     fb.itemSpawns.add(
-      new ItemSpawn(2, 6, "mushroom", "../item/mushroom.png", mapJson.href),
+      new ItemSpawn(2, 6, catalog.items["mushroom"]!),
     )
 
     for (const i of [...Array(8).keys()]) {
@@ -60,9 +59,7 @@ async function addCharactersRandomly(mapFile: string) {
         new ActorSpawn(
           69,
           8 + i,
-          "random-rotate",
-          "../char/juni/",
-          mapJson.href,
+          catalog.actors["random-rotate"]!,
         ),
       )
     }
@@ -72,9 +69,7 @@ async function addCharactersRandomly(mapFile: string) {
         new ActorSpawn(
           72,
           9 + i,
-          "random-rotate",
-          "../char/juni/",
-          mapJson.href,
+          catalog.actors["random-rotate"]!,
         ),
       )
     }
@@ -84,37 +79,35 @@ async function addCharactersRandomly(mapFile: string) {
         new ActorSpawn(
           75,
           8 + i,
-          "inertial",
-          "../char/lena/",
-          mapJson.href,
+          catalog.actors["inertial"]!,
         ),
       )
     }
 
     fb.actorSpawns.add(
-      new ActorSpawn(72, 8, "inertial", "../char/lena/", mapJson.href),
+      new ActorSpawn(72, 8, catalog.actors["inertial"]!),
     )
   }
 
   if (mapFile === "block_-200.0") {
     const items = [
-      [-3, 6, "apple", "../item/apple.png"],
-      [-4, 6, "green-apple", "../item/green-apple.png"],
-      [-5, 6, "apple", "../item/apple.png"],
-      [-6, 6, "apple", "../item/apple.png"],
+      [-3, 6, "apple"],
+      [-4, 6, "green-apple"],
+      [-5, 6, "apple"],
+      [-6, 6, "apple"],
 
-      [-3, 7, "apple", "../item/apple.png"],
-      [-4, 7, "apple", "../item/apple.png"],
-      [-5, 7, "apple", "../item/apple.png"],
-      [-6, 7, "apple", "../item/apple.png"],
+      [-3, 7, "apple"],
+      [-4, 7, "apple"],
+      [-5, 7, "apple"],
+      [-6, 7, "apple"],
 
-      [-3, 8, "apple", "../item/apple.png"],
-      [-4, 8, "apple", "../item/apple.png"],
-      [-5, 8, "apple", "../item/apple.png"],
-      [-6, 8, "apple", "../item/apple.png"],
+      [-3, 8, "apple"],
+      [-4, 8, "apple"],
+      [-5, 8, "apple"],
+      [-6, 8, "apple"],
     ] as const
-    for (const [i, j, type, src] of items) {
-      fb.itemSpawns.add(new ItemSpawn(i, j, type, src, mapJson.href))
+    for (const [i, j, type] of items) {
+      fb.itemSpawns.add(new ItemSpawn(i, j, catalog.items[type]!))
     }
   }
 
@@ -126,7 +119,7 @@ async function addCharactersRandomly(mapFile: string) {
     if (cell.canEnter && !fb.propSpawns.has(i + fb.i, j + fb.j)) {
       itemCount++
       const random = Math.random()
-      let type: ItemType = "apple"
+      let type = "apple"
       if (random > 0.93) {
         type = "purple-mushroom"
       } else if (random > 0.8) {
@@ -138,9 +131,7 @@ async function addCharactersRandomly(mapFile: string) {
         new ItemSpawn(
           i + fb.i,
           j + fb.j,
-          type,
-          "../item/" + type + ".png",
-          mapJson.href,
+          catalog.items[type]!,
         ),
       )
     }
@@ -151,7 +142,7 @@ async function addCharactersRandomly(mapFile: string) {
   )
   const obj = fb.toMap().toObject()
   console.log(
-    `${obj.characters.length} characters and ${obj.items.length} items in total`,
+    `${obj.actors.length} characters and ${obj.items.length} items in total`,
   )
 
   await Deno.writeTextFile(

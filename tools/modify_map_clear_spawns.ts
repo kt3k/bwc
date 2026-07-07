@@ -1,5 +1,6 @@
 import { parseArgs } from "@std/cli/parse-args"
 import { BlockMap, FieldBlock } from "../model/field-block.ts"
+import { loadCatalog } from "../model/catalog.ts"
 
 const args = parseArgs(Deno.args)
 
@@ -19,7 +20,8 @@ async function clear(mapFile: string) {
     JSON.parse,
   )
 
-  const bm = new BlockMap(mapJson.href, map)
+  const catalog = await loadCatalog(mapJson.href, map.catalogs)
+  const bm = new BlockMap(mapJson.href, map, catalog)
   const fb = new FieldBlock(bm)
 
   fb.actorSpawns.clear()
