@@ -82,6 +82,93 @@
 - 素材: `static/prop/gate.png` を新規作成
 - 配置: 宝物庫や特別エリアの入口
 
+# 追加の7つのアイデア
+
+## 8. 効果音
+
+イベントに効果音を付ける。jsfxr は導入済み(main.ts でクリック時に pickupCoin
+を再生している)なので、それをイベント全般に配線する。
+
+- `sound` signal(またはイベント名の Signal)を追加し、UI コンポーネント
+  (SoundPlayer)が subscribe して jsfxr のプリセットを再生
+- 対象: アイテム取得(pickupCoin)、ジャンプ(jump)、壁バウンス(hitHurt)、
+  クレート破壊(explosion)、ゲート開放(powerUp)、敵に盗まれた(hitHurt)
+- モバイルの自動再生制限があるため、初回タップで AudioContext を解放する
+- 素材不要。小さい労力で手触りが大きく変わる
+
+## 9. セーブ機能
+
+現状はリロードで全部リセットされる。進行状況を localStorage に永続化する。
+
+- 保存対象: `appleCount` / `greenAppleCount` / `coinCount` の各 signal、
+  `Item.#collectedItemIds`(回収済みアイテム)、最後にいた座標
+- signal の subscribe で書き込み、起動時に読み込んで signal を初期化
+- `Item.collect` / `isCollected` に serialize/deserialize を追加
+- リセット手段(タイトルに戻る/NEW
+  GAME)としてスタート島に「リセットポータル」を置く
+
+## 10. ミニマップ
+
+拡張後の20ブロックの世界を歩き回るための小さな地図UI。
+
+- `currentBlock` signal は既にあるので、ブロックの `field` セル配列を
+  縮小して小さい canvas(例: 50x50、4セル=1px)に描画
+- セルの色分け: 通行可=明色、壁=暗色、水=青、氷=白、プレイヤー=赤点
+- `centerGrid` signal でプレイヤー位置マーカーを更新
+- ui-panel の下に配置。タップで表示/非表示切り替え
+
+## 11. 木を植えて育てる
+
+種を植えると時間経過で育ち、収穫できる木になる。
+
+- 新アイテム `seed`(コインで買う/宝箱から出る)。collect ではなく
+  「所持して空き地で使う」形にするなら、collect で `seedCount` signal を増やし、
+  空き地で space キー使用時に苗 prop を `field.props.add` する
+- 苗 prop は `step()` で `field.time` を数え、一定時間ごとに画像を差し替えて
+  成長(苗 → 若木 → 実った木)。実った木を押すとりんごが落ちて再び若木に戻る
+- prop はディアクティベートで消えるので、成長状態は 座標キーの static
+  Map(またはセーブ機能 #9)に持たせる
+- 素材: `sapling.png` / `tree_young.png` / `tree_fruit.png`
+
+## 12. 昼夜サイクル + ランタン
+
+`field.time` ベースで昼夜が巡り、夜は画面が暗くなる。
+
+- 一定周期(例: 実時間5分)で `timeOfDay` signal を更新し、ゲーム画面に かぶせた
+  DOM オーバーレイの不透明度をなめらかに変える(既存の curtain と同様の手法)
+- 夜はチェイサー(#2)の索敵範囲を2倍にする、コインの出現が増える、など
+  リスクとリワードを付ける
+- `lantern` prop はオーバーレイに radial-gradient の穴を開けて周囲を照らす
+- 素材: `lantern.png`
+
+## 13. 釣り
+
+水セル(#6 で追加)の隣で space を押すと釣りができる。
+
+- `IdleMainActor` の space 処理を拡張: 目の前のセルが水 (`IField.isWater(i, j)`
+  を追加)なら釣りモードに入る
+- 待ち時間(1〜3秒のランダム)後に判定: フィッシュ(既存のフォロワー魚!)、
+  コイン、なにも釣れない、をランダムで
+- 釣り中は待機アニメーション(既存の idle 2フレームで十分)+ 釣れた瞬間に
+  line-pattern エフェクト
+- 既存の fish follower 機構の入手経路が増え、水地形に意味が出る
+
+## 14. 転がる岩
+
+押すと滑って転がっていく岩。障害物に当たるまで直進し、
+敵を潰したりクレートを壊したりできる。
+
+- prop は座標が readonly なので「動く prop」の仕組みが必要:
+  `FieldProps.move(fromI, fromJ, toI, toJ)` を追加して remove + add
+  で実現するか、 岩だけ実体を Actor(idle なし、pushed:
+  "roll")として実装する方が簡単
+- 押されたら押された方向へ `slide` を繰り返し、`canEnterStatic` が false になる
+  手前で停止。停止先に敵がいたら敵を消して(潰して)コインをドロップ
+- 氷(#6)の上では止まらない、水(#6)に落とすと橋になる(セルを差し替える)
+  と、他の機能と組み合わせたパズルが作れる
+- 素材: `boulder.png`
+- 配置: 氷湖パズル、川渡しパズル
+
 # マップ拡張計画(20ファイル)
 
 現状 8 ファイル → 12 ブロック追加で 20 ファイルにする。
