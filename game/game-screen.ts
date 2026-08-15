@@ -9,6 +9,7 @@ import { RectScope } from "../util/rect-scope.ts"
 
 import { Field } from "./field.ts"
 import { Actor } from "../model/actor.ts"
+import { restoreSave, savedPosition, savePosition } from "../util/save.ts"
 
 const parseGridPosition = (hash: string) => {
   const m = hash.match(/#(-?\d+),(-?\d+)/)
@@ -18,7 +19,9 @@ const parseGridPosition = (hash: string) => {
   return null
 }
 
-const start = parseGridPosition(globalThis.location.hash)
+restoreSave()
+
+const start = parseGridPosition(globalThis.location.hash) ?? savedPosition()
 
 // The starting position of the main character
 const I = start?.i ?? -9964
@@ -97,6 +100,11 @@ export function GameScreen({ el, query }: Context) {
   }
   signals.centerGrid10.subscribe(loadBlocks)
 
+  // Persist the last position as the player moves around
+  signals.centerGrid10.subscribe(() => {
+    savePosition(field.me.i, field.me.j)
+  })
+
   signals.centerPixel.subscribe(({ x, y }) => {
     viewScope.setCenter(x, y)
     field.translateBackground(-viewScope.left, -viewScope.top)
@@ -159,6 +167,7 @@ export function GameScreen({ el, query }: Context) {
       field.reset()
       field.fastTravel(field.me, i, j)
       field.me.unsetFollower()
+      savePosition(i, j)
       signals.centerPixel.update({ x: field.me.centerX, y: field.me.centerY })
       // centerGrid10 doesn't fire when the destination is in the same
       // 10-cell tile, so kick the block load explicitly; without this

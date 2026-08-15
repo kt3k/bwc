@@ -73,6 +73,16 @@ export class Item implements IItem {
     this.#collectedItemIds.add(id)
   }
 
+  /** Serializes the collected item ids for saving */
+  static serializeCollected(): string[] {
+    return [...this.#collectedItemIds]
+  }
+
+  /** Restores the collected item ids from a saved state */
+  static deserializeCollected(ids: readonly string[]) {
+    this.#collectedItemIds = new Set(ids)
+  }
+
   static fromSpawn(spawn: ItemSpawn): Item {
     return new Item(
       spawn.id,

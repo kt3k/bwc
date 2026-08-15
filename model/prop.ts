@@ -1,5 +1,6 @@
 import { CELL_SIZE } from "../util/constants.ts"
 import { DIRS, nextGrid } from "../util/dir.ts"
+import { clearSave } from "../util/save.ts"
 import * as signal from "../util/signals.ts"
 import type {
   Dir,
@@ -79,6 +80,9 @@ export class Prop implements IProp {
         break
       case "apple-gate":
         pushed = new PushedDelegateAppleGate()
+        break
+      case "reset-game":
+        pushed = new PushedDelegateResetGame()
         break
     }
     return new Prop(
@@ -299,6 +303,23 @@ class PushedDelegateAppleGate implements PushedDelegate {
         text: `NEED ${required} APPLES (${count}/${required})`,
       })
     }
+  }
+}
+
+class PushedDelegateResetGame implements PushedDelegate {
+  #triggered = false
+
+  onPushed(event: PushedEvent, _prop: Prop, _field: IField): void {
+    if (this.#triggered || event.pusher?.id !== "main") {
+      return
+    }
+    this.#triggered = true
+    signal.message.update({ text: "NEW GAME" })
+    clearSave()
+    setTimeout(() => {
+      location.hash = ""
+      location.reload()
+    }, 500)
   }
 }
 
