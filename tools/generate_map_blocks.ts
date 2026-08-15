@@ -198,23 +198,31 @@ function connectPockets(
         }
       }
       const [bx, by] = best
-      if (Math.abs(bx - 100) <= Math.abs(by - 100)) {
-        // Carve horizontally toward the vertical road
+      // Never carve through a protected rect (e.g. the vault or the
+      // tutorial course): prefer the axis whose path avoids them
+      const hPath = (): [number, number][] => {
+        const cells: [number, number][] = []
         const step = bx < 100 ? 1 : -1
-        for (let cx = bx; cx !== 100; cx += step) {
-          if (!canEnterCell(grid[by][cx])) {
-            grid[by][cx] = ROAD_CELL
-            carved.add(`${cx}.${by}`)
-          }
-        }
-      } else {
-        // Carve vertically toward the horizontal road
+        for (let cx = bx; cx !== 100; cx += step) cells.push([cx, by])
+        return cells
+      }
+      const vPath = (): [number, number][] => {
+        const cells: [number, number][] = []
         const step = by < 100 ? 1 : -1
-        for (let cy = by; cy !== 100; cy += step) {
-          if (!canEnterCell(grid[cy][bx])) {
-            grid[cy][bx] = ROAD_CELL
-            carved.add(`${bx}.${cy}`)
-          }
+        for (let cy = by; cy !== 100; cy += step) cells.push([bx, cy])
+        return cells
+      }
+      const crosses = (cells: [number, number][]) =>
+        cells.some(([cx, cy]) => inProtected(cx, cy))
+      const preferH = Math.abs(bx - 100) <= Math.abs(by - 100)
+      const candidates = (preferH ? [hPath(), vPath()] : [vPath(), hPath()])
+        .filter((p) => !crosses(p))
+      const path = candidates[0]
+      if (!path) continue
+      for (const [cx, cy] of path) {
+        if (!canEnterCell(grid[cy][cx])) {
+          grid[cy][cx] = ROAD_CELL
+          carved.add(`${cx}.${cy}`)
         }
       }
     }
@@ -424,6 +432,145 @@ function genTreasury(key: string): Generated {
   }
 }
 
+// ---------------------------------------------------------------------
+// tutorial course (block_-200.0)
+//
+// Portal A of the start island drops the player into this walled
+// course. It introduces the features one by one: movement, apples,
+// crate breaking, coins, spring pads, fishing, slippery ice, seed
+// planting, chests and boulders. The final apple gate (5 apples,
+// collectable on the course) opens onto the road lattice — from there
+// the whole world is free to explore.
+
+/** The walled region of the course in local coords [x0, y0, x1, y1] */
+const TUTORIAL_RECT: [number, number, number, number] = [38, 104, 96, 196]
+
+function buildTutorialCourse(
+  grid: string[][],
+): { items: Spawn[]; props: Spawn[]; actors: Spawn[] } {
+  const [x0, y0, x1, y1] = TUTORIAL_RECT
+  // Solid walls first, then carve the course
+  rect(grid, x0, y0, x1, y1, "1")
+  const rooms: [number, number, number, number, string][] = [
+    [60, 176, 78, 190, "3"], // arrival room
+    [44, 181, 60, 185, "3"], // west corridor (apples)
+    [45, 158, 47, 181, "3"], // north corridor (crates)
+    [45, 158, 84, 160, "3"], // east corridor (coins + springs)
+    [76, 146, 92, 162, "3"], // fishing room
+    [82, 150, 88, 156, "w"], // the pond
+    [77, 128, 79, 148, "3"], // north corridor
+    [77, 132, 79, 142, "i"], // the ice segment
+    [52, 126, 79, 128, "3"], // west corridor
+    [52, 112, 72, 128, "3"], // garden room (seeds, chest, boulder)
+    [72, 110, 95, 112, "3"], // exit corridor
+  ]
+  for (const [rx0, ry0, rx1, ry1, cell] of rooms) {
+    rect(grid, rx0, ry0, rx1, ry1, cell)
+  }
+  // The gate hole in the east wall, connected to the vertical road
+  grid[111][96] = "3"
+  grid[111][97] = "3"
+  grid[111][98] = "3"
+
+  const props: Spawn[] = [
+    { i: 69, j: 179, type: "sign", data: { text: "ARROW KEYS TO MOVE" } },
+    { i: 45, j: 170, type: "crate" },
+    { i: 46, j: 170, type: "crate" },
+    { i: 47, j: 170, type: "crate" },
+    {
+      i: 45,
+      j: 176,
+      type: "sign",
+      data: { text: "PUSH CRATES TO BREAK THEM" },
+    },
+    { i: 50, j: 158, type: "sign", data: { text: "SPRING PADS AHEAD" } },
+    { i: 56, j: 159, type: "spring" },
+    { i: 70, j: 159, type: "spring" },
+    {
+      i: 77,
+      j: 147,
+      type: "sign",
+      data: { text: "FACE THE WATER AND PRESS SPACE TO FISH" },
+    },
+    { i: 79, j: 145, type: "sign", data: { text: "SLIPPERY ICE AHEAD" } },
+    {
+      i: 62,
+      j: 114,
+      type: "sign",
+      data: { text: "PRESS SPACE TO PLANT A SEED" },
+    },
+    { i: 68, j: 116, type: "sign", data: { text: "PUSH THE BOULDER" } },
+    { i: 56, j: 116, type: "chest", data: { drops: "apple", count: 3 } },
+    {
+      i: 74,
+      j: 110,
+      type: "sign",
+      data: { text: "THE GATE OPENS WITH 5 APPLES" },
+    },
+    { i: 96, j: 111, type: "apple-gate", data: { count: 5 } },
+  ]
+  const items: Spawn[] = [
+    // Apples: enough for the gate
+    { i: 64, j: 180, type: "apple" },
+    { i: 74, j: 186, type: "apple" },
+    { i: 66, j: 187, type: "apple" },
+    { i: 72, j: 181, type: "apple" },
+    { i: 50, j: 183, type: "apple" },
+    { i: 54, j: 184, type: "apple" },
+    { i: 58, j: 182, type: "apple" },
+    // Coins along the spring corridor
+    ...[49, 52, 55, 61, 64, 67, 73, 76].map((x) => ({
+      i: x,
+      j: 159,
+      type: "coin",
+    })),
+    // Fishing room coins
+    { i: 78, j: 150, type: "coin" },
+    { i: 90, j: 158, type: "coin" },
+    // Seeds in the garden
+    { i: 58, j: 118, type: "seed" },
+    { i: 60, j: 122, type: "seed" },
+    { i: 64, j: 118, type: "seed" },
+  ]
+  const actors: Spawn[] = [
+    { i: 66, j: 120, type: "boulder" },
+  ]
+  return { items, props, actors }
+}
+
+/**
+ * Gates the free-roam portal of the start island behind an apple gate
+ * (5 apples), so new players go through the tutorial course first.
+ */
+async function gateStartIsland() {
+  const path = new URL("block_-10000.-10000.json", mapDir)
+  const json = JSON.parse(await Deno.readTextFile(path)) as BlockJson
+  const grid = field2grid(json.field)
+  // Close the decorative ring of the free-roam portal room except the
+  // door cell (local 44, 38) which holds the apple gate
+  for (const lj of [36, 37, 39, 40]) {
+    grid[lj][44] = "b"
+  }
+  json.field = grid2field(grid)
+  const additions: Spawn[] = [
+    { i: -9956, j: -9962, type: "apple-gate", data: { count: 5 } },
+    { i: -9957, j: -9977, type: "sign", data: { text: "TUTORIAL AHEAD" } },
+    {
+      i: -9957,
+      j: -9960,
+      type: "sign",
+      data: { text: "FREE ROAM: NEEDS 5 APPLES" },
+    },
+  ]
+  for (const add of additions) {
+    if (!json.props.some((p) => p.i === add.i && p.j === add.j)) {
+      json.props.push(add)
+    }
+  }
+  await Deno.writeTextFile(path, JSON.stringify(json, null, 2))
+  console.log("gated the free-roam portal on the start island")
+}
+
 /** Deterministic pseudo random spawn positions (occupancy solved later) */
 function spawnList(key: string, type: string, count: number): Spawn[] {
   const { randomInt } = seed(`spawns-${key}-${type}`)
@@ -520,11 +667,39 @@ for (const key of EXISTING_BLOCKS) {
   const path = new URL(`block_${key}.json`, mapDir)
   const json = JSON.parse(await Deno.readTextFile(path)) as BlockJson
   const grid = field2grid(json.field)
+  const [bi, bj] = key.split(".").map(Number)
   const carved = carveRoads(grid)
-  for (const c of connectPockets(grid, canEnterCell)) carved.add(c)
+  const protectedRects: [number, number, number, number][] = []
+  if (key === "-200.0") {
+    // Build the tutorial course around the portal A destination
+    const course = buildTutorialCourse(grid)
+    protectedRects.push(TUTORIAL_RECT)
+    const [cx0, cy0, cx1, cy1] = TUTORIAL_RECT
+    const inCourse = (s: Spawn) => {
+      const li = s.i - bi
+      const lj = s.j - bj
+      return li >= cx0 && li <= cx1 && lj >= cy0 && lj <= cy1
+    }
+    // Replace the spawns inside the course with the curated ones,
+    // keeping the portal exit
+    json.actors = [
+      ...json.actors.filter((s) => !inCourse(s)),
+      ...course.actors.map((s) => ({ ...s, i: s.i + bi, j: s.j + bj })),
+    ]
+    json.items = [
+      ...json.items.filter((s) => !inCourse(s)),
+      ...course.items.map((s) => ({ ...s, i: s.i + bi, j: s.j + bj })),
+    ]
+    json.props = [
+      ...json.props.filter((s) => !inCourse(s) || s.type === "portal-out"),
+      ...course.props.map((s) => ({ ...s, i: s.i + bi, j: s.j + bj })),
+    ]
+  }
+  for (const c of connectPockets(grid, canEnterCell, protectedRects)) {
+    carved.add(c)
+  }
   json.field = grid2field(grid)
   // Remove blocking props from the carved cells so the roads stay open
-  const [bi, bj] = key.split(".").map(Number)
   const before = json.props.length
   json.props = json.props.filter((p) =>
     !(blocksProp(p.type) && carved.has(`${p.i - bi}.${p.j - bj}`))
@@ -536,5 +711,7 @@ for (const key of EXISTING_BLOCKS) {
     } blocking props)`,
   )
 }
+
+await gateStartIsland()
 
 console.log("done")
