@@ -1,4 +1,5 @@
 import { CELL_SIZE } from "../util/constants.ts"
+import { nextGrid } from "../util/dir.ts"
 import type {
   Dir,
   IActor,
@@ -156,7 +157,7 @@ export class Prop implements IProp {
     this.#pushed?.onPushed(event, this, field)
   }
 
-  onEnter(_actor: IActor, _field: IField): void {
+  onEnter(actor: IActor, field: IField): void {
     if (this.def.onEnter === "teleport") {
       // deno-lint-ignore no-explicit-any
       const data = this.data as any
@@ -167,6 +168,22 @@ export class Prop implements IProp {
         setTimeout(() => {
           location.replace(`#${i},${j}`)
         }, 10)
+      }
+    } else if (this.def.onEnter === "spring") {
+      const dir = actor.dir
+      const [ni, nj] = nextGrid(this.i, this.j, dir)
+      if (field.canEnterStatic(ni, nj)) {
+        // Fly to the direction the actor was heading
+        actor.unshiftActions(
+          { type: "jump" },
+          { type: "slide", dir },
+          { type: "slide", dir },
+          { type: "slide", dir },
+        )
+      } else {
+        // The way is blocked. Jumps on the spot to prevent a soft lock
+        // caused by infinite bouncing
+        actor.unshiftActions({ type: "jump" })
       }
     }
   }
