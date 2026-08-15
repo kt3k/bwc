@@ -187,6 +187,18 @@
         }
       }
     },
+    "apple-gate": {
+      "src": "../prop/gate.png",
+      "canEnter": false,
+      "pushed": "apple-gate",
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "count": { "type": "number" }
+        },
+        "required": ["count"]
+      }
+    },
     "a": {
       "src": "../prop/a.png",
       "canEnter": true

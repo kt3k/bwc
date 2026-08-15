@@ -77,6 +77,9 @@ export class Prop implements IProp {
       case "chest":
         pushed = new PushedDelegateChest()
         break
+      case "apple-gate":
+        pushed = new PushedDelegateAppleGate()
+        break
     }
     return new Prop(
       spawn.id,
@@ -257,6 +260,38 @@ class PushedDelegateChest implements PushedDelegate {
       { type: "spawn-drops", itemType, count },
       { type: "remove" },
     )
+  }
+}
+
+class PushedDelegateAppleGate implements PushedDelegate {
+  #opened = false
+
+  onPushed(event: PushedEvent, prop: Prop, field: IField): void {
+    if (this.#opened) {
+      return
+    }
+    const data = prop.data as { count?: unknown } | undefined
+    const required = typeof data?.count === "number" ? data.count : 10
+    const count = signal.appleCount.get()
+    if (count >= required) {
+      this.#opened = true
+      prop.enqueueActions(
+        { type: "wait", until: field.time + event.peakAt },
+        { type: "line-pattern-1", dirs: [event.dir] },
+        {
+          type: "break",
+          dir: event.dir,
+          cb: () => {
+            prop.vanish()
+          },
+        },
+        { type: "remove" },
+      )
+    } else {
+      signal.message.update({
+        text: `NEED ${required} APPLES (${count}/${required})`,
+      })
+    }
   }
 }
 
