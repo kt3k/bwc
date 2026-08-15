@@ -1,6 +1,8 @@
-# bw
+# bwc
 
 > A prototype of topdown 2D game
+
+bwc is fork of https://github.com/kt3k/bw
 
 # development
 
