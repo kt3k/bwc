@@ -1,5 +1,5 @@
 import { CELL_SIZE } from "../util/constants.ts"
-import { nextGrid } from "../util/dir.ts"
+import { DIRS, nextGrid } from "../util/dir.ts"
 import * as signal from "../util/signals.ts"
 import type {
   Dir,
@@ -41,6 +41,20 @@ export class Prop implements IProp {
           field.props.remove(this.i, this.j)
           return "next"
         }
+        case "spawn-drops": {
+          const dirs = DIRS.filter((d) => {
+            const [ni, nj] = nextGrid(this.i, this.j, d)
+            return field.canEnterStatic(ni, nj)
+          })
+          for (let n = 0; n < action.count; n++) {
+            const item = field.spawnItem(action.itemType, this.i, this.j)
+            if (!item) break
+            if (dirs.length > 0) {
+              item.enqueueActions({ type: "go", dir: dirs[n % dirs.length] })
+            }
+          }
+          return "next"
+        }
         default: {
           action satisfies never
           throw new Error("Unreachable")
@@ -59,6 +73,9 @@ export class Prop implements IProp {
         break
       case "sign":
         pushed = new PushedDelegateSign()
+        break
+      case "chest":
+        pushed = new PushedDelegateChest()
         break
     }
     return new Prop(
@@ -217,6 +234,27 @@ class PushedDelegateBreak implements PushedDelegate {
           prop.vanish()
         },
       },
+      { type: "remove" },
+    )
+  }
+}
+
+class PushedDelegateChest implements PushedDelegate {
+  onPushed(event: PushedEvent, prop: Prop, field: IField): void {
+    const data = prop.data as { drops?: unknown; count?: unknown } | undefined
+    const itemType = typeof data?.drops === "string" ? data.drops : "coin"
+    const count = typeof data?.count === "number" ? data.count : 3
+    prop.enqueueActions(
+      { type: "wait", until: field.time + event.peakAt },
+      { type: "line-pattern-1", dirs: [event.dir] },
+      {
+        type: "break",
+        dir: event.dir,
+        cb: () => {
+          prop.vanish()
+        },
+      },
+      { type: "spawn-drops", itemType, count },
       { type: "remove" },
     )
   }

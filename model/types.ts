@@ -33,6 +33,9 @@ export type IItem = IEntity & IStepper & IFollowable & {
   id: string
   isFollowing: boolean
   onCollect(actor: IActor, field: IField): void
+  enqueueActions(
+    ...actions: { type: "go"; dir: Dir; speed?: 1 | 2 | 4 | 8 | 16 }[]
+  ): void
 }
 
 export type IProp =
@@ -54,6 +57,7 @@ export type IField = {
   canEnterStatic(i: number, j: number): boolean
   peekItem(i: number, j: number): IItem | undefined
   spawnActor(type: string, i: number, j: number, dir: Dir): IActor | null
+  spawnItem(type: string, i: number, j: number): IItem | null
   collectItem(i: number, j: number, id: string): void
   actors: {
     iter(): Iterable<IActor>

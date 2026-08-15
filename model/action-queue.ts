@@ -28,6 +28,7 @@ export type PropAction =
   | CommonAction
   | { type: "break"; dir: Dir; cb?: (motion: Motion) => void }
   | { type: "remove" }
+  | { type: "spawn-drops"; itemType: string; count: number }
 
 export type ItemAction =
   | CommonAction

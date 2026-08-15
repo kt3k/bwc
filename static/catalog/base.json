@@ -164,6 +164,18 @@
         "required": ["text"]
       }
     },
+    "chest": {
+      "src": "../prop/chest.png",
+      "canEnter": false,
+      "pushed": "chest",
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "drops": { "type": "string" },
+          "count": { "type": "number" }
+        }
+      }
+    },
     "a": {
       "src": "../prop/a.png",
       "canEnter": true

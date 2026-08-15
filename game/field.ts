@@ -612,6 +612,23 @@ export class Field implements IField {
     return actor
   }
 
+  // Spawns a new item at the given grid coordinate
+  // if the item type is unavailable in the given block, returns null
+  spawnItem(type: string, i: number, j: number): IItem | null {
+    const def = this.#getBlockOrNull(i, j)?.catalog.items[type]
+
+    if (!def) {
+      console.log("Unable to spawn item of type:", type)
+      return null
+    }
+
+    const item = new Item(null, i, j, def)
+    this.#items.add(item)
+    item.loadAssets({ loadImage })
+
+    return item
+  }
+
   #hasBlock(blockId: string) {
     return !!this.#blocks[blockId]
   }

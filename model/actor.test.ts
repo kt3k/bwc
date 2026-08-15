@@ -21,6 +21,7 @@ function makeField(me: IActor): IField {
     canEnterStatic: () => true,
     peekItem: () => undefined,
     spawnActor: () => null,
+    spawnItem: () => null,
     collectItem: () => {},
     actors: {
       iter: () => [],
