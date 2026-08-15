@@ -105,6 +105,10 @@
       "collect": "coin",
       "src": "../item/coin.png"
     },
+    "seed": {
+      "collect": "seed",
+      "src": "../item/seed.png"
+    },
     "mushroom": {
       "collect": "mushroom",
       "src": "../item/mushroom.png"
@@ -190,6 +194,19 @@
           "drops": { "type": "string" },
           "count": { "type": "number" }
         }
+      }
+    },
+    "sapling": {
+      "src": "../prop/sapling.png",
+      "canEnter": false,
+      "pushed": "tree",
+      "growth": {
+        "stages": [
+          "../prop/sapling.png",
+          "../prop/tree_young.png",
+          "../prop/tree_fruit.png"
+        ],
+        "interval": 1800
       }
     },
     "apple-gate": {

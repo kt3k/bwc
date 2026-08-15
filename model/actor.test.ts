@@ -23,6 +23,7 @@ function makeField(me: IActor): IField {
     peekItem: () => undefined,
     spawnActor: () => null,
     spawnItem: () => null,
+    spawnProp: () => null,
     collectItem: () => {},
     actors: {
       iter: () => [],

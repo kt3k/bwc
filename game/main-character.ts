@@ -8,6 +8,33 @@ import {
 import { opposite } from "../util/dir.ts"
 import type { Dir, IField, Move } from "../model/types.ts"
 import { linePattern0 } from "../model/effect.ts"
+import * as signal from "../util/signals.ts"
+
+/**
+ * Plants a sapling at the front cell if the player has seeds and the
+ * cell is a free ground. Returns true if planted.
+ */
+function tryPlantSeed(actor: Actor, field: IField): boolean {
+  if (signal.seedCount.get() <= 0) {
+    return false
+  }
+  const [fi, fj] = actor.frontGrid()
+  if (!field.canEnter(fi, fj) || field.peekItem(fi, fj)) {
+    return false
+  }
+  const prop = field.spawnProp("sapling", fi, fj)
+  if (!prop) {
+    return false
+  }
+  signal.seedCount.update(signal.seedCount.get() - 1)
+  signal.playSound("powerUp")
+  for (
+    const effect of linePattern0([actor.dir], fi, fj, 1, 0.7, 2, "#3d5a20")
+  ) {
+    field.effects.add(effect)
+  }
+  return true
+}
 
 const mushroomEffect = function (
   actor: Actor,
@@ -54,8 +81,10 @@ export class IdleMainActor implements IdleDelegate {
       queueHead === "touchendempty"
     ) {
       inputQueue.shift()
-      actor.jump()
-      actor.unsetFollower()
+      if (!tryPlantSeed(actor, field)) {
+        actor.jump()
+        actor.unsetFollower()
+      }
     }
   }
 }

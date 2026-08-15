@@ -29,4 +29,13 @@ export function AppleCounter({ query, subscribe }: Context) {
       }
     }, 300)
   })
+
+  subscribe(signal.seedCount, (seeds) => {
+    setTimeout(() => {
+      const counter = query(".seed-count-label")
+      if (counter) {
+        counter.textContent = seeds.toString()
+      }
+    }, 300)
+  })
 }

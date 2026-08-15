@@ -126,6 +126,11 @@ export class Item implements IItem {
         delegate.onCollect(actor, field, this)
         break
       }
+      case "seed": {
+        const delegate = new CollectSeed()
+        delegate.onCollect(actor, field, this)
+        break
+      }
       case "mushroom": {
         const delegate = new CollectMushroom()
         delegate.onCollect(actor, field, this)
@@ -285,6 +290,22 @@ export class CollectCoin implements CollectDelegate {
 
     const count = signal.coinCount.get()
     signal.coinCount.update(count + 1)
+    signal.playSound("pickupCoin")
+  }
+}
+
+export class CollectSeed implements CollectDelegate {
+  onCollect(actor: IActor, field: IField, item: Item): void {
+    field.collectItem(actor.i, actor.j, item.id)
+
+    for (
+      const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#4a3018")
+    ) {
+      field.effects.add(effect)
+    }
+
+    const count = signal.seedCount.get()
+    signal.seedCount.update(count + 1)
     signal.playSound("pickupCoin")
   }
 }

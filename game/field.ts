@@ -20,6 +20,7 @@ import {
   BlockMap,
   FieldBlock,
   type FieldBlockChunk,
+  PropSpawn,
 } from "../model/field-block.ts"
 import { loadImage } from "../util/load.ts"
 import { RectScope } from "../util/rect-scope.ts"
@@ -630,6 +631,28 @@ export class Field implements IField {
     item.loadAssets({ loadImage })
 
     return item
+  }
+
+  // Spawns a new prop at the given grid coordinate.
+  // The spawn is also added to the block's spawn map so that the prop
+  // re-appears after deactivation.
+  // If the prop type is unavailable in the given block, returns null
+  spawnProp(type: string, i: number, j: number): IProp | null {
+    const block = this.#getBlockOrNull(i, j)
+    const def = block?.catalog.props[type]
+
+    if (!block || !def) {
+      console.log("Unable to spawn prop of type:", type)
+      return null
+    }
+
+    const spawn = new PropSpawn(i, j, def, undefined)
+    block.propSpawns.add(spawn)
+    const prop = Prop.fromSpawn(spawn)
+    this.#props.add(prop)
+    prop.loadAssets({ loadImage })
+
+    return prop
   }
 
   #hasBlock(blockId: string) {

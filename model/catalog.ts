@@ -24,6 +24,10 @@ interface CatalogSource {
     readonly onEnter?: string
     readonly pushed?: string
     readonly dataSchema?: JSONSchema
+    readonly growth?: {
+      readonly stages: readonly string[]
+      readonly interval: number
+    }
   }>
 }
 
@@ -63,6 +67,11 @@ export interface PropDefinition {
   readonly src: string
   readonly href: string
   readonly dataSchema?: JSONSchema
+  readonly growth?: {
+    readonly stages: readonly string[]
+    readonly hrefs: readonly string[]
+    readonly interval: number
+  }
 }
 
 /** The catalog class */
@@ -119,6 +128,13 @@ export class Catalog {
           src: data.src,
           href: new URL(data.src, url).href,
           dataSchema: data.dataSchema,
+          growth: data.growth
+            ? {
+              stages: data.growth.stages,
+              hrefs: data.growth.stages.map((s) => new URL(s, url).href),
+              interval: data.growth.interval,
+            }
+            : undefined,
         }
       }
     }
@@ -165,6 +181,9 @@ export class Catalog {
         onEnter: def.onEnter,
         pushed: def.pushed,
         dataSchema: def.dataSchema,
+        growth: def.growth
+          ? { stages: def.growth.stages, interval: def.growth.interval }
+          : undefined,
       }
     }
 

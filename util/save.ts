@@ -7,6 +7,7 @@ type SaveData = {
   appleCount?: number
   greenAppleCount?: number
   coinCount?: number
+  seedCount?: number
   collectedItemIds?: string[]
   position?: { i: number; j: number }
 }
@@ -47,6 +48,7 @@ export function restoreSave() {
     signal.appleCount.update(saved.appleCount ?? 0)
     signal.greenAppleCount.update(saved.greenAppleCount ?? 0)
     signal.coinCount.update(saved.coinCount ?? 0)
+    signal.seedCount.update(saved.seedCount ?? 0)
     Item.deserializeCollected(saved.collectedItemIds ?? [])
   }
   restored = true
@@ -60,6 +62,10 @@ export function restoreSave() {
   })
   signal.coinCount.subscribe((v) => {
     data.coinCount = v
+    write()
+  })
+  signal.seedCount.subscribe((v) => {
+    data.seedCount = v
     write()
   })
 }

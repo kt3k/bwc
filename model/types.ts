@@ -60,6 +60,7 @@ export type IField = {
   peekItem(i: number, j: number): IItem | undefined
   spawnActor(type: string, i: number, j: number, dir: Dir): IActor | null
   spawnItem(type: string, i: number, j: number): IItem | null
+  spawnProp(type: string, i: number, j: number): IProp | null
   collectItem(i: number, j: number, id: string): void
   actors: {
     iter(): Iterable<IActor>

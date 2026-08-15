@@ -19,6 +19,13 @@ const fallbackImage = await fetch(
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAADRJREFUOE9jZKAQMFKon2FoGPAfzZsoribGC0PQALxORo92bGEwDAwgKXUTkw7wGjjwBgAAiwgIEW1Cnt4AAAAASUVORK5CYII=",
 ).then((res) => res.blob()).then((blob) => createImageBitmap(blob))
 
+/**
+ * The growth states of the growable props (e.g. trees), keyed by the
+ * world coordinates. Kept in a module level map so that the states
+ * survive the deactivation of the props.
+ */
+const growthStates = new Map<string, { stage: number; count: number }>()
+
 export class Prop implements IProp {
   /** The unique identifier of the item. Only items which are spawned from block map have ids. */
   readonly id: string | null
@@ -65,6 +72,7 @@ export class Prop implements IProp {
   )
   readonly #pushed: PushedDelegate | null
   #image: ImageBitmap | undefined
+  #growthImages: ImageBitmap[] | undefined
 
   static fromSpawn(spawn: PropSpawn) {
     let pushed: PushedDelegate | null = null
@@ -83,6 +91,9 @@ export class Prop implements IProp {
         break
       case "reset-game":
         pushed = new PushedDelegateResetGame()
+        break
+      case "tree":
+        pushed = new PushedDelegateTree()
         break
     }
     return new Prop(
@@ -133,7 +144,57 @@ export class Prop implements IProp {
     if (!loadImage) {
       throw new Error("Cannot load assets as loadImage not specified")
     }
+    if (this.def.growth) {
+      this.#growthImages = await Promise.all(
+        this.def.growth.hrefs.map((href) => loadImage(href)),
+      )
+      this.applyGrowthImage()
+      return
+    }
     this.#image = await loadImage(this.def.href)
+  }
+
+  /** The current growth state of this prop, if growable */
+  get growthState(): { stage: number; count: number } | undefined {
+    if (!this.def.growth) {
+      return undefined
+    }
+    const key = `${this.i}.${this.j}`
+    let state = growthStates.get(key)
+    if (!state) {
+      state = { stage: 0, count: 0 }
+      growthStates.set(key, state)
+    }
+    return state
+  }
+
+  /** Applies the image of the current growth stage */
+  applyGrowthImage() {
+    const state = this.growthState
+    if (!state) {
+      return
+    }
+    const image = this.#growthImages?.[state.stage]
+    if (image) {
+      this.#image = image
+    }
+  }
+
+  #stepGrowth() {
+    const growth = this.def.growth
+    const state = this.growthState
+    if (!growth || !state) {
+      return
+    }
+    if (state.stage >= growth.hrefs.length - 1) {
+      return
+    }
+    state.count++
+    if (state.count >= growth.interval) {
+      state.count = 0
+      state.stage++
+      this.applyGrowthImage()
+    }
   }
 
   get assetsReady(): boolean {
@@ -168,6 +229,8 @@ export class Prop implements IProp {
   }
 
   step(field: IField) {
+    this.#stepGrowth()
+
     if (!this.#motion) {
       this.#actionQueue.process(this, field)
     }
@@ -303,6 +366,30 @@ class PushedDelegateAppleGate implements PushedDelegate {
         text: `NEED ${required} APPLES (${count}/${required})`,
       })
     }
+  }
+}
+
+class PushedDelegateTree implements PushedDelegate {
+  onPushed(event: PushedEvent, prop: Prop, _field: IField): void {
+    if (event.pusher?.id !== "main") {
+      return
+    }
+    const growth = prop.def.growth
+    const state = prop.growthState
+    if (!growth || !state) {
+      return
+    }
+    if (state.stage < growth.hrefs.length - 1) {
+      // Not fully grown yet
+      return
+    }
+    // Harvest: apples fall from the tree and it goes back to the
+    // previous stage
+    signal.playSound("powerUp")
+    prop.enqueueActions({ type: "spawn-drops", itemType: "apple", count: 2 })
+    state.stage = Math.max(1, state.stage - 1)
+    state.count = 0
+    prop.applyGrowthImage()
   }
 }
 
