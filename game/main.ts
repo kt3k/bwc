@@ -15,6 +15,7 @@ import { MessageToast } from "./ui/message-toast.ts"
 import { GameScreen } from "./game-screen.ts"
 import { ExitButton } from "./ui/exit-button.ts"
 
+import { Minimap } from "./ui/minimap.ts"
 import { SoundPlayer } from "./ui/sound-player.ts"
 
 globalThis.addEventListener("blur", clearInput)
@@ -33,3 +34,4 @@ register(PropsCounter, "js-props-counter")
 register(ExitButton, "js-exit-button")
 register(MessageToast, "js-message-toast")
 register(SoundPlayer, "js-sound-player")
+register(Minimap, "js-minimap")
