@@ -1,12 +1,39 @@
-import { Actor } from "./actor.ts"
+import { Actor, IdleDelegateChase } from "./actor.ts"
 import { MoveGo } from "./move.ts"
 import { ActorDefinition } from "./catalog.ts"
+import type { IActor, IField } from "./types.ts"
+import * as signal from "../util/signals.ts"
 import { assert, assertEquals, assertFalse } from "@std/assert"
 
 const actorDef: ActorDefinition = {
   type: "main",
   src: "../main/",
   href: "./main/",
+}
+
+/** Creates a minimal IField stub for delegate tests */
+function makeField(me: IActor): IField {
+  return {
+    get me() {
+      return me
+    },
+    canEnter: (i, j) => !(i === me.i && j === me.j),
+    canEnterStatic: () => true,
+    peekItem: () => undefined,
+    spawnActor: () => null,
+    collectItem: () => {},
+    actors: {
+      iter: () => [],
+      get: (i, j) => (i === me.i && j === me.j ? [me] : []),
+      add: () => {},
+    },
+    props: { get: () => undefined, remove: () => {} },
+    effects: { add: () => {} },
+    get time() {
+      return 0
+    },
+    colorCell: () => {},
+  }
 }
 
 Deno.test("Actor", async (t) => {
@@ -28,6 +55,45 @@ Deno.test("Actor", async (t) => {
     assertEquals(c.frontGrid(), [99, 100])
     c.setDir("up")
     assertEquals(c.frontGrid(), [100, 99])
+  })
+})
+
+Deno.test("IdleDelegateChase", async (t) => {
+  await t.step("chases the player within range", () => {
+    const me = new Actor(3, 0, actorDef, "main")
+    const chaser = new Actor(0, 0, actorDef, "npc", "down", 1, null, null)
+    const field = makeField(me)
+    const chase = new IdleDelegateChase()
+    chase.onIdle(chaser, field)
+    assertEquals(chaser.i, 1)
+    assertEquals(chaser.j, 0)
+    assertEquals(chaser.dir, "right")
+  })
+
+  await t.step("waits on the spot when the player is out of range", () => {
+    const me = new Actor(100, 100, actorDef, "main")
+    const chaser = new Actor(0, 0, actorDef, "npc", "down", 1, null, null)
+    const field = makeField(me)
+    const chase = new IdleDelegateChase()
+    chase.onIdle(chaser, field)
+    assertEquals(chaser.i, 0)
+    assertEquals(chaser.j, 0)
+  })
+
+  await t.step("steals an apple on contact with cooldown", () => {
+    signal.appleCount.update(5)
+    const me = new Actor(1, 0, actorDef, "main")
+    const chaser = new Actor(0, 0, actorDef, "npc", "down", 1, null, null)
+    const field = makeField(me)
+    const chase = new IdleDelegateChase()
+    chase.onIdle(chaser, field)
+    // The chaser bounces into the player and steals an apple
+    assertEquals(chaser.i, 0)
+    assertEquals(signal.appleCount.get(), 4)
+    // The second contact within the cooldown doesn't steal
+    chase.onIdle(chaser, field)
+    assertEquals(signal.appleCount.get(), 4)
+    signal.appleCount.update(0)
   })
 })
 

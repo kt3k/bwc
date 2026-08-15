@@ -1,11 +1,15 @@
 import {
   DIRS,
   DOWN,
+  LEFT,
   nextGrid,
   opposite,
+  RIGHT,
   turnLeft,
   turnRight,
+  UP,
 } from "../util/dir.ts"
+import * as signal from "../util/signals.ts"
 import { CELL_SIZE } from "../util/constants.ts"
 import { seed } from "../util/random.ts"
 import type {
@@ -72,6 +76,9 @@ export function spawnActor(
       break
     case "wander":
       idle = new IdleDelegateWander()
+      break
+    case "chase":
+      idle = new IdleDelegateChase()
       break
   }
   return new Actor(i, j, def, id, dir, speed, moveEnd, idle)
@@ -618,6 +625,69 @@ export class IdleDelegateWander implements IdleDelegate {
         return
       }
       actor.tryMove("go", choice(nextCandidate), field)
+    }
+  }
+}
+
+/**
+ * Chases the main character when it comes within the given range
+ * (manhattan distance). On contact, it steals an apple from the player
+ * with a cooldown.
+ */
+export class IdleDelegateChase implements IdleDelegate {
+  /** The chase range in manhattan distance */
+  #range: number
+  /** The steal cooldown in frames */
+  #cooldown: number
+  #stealDisabledUntil = 0
+
+  constructor(range = 6, cooldown = 180) {
+    this.#range = range
+    this.#cooldown = cooldown
+  }
+
+  onIdle(actor: Actor, field: IField): void {
+    const me = field.me
+    if (!me || me.id === actor.id) {
+      return
+    }
+    const di = me.i - actor.i
+    const dj = me.j - actor.j
+    const dist = Math.abs(di) + Math.abs(dj)
+    if (dist === 0 || dist > this.#range) {
+      // Out of range. Waits on the spot.
+      return
+    }
+
+    // Prefer the axis with the larger distance to the player
+    const dirI: Dir | null = di !== 0 ? (di > 0 ? RIGHT : LEFT) : null
+    const dirJ: Dir | null = dj !== 0 ? (dj > 0 ? DOWN : UP) : null
+    const candidates =
+      (Math.abs(di) >= Math.abs(dj) ? [dirI, dirJ] : [dirJ, dirI]).filter((
+        d,
+      ): d is Dir => d !== null)
+
+    for (const dir of candidates) {
+      const [ni, nj] = actor.nextGrid(dir)
+      const isContact = ni === me.i && nj === me.j
+      if (!isContact && !field.canEnterStatic(ni, nj)) {
+        continue
+      }
+      // Bouncing into the player knocks it back via the onPushed path
+      actor.tryMove("go", dir, field)
+      if (isContact && field.time >= this.#stealDisabledUntil) {
+        this.#stealDisabledUntil = field.time + this.#cooldown
+        const count = signal.appleCount.get()
+        if (count > 0) {
+          signal.appleCount.update(count - 1)
+          for (
+            const effect of linePattern0(DIRS, me.i, me.j, 1, 0.7, 3, "#aa0000")
+          ) {
+            field.effects.add(effect)
+          }
+        }
+      }
+      return
     }
   }
 }

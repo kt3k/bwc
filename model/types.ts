@@ -46,6 +46,8 @@ export type IProp =
   }
 
 export type IField = {
+  /** The main character of the game */
+  get me(): IActor
   /** can enter the cell considering dynamic objects */
   canEnter(i: number, j: number): boolean
   /** can enter the cell without considering dynamic objects */
