@@ -669,7 +669,11 @@ export class IdleDelegateChase implements IdleDelegate {
     const di = me.i - actor.i
     const dj = me.j - actor.j
     const dist = Math.abs(di) + Math.abs(dj)
-    if (dist === 0 || dist > this.#range) {
+    // At night the chaser sees twice as far
+    const range = signal.nightDarkness.get() > 0.3
+      ? this.#range * 2
+      : this.#range
+    if (dist === 0 || dist > range) {
       // Out of range. Waits on the spot.
       return
     }

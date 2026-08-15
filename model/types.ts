@@ -46,6 +46,8 @@ export type IProp =
   & {
     id: string | null
     canEnter: boolean
+    /** The prop type in the catalog */
+    type: string
   }
 
 export type IField = {

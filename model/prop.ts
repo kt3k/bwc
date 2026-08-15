@@ -228,6 +228,10 @@ export class Prop implements IProp {
     return this.def.canEnter
   }
 
+  get type(): string {
+    return this.def.type
+  }
+
   step(field: IField) {
     this.#stepGrowth()
 

@@ -10,6 +10,7 @@ import { RectScope } from "../util/rect-scope.ts"
 import { Field } from "./field.ts"
 import { Actor } from "../model/actor.ts"
 import { restoreSave, savedPosition, savePosition } from "../util/save.ts"
+import { drawNight, nightDarknessAt } from "./night.ts"
 
 const parseGridPosition = (hash: string) => {
   const m = hash.match(/#(-?\d+),(-?\d+)/)
@@ -64,11 +65,15 @@ const kimiDef = {
 
 export function GameScreen({ el, query }: Context) {
   const entityCanvas = query<HTMLCanvasElement>(".canvas-entity")!
+  const nightCanvas = query<HTMLCanvasElement>(".canvas-night")!
 
   const screenSize = Math.min(globalThis.screen.width, 450)
 
   entityCanvas.width = screenSize
   entityCanvas.height = screenSize
+  nightCanvas.width = screenSize
+  nightCanvas.height = screenSize
+  const nightCtx = nightCanvas.getContext("2d")!
   el.style.width = screenSize + "px"
   el.style.height = screenSize + "px"
 
@@ -135,6 +140,10 @@ export function GameScreen({ el, query }: Context) {
     entityLayer.drawIterableEntity(field.actors.iter())
     entityLayer.drawIterableColorBox(field.effects.iter())
     entityLayer.drawWhiteNoise()
+
+    const darkness = nightDarknessAt(field.time)
+    signals.nightDarkness.update(darkness)
+    drawNight(nightCtx, screenSize, field.props.iter(), viewScope, darkness)
 
     const time = field.time
 
