@@ -141,9 +141,15 @@ export class IdleMainActor implements IdleDelegate {
 }
 
 export class MoveEndMainActor implements MoveEndDelegate {
-  onMoveEnd(actor: Actor, field: IField, _move: Move): void {
+  onMoveEnd(actor: Actor, field: IField, move: Move): void {
     field.peekItem(actor.i, actor.j)?.onCollect(actor, field)
 
-    field.props.get(actor.i, actor.j)?.onEnter(actor, field)
+    // Only an actual cell-entering move triggers onEnter. Jumps and
+    // bounces end on the same cell, and firing onEnter for them
+    // re-triggers the prop the actor is standing on (e.g. a spring
+    // would enqueue jumps forever)
+    if (move.type === "move") {
+      field.props.get(actor.i, actor.j)?.onEnter(actor, field)
+    }
   }
 }
