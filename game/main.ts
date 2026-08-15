@@ -11,6 +11,7 @@ import { SwipeHandler } from "./ui/swipe-handler.ts"
 import { ItemGetEffector } from "./ui/item-get-effector.ts"
 import { LoadingIndicator } from "./ui/loading-indicator.ts"
 import { AppleCounter } from "./ui/apple-counter.ts"
+import { MessageToast } from "./ui/message-toast.ts"
 import { GameScreen } from "./game-screen.ts"
 import { ExitButton } from "./ui/exit-button.ts"
 
@@ -38,3 +39,4 @@ register(ActorsCounter, "js-actors-counter")
 register(ItemsCounter, "js-items-counter")
 register(PropsCounter, "js-props-counter")
 register(ExitButton, "js-exit-button")
+register(MessageToast, "js-message-toast")

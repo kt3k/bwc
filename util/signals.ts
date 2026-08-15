@@ -18,6 +18,9 @@ export const appleCount = new Signal(0)
 export const greenAppleCount = new Signal(0)
 // The current count of coins
 export const coinCount = new Signal(0)
+// The message to show in the toast ui. Wrapped in an object so that
+// the same text shown twice still triggers the subscribers.
+export const message = new Signal<{ text: string } | null>(null)
 // The current loading state
 export const isGameLoading = new Signal(true)
 // The center pixel coordinate

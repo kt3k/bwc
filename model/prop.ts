@@ -1,5 +1,6 @@
 import { CELL_SIZE } from "../util/constants.ts"
 import { nextGrid } from "../util/dir.ts"
+import * as signal from "../util/signals.ts"
 import type {
   Dir,
   IActor,
@@ -55,6 +56,9 @@ export class Prop implements IProp {
     switch (spawn.def.pushed) {
       case "break":
         pushed = new PushedDelegateBreak()
+        break
+      case "sign":
+        pushed = new PushedDelegateSign()
         break
     }
     return new Prop(
@@ -215,6 +219,16 @@ class PushedDelegateBreak implements PushedDelegate {
       },
       { type: "remove" },
     )
+  }
+}
+
+class PushedDelegateSign implements PushedDelegate {
+  onPushed(_event: PushedEvent, prop: Prop, _field: IField): void {
+    const data = prop.data as { text?: unknown } | undefined
+    const text = data?.text
+    if (typeof text === "string" && text.length > 0) {
+      signal.message.update({ text })
+    }
   }
 }
 

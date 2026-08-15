@@ -152,6 +152,18 @@
       "canEnter": true,
       "onEnter": "spring"
     },
+    "sign": {
+      "src": "../prop/sign.png",
+      "canEnter": false,
+      "pushed": "sign",
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string" }
+        },
+        "required": ["text"]
+      }
+    },
     "a": {
       "src": "../prop/a.png",
       "canEnter": true
