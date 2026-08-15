@@ -71,6 +71,7 @@ export type IField = {
     /** This method is slow */
     get(i: number, j: number): IActor[]
     add(actor: IActor): void
+    remove(actor: IActor): void
   }
   props: {
     get(i: number, j: number): IProp | undefined

@@ -17,6 +17,7 @@ interface CatalogSource {
   readonly actors: Record<string, {
     readonly moveEnd?: string
     readonly idle?: string
+    readonly pushed?: string
     readonly src: string
   }>
   readonly props: Record<string, {
@@ -56,6 +57,7 @@ export interface ActorDefinition {
   readonly type: string
   readonly moveEnd?: string
   readonly idle?: string
+  readonly pushed?: string
   readonly src: string
   readonly href: string
 }
@@ -117,6 +119,7 @@ export class Catalog {
           type: type,
           moveEnd: data.moveEnd,
           idle: data.idle,
+          pushed: data.pushed,
           src: data.src,
           href: new URL(data.src, url).href,
         }
@@ -173,6 +176,7 @@ export class Catalog {
       actors[def.type] = {
         moveEnd: def.moveEnd,
         idle: def.idle,
+        pushed: def.pushed,
         src: def.src,
       }
     }

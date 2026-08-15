@@ -62,6 +62,7 @@ export function spawnActor(
 ): Actor {
   let moveEnd: MoveEndDelegate | null = null
   let idle: IdleDelegate | null = null
+  let pushed: ActorPushedDelegate | null = null
   switch (def.moveEnd) {
     case "inertial":
       moveEnd = new MoveEndDelegateInertial()
@@ -81,7 +82,12 @@ export function spawnActor(
       idle = new IdleDelegateChase()
       break
   }
-  return new Actor(i, j, def, id, dir, speed, moveEnd, idle)
+  switch (def.pushed) {
+    case "roll":
+      pushed = new ActorPushedDelegateRoll()
+      break
+  }
+  return new Actor(i, j, def, id, dir, speed, moveEnd, idle, pushed)
 }
 
 /**
@@ -118,6 +124,8 @@ export class Actor implements IActor {
   #moveEnd: MoveEndDelegate | null
   /** Idle delegate */
   #idle: IdleDelegate | null
+  /** Pushed delegate. Overrides the default knockback behavior */
+  #pushed: ActorPushedDelegate | null
   /** buff labels */
   buff: Record<string, unknown> = { __proto__: null }
   /** The follower */
@@ -235,6 +243,7 @@ export class Actor implements IActor {
     speed: 1 | 2 | 4 | 8 | 16 = 1,
     moveEnd: MoveEndDelegate | null = null,
     idle: IdleDelegate | null = null,
+    pushed: ActorPushedDelegate | null = null,
   ) {
     this.#i = i
     this.#j = j
@@ -245,6 +254,7 @@ export class Actor implements IActor {
     this.#dir = dir
     this.#moveEnd = moveEnd
     this.#idle = idle
+    this.#pushed = pushed
   }
 
   fastTravel(i: number, j: number) {
@@ -520,6 +530,10 @@ export class Actor implements IActor {
   }
 
   onPushed(event: PushedEvent, field: IField): void {
+    if (this.#pushed) {
+      this.#pushed.onPushed(event, this, field)
+      return
+    }
     let i = this.i, j = this.j
     switch (event.dir) {
       case "up":
@@ -593,6 +607,59 @@ export class MoveEndDelegateInertial implements MoveEndDelegate {
 
 export interface IdleDelegate {
   onIdle(actor: Actor, field: IField): void
+}
+
+export interface ActorPushedDelegate {
+  onPushed(event: PushedEvent, actor: Actor, field: IField): void
+}
+
+/**
+ * Rolls straight to the pushed direction until blocked, crushing the
+ * NPCs in the way (they drop a coin).
+ */
+export class ActorPushedDelegateRoll implements ActorPushedDelegate {
+  onPushed(event: PushedEvent, actor: Actor, field: IField): void {
+    if (actor.buff.rolling) {
+      return
+    }
+    actor.buff.rolling = true
+    const dir = event.dir
+    const step = () => {
+      const [ni, nj] = actor.nextGrid(dir)
+      for (const other of field.actors.get(ni, nj)) {
+        if (other === actor || other.id === "main") {
+          continue
+        }
+        // Crushes the NPC in the way, which drops a coin
+        field.actors.remove(other)
+        field.spawnItem("coin", ni, nj)
+        signal.playSound("explosion")
+        for (
+          const effect of linePattern0(DIRS, ni, nj, 1, 0.7, 3, "#4d4a4d")
+        ) {
+          field.effects.add(effect)
+        }
+      }
+      if (!field.canEnterStatic(ni, nj)) {
+        // Blocked by terrain or a prop. Stops rolling.
+        delete actor.buff.rolling
+        return
+      }
+      actor.enqueueActions({
+        type: "slide",
+        dir,
+        cb: (move) => {
+          if (move.type === "move") {
+            step()
+          } else {
+            // Bounced (e.g. into the player). Stops rolling.
+            delete actor.buff.rolling
+          }
+        },
+      })
+    }
+    step()
+  }
 }
 
 export class IdleDelegateRandomWalk implements IdleDelegate {

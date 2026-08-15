@@ -1,4 +1,4 @@
-import { Actor, IdleDelegateChase } from "./actor.ts"
+import { Actor, ActorPushedDelegateRoll, IdleDelegateChase } from "./actor.ts"
 import { MoveGo } from "./move.ts"
 import { ActorDefinition } from "./catalog.ts"
 import type { IActor, IField } from "./types.ts"
@@ -30,6 +30,7 @@ function makeField(me: IActor): IField {
       iter: () => [],
       get: (i, j) => (i === me.i && j === me.j ? [me] : []),
       add: () => {},
+      remove: () => {},
     },
     props: { get: () => undefined, remove: () => {} },
     effects: { add: () => {} },
@@ -119,6 +120,32 @@ Deno.test("Actor keeps sliding on slippery cells", () => {
   actor.step(field)
   // The actor stops on the non-slippery cell
   assertEquals(actor.i, 3)
+})
+
+Deno.test("ActorPushedDelegateRoll rolls until blocked", () => {
+  const me = new Actor(50, 50, actorDef, "main")
+  const boulder = new Actor(
+    0,
+    0,
+    actorDef,
+    "boulder",
+    "down",
+    16,
+    null,
+    null,
+    new ActorPushedDelegateRoll(),
+  )
+  const field: IField = {
+    ...makeField(me),
+    canEnterStatic: (i, _j) => i < 3,
+  }
+  boulder.onPushed({ type: "pushed", dir: "right", peakAt: 7 }, field)
+  for (const _ of Array(10)) {
+    boulder.step(field)
+  }
+  // The boulder stops right before the blocked cell (3, 0)
+  assertEquals(boulder.i, 2)
+  assertEquals(boulder.j, 0)
 })
 
 Deno.test("ActorGoMove", () => {

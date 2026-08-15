@@ -288,6 +288,17 @@ export class FieldActors implements IStepper, ILoader {
     signal.actorsCount.update(this.#actors.length)
   }
 
+  remove(actor: IActor) {
+    const index = this.#actors.indexOf(actor)
+    if (index < 0) {
+      return
+    }
+    this.#actors.splice(index, 1)
+    this.#idSet.delete(actor.id)
+    this.#coordCountMap.decrement(actor.physicalGridKey)
+    signal.actorsCount.update(this.#actors.length)
+  }
+
   step(field: IField) {
     let needsSort = false
     for (const actor of this.#actors) {
