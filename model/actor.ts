@@ -768,7 +768,7 @@ export class IdleDelegateChase implements IdleDelegate {
           signal.appleCount.update(count - 1)
           signal.playSound("hitHurt")
           for (
-            const effect of linePattern0(DIRS, me.i, me.j, 1, 0.7, 3, "#aa0000")
+            const effect of linePattern0(DIRS, me.i, me.j, 1, 0.7, 3, "#983600")
           ) {
             field.effects.add(effect)
           }

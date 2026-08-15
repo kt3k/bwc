@@ -29,7 +29,7 @@ function tryPlantSeed(actor: Actor, field: IField): boolean {
   signal.seedCount.update(signal.seedCount.get() - 1)
   signal.playSound("powerUp")
   for (
-    const effect of linePattern0([actor.dir], fi, fj, 1, 0.7, 2, "#3d5a20")
+    const effect of linePattern0([actor.dir], fi, fj, 1, 0.7, 2, "#5e6400")
   ) {
     field.effects.add(effect)
   }

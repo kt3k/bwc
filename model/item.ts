@@ -283,7 +283,7 @@ export class CollectCoin implements CollectDelegate {
     field.collectItem(actor.i, actor.j, item.id)
 
     for (
-      const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#8a6d00")
+      const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#7f4b01")
     ) {
       field.effects.add(effect)
     }
@@ -299,7 +299,7 @@ export class CollectSeed implements CollectDelegate {
     field.collectItem(actor.i, actor.j, item.id)
 
     for (
-      const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#4a3018")
+      const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#3d1c00")
     ) {
       field.effects.add(effect)
     }

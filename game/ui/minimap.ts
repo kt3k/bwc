@@ -8,11 +8,12 @@ const SCALE = 4
 /** The size of the minimap canvas in pixels */
 const SIZE = BLOCK_SIZE / SCALE
 
-const COLOR_FLOOR = "#9a9a8a"
-const COLOR_WALL = "#3a3a35"
-const COLOR_WATER = "#2d69af"
-const COLOR_ICE = "#e8f4fc"
-const COLOR_PLAYER = "#e03030"
+// NES palette colors (see the pixeledit palette)
+const COLOR_FLOOR = "#b9bcb9"
+const COLOR_WALL = "#4a4d4a"
+const COLOR_WATER = "#1950c7"
+const COLOR_ICE = "#ffffff"
+const COLOR_PLAYER = "#9d285c"
 
 /** The minimap ui which shows the current block and the player position */
 export function Minimap({ el, on, query, subscribe }: Context) {

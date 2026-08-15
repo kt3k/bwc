@@ -35,7 +35,7 @@ export function drawNight(
   if (darkness <= 0) {
     return
   }
-  ctx.fillStyle = `rgba(8, 8, 30, ${darkness})`
+  ctx.fillStyle = `rgba(0, 0, 0, ${darkness})`
   ctx.fillRect(0, 0, size, size)
 
   ctx.globalCompositeOperation = "destination-out"

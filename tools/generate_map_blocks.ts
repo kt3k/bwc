@@ -239,7 +239,7 @@ function emptyGrid(base: string): string[][] {
 
 function genForest(key: string): Generated {
   const { randomInt } = seed(`forest-${key}`)
-  const grid = emptyGrid("g")
+  const grid = emptyGrid("f")
   // Tree clumps (wall cells)
   for (let n = 0; n < 260; n++) {
     const x = randomInt(SIZE)
@@ -278,7 +278,7 @@ function genLake(key: string): Generated {
       randomInt(SIZE),
       2 + randomInt(5),
       1 + randomInt(3),
-      "g",
+      "f",
     )
   }
   // Water bodies (the road carved later bridges them)
