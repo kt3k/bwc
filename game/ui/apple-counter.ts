@@ -20,4 +20,13 @@ export function AppleCounter({ query, subscribe }: Context) {
       }
     }, 300)
   })
+
+  subscribe(signal.coinCount, (coins) => {
+    setTimeout(() => {
+      const counter = query(".coin-count-label")
+      if (counter) {
+        counter.textContent = coins.toString()
+      }
+    }, 300)
+  })
 }

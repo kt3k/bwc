@@ -24,6 +24,17 @@ export function ItemGetEffector({ el, subscribe }: Context) {
 
     moveImage(el, "./item/green-apple.png", "36px")
   })
+
+  let prevCoinCount = signal.coinCount.get()
+  subscribe(signal.coinCount, (count) => {
+    const increased = count > prevCoinCount
+    prevCoinCount = count
+    if (!increased) {
+      return
+    }
+
+    moveImage(el, "./item/coin.png", "62px")
+  })
 }
 
 async function moveImage(

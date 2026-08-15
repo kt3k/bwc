@@ -16,6 +16,8 @@ export const propsCount = new Signal(0)
 export const appleCount = new Signal(0)
 // The current count of green apples
 export const greenAppleCount = new Signal(0)
+// The current count of coins
+export const coinCount = new Signal(0)
 // The current loading state
 export const isGameLoading = new Signal(true)
 // The center pixel coordinate
