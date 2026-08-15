@@ -7,6 +7,7 @@ interface CatalogSource {
     readonly canEnter: boolean
     readonly src: string
     readonly noise?: string
+    readonly slippery?: boolean
   }>
   readonly items: Record<string, {
     readonly src: string
@@ -33,6 +34,7 @@ export interface CellDefinition {
   readonly src: string
   readonly href: string
   readonly noise?: string
+  readonly slippery?: boolean
 }
 
 /** Parsed item definition */
@@ -85,6 +87,7 @@ export class Catalog {
           src: data.src,
           href: new URL(data.src, url).href,
           noise: data.noise,
+          slippery: data.slippery,
         }
       }
 
@@ -133,6 +136,7 @@ export class Catalog {
         canEnter: def.canEnter,
         src: def.src,
         noise: def.noise,
+        slippery: def.slippery,
       }
     }
 

@@ -349,12 +349,21 @@ export class Actor implements IActor {
     if (this.#move) {
       this.#move.step()
       if (this.#move.finished) {
-        this.#move.cb?.(this.#move)
-        this.#moveEnd?.onMoveEnd(this, field, this.#move)
-        if (this.#move.type === "move") {
-          this.#lastMoveDir = this.#move.dir
+        const move = this.#move
+        move.cb?.(move)
+        this.#moveEnd?.onMoveEnd(this, field, move)
+        if (move.type === "move") {
+          this.#lastMoveDir = move.dir
         }
         this.#move = null
+        if (
+          move.type === "move" && field.isSlippery(this.#i, this.#j) &&
+          this.canGo(move.dir, field)
+        ) {
+          // The actor keeps sliding on the slippery cell, ignoring the
+          // inputs and the queued actions
+          this.unshiftActions({ type: "slide", dir: move.dir })
+        }
       }
     } else {
       this.#idleCounter += 1

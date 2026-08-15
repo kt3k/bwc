@@ -582,6 +582,9 @@ export class Field implements IField {
     return (this.#getCell(i, j)?.canEnter ?? false) &&
       this.#props.canEnter(i, j)
   }
+  isSlippery(i: number, j: number): boolean {
+    return this.#getCell(i, j)?.slippery ?? false
+  }
   peekItem(i: number, j: number): IItem | undefined {
     return this.#items.get(i, j)
   }

@@ -19,6 +19,7 @@ function makeField(me: IActor): IField {
     },
     canEnter: (i, j) => !(i === me.i && j === me.j),
     canEnterStatic: () => true,
+    isSlippery: () => false,
     peekItem: () => undefined,
     spawnActor: () => null,
     spawnItem: () => null,
@@ -96,6 +97,26 @@ Deno.test("IdleDelegateChase", async (t) => {
     assertEquals(signal.appleCount.get(), 4)
     signal.appleCount.update(0)
   })
+})
+
+Deno.test("Actor keeps sliding on slippery cells", () => {
+  const me = new Actor(50, 50, actorDef, "main")
+  const actor = new Actor(0, 0, actorDef, "npc", "down", 16, null, null)
+  const field: IField = {
+    ...makeField(me),
+    isSlippery: (i, _j) => i >= 1 && i <= 2,
+  }
+  actor.tryMove("go", "right", field)
+  assertEquals(actor.i, 1)
+  actor.step(field) // The move finishes on the slippery cell
+  actor.step(field) // Slides to (2, 0), still slippery
+  assertEquals(actor.i, 2)
+  actor.step(field) // Slides to (3, 0), not slippery
+  assertEquals(actor.i, 3)
+  actor.step(field)
+  actor.step(field)
+  // The actor stops on the non-slippery cell
+  assertEquals(actor.i, 3)
 })
 
 Deno.test("ActorGoMove", () => {

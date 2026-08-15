@@ -55,6 +55,8 @@ export type IField = {
   canEnter(i: number, j: number): boolean
   /** can enter the cell without considering dynamic objects */
   canEnterStatic(i: number, j: number): boolean
+  /** true if the cell is slippery (e.g. ice) */
+  isSlippery(i: number, j: number): boolean
   peekItem(i: number, j: number): IItem | undefined
   spawnActor(type: string, i: number, j: number, dir: Dir): IActor | null
   spawnItem(type: string, i: number, j: number): IItem | null
