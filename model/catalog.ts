@@ -8,6 +8,7 @@ interface CatalogSource {
     readonly src: string
     readonly noise?: string
     readonly slippery?: boolean
+    readonly water?: boolean
   }>
   readonly items: Record<string, {
     readonly src: string
@@ -39,6 +40,7 @@ export interface CellDefinition {
   readonly href: string
   readonly noise?: string
   readonly slippery?: boolean
+  readonly water?: boolean
 }
 
 /** Parsed item definition */
@@ -97,6 +99,7 @@ export class Catalog {
           href: new URL(data.src, url).href,
           noise: data.noise,
           slippery: data.slippery,
+          water: data.water,
         }
       }
 
@@ -153,6 +156,7 @@ export class Catalog {
         src: def.src,
         noise: def.noise,
         slippery: def.slippery,
+        water: def.water,
       }
     }
 

@@ -59,6 +59,8 @@ export type IField = {
   canEnterStatic(i: number, j: number): boolean
   /** true if the cell is slippery (e.g. ice) */
   isSlippery(i: number, j: number): boolean
+  /** true if the cell is water */
+  isWater(i: number, j: number): boolean
   peekItem(i: number, j: number): IItem | undefined
   spawnActor(type: string, i: number, j: number, dir: Dir): IActor | null
   spawnItem(type: string, i: number, j: number): IItem | null

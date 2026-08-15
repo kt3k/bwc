@@ -586,6 +586,9 @@ export class Field implements IField {
   isSlippery(i: number, j: number): boolean {
     return this.#getCell(i, j)?.slippery ?? false
   }
+  isWater(i: number, j: number): boolean {
+    return this.#getCell(i, j)?.water ?? false
+  }
   peekItem(i: number, j: number): IItem | undefined {
     return this.#items.get(i, j)
   }

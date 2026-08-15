@@ -20,6 +20,7 @@ function makeField(me: IActor): IField {
     canEnter: (i, j) => !(i === me.i && j === me.j),
     canEnterStatic: () => true,
     isSlippery: () => false,
+    isWater: () => false,
     peekItem: () => undefined,
     spawnActor: () => null,
     spawnItem: () => null,
