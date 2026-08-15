@@ -109,6 +109,8 @@ export type PushedEvent = {
   type: "pushed"
   dir: Dir
   peakAt: number
+  /** The actor who pushed */
+  pusher?: IActor
 }
 
 export type FieldEventTarget = {

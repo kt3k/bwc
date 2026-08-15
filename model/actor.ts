@@ -276,7 +276,7 @@ export class Actor implements IActor {
       this.#physicalGridKey = this.#calcPhysicalGridKey()
     } else {
       const [i, j] = this.nextGrid(dir)
-      const ev = { type: "pushed", dir, peakAt: 7 } as const
+      const ev = { type: "pushed", dir, peakAt: 7, pusher: this } as const
       let actorPushed = false
       for (const actor of field.actors.get(i, j)) {
         actorPushed = true
@@ -288,6 +288,9 @@ export class Actor implements IActor {
         actorPushed,
         this.#speed,
       )
+      if (this.#id === "main") {
+        signal.playSound("hitHurt")
+      }
     }
     this.#move.cb = cb
     this.#idleCounter = 0
@@ -297,6 +300,9 @@ export class Actor implements IActor {
     this.#move = new MoveJump()
     this.#move.cb = cb
     this.#idleCounter = 0
+    if (this.#id === "main") {
+      signal.playSound("jump")
+    }
   }
 
   setDir(state: Dir) {
@@ -689,6 +695,7 @@ export class IdleDelegateChase implements IdleDelegate {
         const count = signal.appleCount.get()
         if (count > 0) {
           signal.appleCount.update(count - 1)
+          signal.playSound("hitHurt")
           for (
             const effect of linePattern0(DIRS, me.i, me.j, 1, 0.7, 3, "#aa0000")
           ) {

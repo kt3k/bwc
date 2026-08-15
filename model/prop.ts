@@ -227,6 +227,9 @@ interface PushedDelegate {
 
 class PushedDelegateBreak implements PushedDelegate {
   onPushed(event: PushedEvent, prop: Prop, field: IField): void {
+    if (event.pusher?.id === "main") {
+      signal.playSound("explosion")
+    }
     prop.enqueueActions(
       { type: "wait", until: field.time + event.peakAt },
       { type: "line-pattern-1", dirs: [event.dir] },
@@ -247,6 +250,9 @@ class PushedDelegateChest implements PushedDelegate {
     const data = prop.data as { drops?: unknown; count?: unknown } | undefined
     const itemType = typeof data?.drops === "string" ? data.drops : "coin"
     const count = typeof data?.count === "number" ? data.count : 3
+    if (event.pusher?.id === "main") {
+      signal.playSound("explosion")
+    }
     prop.enqueueActions(
       { type: "wait", until: field.time + event.peakAt },
       { type: "line-pattern-1", dirs: [event.dir] },
@@ -267,7 +273,7 @@ class PushedDelegateAppleGate implements PushedDelegate {
   #opened = false
 
   onPushed(event: PushedEvent, prop: Prop, field: IField): void {
-    if (this.#opened) {
+    if (this.#opened || event.pusher?.id !== "main") {
       return
     }
     const data = prop.data as { count?: unknown } | undefined
@@ -275,6 +281,7 @@ class PushedDelegateAppleGate implements PushedDelegate {
     const count = signal.appleCount.get()
     if (count >= required) {
       this.#opened = true
+      signal.playSound("powerUp")
       prop.enqueueActions(
         { type: "wait", until: field.time + event.peakAt },
         { type: "line-pattern-1", dirs: [event.dir] },
@@ -296,7 +303,10 @@ class PushedDelegateAppleGate implements PushedDelegate {
 }
 
 class PushedDelegateSign implements PushedDelegate {
-  onPushed(_event: PushedEvent, prop: Prop, _field: IField): void {
+  onPushed(event: PushedEvent, prop: Prop, _field: IField): void {
+    if (event.pusher?.id !== "main") {
+      return
+    }
     const data = prop.data as { text?: unknown } | undefined
     const text = data?.text
     if (typeof text === "string" && text.length > 0) {

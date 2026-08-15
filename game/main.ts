@@ -15,17 +15,9 @@ import { MessageToast } from "./ui/message-toast.ts"
 import { GameScreen } from "./game-screen.ts"
 import { ExitButton } from "./ui/exit-button.ts"
 
-import * as jsfxr from "jsfxr"
-console.log("jsfxr", jsfxr)
-;(globalThis as unknown as { jsfxr: unknown }).jsfxr = jsfxr
+import { SoundPlayer } from "./ui/sound-player.ts"
+
 globalThis.addEventListener("blur", clearInput)
-
-const preset = "pickupCoin"
-const sound = jsfxr.sfxr.generate(preset)
-
-document.addEventListener("click", () => {
-  jsfxr.sfxr.play(sound)
-})
 
 register(GameScreen, "js-game-screen")
 register(FpsMonitor, "js-fps-monitor")
@@ -40,3 +32,4 @@ register(ItemsCounter, "js-items-counter")
 register(PropsCounter, "js-props-counter")
 register(ExitButton, "js-exit-button")
 register(MessageToast, "js-message-toast")
+register(SoundPlayer, "js-sound-player")

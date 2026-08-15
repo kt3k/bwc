@@ -21,6 +21,22 @@ export const coinCount = new Signal(0)
 // The message to show in the toast ui. Wrapped in an object so that
 // the same text shown twice still triggers the subscribers.
 export const message = new Signal<{ text: string } | null>(null)
+
+/** The name of a jsfxr sound preset */
+export type SoundName =
+  | "pickupCoin"
+  | "jump"
+  | "hitHurt"
+  | "explosion"
+  | "powerUp"
+// The sound effect to play. Wrapped in an object so that the same
+// sound played twice still triggers the subscribers.
+export const sound = new Signal<{ name: SoundName } | null>(null)
+
+/** Requests playing the sound effect of the given name */
+export function playSound(name: SoundName) {
+  sound.update({ name })
+}
 // The current loading state
 export const isGameLoading = new Signal(true)
 // The center pixel coordinate

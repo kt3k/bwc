@@ -243,6 +243,7 @@ export class CollectApple implements CollectDelegate {
 
     const count = signal.appleCount.get()
     signal.appleCount.update(count + 1)
+    signal.playSound("pickupCoin")
   }
 }
 
@@ -258,6 +259,7 @@ export class CollectGreenApple implements CollectDelegate {
 
     const count = signal.greenAppleCount.get()
     signal.greenAppleCount.update(count + 1)
+    signal.playSound("pickupCoin")
   }
 }
 
@@ -273,12 +275,14 @@ export class CollectCoin implements CollectDelegate {
 
     const count = signal.coinCount.get()
     signal.coinCount.update(count + 1)
+    signal.playSound("pickupCoin")
   }
 }
 
 export class CollectMushroom implements CollectDelegate {
   onCollect(actor: IActor, field: IField, item: Item): void {
     field.collectItem(actor.i, actor.j, item.id)
+    signal.playSound("powerUp")
     actor.clearActionQueue()
     actor.enqueueActions(
       { type: "jump" },
@@ -298,6 +302,7 @@ export class CollectMushroom implements CollectDelegate {
 export class CollectPurpleMushroom implements CollectDelegate {
   onCollect(actor: IActor, field: IField, item: Item): void {
     field.collectItem(actor.i, actor.j, item.id)
+    signal.playSound("powerUp")
     actor.clearActionQueue()
     actor.enqueueActions(
       { type: "jump" },
