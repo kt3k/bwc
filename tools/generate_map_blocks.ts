@@ -463,6 +463,7 @@ function buildTutorialCourse(
     [52, 126, 79, 128, "3"], // west corridor
     [52, 112, 72, 128, "3"], // garden room (seeds, chest, boulder)
     [72, 110, 95, 112, "3"], // exit corridor
+    [88, 113, 94, 118, "3"], // puzzle dungeon portal nook
   ]
   for (const [rx0, ry0, rx1, ry1, cell] of rooms) {
     rect(grid, rx0, ry0, rx1, ry1, cell)
@@ -508,6 +509,9 @@ function buildTutorialCourse(
       data: { text: "THE GATE OPENS WITH 5 APPLES" },
     },
     { i: 96, j: 111, type: "apple-gate", data: { count: 5 } },
+    // The portal to the puzzle dungeon (block_-400.400)
+    { i: 89, j: 114, type: "sign", data: { text: "PUZZLE DUNGEON PORTAL" } },
+    { i: 91, j: 116, type: "portal", data: { i: -300, j: 420 } },
   ]
   const items: Spawn[] = [
     // Apples: enough for the gate
