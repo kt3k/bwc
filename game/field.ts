@@ -600,6 +600,20 @@ export class Field implements IField {
   isWater(i: number, j: number): boolean {
     return this.#getCell(i, j)?.water ?? false
   }
+  conveyorDir(i: number, j: number): Dir | null {
+    return this.#getCell(i, j)?.conveyor ?? null
+  }
+  isDiggable(i: number, j: number): boolean {
+    return this.#getCell(i, j)?.diggable ?? false
+  }
+  updateCell(i: number, j: number, cell: string): void {
+    const block = this.#getBlockOrNull(i, j)
+    if (!block) {
+      return
+    }
+    block.updateCell(i, j, cell)
+    block.redrawCell(i, j)
+  }
   peekItem(i: number, j: number): IItem | undefined {
     return this.#items.get(i, j)
   }
@@ -632,7 +646,7 @@ export class Field implements IField {
 
   // Spawns a new item at the given grid coordinate
   // if the item type is unavailable in the given block, returns null
-  spawnItem(type: string, i: number, j: number): IItem | null {
+  spawnItem(type: string, i: number, j: number, id?: string): IItem | null {
     const def = this.#getBlockOrNull(i, j)?.catalog.items[type]
 
     if (!def) {
@@ -640,7 +654,7 @@ export class Field implements IField {
       return null
     }
 
-    const item = new Item(null, i, j, def)
+    const item = new Item(id ?? null, i, j, def)
     this.#items.add(item)
     item.loadAssets({ loadImage })
 

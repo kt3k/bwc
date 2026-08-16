@@ -29,6 +29,9 @@ function makeField(me: IActor, props: Map<string, IProp>): IField {
     canEnterStatic: () => true,
     isSlippery: () => false,
     isWater: () => false,
+    conveyorDir: () => null,
+    isDiggable: () => false,
+    updateCell: () => {},
     peekItem: () => undefined,
     spawnActor: () => null,
     spawnItem: () => null,
@@ -38,6 +41,7 @@ function makeField(me: IActor, props: Map<string, IProp>): IField {
     props: {
       get: (i, j) => props.get(`${i}.${j}`),
       remove: () => {},
+      iter: () => props.values(),
     },
     effects: { add: () => {} },
     get time() {

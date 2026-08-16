@@ -9,6 +9,8 @@ interface CatalogSource {
     readonly noise?: string
     readonly slippery?: boolean
     readonly water?: boolean
+    readonly conveyor?: "up" | "down" | "left" | "right"
+    readonly diggable?: boolean
   }>
   readonly items: Record<string, {
     readonly src: string
@@ -42,6 +44,8 @@ export interface CellDefinition {
   readonly noise?: string
   readonly slippery?: boolean
   readonly water?: boolean
+  readonly conveyor?: "up" | "down" | "left" | "right"
+  readonly diggable?: boolean
 }
 
 /** Parsed item definition */
@@ -102,6 +106,8 @@ export class Catalog {
           noise: data.noise,
           slippery: data.slippery,
           water: data.water,
+          conveyor: data.conveyor,
+          diggable: data.diggable,
         }
       }
 
@@ -160,6 +166,8 @@ export class Catalog {
         noise: def.noise,
         slippery: def.slippery,
         water: def.water,
+        conveyor: def.conveyor,
+        diggable: def.diggable,
       }
     }
 

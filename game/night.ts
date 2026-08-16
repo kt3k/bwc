@@ -49,7 +49,7 @@ export function drawNight(
   }
 
   for (const prop of props) {
-    if (prop.type !== "lantern") {
+    if (!prop.isLightSource) {
       continue
     }
     punch(

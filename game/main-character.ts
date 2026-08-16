@@ -1,4 +1,4 @@
-import { DOWN, LEFT, RIGHT, UP } from "../util/dir.ts"
+import { DIRS, DOWN, LEFT, RIGHT, UP } from "../util/dir.ts"
 import { Input, inputQueue } from "./ui/input.ts"
 import {
   Actor,
@@ -8,7 +8,45 @@ import {
 import { opposite } from "../util/dir.ts"
 import type { Dir, IField, Move } from "../model/types.ts"
 import { linePattern0 } from "../model/effect.ts"
+import { Item } from "../model/item.ts"
 import * as signal from "../util/signals.ts"
+
+/**
+ * Digs the diggable cell the actor stands on. Each spot yields its
+ * treasure only once (tracked via the collected item ids, so it
+ * persists in the save). Returns true if digging happened.
+ */
+function tryDig(actor: Actor, field: IField): boolean {
+  if (!field.isDiggable(actor.i, actor.j)) {
+    return false
+  }
+  const ids = [0, 1].map((n) => `dig.${actor.i}.${actor.j}.${n}`)
+  if (ids.every((id) => Item.isCollected(id))) {
+    // Already dug up
+    return false
+  }
+  actor.jump()
+  signal.playSound("explosion")
+  for (
+    const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#3d1c00")
+  ) {
+    field.effects.add(effect)
+  }
+  const dirs = DIRS.filter((d) => {
+    const [ni, nj] = actor.nextGrid(d)
+    return field.canEnterStatic(ni, nj)
+  })
+  ids.forEach((id, n) => {
+    if (Item.isCollected(id)) {
+      return
+    }
+    const item = field.spawnItem("coin", actor.i, actor.j, id)
+    if (item && dirs.length > 0) {
+      item.enqueueActions({ type: "go", dir: dirs[n % dirs.length] })
+    }
+  })
+  return true
+}
 
 /**
  * Plants a sapling at the front cell if the player has seeds and the
@@ -100,6 +138,9 @@ export class IdleMainActor implements IdleDelegate {
       queueHead === "touchendempty"
     ) {
       inputQueue.shift()
+      if (tryDig(actor, field)) {
+        return
+      }
       if (tryPlantSeed(actor, field)) {
         return
       }

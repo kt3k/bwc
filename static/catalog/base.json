@@ -63,6 +63,31 @@
       "src": "../cell/forest.png",
       "noise": "#4a4d4a=2"
     },
+    "x": {
+      "canEnter": true,
+      "src": "../cell/cracked.png",
+      "diggable": true
+    },
+    "n": {
+      "canEnter": true,
+      "src": "../cell/conveyor_up.png",
+      "conveyor": "up"
+    },
+    "s": {
+      "canEnter": true,
+      "src": "../cell/conveyor_down.png",
+      "conveyor": "down"
+    },
+    "o": {
+      "canEnter": true,
+      "src": "../cell/conveyor_left.png",
+      "conveyor": "left"
+    },
+    "e": {
+      "canEnter": true,
+      "src": "../cell/conveyor_right.png",
+      "conveyor": "right"
+    },
     "r": {
       "canEnter": true,
       "src": "../cell/red.png"
@@ -100,6 +125,10 @@
     "boulder": {
       "pushed": "roll",
       "src": "../actor/boulder/"
+    },
+    "ghost": {
+      "idle": "ghost",
+      "src": "../actor/ghost/"
     }
   },
   "items": {
@@ -118,6 +147,10 @@
     "seed": {
       "collect": "seed",
       "src": "../item/seed.png"
+    },
+    "key": {
+      "collect": "key",
+      "src": "../item/key.png"
     },
     "mushroom": {
       "collect": "mushroom",
@@ -209,6 +242,96 @@
     "lantern": {
       "src": "../prop/lantern.png",
       "canEnter": false
+    },
+    "lantern-unlit": {
+      "src": "../prop/lantern_unlit.png",
+      "canEnter": false,
+      "pushed": "light-lantern",
+      "growth": {
+        "stages": [
+          "../prop/lantern_unlit.png",
+          "../prop/lantern.png"
+        ],
+        "interval": 100000000
+      }
+    },
+    "plate": {
+      "src": "../prop/plate.png",
+      "canEnter": true,
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": { "type": "string" }
+        },
+        "required": ["group"]
+      }
+    },
+    "door": {
+      "src": "../prop/door.png",
+      "canEnter": false,
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": { "type": "string" }
+        },
+        "required": ["group"]
+      }
+    },
+    "timer-gate": {
+      "src": "../prop/timer_gate.png",
+      "canEnter": false,
+      "pushed": "timer-gate",
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "duration": { "type": "number" }
+        }
+      }
+    },
+    "moon-gate": {
+      "src": "../prop/moon_gate.png",
+      "canEnter": false
+    },
+    "shop": {
+      "src": "../prop/shop.png",
+      "canEnter": false,
+      "pushed": "shop",
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "sells": { "type": "string" },
+          "price": { "type": "number" }
+        },
+        "required": ["sells", "price"]
+      }
+    },
+    "key-gate": {
+      "src": "../prop/key_gate.png",
+      "canEnter": false,
+      "pushed": "key-gate"
+    },
+    "fish-shrine": {
+      "src": "../prop/shrine.png",
+      "canEnter": false,
+      "pushed": "fish-shrine"
+    },
+    "race-start": {
+      "src": "../prop/race_start.png",
+      "canEnter": true,
+      "onEnter": "race-start"
+    },
+    "race-goal": {
+      "src": "../prop/race_goal.png",
+      "canEnter": true,
+      "onEnter": "race-goal",
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "course": { "type": "string" },
+          "par": { "type": "number" },
+          "reward": { "type": "number" }
+        }
+      }
     },
     "sapling": {
       "src": "../prop/sapling.png",

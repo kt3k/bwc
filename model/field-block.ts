@@ -598,6 +598,15 @@ export class FieldBlock {
     drawCellColor(this.canvasWrapper, i, j, color)
   }
 
+  /** Redraws a single cell (used after a runtime terrain change) */
+  redrawCell(i: number, j: number) {
+    const cell = this.getCell(i, j)
+    const image = this.imgMap[cell.name]
+    if (image) {
+      drawCell(this.canvasWrapper, i, j, cell, image)
+    }
+  }
+
   renderAll(canvas = this.canvas) {
     renderRange(
       new CanvasWrapper(canvas),

@@ -48,6 +48,8 @@ export type IProp =
     canEnter: boolean
     /** The prop type in the catalog */
     type: string
+    /** true if the prop emits light at night */
+    isLightSource: boolean
   }
 
 export type IField = {
@@ -61,9 +63,15 @@ export type IField = {
   isSlippery(i: number, j: number): boolean
   /** true if the cell is water */
   isWater(i: number, j: number): boolean
+  /** the conveyor direction of the cell, if any */
+  conveyorDir(i: number, j: number): Dir | null
+  /** true if the cell can be dug */
+  isDiggable(i: number, j: number): boolean
+  /** replaces the cell terrain at the given coordinates (e.g. a bridge) */
+  updateCell(i: number, j: number, cell: string): void
   peekItem(i: number, j: number): IItem | undefined
   spawnActor(type: string, i: number, j: number, dir: Dir): IActor | null
-  spawnItem(type: string, i: number, j: number): IItem | null
+  spawnItem(type: string, i: number, j: number, id?: string): IItem | null
   spawnProp(type: string, i: number, j: number): IProp | null
   collectItem(i: number, j: number, id: string): void
   actors: {
@@ -76,6 +84,7 @@ export type IField = {
   props: {
     get(i: number, j: number): IProp | undefined
     remove(i: number, j: number): void
+    iter(): Iterable<IProp>
   }
   effects: {
     add(effect: IColorBox & IStepper & IFinishable): void
@@ -133,10 +142,12 @@ export type IActor =
     get id(): string
     get physicalGridKey(): string
     get dir(): Dir
+    get follower(): IFollower | null
     canGo(dir: Dir, field: IField): boolean
     enqueueActions(...actions: Action[]): void
     unshiftActions(...actions: Action[]): void
     clearActionQueue(): void
+    unsetFollower(): void
   }
 
 export type CommonMove = {

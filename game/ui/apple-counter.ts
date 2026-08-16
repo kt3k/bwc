@@ -38,4 +38,13 @@ export function AppleCounter({ query, subscribe }: Context) {
       }
     }, 300)
   })
+
+  subscribe(signal.keyCount, (keys) => {
+    setTimeout(() => {
+      const counter = query(".key-count-label")
+      if (counter) {
+        counter.textContent = keys.toString()
+      }
+    }, 300)
+  })
 }

@@ -36,6 +36,10 @@ const fallbackImagePhase1 = await fetch(
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAD5JREFUOE9jZGBg+M+AChjR+HjlQYqHgQFoXibNS+gBBjKMpDAZHAaQ5GQGBgYUV4+mA7QAgaYokgJ14NMBAK1TIAlUJpxYAAAAAElFTkSuQmCC",
 ).then((res) => res.blob()).then((blob) => createImageBitmap(blob))
 
+const transparentImage = await fetch(
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAE0lEQVR4nGNgGAWjYBSMAgYwAAAEEAABsax5zAAAAABJRU5ErkJggg==",
+).then((res) => res.blob()).then((blob) => createImageBitmap(blob))
+
 type ActorAppearance =
   | "up0"
   | "up1"
@@ -80,6 +84,9 @@ export function spawnActor(
       break
     case "chase":
       idle = new IdleDelegateChase()
+      break
+    case "ghost":
+      idle = new IdleDelegateGhost()
       break
   }
   switch (def.pushed) {
@@ -306,6 +313,20 @@ export class Actor implements IActor {
     this.#idleCounter = 0
   }
 
+  /**
+   * Moves the actor to the next cell ignoring the collision.
+   * Used by wall-passing actors like ghosts.
+   */
+  forceMove(dir: Dir) {
+    this.setDir(dir)
+    this.#move = new MoveGo(this.#speed, dir)
+    const [nextI, nextJ] = this.nextGrid(dir)
+    this.#i = nextI
+    this.#j = nextJ
+    this.#physicalGridKey = this.#calcPhysicalGridKey()
+    this.#idleCounter = 0
+  }
+
   jump(cb?: (move: Move) => void) {
     this.#move = new MoveJump()
     this.#move.cb = cb
@@ -372,7 +393,12 @@ export class Actor implements IActor {
           this.#lastMoveDir = move.dir
         }
         this.#move = null
-        if (
+        const conveyor = field.conveyorDir(this.#i, this.#j)
+        if (conveyor && this.canGo(conveyor, field)) {
+          // The conveyor cell forces the actor to slide to its
+          // direction, whichever way the actor came from
+          this.unshiftActions({ type: "slide", dir: conveyor })
+        } else if (
           move.type === "move" && field.isSlippery(this.#i, this.#j) &&
           this.canGo(move.dir, field)
         ) {
@@ -387,6 +413,9 @@ export class Actor implements IActor {
   }
 
   image(): ImageBitmap {
+    if (this.buff.invisible) {
+      return transparentImage
+    }
     if (this.#move) {
       return this.getImage(this.#dir, this.#move.halfPassed ? 1 : 0)
     } else if (this.#idleCounter % 128 < 64) {
@@ -571,6 +600,10 @@ export class Actor implements IActor {
     }
   }
 
+  get follower(): IFollower | null {
+    return this.#follower
+  }
+
   unsetFollower() {
     if (this.#follower) {
       this.#follower.unfollow()
@@ -639,6 +672,19 @@ export class ActorPushedDelegateRoll implements ActorPushedDelegate {
         ) {
           field.effects.add(effect)
         }
+      }
+      if (field.isWater(ni, nj)) {
+        // The boulder sinks into the water and becomes a bridge
+        field.updateCell(ni, nj, "0")
+        field.actors.remove(actor)
+        signal.playSound("explosion")
+        for (
+          const effect of linePattern0(DIRS, ni, nj, 1, 0.7, 3, "#002e55")
+        ) {
+          field.effects.add(effect)
+        }
+        delete actor.buff.rolling
+        return
       }
       if (!field.canEnterStatic(ni, nj)) {
         // Blocked by terrain or a prop. Stops rolling.
@@ -776,6 +822,106 @@ export class IdleDelegateChase implements IdleDelegate {
       }
       return
     }
+  }
+}
+
+/**
+ * A night-only wall-passing enemy. Active while it is dark: slowly
+ * drifts toward the player through walls, avoiding lantern light, and
+ * steals a coin on contact. Invisible and dormant during the day.
+ */
+export class IdleDelegateGhost implements IdleDelegate {
+  /** The activation range in manhattan distance */
+  #range: number
+  /** Frames between the drift steps (the ghost is slow) */
+  #pace: number
+  #cooldown = 0
+  #stealDisabledUntil = 0
+
+  constructor(range = 14, pace = 24) {
+    this.#range = range
+    this.#pace = pace
+  }
+
+  onIdle(actor: Actor, field: IField): void {
+    if (signal.nightDarkness.get() <= 0.3) {
+      // Daytime: dormant and invisible
+      actor.buff.invisible = true
+      return
+    }
+    delete actor.buff.invisible
+    if (--this.#cooldown > 0) {
+      return
+    }
+    this.#cooldown = this.#pace
+
+    const me = field.me
+    if (!me || me.id === actor.id) {
+      return
+    }
+    const di = me.i - actor.i
+    const dj = me.j - actor.j
+    const dist = Math.abs(di) + Math.abs(dj)
+    if (dist === 0 || dist > this.#range) {
+      return
+    }
+    const dirI: Dir | null = di !== 0 ? (di > 0 ? RIGHT : LEFT) : null
+    const dirJ: Dir | null = dj !== 0 ? (dj > 0 ? DOWN : UP) : null
+    const candidates =
+      (Math.abs(di) >= Math.abs(dj) ? [dirI, dirJ] : [dirJ, dirI]).filter((
+        d,
+      ): d is Dir => d !== null)
+
+    for (const dir of candidates) {
+      const [ni, nj] = actor.nextGrid(dir)
+      if (ni === me.i && nj === me.j) {
+        // Contact: steals a coin with a cooldown
+        if (field.time >= this.#stealDisabledUntil) {
+          this.#stealDisabledUntil = field.time + 300
+          const count = signal.coinCount.get()
+          if (count > 0) {
+            signal.coinCount.update(count - 1)
+            signal.playSound("hitHurt")
+            for (
+              const effect of linePattern0(
+                DIRS,
+                me.i,
+                me.j,
+                1,
+                0.7,
+                3,
+                "#54070a",
+              )
+            ) {
+              field.effects.add(effect)
+            }
+          }
+        }
+        return
+      }
+      // The ghost fears the light
+      if (this.#nearLight(field, ni, nj)) {
+        continue
+      }
+      // Never overlaps other actors, but passes through walls
+      if (field.actors.get(ni, nj).length > 0) {
+        continue
+      }
+      actor.forceMove(dir)
+      return
+    }
+  }
+
+  #nearLight(field: IField, i: number, j: number): boolean {
+    for (const prop of field.props.iter()) {
+      if (!prop.isLightSource) {
+        continue
+      }
+      if (Math.abs(prop.i - i) + Math.abs(prop.j - j) <= 4) {
+        return true
+      }
+    }
+    return false
   }
 }
 

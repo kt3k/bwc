@@ -8,7 +8,9 @@ type SaveData = {
   greenAppleCount?: number
   coinCount?: number
   seedCount?: number
+  keyCount?: number
   collectedItemIds?: string[]
+  bestTimes?: Record<string, number>
   position?: { i: number; j: number }
 }
 
@@ -49,6 +51,7 @@ export function restoreSave() {
     signal.greenAppleCount.update(saved.greenAppleCount ?? 0)
     signal.coinCount.update(saved.coinCount ?? 0)
     signal.seedCount.update(saved.seedCount ?? 0)
+    signal.keyCount.update(saved.keyCount ?? 0)
     Item.deserializeCollected(saved.collectedItemIds ?? [])
   }
   restored = true
@@ -68,6 +71,24 @@ export function restoreSave() {
     data.seedCount = v
     write()
   })
+  signal.keyCount.subscribe((v) => {
+    data.keyCount = v
+    write()
+  })
+}
+
+/**
+ * Records the best time (in frames) for the given race course.
+ * Returns true if it is a new record.
+ */
+export function recordBestTime(course: string, frames: number): boolean {
+  const best = data.bestTimes?.[course]
+  if (best !== undefined && best <= frames) {
+    return false
+  }
+  data.bestTimes = { ...data.bestTimes, [course]: frames }
+  write()
+  return true
 }
 
 /** Returns the saved last position, if any */

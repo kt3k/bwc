@@ -21,6 +21,9 @@ function makeField(me: IActor): IField {
     canEnterStatic: () => true,
     isSlippery: () => false,
     isWater: () => false,
+    conveyorDir: () => null,
+    isDiggable: () => false,
+    updateCell: () => {},
     peekItem: () => undefined,
     spawnActor: () => null,
     spawnItem: () => null,
@@ -32,7 +35,7 @@ function makeField(me: IActor): IField {
       add: () => {},
       remove: () => {},
     },
-    props: { get: () => undefined, remove: () => {} },
+    props: { get: () => undefined, remove: () => {}, iter: () => [] },
     effects: { add: () => {} },
     get time() {
       return 0
@@ -146,6 +149,62 @@ Deno.test("ActorPushedDelegateRoll rolls until blocked", () => {
   // The boulder stops right before the blocked cell (3, 0)
   assertEquals(boulder.i, 2)
   assertEquals(boulder.j, 0)
+})
+
+Deno.test("Actor is carried by conveyor cells", () => {
+  const me = new Actor(50, 50, actorDef, "main")
+  const actor = new Actor(0, 0, actorDef, "npc", "down", 16, null, null)
+  const field: IField = {
+    ...makeField(me),
+    conveyorDir: (i, _j) => (i >= 1 && i <= 2 ? "right" : null),
+  }
+  actor.tryMove("go", "right", field)
+  assertEquals(actor.i, 1)
+  for (const _ of Array(8)) {
+    actor.step(field)
+  }
+  // Carried across the belt cells and dropped at (3, 0)
+  assertEquals(actor.i, 3)
+})
+
+Deno.test("Boulder sinks into water and builds a bridge", () => {
+  const me = new Actor(50, 50, actorDef, "main")
+  const boulder = new Actor(
+    0,
+    0,
+    actorDef,
+    "boulder",
+    "down",
+    16,
+    null,
+    null,
+    new ActorPushedDelegateRoll(),
+  )
+  const updated: [number, number, string][] = []
+  let removed = false
+  const field: IField = {
+    ...makeField(me),
+    isWater: (i, _j) => i === 3,
+    updateCell: (i, j, cell) => {
+      updated.push([i, j, cell])
+    },
+    actors: {
+      iter: () => [],
+      get: () => [],
+      add: () => {},
+      remove: () => {
+        removed = true
+      },
+    },
+  }
+  boulder.onPushed({ type: "pushed", dir: "right", peakAt: 7 }, field)
+  for (const _ of Array(10)) {
+    boulder.step(field)
+  }
+  // The water cell became a floor and the boulder is gone
+  assertEquals(updated, [[3, 0, "0"]])
+  assert(removed)
+  assertEquals(boulder.i, 2)
 })
 
 Deno.test("ActorGoMove", () => {

@@ -46,6 +46,17 @@ export function ItemGetEffector({ el, subscribe }: Context) {
 
     moveImage(el, "./item/seed.png", "88px")
   })
+
+  let prevKeyCount = signal.keyCount.get()
+  subscribe(signal.keyCount, (count) => {
+    const increased = count > prevKeyCount
+    prevKeyCount = count
+    if (!increased) {
+      return
+    }
+
+    moveImage(el, "./item/key.png", "114px")
+  })
 }
 
 async function moveImage(

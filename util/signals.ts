@@ -20,6 +20,8 @@ export const greenAppleCount = new Signal(0)
 export const coinCount = new Signal(0)
 // The current count of seeds
 export const seedCount = new Signal(0)
+// The current count of keys
+export const keyCount = new Signal(0)
 // The darkness of the night (0 = day, 0.75 = midnight)
 export const nightDarkness = new Signal(0)
 // The message to show in the toast ui. Wrapped in an object so that
