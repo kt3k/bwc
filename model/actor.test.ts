@@ -105,7 +105,7 @@ Deno.test("IdleDelegateChase", async (t) => {
   })
 })
 
-Deno.test("Actor keeps sliding on slippery cells", () => {
+Deno.test("Actor keeps sliding on slippery cells at 4x speed", () => {
   const me = new Actor(50, 50, actorDef, "main")
   const actor = new Actor(0, 0, actorDef, "npc", "down", 16, null, null)
   const field: IField = {
@@ -117,10 +117,15 @@ Deno.test("Actor keeps sliding on slippery cells", () => {
   actor.step(field) // The move finishes on the slippery cell
   actor.step(field) // Slides to (2, 0), still slippery
   assertEquals(actor.i, 2)
-  actor.step(field) // Slides to (3, 0), not slippery
+  // At 4x speed each slide takes 4 frames: (3, 0) is reached at the
+  // 6th step (a 1x slide would need 18 steps)
+  for (const _ of Array(4)) {
+    actor.step(field)
+  }
   assertEquals(actor.i, 3)
-  actor.step(field)
-  actor.step(field)
+  for (const _ of Array(6)) {
+    actor.step(field)
+  }
   // The actor stops on the non-slippery cell
   assertEquals(actor.i, 3)
 })
@@ -151,7 +156,7 @@ Deno.test("ActorPushedDelegateRoll rolls until blocked", () => {
   assertEquals(boulder.j, 0)
 })
 
-Deno.test("Actor is carried by conveyor cells", () => {
+Deno.test("Actor is carried by conveyor cells at 4x speed", () => {
   const me = new Actor(50, 50, actorDef, "main")
   const actor = new Actor(0, 0, actorDef, "npc", "down", 16, null, null)
   const field: IField = {
@@ -160,10 +165,15 @@ Deno.test("Actor is carried by conveyor cells", () => {
   }
   actor.tryMove("go", "right", field)
   assertEquals(actor.i, 1)
-  for (const _ of Array(8)) {
+  // At 4x speed the two belt cells are crossed within 6 steps
+  for (const _ of Array(6)) {
     actor.step(field)
   }
-  // Carried across the belt cells and dropped at (3, 0)
+  assertEquals(actor.i, 3)
+  for (const _ of Array(6)) {
+    actor.step(field)
+  }
+  // Dropped at (3, 0) past the belts
   assertEquals(actor.i, 3)
 })
 

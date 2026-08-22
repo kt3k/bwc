@@ -1,7 +1,8 @@
 import { CELL_SIZE } from "../util/constants.ts"
-import { DIRS, nextGrid } from "../util/dir.ts"
+import { DIRS, nextGrid, opposite } from "../util/dir.ts"
 import { clearSave, recordBestTime } from "../util/save.ts"
 import * as signal from "../util/signals.ts"
+import { linePattern0 } from "./effect.ts"
 import { Item } from "./item.ts"
 import type {
   Dir,
@@ -394,12 +395,25 @@ export class Prop implements IProp {
       const dir = actor.dir
       const [ni, nj] = nextGrid(this.i, this.j, dir)
       if (field.canEnterStatic(ni, nj)) {
-        // Fly to the direction the actor was heading
+        // Fly to the direction the actor was heading, at 4x speed
+        for (
+          const effect of linePattern0(
+            [opposite(dir)],
+            this.i,
+            this.j,
+            1.5,
+            0.7,
+            3,
+            "#cceaff",
+          )
+        ) {
+          field.effects.add(effect)
+        }
         actor.unshiftActions(
           { type: "jump" },
-          { type: "slide", dir },
-          { type: "slide", dir },
-          { type: "slide", dir },
+          { type: "slide", dir, speed: 4 },
+          { type: "slide", dir, speed: 4 },
+          { type: "slide", dir, speed: 4 },
         )
       } else {
         // The way is blocked. Jumps on the spot to prevent a soft lock

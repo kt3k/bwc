@@ -211,7 +211,7 @@ export class Actor implements IActor {
         }
         case "go":
         case "slide": {
-          this.tryMove(action.type, action.dir, field, action.cb)
+          this.tryMove(action.type, action.dir, field, action.cb, action.speed)
           return "end"
         }
         case "jump": {
@@ -278,12 +278,30 @@ export class Actor implements IActor {
     dir: Dir,
     field: IField,
     cb?: (move: Move) => void,
+    speedOverride?: 1 | 2 | 4 | 8 | 16,
   ) {
+    const speed = speedOverride ?? this.#speed
     if (type === "go") this.setDir(dir)
     if (this.canGo(dir, field)) {
-      this.#move = new MoveGo(this.#speed, dir)
+      if (type === "slide") {
+        // Wind streaks trailing behind the sliding actor
+        for (
+          const effect of linePattern0(
+            [opposite(dir)],
+            this.#i,
+            this.#j,
+            1.3,
+            0.4,
+            2,
+            "#cceaff",
+          )
+        ) {
+          field.effects.add(effect)
+        }
+      }
+      this.#move = new MoveGo(speed, dir)
       if (this.#follower && this.#lastMoveDir) {
-        this.#follower.follow(this.#i, this.#j, this.#lastMoveDir, this.#speed)
+        this.#follower.follow(this.#i, this.#j, this.#lastMoveDir, speed)
       }
 
       // actor position moves to the next grid immediately (the animation catches it up in 16 frames)
@@ -303,7 +321,7 @@ export class Actor implements IActor {
       this.#move = new MoveBounce(
         dir,
         actorPushed,
-        this.#speed,
+        speed,
       )
       if (this.#id === "main") {
         signal.playSound("hitHurt")
@@ -396,15 +414,15 @@ export class Actor implements IActor {
         const conveyor = field.conveyorDir(this.#i, this.#j)
         if (conveyor && this.canGo(conveyor, field)) {
           // The conveyor cell forces the actor to slide to its
-          // direction, whichever way the actor came from
-          this.unshiftActions({ type: "slide", dir: conveyor })
+          // direction (at 4x speed), whichever way the actor came from
+          this.unshiftActions({ type: "slide", dir: conveyor, speed: 4 })
         } else if (
           move.type === "move" && field.isSlippery(this.#i, this.#j) &&
           this.canGo(move.dir, field)
         ) {
-          // The actor keeps sliding on the slippery cell, ignoring the
-          // inputs and the queued actions
-          this.unshiftActions({ type: "slide", dir: move.dir })
+          // The actor keeps sliding on the slippery cell at 4x speed,
+          // ignoring the inputs and the queued actions
+          this.unshiftActions({ type: "slide", dir: move.dir, speed: 4 })
         }
       }
     } else {
