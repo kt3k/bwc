@@ -175,6 +175,7 @@ actor(138, 95, "boulder")
 actor(142, 95, "boulder")
 actor(146, 95, "boulder")
 sign(135, 90, "SINK THE BOULDERS TO CROSS")
+sign(135, 100, "PUSH THE EAST ONE FIRST. LEAVE TO RESET")
 item(175, 95, "key")
 prop(180, 90, "chest", { drops: "coin", count: 8 })
 for (const [x, y] of [[170, 100], [175, 105], [180, 100]]) item(x, y, "coin")
@@ -262,6 +263,9 @@ for (let y = 146; y <= 166; y += 4) {
 prop(90, 168, "chest", { drops: "coin", count: 10 })
 prop(110, 168, "chest", { drops: "seed", count: 3 })
 sign(100, 144, "MASTER OF GIMMICKS!")
+// The way down to the second floor (block_200.400)
+sign(110, 144, "B2F: THE DEEPER TRIAL")
+prop(108, 144, "portal", { i: 300, j: 420 })
 
 // ---------------------------------------------------------------------
 // verification
