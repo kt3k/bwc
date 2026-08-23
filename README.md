@@ -14,6 +14,10 @@ deno task dev
 
 Go to `http://localhost:8000`
 
+`http://localhost:8000/preview.html` shows the catalog preview (every cell /
+item / prop / actor with its behavior) and links to the interactive zoo block
+where all of them are placed live.
+
 # vscode extensions
 
 Install
