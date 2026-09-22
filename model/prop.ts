@@ -37,6 +37,54 @@ const plateRegistry = new Map<string, Map<string, [number, number]>>()
 /** The ongoing race state (the start time in field frames) */
 let raceStartedAt: number | null = null
 
+/**
+ * The ON/OFF states of the switch groups (blue walls stand while OFF,
+ * red walls stand while ON), keyed by group.
+ */
+const switchStates = new Map<string, boolean>()
+
+/** The field time until which each timer-button group holds its shutters open */
+const shutterOpenUntil = new Map<string, number>()
+
+/**
+ * The progress of the sequence-button groups: the order number expected
+ * next. The seal wall of the group opens once it exceeds the wall's count.
+ */
+const sequenceNext = new Map<string, number>()
+
+/** The gap offsets of the slide-wall groups (advanced by slide buttons) */
+const slideOffsets = new Map<string, number>()
+
+/** The registered wall indices of the slide-wall groups */
+const slideRegistry = new Map<string, Set<number>>()
+
+/** The group name of a prop's data ("" when unspecified) */
+function groupOf(data: unknown): string {
+  const group = (data as { group?: unknown } | undefined)?.group
+  return typeof group === "string" ? group : ""
+}
+
+/** true if the switch group is ON */
+function isSwitchOn(group: string): boolean {
+  return switchStates.get(group) ?? false
+}
+
+/** Flips the switch group and returns the new state */
+export function toggleSwitch(group: string): boolean {
+  const on = !isSwitchOn(group)
+  switchStates.set(group, on)
+  return on
+}
+
+/** Resets all button and wall states (used by tests) */
+export function resetSwitchStates() {
+  switchStates.clear()
+  shutterOpenUntil.clear()
+  sequenceNext.clear()
+  slideOffsets.clear()
+  slideRegistry.clear()
+}
+
 const transparentImage = await fetch(
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAE0lEQVR4nGNgGAWjYBSMAgYwAAAEEAABsax5zAAAAABJRU5ErkJggg==",
 ).then((res) => res.blob()).then((blob) => createImageBitmap(blob))
@@ -131,6 +179,18 @@ export class Prop implements IProp {
       case "fish-shrine":
         pushed = new PushedDelegateFishShrine()
         break
+      case "switch":
+        pushed = new PushedDelegateSwitch()
+        break
+      case "timer-button":
+        pushed = new PushedDelegateTimerButton()
+        break
+      case "seq-button":
+        pushed = new PushedDelegateSeqButton()
+        break
+      case "slide-button":
+        pushed = new PushedDelegateSlideButton()
+        break
     }
     return new Prop(
       spawn.id,
@@ -171,6 +231,14 @@ export class Prop implements IProp {
         plateRegistry.set(group, plates)
       }
       plates.set(`${i}.${j}`, [i, j])
+    } else if (def.type === "slide-wall") {
+      const group = groupOf(data)
+      let indices = slideRegistry.get(group)
+      if (!indices) {
+        indices = new Set()
+        slideRegistry.set(group, indices)
+      }
+      indices.add(slideIndexOf(data))
     }
   }
 
@@ -289,10 +357,37 @@ export class Prop implements IProp {
       (this.growthState?.stage ?? 0) > 0
   }
 
-  /** Opens or closes the prop as a passage (doors, gates) */
-  setOpen(open: boolean) {
+  /**
+   * Opens or closes the prop as a passage (doors, gates, walls).
+   * The image is hidden while open unless `hide` is false (walls show
+   * their lowered image instead).
+   */
+  setOpen(open: boolean, hide = true) {
     this.#open = open
-    this.#hidden = open
+    this.#hidden = open && hide
+  }
+
+  /** Shows the given growth stage image (the state images of walls and buttons) */
+  #showStage(stage: number) {
+    const state = this.growthState
+    if (state && state.stage !== stage) {
+      state.stage = stage
+      this.applyGrowthImage()
+    }
+  }
+
+  /**
+   * Raises or lowers a wall. A wall never rises on someone standing in
+   * its cell; it waits until the cell is vacated.
+   */
+  #setWall(field: IField, lowered: boolean) {
+    if (lowered === this.isOpen) {
+      return
+    }
+    if (!lowered && field.actors.get(this.i, this.j).length > 0) {
+      return
+    }
+    this.setOpen(lowered, false)
   }
 
   get isOpen(): boolean {
@@ -370,6 +465,72 @@ export class Prop implements IProp {
         ) {
           this.setOpen(open)
         }
+        break
+      }
+      case "switch": {
+        // The crystal shows the color of the walls standing now
+        this.#showStage(isSwitchOn(groupOf(this.data)) ? 1 : 0)
+        break
+      }
+      case "blue-wall": {
+        // Stands while the switch group is OFF
+        this.#setWall(field, isSwitchOn(groupOf(this.data)))
+        this.#showStage(this.isOpen ? 1 : 0)
+        break
+      }
+      case "red-wall": {
+        // Stands while the switch group is ON
+        this.#setWall(field, !isSwitchOn(groupOf(this.data)))
+        this.#showStage(this.isOpen ? 1 : 0)
+        break
+      }
+      case "and-wall": {
+        // Lowers only while every listed switch group is ON
+        const groups = (this.data as { groups?: unknown } | undefined)?.groups
+        const all = Array.isArray(groups)
+          ? groups.every((g) => typeof g === "string" && isSwitchOn(g))
+          : false
+        this.#setWall(field, all)
+        this.#showStage(this.isOpen ? 1 : 0)
+        break
+      }
+      case "timer-button": {
+        const until = shutterOpenUntil.get(groupOf(this.data)) ?? -1
+        this.#showStage(field.time < until ? 1 : 0)
+        break
+      }
+      case "shutter": {
+        // Open while the timer button of the group holds it
+        const until = shutterOpenUntil.get(groupOf(this.data)) ?? -1
+        this.#setWall(field, field.time < until)
+        this.#showStage(this.isOpen ? 1 : 0)
+        break
+      }
+      case "seq-button": {
+        const next = sequenceNext.get(groupOf(this.data)) ?? 1
+        this.#showStage(seqOrderOf(this.data) < next ? 1 : 0)
+        break
+      }
+      case "seal-wall": {
+        // Opens for good once all the buttons were pressed in order
+        const count = (this.data as { count?: unknown } | undefined)?.count
+        const required = typeof count === "number" ? count : 1
+        const next = sequenceNext.get(groupOf(this.data)) ?? 1
+        if (next > required && !this.isOpen) {
+          this.setOpen(true, false)
+          signal.playSound("powerUp")
+        }
+        this.#showStage(this.isOpen ? 1 : 0)
+        break
+      }
+      case "slide-wall": {
+        // Exactly one wall of the group is the gap, chosen by the offset
+        const group = groupOf(this.data)
+        const n = slideRegistry.get(group)?.size ?? 1
+        const offset = slideOffsets.get(group) ?? 0
+        const gap = ((slideIndexOf(this.data) - offset) % n + n) % n === 0
+        this.#setWall(field, gap)
+        this.#showStage(this.isOpen ? 1 : 0)
         break
       }
     }
@@ -683,6 +844,84 @@ class PushedDelegateResetGame implements PushedDelegate {
       location.hash = ""
       location.reload()
     }, 500)
+  }
+}
+
+/** The index of a slide wall in its group */
+function slideIndexOf(data: unknown): number {
+  const index = (data as { index?: unknown } | undefined)?.index
+  return typeof index === "number" ? index : 0
+}
+
+/** The order number of a sequence button */
+function seqOrderOf(data: unknown): number {
+  const order = (data as { order?: unknown } | undefined)?.order
+  return typeof order === "number" ? order : 1
+}
+
+/**
+ * Flips the switch group (and the linked groups) on every push.
+ * Anyone can press it: the player, a bouncing NPC or a rolling boulder.
+ */
+class PushedDelegateSwitch implements PushedDelegate {
+  onPushed(_event: PushedEvent, prop: Prop, _field: IField): void {
+    const data = prop.data as { also?: unknown } | undefined
+    toggleSwitch(groupOf(prop.data))
+    if (Array.isArray(data?.also)) {
+      for (const group of data.also) {
+        if (typeof group === "string") {
+          toggleSwitch(group)
+        }
+      }
+    }
+    signal.playSound("powerUp")
+  }
+}
+
+/** Holds the shutters of the group open for the duration */
+class PushedDelegateTimerButton implements PushedDelegate {
+  onPushed(event: PushedEvent, prop: Prop, field: IField): void {
+    const data = prop.data as { duration?: unknown } | undefined
+    const duration = typeof data?.duration === "number" ? data.duration : 300
+    shutterOpenUntil.set(groupOf(prop.data), field.time + duration)
+    signal.playSound("powerUp")
+    if (event.pusher?.id === "main") {
+      signal.message.update({
+        text: `SHUTTERS OPEN FOR ${(duration / 60).toFixed(0)} SECONDS!`,
+      })
+    }
+  }
+}
+
+/**
+ * Advances the sequence of the group when pressed in order. Pressing a
+ * later button too early resets the sequence.
+ */
+class PushedDelegateSeqButton implements PushedDelegate {
+  onPushed(event: PushedEvent, prop: Prop, _field: IField): void {
+    const group = groupOf(prop.data)
+    const order = seqOrderOf(prop.data)
+    const next = sequenceNext.get(group) ?? 1
+    if (order === next) {
+      sequenceNext.set(group, next + 1)
+      signal.playSound("pickupCoin")
+    } else if (order > next) {
+      sequenceNext.set(group, 1)
+      signal.playSound("hitHurt")
+      if (event.pusher?.id === "main") {
+        signal.message.update({ text: "WRONG ORDER! RESET" })
+      }
+    }
+    // An already pressed button is ignored
+  }
+}
+
+/** Moves the gap of the slide-wall group one wall further */
+class PushedDelegateSlideButton implements PushedDelegate {
+  onPushed(_event: PushedEvent, prop: Prop, _field: IField): void {
+    const group = groupOf(prop.data)
+    slideOffsets.set(group, (slideOffsets.get(group) ?? 0) + 1)
+    signal.playSound("powerUp")
   }
 }
 

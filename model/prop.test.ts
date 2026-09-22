@@ -1,8 +1,9 @@
-import { Prop } from "./prop.ts"
+import { Prop, resetSwitchStates } from "./prop.ts"
 import { Actor } from "./actor.ts"
+import { PropSpawn } from "./field-block.ts"
 import type { ActorDefinition, PropDefinition } from "./catalog.ts"
 import type { IActor, IField } from "./types.ts"
-import { assert, assertFalse } from "@std/assert"
+import { assert, assertEquals, assertFalse } from "@std/assert"
 
 const actorDef: ActorDefinition = {
   type: "main",
@@ -27,6 +28,7 @@ const doorDef: PropDefinition = {
 function makeField(
   me: IActor,
   occupiedCells: () => Set<string>,
+  clock: { time: number } = { time: 0 },
 ): IField {
   return {
     get me() {
@@ -53,11 +55,185 @@ function makeField(
     props: { get: () => undefined, remove: () => {}, iter: () => [] },
     effects: { add: () => {} },
     get time() {
-      return 0
+      return clock.time
     },
     colorCell: () => {},
   }
 }
+
+/** A prop definition with two state images (raised / lowered) */
+function stateDef(
+  type: string,
+  canEnter: boolean,
+  pushed?: string,
+): PropDefinition {
+  return {
+    type,
+    canEnter,
+    pushed,
+    src: `../prop/${type}.png`,
+    href: `./prop/${type}.png`,
+    growth: {
+      stages: [`../prop/${type}.png`, `../prop/${type}_down.png`],
+      hrefs: [`./prop/${type}.png`, `./prop/${type}_down.png`],
+      interval: 100000000,
+    },
+  }
+}
+
+/** Spawns a prop with its pushed delegate, as the field does */
+function spawn(def: PropDefinition, i: number, j: number, data: unknown) {
+  return Prop.fromSpawn(new PropSpawn(i, j, def, data))
+}
+
+const push = (pusher: IActor) =>
+  ({ type: "pushed", dir: "right", peakAt: 7, pusher }) as const
+
+Deno.test("switch flips the blue and red walls of its group", () => {
+  resetSwitchStates()
+  const me = new Actor(0, 0, actorDef, "main")
+  const occupied = new Set<string>()
+  const field = makeField(me, () => occupied)
+  const sw = spawn(stateDef("switch", false, "switch"), 1, 1, { group: "g" })
+  const blue = spawn(stateDef("blue-wall", false), 2, 2, { group: "g" })
+  const red = spawn(stateDef("red-wall", true), 3, 3, { group: "g" })
+  const step = () => [sw, blue, red].forEach((p) => p.step(field))
+
+  step()
+  assertFalse(blue.canEnter)
+  assert(red.canEnter)
+
+  sw.onPushed(push(me), field)
+  step()
+  assert(blue.canEnter)
+  assertFalse(red.canEnter)
+  assertEquals(sw.growthState?.stage, 1)
+
+  // The red wall never rises on someone standing in its cell
+  sw.onPushed(push(me), field)
+  occupied.add("2.2")
+  step()
+  assert(blue.canEnter)
+  occupied.delete("2.2")
+  step()
+  assertFalse(blue.canEnter)
+  assert(red.canEnter)
+})
+
+Deno.test("and-wall lowers only when every linked group is on", () => {
+  resetSwitchStates()
+  const me = new Actor(0, 0, actorDef, "main")
+  const field = makeField(me, () => new Set())
+  const swDef = stateDef("switch", false, "switch")
+  // A toggles a; B toggles a and b; C toggles b and c
+  const a = spawn(swDef, 1, 0, { group: "a" })
+  const b = spawn(swDef, 2, 0, { group: "b", also: ["a"] })
+  const c = spawn(swDef, 3, 0, { group: "c", also: ["b"] })
+  const wall = spawn(stateDef("and-wall", false), 5, 0, {
+    groups: ["a", "b", "c"],
+  })
+
+  b.onPushed(push(me), field)
+  wall.step(field)
+  assertFalse(wall.canEnter)
+  // The solution: press A and C (B is a trap)
+  b.onPushed(push(me), field)
+  a.onPushed(push(me), field)
+  c.onPushed(push(me), field)
+  wall.step(field)
+  assert(wall.canEnter)
+})
+
+Deno.test("timer button holds its shutters open for the duration", () => {
+  resetSwitchStates()
+  const me = new Actor(0, 0, actorDef, "main")
+  const occupied = new Set<string>()
+  const clock = { time: 100 }
+  const field = makeField(me, () => occupied, clock)
+  const button = spawn(stateDef("timer-button", false, "timer-button"), 0, 1, {
+    group: "t",
+    duration: 60,
+  })
+  const shutter = spawn(stateDef("shutter", false), 9, 9, { group: "t" })
+
+  shutter.step(field)
+  assertFalse(shutter.canEnter)
+  button.onPushed(push(me), field)
+  shutter.step(field)
+  assert(shutter.canEnter)
+  clock.time = 159
+  shutter.step(field)
+  assert(shutter.canEnter)
+  // Closes when the time is up, unless someone is in the doorway
+  clock.time = 160
+  occupied.add("9.9")
+  shutter.step(field)
+  assert(shutter.canEnter)
+  occupied.delete("9.9")
+  shutter.step(field)
+  assertFalse(shutter.canEnter)
+})
+
+Deno.test("seal wall opens when the buttons are pressed in order", () => {
+  resetSwitchStates()
+  const me = new Actor(0, 0, actorDef, "main")
+  const field = makeField(me, () => new Set())
+  const def = stateDef("seq-button", false, "seq-button")
+  const b1 = spawn(def, 1, 0, { group: "s", order: 1 })
+  const b2 = spawn(def, 2, 0, { group: "s", order: 2 })
+  const b3 = spawn(def, 3, 0, { group: "s", order: 3 })
+  const wall = spawn(stateDef("seal-wall", false), 5, 0, {
+    group: "s",
+    count: 3,
+  })
+
+  b1.onPushed(push(me), field)
+  b1.step(field)
+  assertEquals(b1.growthState?.stage, 1)
+  // Skipping ahead resets the sequence
+  b3.onPushed(push(me), field)
+  b1.step(field)
+  assertEquals(b1.growthState?.stage, 0)
+  wall.step(field)
+  assertFalse(wall.canEnter)
+
+  b1.onPushed(push(me), field)
+  b1.onPushed(push(me), field) // pressing again is harmless
+  b2.onPushed(push(me), field)
+  b3.onPushed(push(me), field)
+  wall.step(field)
+  assert(wall.canEnter)
+  // Stays open: the state survives a re-spawn of the wall
+  const respawned = spawn(stateDef("seal-wall", false), 5, 0, {
+    group: "s",
+    count: 3,
+  })
+  respawned.step(field)
+  assert(respawned.canEnter)
+})
+
+Deno.test("slide button moves the gap along the slide walls", () => {
+  resetSwitchStates()
+  const me = new Actor(0, 0, actorDef, "main")
+  const field = makeField(me, () => new Set())
+  const button = spawn(stateDef("slide-button", false, "slide-button"), 0, 5, {
+    group: "w",
+  })
+  const walls = [0, 1, 2].map((index) =>
+    spawn(stateDef("slide-wall", false), 5 + index, 0, { group: "w", index })
+  )
+  const gaps = () => {
+    walls.forEach((w) => w.step(field))
+    return walls.map((w) => w.canEnter)
+  }
+  assertEquals(gaps(), [true, false, false])
+  button.onPushed(push(me), field)
+  assertEquals(gaps(), [false, true, false])
+  button.onPushed(push(me), field)
+  assertEquals(gaps(), [false, false, true])
+  button.onPushed(push(me), field)
+  assertEquals(gaps(), [true, false, false])
+})
 
 Deno.test("door opens while a plate of the same group is occupied", () => {
   const me = new Actor(0, 0, actorDef, "main")

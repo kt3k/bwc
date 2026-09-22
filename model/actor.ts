@@ -88,6 +88,9 @@ export function spawnActor(
     case "ghost":
       idle = new IdleDelegateGhost()
       break
+    case "patrol":
+      idle = new IdleDelegatePatrol()
+      break
   }
   switch (def.pushed) {
     case "roll":
@@ -705,8 +708,13 @@ export class ActorPushedDelegateRoll implements ActorPushedDelegate {
         return
       }
       if (!field.canEnterStatic(ni, nj)) {
-        // Blocked by terrain or a prop. Stops rolling.
+        // Blocked by terrain or a prop. Stops rolling. The prop in the
+        // way gets pressed by the boulder (buttons, crates)
         delete actor.buff.rolling
+        field.props.get(ni, nj)?.onPushed(
+          { type: "pushed", dir, peakAt: 0, pusher: actor },
+          field,
+        )
         return
       }
       actor.enqueueActions({
@@ -723,6 +731,17 @@ export class ActorPushedDelegateRoll implements ActorPushedDelegate {
       })
     }
     step()
+  }
+}
+
+/**
+ * Walks straight ahead whenever idle. Combined with the inertial move
+ * end, the actor bounces back and forth between the obstacles, pressing
+ * any button at the ends of its lane.
+ */
+export class IdleDelegatePatrol implements IdleDelegate {
+  onIdle(actor: Actor, field: IField): void {
+    actor.tryMove("go", actor.dir, field)
   }
 }
 

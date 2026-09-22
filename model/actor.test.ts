@@ -1,7 +1,13 @@
-import { Actor, ActorPushedDelegateRoll, IdleDelegateChase } from "./actor.ts"
+import {
+  Actor,
+  ActorPushedDelegateRoll,
+  IdleDelegateChase,
+  IdleDelegatePatrol,
+  MoveEndDelegateInertial,
+} from "./actor.ts"
 import { MoveGo } from "./move.ts"
 import { ActorDefinition } from "./catalog.ts"
-import type { IActor, IField } from "./types.ts"
+import type { IActor, IField, IProp, PushedEvent } from "./types.ts"
 import * as signal from "../util/signals.ts"
 import { assert, assertEquals, assertFalse } from "@std/assert"
 
@@ -215,6 +221,70 @@ Deno.test("Boulder sinks into water and builds a bridge", () => {
   assertEquals(updated, [[3, 0, "0"]])
   assert(removed)
   assertEquals(boulder.i, 2)
+})
+
+Deno.test("Rolling boulder presses the prop it stops at", () => {
+  const me = new Actor(50, 50, actorDef, "main")
+  const boulder = new Actor(
+    0,
+    0,
+    actorDef,
+    "boulder",
+    "down",
+    16,
+    null,
+    null,
+    new ActorPushedDelegateRoll(),
+  )
+  const pushedBy: string[] = []
+  const field: IField = {
+    ...makeField(me),
+    canEnterStatic: (i, _j) => i < 3,
+    props: {
+      get: (i, j) => {
+        if (i !== 3 || j !== 0) return undefined
+        return {
+          onPushed: (ev: PushedEvent) => {
+            pushedBy.push(ev.pusher?.id ?? "?")
+          },
+        } as unknown as IProp
+      },
+      remove: () => {},
+      iter: () => [],
+    },
+  }
+  boulder.onPushed({ type: "pushed", dir: "right", peakAt: 7 }, field)
+  for (const _ of Array(10)) {
+    boulder.step(field)
+  }
+  assertEquals(boulder.i, 2)
+  assertEquals(pushedBy, ["boulder"])
+})
+
+Deno.test("Patrol actor bounces between the ends of its lane", () => {
+  const me = new Actor(50, 50, actorDef, "main")
+  const patrol = new Actor(
+    1,
+    0,
+    actorDef,
+    "patrol",
+    "right",
+    16,
+    new MoveEndDelegateInertial(),
+    new IdleDelegatePatrol(),
+  )
+  const field: IField = {
+    ...makeField(me),
+    canEnter: (i, _j) => i >= 0 && i <= 2,
+  }
+  patrol.step(field) // starts walking right on its own (16x: 1 frame)
+  assertEquals(patrol.i, 2)
+  patrol.step(field) // bumps into the wall and bounces
+  assertEquals(patrol.i, 2)
+  assertEquals(patrol.dir, "right")
+  patrol.step(field) // turned back after the bounce
+  assertEquals(patrol.i, 1)
+  assertEquals(patrol.dir, "left")
 })
 
 Deno.test("ActorGoMove", () => {

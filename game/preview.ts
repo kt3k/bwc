@@ -76,6 +76,17 @@ const NOTES: Record<string, string> = {
   "prop.sapling": "grows to a fruit tree; push the grown tree for apples",
   "prop.race-start": "step on it to start the race clock",
   "prop.race-goal": "step on it to finish; beat par for coins",
+  "prop.switch":
+    "push to flip its group: blue walls lower and red walls rise (and back)",
+  "prop.blue-wall": "stands while its switch group is OFF",
+  "prop.red-wall": "stands while its switch group is ON",
+  "prop.and-wall": "lowers only while every listed switch group is ON",
+  "prop.timer-button": "push to open its shutters for a while",
+  "prop.shutter": "open while its timer button holds it",
+  "prop.seq-button": "press the group in number order; a skip resets it",
+  "prop.seal-wall": "opens for good once its buttons were pressed in order",
+  "prop.slide-button": "push to move the gap of its slide walls one step",
+  "prop.slide-wall": "a wall line with one moving gap",
   "prop.stool": "decoration (walkable)",
   "prop.table": "decoration (blocks)",
   "prop.table2": "decoration (blocks)",
@@ -86,7 +97,9 @@ const NOTES: Record<string, string> = {
   "actor.static": "stands still",
   "actor.chaser": "chases you in range (2x at night); steals apples",
   "actor.boulder":
-    "push it: rolls until blocked, crushes NPCs, sinks into water as a bridge",
+    "push it: rolls until blocked, crushes NPCs, sinks into water as a bridge, presses buttons",
+  "actor.patrol":
+    "walks back and forth between obstacles; presses buttons it bumps into",
   "actor.ghost":
     "night only; walks through walls, fears lanterns, steals coins",
 }

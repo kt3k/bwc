@@ -129,6 +129,11 @@
     "ghost": {
       "idle": "ghost",
       "src": "../actor/ghost/"
+    },
+    "patrol": {
+      "idle": "patrol",
+      "moveEnd": "inertial",
+      "src": "../actor/joob/"
     }
   },
   "items": {
@@ -356,6 +361,161 @@
           "count": { "type": "number" }
         },
         "required": ["count"]
+      }
+    },
+    "switch": {
+      "src": "../prop/switch_blue.png",
+      "canEnter": false,
+      "pushed": "switch",
+      "growth": {
+        "stages": ["../prop/switch_blue.png", "../prop/switch_red.png"],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": { "type": "string" },
+          "also": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["group"]
+      }
+    },
+    "blue-wall": {
+      "src": "../prop/blue_wall.png",
+      "canEnter": false,
+      "growth": {
+        "stages": ["../prop/blue_wall.png", "../prop/blue_wall_down.png"],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": { "type": "string" }
+        },
+        "required": ["group"]
+      }
+    },
+    "red-wall": {
+      "src": "../prop/red_wall.png",
+      "canEnter": true,
+      "growth": {
+        "stages": ["../prop/red_wall.png", "../prop/red_wall_down.png"],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": { "type": "string" }
+        },
+        "required": ["group"]
+      }
+    },
+    "and-wall": {
+      "src": "../prop/and_wall.png",
+      "canEnter": false,
+      "growth": {
+        "stages": ["../prop/and_wall.png", "../prop/and_wall_down.png"],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "groups": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["groups"]
+      }
+    },
+    "timer-button": {
+      "src": "../prop/timer_button.png",
+      "canEnter": false,
+      "pushed": "timer-button",
+      "growth": {
+        "stages": ["../prop/timer_button.png", "../prop/timer_button_on.png"],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": { "type": "string" },
+          "duration": { "type": "number" }
+        },
+        "required": ["group"]
+      }
+    },
+    "shutter": {
+      "src": "../prop/shutter.png",
+      "canEnter": false,
+      "growth": {
+        "stages": ["../prop/shutter.png", "../prop/shutter_open.png"],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": { "type": "string" }
+        },
+        "required": ["group"]
+      }
+    },
+    "seq-button": {
+      "src": "../prop/seq_button.png",
+      "canEnter": false,
+      "pushed": "seq-button",
+      "growth": {
+        "stages": ["../prop/seq_button.png", "../prop/seq_button_on.png"],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": { "type": "string" },
+          "order": { "type": "number" }
+        },
+        "required": ["group", "order"]
+      }
+    },
+    "seal-wall": {
+      "src": "../prop/seal_wall.png",
+      "canEnter": false,
+      "growth": {
+        "stages": ["../prop/seal_wall.png", "../prop/seal_wall_down.png"],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": { "type": "string" },
+          "count": { "type": "number" }
+        },
+        "required": ["group", "count"]
+      }
+    },
+    "slide-button": {
+      "src": "../prop/slide_button.png",
+      "canEnter": false,
+      "pushed": "slide-button",
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": { "type": "string" }
+        },
+        "required": ["group"]
+      }
+    },
+    "slide-wall": {
+      "src": "../prop/slide_wall.png",
+      "canEnter": false,
+      "growth": {
+        "stages": ["../prop/slide_wall.png", "../prop/slide_wall_gap.png"],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": { "type": "string" },
+          "index": { "type": "number" }
+        },
+        "required": ["group", "index"]
       }
     },
     "a": {
