@@ -570,6 +570,8 @@ export class Prop implements IProp {
         ) {
           field.effects.add(effect)
         }
+        // The jump scares a following fish off
+        actor.unsetFollower()
         actor.unshiftActions(
           { type: "jump" },
           { type: "slide", dir, speed: 4 },

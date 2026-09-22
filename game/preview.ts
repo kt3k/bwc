@@ -59,7 +59,8 @@ const NOTES: Record<string, string> = {
   "prop.hatena": "push to break",
   "prop.chest": "push to break; scatters its drops",
   "prop.sign": "push to read the message",
-  "prop.spring": "step on it: launched 3 cells at 4x in your heading",
+  "prop.spring":
+    "step on it: launched 3 cells at 4x in your heading; a fish follower flees",
   "prop.portal": "step on it to teleport",
   "prop.portal-out": "teleport arrival marker",
   "prop.reset-portal": "push to wipe the save and restart",
@@ -99,7 +100,7 @@ const NOTES: Record<string, string> = {
   "actor.boulder":
     "push it: rolls until blocked, crushes NPCs, sinks into water as a bridge, presses buttons",
   "actor.patrol":
-    "walks back and forth between obstacles; presses buttons it bumps into",
+    "walks back and forth between obstacles; presses buttons it bumps into; can't be shoved",
   "actor.ghost":
     "night only; walks through walls, fears lanterns, steals coins",
 }

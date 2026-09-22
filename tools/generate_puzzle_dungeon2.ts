@@ -246,6 +246,10 @@ grid[166][95] = "x" // dig spots
 grid[166][105] = "x"
 prop(100, 166, "portal", { i: -300, j: 420 }) // shortcut to the B1F plaza
 sign(103, 166, "SHORTCUT OUT")
+// The way down to the third floor (block_400.400)
+sign(103, 160, "B3F: TEN MIXED TRIALS")
+prop(100, 160, "portal-out")
+prop(96, 160, "portal", { i: 500, j: 420 })
 
 // ---------------------------------------------------------------------
 // verification (movement simulation with ice and conveyor belts)

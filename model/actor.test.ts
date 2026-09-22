@@ -3,7 +3,7 @@ import {
   ActorPushedDelegateRoll,
   IdleDelegateChase,
   IdleDelegatePatrol,
-  MoveEndDelegateInertial,
+  MoveEndDelegatePatrol,
 } from "./actor.ts"
 import { MoveGo } from "./move.ts"
 import { ActorDefinition } from "./catalog.ts"
@@ -270,7 +270,7 @@ Deno.test("Patrol actor bounces between the ends of its lane", () => {
     "patrol",
     "right",
     16,
-    new MoveEndDelegateInertial(),
+    new MoveEndDelegatePatrol(),
     new IdleDelegatePatrol(),
   )
   const field: IField = {
@@ -285,6 +285,27 @@ Deno.test("Patrol actor bounces between the ends of its lane", () => {
   patrol.step(field) // turned back after the bounce
   assertEquals(patrol.i, 1)
   assertEquals(patrol.dir, "left")
+})
+
+Deno.test("Patrol actor turns back after knocking an actor", () => {
+  const me = new Actor(0, 0, actorDef, "main")
+  const patrol = new Actor(
+    2,
+    0,
+    actorDef,
+    "patrol",
+    "left",
+    16,
+    new MoveEndDelegatePatrol(),
+    new IdleDelegatePatrol(),
+  )
+  const field = makeField(me)
+  patrol.step(field) // walks to (1, 0)
+  assertEquals(patrol.i, 1)
+  patrol.step(field) // bumps into the player and knocks it
+  patrol.step(field) // ...then turns back instead of plowing through
+  assertEquals(patrol.i, 2)
+  assertEquals(patrol.dir, "right")
 })
 
 Deno.test("ActorGoMove", () => {

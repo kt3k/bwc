@@ -71,6 +71,9 @@ export function spawnActor(
     case "inertial":
       moveEnd = new MoveEndDelegateInertial()
       break
+    case "patrol":
+      moveEnd = new MoveEndDelegatePatrol()
+      break
   }
   switch (def.idle) {
     case "random-rotate":
@@ -95,6 +98,9 @@ export function spawnActor(
   switch (def.pushed) {
     case "roll":
       pushed = new ActorPushedDelegateRoll()
+      break
+    case "unstoppable":
+      pushed = new ActorPushedDelegateUnstoppable()
       break
   }
   return new Actor(i, j, def, id, dir, speed, moveEnd, idle, pushed)
@@ -659,6 +665,24 @@ export class MoveEndDelegateInertial implements MoveEndDelegate {
   }
 }
 
+/**
+ * Keeps walking, and turns back on any bump, whether it hit a wall, a
+ * button or an actor. Unlike the inertial move end it never plows
+ * through whoever it knocked, so a patrol can't pin the player.
+ */
+export class MoveEndDelegatePatrol implements MoveEndDelegate {
+  onMoveEnd(actor: Actor, _field: IField, move: Move): void {
+    if (!actor.isActionQueueEmpty()) {
+      return
+    }
+    if (move.type === "move") {
+      actor.enqueueActions({ type: "go", dir: move.dir })
+    } else if (move.type === "bounce") {
+      actor.enqueueActions({ type: "go", dir: opposite(move.dir) })
+    }
+  }
+}
+
 export interface IdleDelegate {
   onIdle(actor: Actor, field: IField): void
 }
@@ -735,7 +759,7 @@ export class ActorPushedDelegateRoll implements ActorPushedDelegate {
 }
 
 /**
- * Walks straight ahead whenever idle. Combined with the inertial move
+ * Walks straight ahead whenever idle. Combined with the patrol move
  * end, the actor bounces back and forth between the obstacles, pressing
  * any button at the ends of its lane.
  */
@@ -743,6 +767,11 @@ export class IdleDelegatePatrol implements IdleDelegate {
   onIdle(actor: Actor, field: IField): void {
     actor.tryMove("go", actor.dir, field)
   }
+}
+
+/** Ignores pushes: the actor can't be shoved off its course */
+export class ActorPushedDelegateUnstoppable implements ActorPushedDelegate {
+  onPushed(_event: PushedEvent, _actor: Actor, _field: IField): void {}
 }
 
 export class IdleDelegateRandomWalk implements IdleDelegate {
