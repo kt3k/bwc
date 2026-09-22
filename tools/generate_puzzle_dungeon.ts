@@ -9,6 +9,9 @@
 // - R5 night corridor: lightable lanterns, ghosts, moon gate (B-5)
 // - R6 fish escort to the shrine across a spring field (B-6)
 // - R7 one-way conveyor maze (B-7)
+// - R8 the switch trial: seven rooms of button-linked walls
+//   (game-ideas-3.md), a one-way descent between the center and the
+//   east corridors
 // - Vault: three key gates guarding the treasure (B-8)
 // - Plaza: shops, a timer-gate dash annex, a race course and dig spots
 //
@@ -23,7 +26,13 @@ const SIZE = 200
 const BI = -400
 const BJ = 400
 
-type Spawn = { i: number; j: number; type: string; data?: unknown }
+type Spawn = {
+  i: number
+  j: number
+  type: string
+  dir?: string
+  data?: unknown
+}
 
 const grid: string[][] = Array.from(
   { length: SIZE },
@@ -47,8 +56,8 @@ function rect(
   }
 }
 
-const actor = (i: number, j: number, type: string) =>
-  actors.push({ i: i + BI, j: j + BJ, type })
+const actor = (i: number, j: number, type: string, dir?: string) =>
+  actors.push({ i: i + BI, j: j + BJ, type, dir })
 const item = (i: number, j: number, type: string) =>
   items.push({ i: i + BI, j: j + BJ, type })
 const prop = (i: number, j: number, type: string, data?: unknown) =>
@@ -70,7 +79,7 @@ rect(122, 66, 126, 192, "5") // east corridor
 rect(80, 10, 120, 60, "5")
 prop(100, 20, "portal-out")
 prop(96, 20, "portal", { i: -110, j: 115 }) // back to the tutorial course
-sign(104, 20, "PUZZLE DUNGEON: 8 TRIALS")
+sign(104, 20, "PUZZLE DUNGEON: 9 TRIALS")
 sign(93, 20, "BACK TO TUTORIAL")
 prop(110, 30, "shop", { sells: "seed", price: 3 })
 prop(113, 30, "shop", { sells: "mushroom", price: 5 })
@@ -246,6 +255,121 @@ prop(133, 168, "crate")
 prop(134, 168, "crate")
 
 // ---------------------------------------------------------------------
+// R8 (center-east strip): the switch trial
+//
+// Seven rooms stacked between the center and the east corridors, each
+// exit held by a button-linked wall. The bottom room drops the player
+// back onto the center corridor through a one-way belt.
+
+rect(104, 68, 120, 134, "5") // the strip
+grid[67][106] = "5" // entrance from the spine
+sign(108, 66, "SWITCH TRIAL: SEVEN ROOMS, ONE WAY DOWN")
+for (const y of [77, 87, 97, 107, 117, 127]) rect(104, y, 120, y, "2")
+
+// A: the blue/red airlock. Two switches of one group: the first lowers
+// the blue wall into the middle chamber, the second lowers the red one
+rect(109, 68, 109, 76, "2")
+rect(115, 68, 115, 76, "2")
+grid[72][109] = "5"
+grid[72][115] = "5"
+prop(109, 72, "blue-wall", { group: "r8a" })
+prop(115, 72, "red-wall", { group: "r8a" })
+prop(104, 76, "switch", { group: "r8a" })
+prop(114, 68, "switch", { group: "r8a" })
+sign(106, 70, "BLUE STANDS, RED SLEEPS. A SWITCH SWAPS THEM")
+sign(112, 74, "PUSH THE OTHER SWITCH TO SWAP BACK")
+item(112, 70, "coin")
+grid[77][118] = "5" // down to B
+
+// B: the metronome. A patrol NPC sealed in a lane flips the switch on
+// every lap; blue then red in series, with a pocket to wait in
+rect(104, 79, 115, 79, "2") // the lane's south wall
+grid[78][115] = "2" // the lane's east cap
+prop(114, 78, "switch", { group: "r8b" })
+actor(108, 78, "patrol", "right")
+rect(114, 80, 114, 86, "2")
+rect(112, 80, 112, 86, "2")
+grid[83][114] = "5"
+grid[83][112] = "5"
+prop(114, 83, "blue-wall", { group: "r8b" })
+prop(112, 83, "red-wall", { group: "r8b" })
+item(113, 81, "coin")
+item(113, 85, "coin")
+sign(120, 80, "THE PATROL FLIPS THE SWITCH. WAIT IN THE POCKET")
+grid[87][106] = "5" // down to C
+
+// C: the timer run. The clock button is far from its shutter: 26 cells
+// of corridor to cross in 8 seconds. The mushroom on the way to the
+// button makes the first run easy; later runs need the shop or a
+// perfect line
+prop(104, 88, "timer-button", { group: "r8c", duration: 480 })
+item(105, 88, "mushroom")
+sign(107, 88, "PUSH THE CLOCK, THEN RUN: 8 SECONDS")
+sign(116, 88, "TOO SLOW? THE PLAZA SHOP SELLS MUSHROOMS")
+rect(104, 90, 119, 90, "2") // gap at (120, 90)
+rect(104, 92, 120, 92, "2")
+grid[92][110] = "5" // gap west of the shutter
+prop(112, 91, "shutter", { group: "r8c" })
+prop(116, 95, "chest", { drops: "coin", count: 5 })
+item(106, 94, "coin")
+grid[97][104] = "5" // down to D
+
+// D: the slide wall. One gap in the wall line, moved one step down per
+// push; the exit alcove needs four pushes
+for (let k = 0; k < 9; k++) {
+  prop(112, 98 + k, "slide-wall", { group: "r8d", index: k })
+}
+rect(113, 101, 120, 101, "2") // the alcove divider
+prop(104, 106, "slide-button", { group: "r8d" })
+sign(106, 100, "THE GAP SLIDES DOWN ONE STEP PER PUSH")
+item(116, 99, "coin")
+item(118, 99, "coin")
+grid[107][118] = "5" // down to E
+
+// E: the sequence lock. Labels are placed out of order
+prop(106, 110, "seq-button", { group: "r8e", order: 2 })
+prop(106, 111, "2")
+prop(112, 114, "seq-button", { group: "r8e", order: 3 })
+prop(112, 115, "3")
+prop(117, 111, "seq-button", { group: "r8e", order: 1 })
+prop(117, 112, "1")
+sign(110, 108, "PRESS THE BUTTONS IN NUMBER ORDER. A SKIP RESETS THEM")
+prop(104, 117, "seal-wall", { group: "r8e", count: 3 })
+grid[117][104] = "5" // down to F (through the seal wall)
+
+// F: lights out. Some switches flip their neighbor's group too; the
+// and-wall opens only with all three on (solution: the outer two)
+prop(107, 120, "switch", { group: "r8fa" })
+prop(112, 120, "switch", { group: "r8fb", also: ["r8fa"] })
+prop(117, 120, "switch", { group: "r8fc", also: ["r8fb"] })
+prop(110, 124, "blue-wall", { group: "r8fa" })
+prop(112, 124, "blue-wall", { group: "r8fb" })
+prop(114, 124, "blue-wall", { group: "r8fc" })
+sign(104, 122, "LOWER ALL THREE BLUE BLOCKS. SOME SWITCHES FLIP A NEIGHBOR")
+prop(112, 127, "and-wall", { groups: ["r8fa", "r8fb", "r8fc"] })
+grid[127][112] = "5" // down to G (through the and-wall)
+
+// G: the boulder delay. The switch must flip while the player waits
+// behind the blue wall: send a boulder rolling down the lane first
+prop(120, 128, "switch", { group: "r8g" })
+prop(120, 129, "switch", { group: "r8g" })
+actor(106, 128, "boulder")
+actor(110, 129, "boulder")
+sign(104, 129, "ROLL A BOULDER INTO A SWITCH, THEN HIDE BEHIND THE BLUE WALL")
+rect(104, 130, 120, 130, "2")
+prop(106, 130, "blue-wall", { group: "r8g" })
+grid[130][106] = "5"
+rect(109, 131, 109, 133, "2")
+rect(104, 133, 108, 133, "2")
+prop(109, 131, "red-wall", { group: "r8g" })
+grid[131][109] = "5"
+sign(111, 131, "MASTER OF SWITCHES! LEAVE AND RETURN TO RESET")
+prop(118, 132, "chest", { drops: "coin", count: 15 })
+item(114, 131, "green-apple")
+for (const [x, y] of [[112, 133], [116, 133], [120, 131]]) item(x, y, "coin")
+grid[134][103] = "o" // one-way belt out to the center corridor
+
+// ---------------------------------------------------------------------
 // vault (B-8): three key gates guard the treasure
 
 rect(86, 140, 114, 172, "2")
@@ -278,6 +402,20 @@ const cellEnter = (x: number, y: number) =>
   x >= 0 && x < SIZE && y >= 0 && y < SIZE &&
   (catalog.cells[grid[y][x]]?.canEnter ?? false)
 const isIce = (x: number, y: number) => grid[y][x] === "i"
+const beltDir = (x: number, y: number): [number, number] | null => {
+  switch (grid[y][x]) {
+    case "n":
+      return [0, -1]
+    case "s":
+      return [0, 1]
+    case "o":
+      return [-1, 0]
+    case "e":
+      return [1, 0]
+    default:
+      return null
+  }
+}
 
 // Props that block for a keyless player. Breakable props and the
 // self-opening gates count as passable; key gates do not.
@@ -288,35 +426,75 @@ const freelyPassable = new Set([
   "moon-gate",
   "timer-gate",
 ])
+// The button-linked walls: closed for the sealed checks, open for the
+// solved checks
+const switchWalls = new Set([
+  "blue-wall",
+  "red-wall",
+  "and-wall",
+  "shutter",
+  "seal-wall",
+  "slide-wall",
+])
 const hardBlock = new Set<string>()
+const switchBlock = new Set<string>()
 for (const p of props) {
   const def = catalog.props[p.type]!
-  if (!def.canEnter && !freelyPassable.has(p.type)) {
-    hardBlock.add(`${p.i - BI}.${p.j - BJ}`)
+  const key = `${p.i - BI}.${p.j - BJ}`
+  if (switchWalls.has(p.type)) {
+    switchBlock.add(key)
+  } else if (!def.canEnter && !freelyPassable.has(p.type)) {
+    hardBlock.add(key)
   }
 }
+let wallsOpen = false
 const open = (x: number, y: number) =>
-  cellEnter(x, y) && !hardBlock.has(`${x}.${y}`)
+  cellEnter(x, y) && !hardBlock.has(`${x}.${y}`) &&
+  (wallsOpen || !switchBlock.has(`${x}.${y}`))
 
-// BFS with the ice sliding mechanics
+/** Resolves the forced movement (belts and ice) after entering (x, y) */
+function resolve(
+  x: number,
+  y: number,
+  dx: number,
+  dy: number,
+): [number, number] {
+  for (let guard = 0; guard < 500; guard++) {
+    const belt = beltDir(x, y)
+    if (belt) {
+      const [bx, by] = belt
+      if (open(x + bx, y + by)) {
+        x += bx
+        y += by
+        dx = bx
+        dy = by
+        continue
+      }
+      break
+    }
+    if (isIce(x, y) && open(x + dx, y + dy)) {
+      x += dx
+      y += dy
+      continue
+    }
+    break
+  }
+  return [x, y]
+}
+
+// BFS with the ice sliding and the belt mechanics
 function reachable(sx: number, sy: number): Set<string> {
   const seen = new Set<string>([`${sx}.${sy}`])
   const queue: [number, number][] = [[sx, sy]]
   while (queue.length > 0) {
     const [x, y] = queue.pop()!
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      let nx = x + dx
-      let ny = y + dy
-      if (!open(nx, ny)) continue
-      // slide across the ice
-      while (isIce(nx, ny) && open(nx + dx, ny + dy)) {
-        nx += dx
-        ny += dy
-      }
-      const key = `${nx}.${ny}`
+      if (!open(x + dx, y + dy)) continue
+      const [fx, fy] = resolve(x + dx, y + dy, dx, dy)
+      const key = `${fx}.${fy}`
       if (!seen.has(key)) {
         seen.add(key)
-        queue.push([nx, ny])
+        queue.push([fx, fy])
       }
     }
   }
@@ -336,6 +514,7 @@ const mustReach: [string, number, number][] = [
   ["vault door", 100, 133],
   ["race goal", 100, 131],
   ["timer annex gate", 100, 10],
+  ["R8 entry chamber", 106, 68],
 ]
 let ok = true
 for (const [name, x, y] of mustReach) {
@@ -365,7 +544,63 @@ const alcoveSealed = !((() => {
   return r
 })().has("16.150"))
 console.log(`${alcoveSealed ? "ok" : "NG"} moon alcove sealed by day`)
-if (!ok || !vaultSealed || !alcoveSealed || !iceReturn || !bridged) {
+// R8: every room is sealed while its wall stands, and the whole trial
+// is walkable once the walls are down. The belt keeps the exit one-way.
+const r8Sealed = [
+  ["R8 room B", 118, 78],
+  ["R8 treasure", 118, 133],
+  ["R8 exit corridor (belt is one-way)", 104, 134],
+].every(([name, x, y]) => {
+  const sealed = !fromEntry.has(`${x}.${y}`)
+  console.log(`${sealed ? "ok" : "NG"} ${name} sealed (${x}, ${y})`)
+  return sealed
+})
+wallsOpen = true
+const solved = reachable(100, 22)
+wallsOpen = false
+const r8Solved = [
+  ["R8 A middle chamber", 112, 70],
+  ["R8 B pocket", 113, 83],
+  ["R8 C behind the shutter", 110, 93],
+  ["R8 D exit alcove", 118, 104],
+  ["R8 E buttons", 117, 110],
+  ["R8 F switches", 112, 122],
+  ["R8 G boulder lanes", 105, 128],
+  ["R8 G hideout", 106, 131],
+  ["R8 treasure", 118, 133],
+  ["R8 exit onto the center corridor", 102, 134],
+].every(([name, x, y]) => {
+  const r = solved.has(`${x}.${y}`)
+  console.log(`${r ? "ok" : "NG"} ${name} solved (${x}, ${y})`)
+  return r
+})
+// The switch rooms must not leak into each other around their walls:
+// with only the walls of the previous rooms open, the next room stays
+// sealed. Checked for the seal wall (E -> F) and the and-wall (F -> G).
+const leak = (openKeys: string[], x: number, y: number) => {
+  for (const k of openKeys) switchBlock.delete(k)
+  const r = reachable(100, 22).has(`${x}.${y}`)
+  for (const k of openKeys) switchBlock.add(k)
+  return r
+}
+const upToE = [
+  "109.72",
+  "115.72",
+  "114.83",
+  "112.83",
+  "112.91",
+  ...[...Array(9).keys()].map((k) => `112.${98 + k}`),
+]
+const fSealed = !leak(upToE, 104, 118)
+console.log(`${fSealed ? "ok" : "NG"} R8 F sealed by the seal wall`)
+const gSealed = !leak([...upToE, "104.117"], 112, 128)
+console.log(`${gSealed ? "ok" : "NG"} R8 G sealed by the and-wall`)
+const hallSealed = !leak([...upToE, "104.117", "112.127", "106.130"], 118, 133)
+console.log(`${hallSealed ? "ok" : "NG"} R8 treasure sealed by the red wall`)
+if (
+  !ok || !vaultSealed || !alcoveSealed || !iceReturn || !bridged ||
+  !r8Sealed || !r8Solved || !fSealed || !gSealed || !hallSealed
+) {
   console.error("verification failed")
   Deno.exit(1)
 }
