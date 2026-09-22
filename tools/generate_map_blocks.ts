@@ -438,9 +438,9 @@ function genTreasury(key: string): Generated {
 // Portal A of the start island drops the player into this walled
 // course. It introduces the features one by one: movement, apples,
 // crate breaking, coins, spring pads, fishing, slippery ice, seed
-// planting, chests and boulders. The final apple gate (5 apples,
-// collectable on the course) opens onto the road lattice — from there
-// the whole world is free to explore.
+// planting, chests, boulders and a switch-linked wall. The final apple
+// gate (5 apples, collectable on the course) opens onto the road
+// lattice — from there the whole world is free to explore.
 
 /** The walled region of the course in local coords [x0, y0, x1, y1] */
 const TUTORIAL_RECT: [number, number, number, number] = [38, 104, 96, 196]
@@ -472,6 +472,10 @@ function buildTutorialCourse(
   grid[111][96] = "3"
   grid[111][97] = "3"
   grid[111][98] = "3"
+  // The portal nook is walled off except for one cell, which holds a
+  // blue wall lowered by the switch in the exit corridor
+  rect(grid, 88, 113, 94, 113, "1")
+  grid[113][91] = "3"
 
   const props: Spawn[] = [
     { i: 69, j: 179, type: "sign", data: { text: "ARROW KEYS TO MOVE" } },
@@ -509,6 +513,15 @@ function buildTutorialCourse(
       data: { text: "THE GATE OPENS WITH 5 APPLES" },
     },
     { i: 96, j: 111, type: "apple-gate", data: { count: 5 } },
+    // The switch lowers the blue wall in front of the portal nook
+    {
+      i: 82,
+      j: 112,
+      type: "sign",
+      data: { text: "PUSH THE SWITCH TO LOWER THE BLUE WALL" },
+    },
+    { i: 85, j: 112, type: "switch", data: { group: "tutorial" } },
+    { i: 91, j: 113, type: "blue-wall", data: { group: "tutorial" } },
     // The portal to the puzzle dungeon (block_-400.400)
     { i: 89, j: 114, type: "sign", data: { text: "PUZZLE DUNGEON PORTAL" } },
     { i: 91, j: 116, type: "portal", data: { i: -300, j: 420 } },

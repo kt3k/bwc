@@ -10,7 +10,13 @@ const SIZE = 200
 const BI = 10000
 const BJ = 10000
 
-type Spawn = { i: number; j: number; type: string; data?: unknown }
+type Spawn = {
+  i: number
+  j: number
+  type: string
+  dir?: string
+  data?: unknown
+}
 
 const grid: string[][] = Array.from(
   { length: SIZE },
@@ -28,8 +34,8 @@ function rect(x0: number, y0: number, x1: number, y1: number, cell: string) {
   }
 }
 
-const actor = (i: number, j: number, type: string) =>
-  actors.push({ i: i + BI, j: j + BJ, type })
+const actor = (i: number, j: number, type: string, dir?: string) =>
+  actors.push({ i: i + BI, j: j + BJ, type, dir })
 const item = (i: number, j: number, type: string) =>
   items.push({ i: i + BI, j: j + BJ, type })
 const prop = (i: number, j: number, type: string, data?: unknown) =>
@@ -173,6 +179,7 @@ const PENNED = [
   "static",
   "chaser",
   "ghost",
+  "patrol",
 ]
 PENNED.forEach((type, n) => {
   const x = 8 + n * 10
@@ -216,6 +223,55 @@ item(101, 60, "seed")
 sign(120, 58, "CHASER + BOULDER LANE")
 actor(120, 62, "chaser")
 actor(126, 60, "boulder")
+
+// ---------------------------------------------------------------------
+// button-linked walls (see game-ideas-3.md)
+
+sign(4, 66, "BUTTON WALLS: PUSH THE BUTTONS")
+
+sign(6, 68, "SWITCH: BLUE UP / RED DOWN")
+prop(6, 70, "switch", { group: "zoo-sw" })
+prop(9, 70, "blue-wall", { group: "zoo-sw" })
+prop(10, 70, "red-wall", { group: "zoo-sw" })
+
+sign(26, 68, "TIMER BUTTON + SHUTTER")
+prop(26, 70, "timer-button", { group: "zoo-timer", duration: 300 })
+prop(30, 70, "shutter", { group: "zoo-timer" })
+prop(30, 71, "shutter", { group: "zoo-timer" })
+
+sign(44, 68, "PRESS 1 2 3 IN ORDER")
+prop(44, 70, "seq-button", { group: "zoo-seq", order: 1 })
+prop(46, 70, "seq-button", { group: "zoo-seq", order: 2 })
+prop(48, 70, "seq-button", { group: "zoo-seq", order: 3 })
+prop(44, 71, "1_white")
+prop(46, 71, "2_white")
+prop(48, 71, "3_white")
+prop(52, 70, "seal-wall", { group: "zoo-seq", count: 3 })
+
+sign(64, 68, "SLIDE BUTTON: THE GAP MOVES")
+prop(64, 70, "slide-button", { group: "zoo-slide" })
+for (let n = 0; n < 5; n++) {
+  prop(67 + n, 70, "slide-wall", { group: "zoo-slide", index: n })
+}
+
+sign(84, 68, "LIGHTS OUT: ALL ON OPENS THE WALL")
+prop(84, 70, "switch", { group: "zoo-la" })
+prop(86, 70, "switch", { group: "zoo-lb", also: ["zoo-la"] })
+prop(88, 70, "switch", { group: "zoo-lc", also: ["zoo-lb"] })
+prop(91, 70, "and-wall", { groups: ["zoo-la", "zoo-lb", "zoo-lc"] })
+
+sign(104, 68, "BOULDER PRESSES THE SWITCH")
+actor(104, 70, "boulder")
+prop(110, 70, "switch", { group: "zoo-boulder" })
+prop(110, 72, "blue-wall", { group: "zoo-boulder" })
+
+sign(124, 68, "PATROL FLIPS THE SWITCH")
+rect(124, 69, 134, 71, "1")
+rect(125, 70, 132, 70, "0")
+prop(133, 70, "switch", { group: "zoo-patrol" })
+actor(126, 70, "patrol", "right")
+prop(128, 73, "blue-wall", { group: "zoo-patrol" })
+prop(130, 73, "red-wall", { group: "zoo-patrol" })
 
 // ---------------------------------------------------------------------
 // output (with a bounds check)
