@@ -301,10 +301,20 @@ export class FieldActors implements IStepper, ILoader {
 
   step(field: IField) {
     let needsSort = false
-    for (const actor of this.#actors) {
+    // Iterate over a snapshot: a step can remove actors (a boulder
+    // sinking into water removes itself, a rolling boulder crushes the
+    // NPCs in its way), and a removed actor must not be stepped nor
+    // counted again, or its cell stays blocked forever
+    for (const actor of [...this.#actors]) {
+      if (!this.#idSet.has(actor.id)) {
+        continue
+      }
       this.#coordCountMap.decrement(actor.physicalGridKey)
       const j = actor.j
       actor.step(field)
+      if (!this.#idSet.has(actor.id)) {
+        continue
+      }
       this.#coordCountMap.increment(actor.physicalGridKey)
       if (actor.j !== j) {
         needsSort = true
