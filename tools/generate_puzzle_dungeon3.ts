@@ -269,14 +269,14 @@ item(46, 166, "green-apple")
 // Five switches in a row, each flipping itself and its neighbors.
 
 rect(56, 116, 100, 192, "6")
-sign(60, 120, "FIVE LIGHTS. EACH SWITCH FLIPS ITSELF AND ITS NEIGHBORS")
+sign(76, 120, "FIVE LIGHTS. EACH SWITCH FLIPS ITSELF AND ITS NEIGHBORS")
 const T6 = ["t6a", "t6b", "t6c", "t6d", "t6e"]
 T6.forEach((g, n) => {
   const also = [T6[n - 1], T6[n + 1]].filter((x) => x !== undefined)
   prop(62 + n * 8, 130, "switch", { group: g, also })
   prop(70 + n * 4, 140, "blue-wall", { group: g })
 })
-sign(60, 140, "LOWER ALL FIVE BLOCKS")
+sign(76, 137, "LOWER ALL FIVE BLOCKS")
 alcove(72, 160, 84, 170)
 gate(78, 160, "and-wall", { groups: T6 })
 prop(78, 166, "chest", { drops: "coin", count: 12 })
