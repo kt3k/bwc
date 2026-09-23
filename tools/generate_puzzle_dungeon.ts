@@ -97,7 +97,7 @@ for (const x of [90, 95, 100, 105, 110]) item(x, 6, "coin")
 
 // race along the center corridor
 prop(100, 68, "race-start")
-sign(103, 68, "RACE TO THE VAULT DOOR!")
+sign(98, 68, "RACE TO THE VAULT DOOR!")
 prop(100, 131, "race-goal", { course: "dungeon", par: 900, reward: 10 })
 
 // dig spots on the spine ends
@@ -356,6 +356,9 @@ prop(120, 129, "switch", { group: "r8g" })
 actor(106, 128, "boulder")
 actor(110, 129, "boulder")
 sign(104, 129, "ROLL A BOULDER INTO A SWITCH, THEN HIDE BEHIND THE BLUE WALL")
+// The reset hint is readable before entering G (a parked pair of
+// boulders leaves no delayed press; walking two rooms up respawns them)
+sign(110, 126, "OUT OF BOULDERS IN THE LAST ROOM? WALK TWO ROOMS UP AND RETURN")
 rect(104, 130, 120, 130, "2")
 prop(106, 130, "blue-wall", { group: "r8g" })
 grid[130][106] = "5"

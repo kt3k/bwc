@@ -157,7 +157,7 @@ for (let k = 0; k < 11; k++) {
 }
 prop(58, 48, "slide-button", { group: "t2" })
 sign(62, 48, "THE GAP SLIDES DOWN ONE STEP PER PUSH")
-sign(70, 52, "ONLY A BOULDER CAN HOLD THE PLATE. LEAVE AND RETURN TO RESET")
+sign(64, 52, "ONLY A BOULDER CAN HOLD THE PLATE. LEAVE THE ROOM TO RESET IT")
 actor(64, 58, "boulder")
 actor(64, 61, "boulder")
 actor(64, 64, "boulder")
@@ -180,7 +180,11 @@ item(91, 73, "coin")
 // that count by their surroundings; the fourth is a trap.
 
 rect(106, 46, 150, 108, "6")
-sign(128, 48, "THREE BUTTONS, NO NUMBERS. THE WALLS TELL THE ORDER")
+sign(
+  128,
+  48,
+  "THREE BUTTONS, NO NUMBERS. THE SIGNS ALONG THE WALLS TELL THE ORDER",
+)
 sign(116, 52, "NOT EVERY BUTTON BELONGS")
 rect(110, 60, 114, 64, "w") // the pond
 prop(116, 62, "seq-button", { group: "t3", order: 1 })
@@ -192,7 +196,7 @@ prop(132, 94, "seq-button", { group: "t3", order: 3 })
 prop(124, 70, "seq-button", { group: "t3", order: 9 }) // the trap
 prop(125, 70, "stool")
 sign(110, 104, "FIRST: THE ONE THAT FACES THE POND")
-sign(146, 104, "SECOND: THE ONE UNDER THE LANTERN")
+sign(144, 58, "SECOND: THE ONE UNDER THE LANTERN")
 sign(128, 82, "THIRD: THE ONE THE CRATES HIDE")
 alcove(140, 72, 148, 80) // the reward alcove
 gate(144, 72, "seal-wall", { group: "t3", count: 3 })
@@ -241,11 +245,11 @@ prop(23, 120, "switch", { group: "t5" })
 grid[120][24] = "2"
 actor(17, 120, "patrol", { dir: "left" })
 sign(
-  12,
-  124,
+  30,
+  128,
   "THE PATROL FLIPS THE SWITCH EVERY LAP. A TREE IN THE LANE STOPS IT",
 )
-sign(12, 146, "THE BOULDER PASSES ONLY WHILE BOTH BLUE WALLS SLEEP")
+sign(18, 152, "THE BOULDER PASSES ONLY WHILE BOTH BLUE WALLS SLEEP")
 sign(30, 176, "LEAVE AND RETURN TO RESET")
 for (const x of [14, 20, 26]) item(x, 130, "seed")
 actor(20, 150, "boulder")
@@ -323,7 +327,11 @@ actor(160, 140, "boulder")
 actor(163, 140, "boulder")
 actor(166, 140, "boulder")
 sign(160, 132, "BRIDGE THE WATER, THEN SEND A BOULDER ACROSS. EAST ONE FIRST")
-sign(160, 166, "THE RED WALL RISES BEHIND WHOEVER PRESSES THE SWITCH")
+sign(
+  166,
+  136,
+  "THE RED WALL RISES BEHIND WHOEVER PRESSES THE SWITCH. THE KEY IS SOUTH",
+)
 alcove(160, 170, 168, 178)
 gate(164, 170, "blue-wall", { group: "t8" })
 item(164, 174, "key")

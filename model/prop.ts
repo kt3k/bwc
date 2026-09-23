@@ -907,6 +907,9 @@ class PushedDelegateSeqButton implements PushedDelegate {
     if (order === next) {
       sequenceNext.set(group, next + 1)
       signal.playSound("pickupCoin")
+      if (event.pusher?.id === "main") {
+        signal.message.update({ text: `BUTTON ${order} LIT` })
+      }
     } else if (order > next) {
       sequenceNext.set(group, 1)
       signal.playSound("hitHurt")

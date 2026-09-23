@@ -318,6 +318,7 @@ export class CollectSeed implements CollectDelegate {
 export class CollectKey implements CollectDelegate {
   onCollect(actor: IActor, field: IField, item: Item): void {
     field.collectItem(actor.i, actor.j, item.id)
+    signal.message.update({ text: "GOT A KEY" })
 
     for (
       const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#7f4b01")
