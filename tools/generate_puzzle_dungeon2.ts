@@ -107,13 +107,15 @@ sign(36, 47, "BELTS BEND THE SLIDE")
 rect(130, 10, 190, 53, "4")
 rect(158, 53, 162, 58, "4") // door stub
 rect(146, 12, 147, 51, "w") // channel 1
-rect(166, 12, 167, 51, "w") // channel 2
+rect(156, 12, 157, 51, "w") // channel 2
 // Spaced out: pushing a west boulder first crushes the one ahead,
 // so the east-most-first order matters
-actor(131, 30, "boulder")
-actor(134, 30, "boulder")
-actor(136, 30, "boulder")
+// Kept within ~20 cells of the push spots: actors further from the
+// player than that get deactivated mid-roll
+actor(137, 30, "boulder")
 actor(140, 30, "boulder")
+actor(142, 30, "boulder")
+actor(144, 30, "boulder")
 sign(135, 26, "FOUR BOULDERS, FOUR WATER CELLS")
 sign(140, 34, "PUSH THE EAST ONE FIRST. LEAVE TO RESET")
 for (const [x, y] of [[172, 30], [176, 25], [180, 35]]) item(x, y, "coin")
@@ -149,25 +151,23 @@ sign(55, 98, "EVEN AN ENEMY...")
 rect(130, 70, 190, 115, "4")
 rect(126, 90, 130, 94, "4") // door stub
 // lane 1: push the boulder west along y=80, park it on the plate
+// (lanes, plates and doors all sit within ~20 cells of each other so
+// that a parked boulder stays active while the player is at the door)
 prop(150, 80, "plate", { group: "s4a" })
-actor(184, 80, "boulder")
-// lane 2: push the boulder north along x=170, park it on the plate
-prop(170, 96, "plate", { group: "s4b" })
-actor(170, 112, "boulder")
+actor(166, 80, "boulder")
+// lane 2: push the boulder north along x=160, park it on the plate
+prop(160, 96, "plate", { group: "s4b" })
+actor(160, 108, "boulder")
 // twin doors guarding the alcove, on a 1-wide entry tunnel
-rect(132, 100, 140, 112, "2")
-rect(134, 102, 138, 110, "4")
-rect(141, 104, 144, 108, "2")
-grid[106][140] = "4"
-grid[106][141] = "4"
-grid[106][142] = "4"
-grid[106][143] = "4"
-grid[106][144] = "4"
-prop(140, 106, "door", { group: "s4a" })
-prop(142, 106, "door", { group: "s4b" })
-item(136, 106, "key")
-item(134, 104, "coin")
-item(138, 108, "coin")
+rect(132, 84, 140, 96, "2")
+rect(134, 86, 138, 94, "4")
+rect(141, 88, 144, 92, "2")
+for (const x of [140, 141, 142, 143, 144]) grid[90][x] = "4"
+prop(141, 90, "door", { group: "s4a" })
+prop(143, 90, "door", { group: "s4b" })
+item(136, 90, "key")
+item(134, 88, "coin")
+item(138, 92, "coin")
 for (const [x, y] of [[155, 88], [160, 88], [158, 92], [162, 90]]) {
   item(x, y, "seed")
 }
@@ -363,14 +363,14 @@ for (const [name, x, y] of mustReach) {
 const iceReturn = reachable(40, 24).has("38.48")
 console.log(`${iceReturn ? "ok" : "NG"} S1 island return trip`)
 // S2 far side opens after sinking all four boulders
-const backup = [grid[30][146], grid[30][147], grid[30][166], grid[30][167]]
+const backup = [grid[30][146], grid[30][147], grid[30][156], grid[30][157]]
 grid[30][146] =
   grid[30][147] =
-  grid[30][166] =
-  grid[30][167] =
+  grid[30][156] =
+  grid[30][157] =
     "4"
 const bridged = reachable(100, 22).has("180.31")
-;[grid[30][146], grid[30][147], grid[30][166], grid[30][167]] = backup
+;[grid[30][146], grid[30][147], grid[30][156], grid[30][157]] = backup
 console.log(`${bridged ? "ok" : "NG"} S2 far side after bridging`)
 // the vault must stay sealed without keys
 const vaultSealed = !fromEntry.has("100.150")

@@ -151,9 +151,9 @@ sign(26, 48, "SLIDE INTO THE SWITCH. BLUE AND RED STOP YOU IN TURN")
 // a plate behind the wall, and only a parked boulder can hold the door.
 
 rect(56, 46, 100, 108, "6")
-rect(80, 46, 80, 108, "2") // the dividing wall
+rect(72, 52, 72, 108, "2") // the dividing wall (open along the top rows)
 for (let k = 0; k < 11; k++) {
-  gate(80, 56 + k, "slide-wall", { group: "t2", index: k })
+  gate(72, 56 + k, "slide-wall", { group: "t2", index: k })
 }
 prop(58, 48, "slide-button", { group: "t2" })
 sign(62, 48, "THE GAP SLIDES DOWN ONE STEP PER PUSH")
@@ -161,15 +161,17 @@ sign(70, 52, "ONLY A BOULDER CAN HOLD THE PLATE. LEAVE AND RETURN TO RESET")
 actor(64, 58, "boulder")
 actor(64, 61, "boulder")
 actor(64, 64, "boulder")
-prop(92, 61, "plate", { group: "t2p" })
-grid[61][93] = "2" // stops the boulder on the plate
-item(98, 58, "coin")
-item(98, 64, "coin")
-alcove(90, 96, 98, 104)
-gate(94, 96, "door", { group: "t2p" })
-prop(94, 100, "chest", { drops: "coin", count: 10 })
-item(92, 98, "coin")
-item(96, 102, "coin")
+// The plate and the door stay within ~20 cells of the push spot: a
+// boulder further than that from the player gets deactivated
+prop(80, 61, "plate", { group: "t2p" })
+grid[61][81] = "2" // stops the boulder on the plate
+item(78, 58, "coin")
+item(78, 64, "coin")
+alcove(84, 66, 92, 74)
+gate(88, 66, "door", { group: "t2p" })
+prop(88, 70, "chest", { drops: "coin", count: 10 })
+item(85, 67, "coin")
+item(91, 73, "coin")
 
 // ---------------------------------------------------------------------
 // T3 (row 1, center-east): the riddle of order -> chest
@@ -246,11 +248,11 @@ sign(
 sign(12, 146, "THE BOULDER PASSES ONLY WHILE BOTH BLUE WALLS SLEEP")
 sign(30, 176, "LEAVE AND RETURN TO RESET")
 for (const x of [14, 20, 26]) item(x, 130, "seed")
-actor(8, 150, "boulder")
-prop(24, 150, "blue-wall", { group: "t5" })
-prop(40, 150, "blue-wall", { group: "t5" })
-prop(46, 150, "plate", { group: "t5p" })
-grid[150][47] = "2" // stops the boulder on the plate
+actor(20, 150, "boulder")
+prop(28, 150, "blue-wall", { group: "t5" })
+prop(34, 150, "blue-wall", { group: "t5" })
+prop(38, 150, "plate", { group: "t5p" })
+grid[150][39] = "2" // stops the boulder on the plate
 alcove(40, 160, 48, 168)
 gate(44, 160, "door", { group: "t5p" })
 prop(44, 164, "chest", { drops: "coin", count: 10 })
@@ -310,15 +312,16 @@ item(148, 162, "coin")
 // bridge, then roll another over it. The red wall in the far lane
 // rises behind whoever presses the switch, so a walker gets trapped.
 
-rect(156, 116, 175, 192, "6") // the west bank
-rect(176, 120, 176, 188, "w") // the channel
-rect(177, 140, 191, 140, "6") // the far lane
-gate(180, 140, "red-wall", { group: "t8" })
-prop(192, 140, "switch", { group: "t8" })
-grid[140][176] = "w"
+rect(156, 116, 175, 125, "6") // the entry strip
+rect(156, 126, 169, 192, "6") // the west bank
+rect(170, 126, 170, 188, "w") // the channel
+rect(171, 140, 179, 140, "6") // the far lane
+gate(174, 140, "red-wall", { group: "t8" })
+prop(180, 140, "switch", { group: "t8" }) // 18 cells from the push spot
+grid[140][170] = "w"
 actor(160, 140, "boulder")
-actor(164, 140, "boulder")
-actor(168, 140, "boulder")
+actor(163, 140, "boulder")
+actor(166, 140, "boulder")
 sign(160, 132, "BRIDGE THE WATER, THEN SEND A BOULDER ACROSS. EAST ONE FIRST")
 sign(160, 166, "THE RED WALL RISES BEHIND WHOEVER PRESSES THE SWITCH")
 alcove(160, 170, 168, 178)
@@ -491,7 +494,7 @@ const rooms: [string, number, number][] = [
   ["T6 switches", 62, 131],
   ["T7 clock 1", 123, 124],
   ["T8 boulders", 159, 140],
-  ["T5 boulder push spot", 7, 150],
+  ["T5 boulder push spot", 19, 150],
   ["T3 crate alcove front", 132, 87],
   ["T3 hidden button front (behind crates)", 132, 93],
   ["T9 first patrol column", 18, 20],
@@ -503,7 +506,7 @@ for (const [name, x, y] of rooms) {
 
 check("T1 island sealed", !sealed.has("28.76"))
 const rewards: [string, number, number][] = [
-  ["T2 alcove", 94, 100],
+  ["T2 alcove", 88, 70],
   ["T3 alcove", 144, 76],
   ["T4 shrine", 160, 81],
   ["T5 alcove", 44, 164],
@@ -522,12 +525,12 @@ check("T9 chest reachable", sealed.has("10.21"))
 check("T4 long way reaches the shutter", sealed.has("166.79"))
 // T8: the switch must not be walkable before the bridge, and a
 // bridged channel must let a boulder line reach the switch
-check("T8 switch unreachable across the water", !solved.has("191.140"))
-grid[140][176] = "0"
+check("T8 switch unreachable across the water", !solved.has("179.140"))
+grid[140][170] = "0"
 wallsOpen = true
-check("T8 lane walkable once bridged", distances(...ENTRY).has("191.140"))
+check("T8 lane walkable once bridged", distances(...ENTRY).has("179.140"))
 wallsOpen = false
-grid[140][176] = "w"
+grid[140][170] = "w"
 
 // T1: state-aware solver (position x switch state). Sliding or walking
 // into the switch flips the state. Blue walls open while on, red

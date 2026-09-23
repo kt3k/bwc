@@ -159,7 +159,7 @@ sign(159, 55, "LURE CHASERS INTO THE BOULDER LANES")
 rect(10, 70, 70, 120, "5")
 rect(70, 93, 74, 97, "5") // door stub to the west corridor
 prop(29, 95, "plate", { group: "r3" })
-actor(58, 95, "boulder")
+actor(48, 95, "boulder") // within reach: far actors get deactivated
 item(60, 90, "seed")
 item(62, 95, "seed")
 item(60, 100, "seed")
@@ -180,9 +180,9 @@ item(42, 112, "coin")
 rect(130, 70, 190, 120, "5")
 rect(126, 93, 130, 97, "5") // door stub to the east corridor
 rect(158, 72, 160, 118, "w") // the channel
-actor(138, 95, "boulder")
-actor(142, 95, "boulder")
-actor(146, 95, "boulder")
+actor(144, 95, "boulder")
+actor(148, 95, "boulder")
+actor(152, 95, "boulder")
 sign(135, 90, "SINK THE BOULDERS TO CROSS")
 sign(135, 100, "PUSH THE EAST ONE FIRST. LEAVE TO RESET")
 item(175, 95, "key")
