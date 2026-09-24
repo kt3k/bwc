@@ -1,6 +1,7 @@
 import {
   Actor,
   ActorPushedDelegateRoll,
+  ActorPushedDelegateUnstoppable,
   IdleDelegateChase,
   IdleDelegatePatrol,
   MoveEndDelegatePatrol,
@@ -285,6 +286,51 @@ Deno.test("Patrol actor bounces between the ends of its lane", () => {
   patrol.step(field) // turned back after the bounce
   assertEquals(patrol.i, 1)
   assertEquals(patrol.dir, "left")
+})
+
+Deno.test("Rolling boulder stops in front of an unstoppable actor", () => {
+  const me = new Actor(50, 50, actorDef, "main")
+  const patrol = new Actor(
+    3,
+    0,
+    actorDef,
+    "patrol",
+    "down",
+    1,
+    null,
+    null,
+    new ActorPushedDelegateUnstoppable(),
+  )
+  const boulder = new Actor(
+    0,
+    0,
+    actorDef,
+    "boulder",
+    "down",
+    16,
+    null,
+    null,
+    new ActorPushedDelegateRoll(),
+  )
+  let removed = false
+  const field: IField = {
+    ...makeField(me),
+    canEnter: (i, j) => !(i === 3 && j === 0),
+    actors: {
+      iter: () => [],
+      get: (i, j) => (i === 3 && j === 0 ? [patrol] : []),
+      add: () => {},
+      remove: () => {
+        removed = true
+      },
+    },
+  }
+  boulder.onPushed({ type: "pushed", dir: "right", peakAt: 7 }, field)
+  for (const _ of Array(10)) {
+    boulder.step(field)
+  }
+  assertFalse(removed)
+  assertEquals(boulder.i, 2)
 })
 
 Deno.test("Patrol actor turns back after knocking an actor", () => {

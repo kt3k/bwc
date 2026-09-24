@@ -631,6 +631,10 @@ export class Actor implements IActor {
     return this.#follower
   }
 
+  get isUnstoppable(): boolean {
+    return this.#pushed instanceof ActorPushedDelegateUnstoppable
+  }
+
   unsetFollower() {
     if (this.#follower) {
       this.#follower.unfollow()
@@ -705,7 +709,9 @@ export class ActorPushedDelegateRoll implements ActorPushedDelegate {
     const step = () => {
       const [ni, nj] = actor.nextGrid(dir)
       for (const other of field.actors.get(ni, nj)) {
-        if (other === actor || other.id === "main") {
+        if (other === actor || other.id === "main" || other.isUnstoppable) {
+          // Never crushes the player or a patrol: the boulder stops in
+          // front of them instead (the bounce below ends the roll)
           continue
         }
         // Crushes the NPC in the way, which drops a coin
@@ -769,7 +775,7 @@ export class IdleDelegatePatrol implements IdleDelegate {
   }
 }
 
-/** Ignores pushes: the actor can't be shoved off its course */
+/** Ignores pushes: the actor can't be shoved off its course, nor crushed */
 export class ActorPushedDelegateUnstoppable implements ActorPushedDelegate {
   onPushed(_event: PushedEvent, _actor: Actor, _field: IField): void {}
 }

@@ -143,6 +143,8 @@ export type IActor =
     get physicalGridKey(): string
     get dir(): Dir
     get follower(): IFollower | null
+    /** true if the actor can't be shoved or crushed (patrols) */
+    get isUnstoppable(): boolean
     canGo(dir: Dir, field: IField): boolean
     enqueueActions(...actions: Action[]): void
     unshiftActions(...actions: Action[]): void

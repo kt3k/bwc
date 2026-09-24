@@ -93,6 +93,9 @@ sign(107, 30, "SHOP: PUSH TO BUY")
 sign(100, 34, "KEYS ARE HIDDEN IN THE TRIALS. THE VAULT IS EAST")
 grid[10][85] = "x" // dig spot
 item(115, 12, "mushroom")
+// The way down to the fourth floor (block_400.200)
+sign(87, 30, "B4F: THE CLOCKWORK")
+prop(84, 30, "portal", { i: 500, j: 220 })
 
 // row 1 rooms (y 46..108) and their door stubs on spine A
 const ROW1: [number, number][] = [[6, 50], [56, 100], [106, 150], [156, 194]]
