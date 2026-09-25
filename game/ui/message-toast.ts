@@ -11,7 +11,8 @@ export function MessageToast({ el, subscribe }: Context) {
     if (!message) {
       return
     }
-    el.textContent = message.text
+    const text = el.querySelector(".js-message-text") ?? el
+    text.textContent = message.text
     el.classList.remove("hidden")
     clearTimeout(timer)
     timer = setTimeout(() => {

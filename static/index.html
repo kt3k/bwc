@@ -4,9 +4,12 @@
   <head>
     <link rel="stylesheet" href="./style.css" />
     <style>
+    /* Only palette colors may reach the screen (docs/art-guide.md): never
+       interpolate pixels when images are scaled for the device */
+    img,
+    canvas,
     .crisp-edges {
       image-rendering: pixelated;
-      image-rendering: crisp-edges;
     }
     @font-face {
       font-family: "8bit";
@@ -15,14 +18,65 @@
     .font-8bit {
       font-family: "8bit", sans-serif;
     }
+    /* The 8bit font is drawn on an 8px grid (1024 units per em, 128 units
+       per pixel), so it is only used at 8px or 16px */
+    .pixel-text {
+      font-family: "8bit", monospace;
+      font-size: 16px;
+      line-height: 16px;
+      -webkit-font-smoothing: none;
+      font-smooth: never;
+    }
+    .pixel-text-sm {
+      font-size: 8px;
+      line-height: 8px;
+    }
+    /* Inks: the glyphs pass through a filter that keeps a pixel only when
+       it is at least half covered and paints it with one exact palette
+       color, so no anti-aliased in-between colors reach the screen */
+    .ink-white {
+      filter: url(#ink-white);
+    }
+    .ink-light {
+      filter: url(#ink-light);
+    }
+    .ink-mid {
+      filter: url(#ink-mid);
+    }
     </style>
   </head>
   <body
     class="js-key-monitor js-swipe-handler js-sound-player"
     style="overscroll-behavior-y: none; overscroll-behavior-x: none; min-height: 100svh; touch-action: manipulation"
   >
+    <!-- The ink filters for .ink-* (see the style above) -->
+    <svg width="0" height="0" class="absolute" aria-hidden="true">
+      <defs>
+        <filter id="ink-white" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#ffffff" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+        <filter id="ink-light" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#b9bcb9" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+        <filter id="ink-mid" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#6a6d6a" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+      </defs>
+    </svg>
     <div
-      class="text-neutral-500 relative text-xs flex items-center justify-between w-full max-w-[450px] font-8bit select-none"
+      class="pixel-text pixel-text-sm ink-mid relative flex items-center justify-between w-full max-w-[450px] py-1 select-none"
     >
       <div>
         <span>FPS <span class="js-fps-monitor"></span>/<span
@@ -34,19 +88,7 @@
         <span>PROPS <span class="js-props-counter"></span></span>
         <span>VERSION BUILD_DATE</span>
       </div>
-      <span class="js-loading-indicator hidden">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="animate-spin w-4 h-4"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-        >
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path
-            d="M4.929 4.929c3.905 -3.905 10.237 -3.905 14.142 0c3.905 3.905 3.905 10.237 0 14.142c-3.905 3.905 -10.237 3.905 -14.142 0c-3.905 -3.905 -3.905 -10.237 0 -14.142zm3.535 2.121a1 1 0 0 0 -1.414 0a7 7 0 0 0 0 9.9a1 1 0 1 0 1.414 -1.414a5 5 0 0 1 0 -7.072a1 1 0 0 0 0 -1.414z"
-          />
-        </svg>
-      </span>
+      <span class="js-loading-indicator hidden">LOADING</span>
     </div>
 
     <div
@@ -61,27 +103,27 @@
       ></canvas>
       <!-- The ui panel -->
       <div
-        class="ui-panel js-apple-counter absolute px-0.5 text-sm text-gray-400 font-8bit bg-black right-[4px] top-[4px] h-[136px] w-[64px]"
+        class="ui-panel js-apple-counter absolute px-0.5 bg-black right-[4px] top-[4px] h-[136px] w-[64px]"
       >
         <p class="mt-0.5 flex items-start gap-1">
           <img class="inline" src="./item/apple.png" />
-          <span class="count-label">0</span>
+          <span class="count-label pixel-text ink-light">0</span>
         </p>
         <p class="mt-0.5 flex items-start gap-1">
           <img class="inline" src="./item/green-apple.png" />
-          <span class="green-apple-count-label">0</span>
+          <span class="green-apple-count-label pixel-text ink-light">0</span>
         </p>
         <p class="mt-0.5 flex items-start gap-1">
           <img class="inline" src="./item/coin.png" />
-          <span class="coin-count-label">0</span>
+          <span class="coin-count-label pixel-text ink-light">0</span>
         </p>
         <p class="mt-0.5 flex items-start gap-1">
           <img class="inline" src="./item/seed.png" />
-          <span class="seed-count-label">0</span>
+          <span class="seed-count-label pixel-text ink-light">0</span>
         </p>
         <p class="mt-0.5 flex items-start gap-1">
           <img class="inline" src="./item/key.png" />
-          <span class="key-count-label">0</span>
+          <span class="key-count-label pixel-text ink-light">0</span>
         </p>
       </div>
       <!-- The exit button -->
@@ -102,8 +144,12 @@
       </div>
       <!-- The message toast -->
       <div
-        class="js-message-toast hidden absolute bottom-[12px] left-1/2 -translate-x-1/2 max-w-[90%] px-2 py-1 bg-black/80 text-gray-200 text-sm font-8bit text-center pointer-events-none select-none"
-      ></div>
+        class="js-message-toast hidden absolute bottom-[12px] left-[16px] right-[16px] text-center pointer-events-none select-none"
+      >
+        <span class="inline-block px-2 py-1 bg-black"><span
+            class="js-message-text pixel-text ink-white"
+          ></span></span>
+      </div>
       <!-- Black curtain in front of the game screen -->
       <div
         class="curtain absolute w-full h-full bg-black pointer-events-none"
@@ -111,12 +157,12 @@
       ></div>
     </div>
     <div
-      class="w-full text-center font-8bit text-neutral-500 text-xs fixed bottom-5 sm:hidden select-none"
+      class="w-full text-center pixel-text ink-mid fixed bottom-5 sm:hidden select-none"
     >
       SWIPE AND HOLD TO MOVE
     </div>
     <div
-      class="font-8bit text-neutral-500 text-xs hidden sm:block select-none"
+      class="pixel-text ink-mid hidden sm:block mt-1 select-none"
     >
       USE ARROW KEYS TO MOVE
     </div>

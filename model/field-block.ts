@@ -14,6 +14,10 @@ import {
   PropDefinition,
 } from "./catalog.ts"
 
+/** A 2x2 checker of black and transparent pixels (PNG) */
+const CHECKER_URL = "data:image/png;base64," +
+  "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVR42mNgYGD4z4AE/gMADwMB/+56SD4AAAAASUVORK5CYII="
+
 /** Global coordinates to local chunk index */
 function g2c(i: number, j: number): [number, number] {
   const [localI, localJ] = g2l(i, j)
@@ -547,14 +551,16 @@ export class FieldBlock {
     overlay.style.height = `${BLOCK_CHUNK_SIZE * CELL_SIZE}px`
     overlay.style.pointerEvents = "none"
     overlay.style.zIndex = "1"
-    overlay.style.backgroundColor = "hsla(0, 0%, 10%, 1)"
-    overlay.style.transition = "background-color 1s linear"
+    // Palette only (docs/art-guide.md): black while loading, then a black
+    // checker for a moment instead of a fade, then gone
+    overlay.style.backgroundColor = "#000000"
     this.canvas.parentElement?.appendChild(overlay)
     return () => {
-      overlay.style.backgroundColor = "hsla(0, 0%, 10%, 0)"
-      overlay.addEventListener("transitionend", () => {
-        overlay.remove()
-      })
+      overlay.style.backgroundColor = "transparent"
+      overlay.style.backgroundImage = `url(${CHECKER_URL})`
+      overlay.style.backgroundSize = "2px 2px"
+      overlay.style.imageRendering = "pixelated"
+      setTimeout(() => overlay.remove(), 150)
     }
   }
 
