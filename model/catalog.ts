@@ -16,7 +16,7 @@ interface CatalogSource {
     readonly flip?: CellFlip
     /** Rare alternative images: src -> weight in percent */
     readonly variants?: Record<string, number>
-    /** Casts a shadow on the cell below (walls) */
+    /** A wall: painted with a black base edge where it faces a floor below */
     readonly casts?: boolean
   }>
   readonly items: Record<string, {

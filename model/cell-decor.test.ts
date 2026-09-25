@@ -1,6 +1,5 @@
 import { assert, assertEquals } from "@std/assert"
 import {
-  darken,
   parseNoise,
   patchFactor,
   pickTransform,
@@ -66,15 +65,6 @@ Deno.test("pickTransform yields exact integer matrices", () => {
     const [a, b, c, d] = pickTransform("h", randomInt)
     assert(Math.abs(a) === 1 && b === 0 && c === 0 && d === 1)
   }
-})
-
-Deno.test("darken steps down the palette grays and leaves colors alone", () => {
-  assertEquals(darken(0xffffff), 0xb9bcb9)
-  assertEquals(darken(0xb9bcb9), 0x6a6d6a)
-  assertEquals(darken(0x6a6d6a), 0x4a4d4a)
-  assertEquals(darken(0x4a4d4a), 0x000000)
-  assertEquals(darken(0x000000), 0x000000)
-  assertEquals(darken(0xd49d29), 0xd49d29)
 })
 
 Deno.test("noisePatches: false survives the catalog round trip", async () => {

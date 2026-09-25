@@ -660,11 +660,11 @@ async function CanvasLayers({ query, on, el, subscribe }: Context) {
     prev = block
 
     block.loadAssets({ loadImage }).then(() => {
-      // A changed cell also changes the shadow on the cell below it
+      // A changed cell also changes the base edge of a wall above it
       const redraw = new Set<string>()
       for (const [i, j] of cellsDiff) {
         redraw.add(`${i}.${j}`)
-        if (j + 1 < BLOCK_SIZE) redraw.add(`${i}.${j + 1}`)
+        if (j > 0) redraw.add(`${i}.${j - 1}`)
       }
       for (const key of redraw) {
         const [i, j] = key.split(".").map(Number)

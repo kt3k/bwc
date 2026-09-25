@@ -393,8 +393,10 @@ function renderRange(
     for (let jj = 0; jj < height; jj++) {
       const [localI, localJ] = g2l(i + ii, j + jj)
       const cell = cells[field[localJ][localI]]
-      const north = localJ > 0 ? cells[field[localJ - 1][localI]] : undefined
-      drawCell(wrapper, i + ii, j + jj, cell, imgMap, north)
+      const south = localJ < BLOCK_SIZE - 1
+        ? cells[field[localJ + 1][localI]]
+        : undefined
+      drawCell(wrapper, i + ii, j + jj, cell, imgMap, south)
     }
   }
 }
@@ -566,15 +568,15 @@ export class FieldBlock {
   }
 
   /**
-   * Draws the cell at (i, j) on the given canvas, with the cell above
-   * passed along for the shadow. The editor draws on its own canvas.
-   * Note: when a cell changes, the cell below it needs redrawing too.
+   * Draws the cell at (i, j) on the given canvas, with the cell below
+   * passed along for the base edge of walls. The editor draws on its own
+   * canvas. Note: when a cell changes, the cell above it needs redrawing too.
    */
   drawCellTo(wrapper: CanvasWrapper, i: number, j: number) {
     const cell = this.getCell(i, j)
     const [, localJ] = g2l(i, j)
-    const north = localJ > 0 ? this.getCell(i, j - 1) : undefined
-    drawCell(wrapper, i, j, cell, this.imgMap, north)
+    const south = localJ < BLOCK_SIZE - 1 ? this.getCell(i, j + 1) : undefined
+    drawCell(wrapper, i, j, cell, this.imgMap, south)
   }
 
   renderAll(canvas = this.canvas) {

@@ -10,8 +10,8 @@
 // - `noise`: small marks in a color, `color=count[:shape]`, gathered into
 //   patches by a smooth low-frequency field instead of an even sprinkle
 //   (`noisePatches: false` keeps the even sprinkle)
-// - `casts`: the cell darkens the top rows of the walkable cell below it
-//   by one step of the grayscale ramp, like a wall casting a shadow
+// - `casts`: a wall; its bottom rows are painted black where it faces a
+//   non-wall cell below, so wall masses get a dark base edge
 
 import type { CanvasWrapper } from "../util/canvas-wrapper.ts"
 import { BLOCK_SIZE, CELL_SIZE } from "../util/constants.ts"
@@ -150,39 +150,11 @@ export function pickTransform(
   return [a * sx, b * sx, c * sy, d * sy]
 }
 
-/** Rows of the cell below a casting cell that get darkened */
-export const SHADOW_ROWS = 3
+/** Rows at the bottom of a casting cell painted black where it faces a floor */
+export const EDGE_ROWS = 2
 
-// One step down the grayscale ramp of the palette (tools/palette.ts)
-const DARKER: Record<number, number> = {
-  0xffffff: 0xb9bcb9,
-  0xbec1be: 0x6a6d6a,
-  0xb9bcb9: 0x6a6d6a,
-  0x6a6d6a: 0x4a4d4a,
-  0x4a4d4a: 0x000000,
-}
-
-/** The palette gray one step darker than `rgb`; other colors unchanged */
-export function darken(rgb: number): number {
-  return DARKER[rgb] ?? rgb
-}
-
-function drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number) {
-  const data = ctx.getImageData(x, y, CELL_SIZE, SHADOW_ROWS)
-  const p = data.data
-  for (let n = 0; n < p.length; n += 4) {
-    if (p[n + 3] === 0) continue
-    const px = (n / 4) % CELL_SIZE
-    const py = Math.floor(n / 4 / CELL_SIZE)
-    // The last row is dithered so the edge of the shadow is soft
-    if (py === SHADOW_ROWS - 1 && (px + x) % 2 === 1) continue
-    const rgb = darken((p[n] << 16) | (p[n + 1] << 8) | p[n + 2])
-    p[n] = (rgb >> 16) & 255
-    p[n + 1] = (rgb >> 8) & 255
-    p[n + 2] = rgb & 255
-  }
-  ctx.putImageData(data, x, y)
-}
+/** The color of the base edge */
+const EDGE_COLOR = "#000000"
 
 function drawMark(
   wrapper: CanvasWrapper,
@@ -258,7 +230,7 @@ function drawMark(
  * @param i world grid column
  * @param j world grid row
  * @param imgMap the block's image map (base images and variants)
- * @param north the cell above, when known, for the shadow
+ * @param south the cell below, when known, for the base edge of walls
  */
 export function drawCell(
   wrapper: CanvasWrapper,
@@ -266,7 +238,7 @@ export function drawCell(
   j: number,
   cell: CellDefinition,
   imgMap: Record<string, ImageBitmap>,
-  north?: CellDefinition,
+  south?: CellDefinition,
 ): void {
   const x = modulo(i, BLOCK_SIZE) * CELL_SIZE
   const y = modulo(j, BLOCK_SIZE) * CELL_SIZE
@@ -290,7 +262,13 @@ export function drawCell(
       }
     }
   }
-  if (north?.casts && !cell.casts) {
-    drawShadow(ctx, x, y)
+  if (cell.casts && south && !south.casts) {
+    wrapper.drawRect(
+      x,
+      y + CELL_SIZE - EDGE_ROWS,
+      CELL_SIZE,
+      EDGE_ROWS,
+      EDGE_COLOR,
+    )
   }
 }
