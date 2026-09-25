@@ -18,6 +18,7 @@ import type {
   IActor,
   IField,
   IFollower,
+  IItem,
   LoadOptions,
   Move,
   PushedEvent,
@@ -67,6 +68,8 @@ export function spawnActor(
   let moveEnd: MoveEndDelegate | null = null
   let idle: IdleDelegate | null = null
   let pushed: ActorPushedDelegate | null = null
+  // The crow's idle and pushed behaviors share the carrying state
+  let crow: CrowDelegate | null = null
   switch (def.moveEnd) {
     case "inertial":
       moveEnd = new MoveEndDelegateInertial()
@@ -94,6 +97,15 @@ export function spawnActor(
     case "patrol":
       idle = new IdleDelegatePatrol()
       break
+    case "mirror":
+      idle = new IdleDelegateMirror()
+      break
+    case "flee":
+      idle = new IdleDelegateFlee()
+      break
+    case "crow":
+      idle = crow ??= new CrowDelegate()
+      break
   }
   switch (def.pushed) {
     case "roll":
@@ -101,6 +113,12 @@ export function spawnActor(
       break
     case "unstoppable":
       pushed = new ActorPushedDelegateUnstoppable()
+      break
+    case "startle":
+      pushed = new ActorPushedDelegateStartle()
+      break
+    case "crow":
+      pushed = crow ??= new CrowDelegate()
       break
   }
   return new Actor(i, j, def, id, dir, speed, moveEnd, idle, pushed)
@@ -347,6 +365,9 @@ export class Actor implements IActor {
   forceMove(dir: Dir) {
     this.setDir(dir)
     this.#move = new MoveGo(this.#speed, dir)
+    if (this.#follower && this.#lastMoveDir) {
+      this.#follower.follow(this.#i, this.#j, this.#lastMoveDir, this.#speed)
+    }
     const [nextI, nextJ] = this.nextGrid(dir)
     this.#i = nextI
     this.#j = nextJ
@@ -714,7 +735,9 @@ export class ActorPushedDelegateRoll implements ActorPushedDelegate {
           // front of them instead (the bounce below ends the roll)
           continue
         }
-        // Crushes the NPC in the way, which drops a coin
+        // Crushes the NPC in the way, which drops a coin (and lets go of
+        // whatever it carried, e.g. a crow's loot)
+        other.unsetFollower()
         field.actors.remove(other)
         field.spawnItem("coin", ni, nj)
         signal.playSound("explosion")
@@ -1025,5 +1048,333 @@ export class IdleDelegateRandomRotate implements IdleDelegate {
     } else {
       actor.setDir(turnLeft(actor.dir))
     }
+  }
+}
+
+/**
+ * Returns the directions that bring (0, 0) closer to (di, dj), the axis
+ * with the larger distance first.
+ */
+function dirsToward(di: number, dj: number): Dir[] {
+  const dirI: Dir | null = di !== 0 ? (di > 0 ? RIGHT : LEFT) : null
+  const dirJ: Dir | null = dj !== 0 ? (dj > 0 ? DOWN : UP) : null
+  return (Math.abs(di) >= Math.abs(dj) ? [dirI, dirJ] : [dirJ, dirI]).filter((
+    d,
+  ): d is Dir => d !== null)
+}
+
+/** The mirrored direction of the player's move: left and right swapped */
+function mirrorDir(dir: Dir): Dir {
+  return dir === LEFT ? RIGHT : dir === RIGHT ? LEFT : dir
+}
+
+/**
+ * The mirror child. Replays every step of the player with left and right
+ * swapped (up and down stay). A step into a wall bumps it instead, which
+ * presses the button there, so the player can shift the pair out of
+ * sync by walking the mirror into a pillar.
+ */
+export class IdleDelegateMirror implements IdleDelegate {
+  /** The reaction range in manhattan distance */
+  #range: number
+  /** The player's position the mirror has replayed up to */
+  #seen: [number, number] | null = null
+
+  constructor(range = 16) {
+    this.#range = range
+  }
+
+  onIdle(actor: Actor, field: IField): void {
+    const me = field.me
+    if (!me || me.id === actor.id) {
+      return
+    }
+    const seen = this.#seen
+    if (!seen) {
+      this.#seen = [me.i, me.j]
+      return
+    }
+    const di = me.i - seen[0]
+    const dj = me.j - seen[1]
+    if (di === 0 && dj === 0) {
+      return
+    }
+    const dist = Math.abs(me.i - actor.i) + Math.abs(me.j - actor.j)
+    if (Math.abs(di) + Math.abs(dj) > 4 || dist > this.#range) {
+      // Warped or out of sight: re-syncs without moving
+      this.#seen = [me.i, me.j]
+      return
+    }
+    // Replays one step of the backlog (the player may be faster)
+    let dir: Dir
+    if (di !== 0) {
+      dir = di > 0 ? RIGHT : LEFT
+      seen[0] += Math.sign(di)
+    } else {
+      dir = dj > 0 ? DOWN : UP
+      seen[1] += Math.sign(dj)
+    }
+    actor.tryMove("go", mirrorDir(dir), field)
+  }
+}
+
+/**
+ * The sheep. Runs away from the player who comes within the range
+ * (twice as far at night), taking any step that widens the distance.
+ * Cornered, it trembles on the spot. Out of range it grazes, turning
+ * now and then. The player herds it with the approach angle, as the
+ * sheep can't be pushed (see ActorPushedDelegateStartle).
+ */
+export class IdleDelegateFlee implements IdleDelegate {
+  /** The flight distance in manhattan distance */
+  #range: number
+  #trembleUntil = 0
+
+  constructor(range = 3) {
+    this.#range = range
+  }
+
+  onIdle(actor: Actor, field: IField): void {
+    const me = field.me
+    if (!me || me.id === actor.id) {
+      return
+    }
+    const di = actor.i - me.i
+    const dj = actor.j - me.j
+    const dist = Math.abs(di) + Math.abs(dj)
+    const range = signal.nightDarkness.get() > 0.3
+      ? this.#range * 2
+      : this.#range
+    if (dist > range) {
+      // Grazing
+      const { randomInt, choice } = seed(`${actor.id}.${field.time}`)
+      if (randomInt(120) === 0) {
+        actor.setDir(choice(DIRS))
+      }
+      return
+    }
+    // Straight away first, then sideways: any step off both axes of the
+    // player widens the manhattan distance
+    const away = dirsToward(di, dj)
+    const { choice } = seed(`${actor.id}.${field.time}`)
+    for (const dir of away) {
+      const [ni, nj] = actor.nextGrid(dir)
+      if (field.canEnter(ni, nj)) {
+        actor.tryMove("go", dir, field)
+        return
+      }
+    }
+    // Blocked ahead: a random free sidestep that still widens the distance
+    const sideways = DIRS.filter((d) => {
+      const [ni, nj] = nextGrid(actor.i, actor.j, d)
+      return !away.includes(d) && field.canEnter(ni, nj) &&
+        Math.abs(ni - me.i) + Math.abs(nj - me.j) > dist
+    })
+    if (sideways.length > 0) {
+      actor.tryMove("go", choice(sideways), field)
+      return
+    }
+    // Cornered: faces the player and trembles
+    actor.setDir(dirsToward(-di, -dj)[0] ?? actor.dir)
+    if (field.time >= this.#trembleUntil) {
+      this.#trembleUntil = field.time + 40
+      actor.jump()
+    }
+  }
+}
+
+/** Jumps in surprise instead of being knocked back */
+export class ActorPushedDelegateStartle implements ActorPushedDelegate {
+  onPushed(_event: PushedEvent, actor: Actor, _field: IField): void {
+    if (actor.isActionQueueEmpty()) {
+      actor.enqueueActions({ type: "jump" })
+    }
+  }
+}
+
+/** The items the crow is after */
+const SHINY = new Set(["coin", "key"])
+
+/**
+ * The crow. Once the player comes near, it flies (over water too) to
+ * the nearest shiny item (coin, key) within the range, picks it up and carries it back to its nest, the
+ * cell it spawned on. The items piled around the nest are its hoard and
+ * are left alone. Bumping the crow on land makes it drop what it
+ * carries; it then ignores that item for a while.
+ */
+export class CrowDelegate implements IdleDelegate, ActorPushedDelegate {
+  /** The search range in manhattan distance */
+  #range: number
+  /** The crow only goes stealing while the player is this close to its nest */
+  #wake: number
+  #nest: [number, number] | null = null
+  /** The id of the carried item */
+  #carrying: string | null = null
+  /** Item ids to leave alone, until the given time */
+  #ignored = new Map<string, number>()
+  #restUntil = 0
+
+  constructor(range = 7, wake = 8) {
+    this.#range = range
+    this.#wake = wake
+  }
+
+  get nest(): [number, number] | null {
+    return this.#nest
+  }
+
+  get carrying(): string | null {
+    return this.#carrying
+  }
+
+  onIdle(actor: Actor, field: IField): void {
+    const nest = this.#nest ??= [actor.i, actor.j]
+    if (field.time < this.#restUntil) {
+      return
+    }
+    if (this.#carrying && !actor.follower) {
+      // The carried item is gone (e.g. deactivated)
+      this.#carrying = null
+    }
+    if (this.#carrying) {
+      if (actor.i === nest[0] && actor.j === nest[1]) {
+        // Home: leaves the loot by the nest
+        this.#drop(actor, field)
+        this.#restUntil = field.time + 90
+        return
+      }
+      this.#flyToward(actor, field, nest[0], nest[1])
+      return
+    }
+    const me = field.me
+    // Measured from the nest, so the crow doesn't doze off mid-flight
+    const awake = me &&
+      Math.abs(me.i - nest[0]) + Math.abs(me.j - nest[1]) <= this.#wake
+    const item = awake ? this.#findShiny(actor, field) : null
+    if (!item) {
+      // Nothing to steal. Rests a while before looking again
+      this.#restUntil = field.time + 20
+      if (actor.i !== nest[0] || actor.j !== nest[1]) {
+        this.#restUntil = 0
+        this.#flyToward(actor, field, nest[0], nest[1])
+      }
+      return
+    }
+    if (item.i === actor.i && item.j === actor.j) {
+      actor.setFollower(item)
+      item.startFollowing()
+      this.#carrying = item.id
+      signal.playSound("jump")
+      for (
+        const effect of linePattern0(
+          DIRS,
+          actor.i,
+          actor.j,
+          1,
+          0.7,
+          2,
+          "#d49d29",
+        )
+      ) {
+        field.effects.add(effect)
+      }
+      return
+    }
+    this.#flyToward(actor, field, item.i, item.j)
+  }
+
+  onPushed(event: PushedEvent, actor: Actor, field: IField): void {
+    if (!this.#carrying || field.isWater(actor.i, actor.j)) {
+      // Holds tight over the water
+      if (actor.isActionQueueEmpty()) {
+        actor.enqueueActions({ type: "jump" })
+      }
+      return
+    }
+    this.#ignored.set(this.#carrying, field.time + 240)
+    this.#drop(actor, field)
+    signal.playSound("hitHurt")
+    for (
+      const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#1f008a")
+    ) {
+      field.effects.add(effect)
+    }
+    // Knocked back, leaving the loot behind
+    actor.enqueueActions({ type: "wait", until: field.time + event.peakAt })
+    actor.enqueueActions({ type: "slide", dir: event.dir })
+    this.#restUntil = field.time + 60
+  }
+
+  #drop(actor: Actor, field: IField) {
+    const item = actor.follower
+    actor.unsetFollower()
+    this.#carrying = null
+    if (!item) {
+      return
+    }
+    const di = actor.i - item.i
+    const dj = actor.j - item.j
+    if (
+      Math.abs(di) + Math.abs(dj) === 1 && field.isWater(item.i, item.j) &&
+      !field.isWater(actor.i, actor.j)
+    ) {
+      // Never drops into the water: the item lands on the shore
+      item.enqueueActions({ type: "go", dir: dirsToward(di, dj)[0] })
+    }
+  }
+
+  #findShiny(actor: Actor, field: IField): IItem | null {
+    const nest = this.#nest!
+    let best: IItem | null = null
+    let bestDist = Infinity
+    const r = this.#range
+    for (let dj = -r; dj <= r; dj++) {
+      const w = r - Math.abs(dj)
+      for (let di = -w; di <= w; di++) {
+        const i = actor.i + di
+        const j = actor.j + dj
+        if (Math.abs(i - nest[0]) + Math.abs(j - nest[1]) <= 2) {
+          // The hoard
+          continue
+        }
+        const item = field.peekItem(i, j)
+        if (!item || item.isFollowing || !SHINY.has(item.def.collect)) {
+          continue
+        }
+        if ((this.#ignored.get(item.id) ?? 0) > field.time) {
+          continue
+        }
+        const dist = Math.abs(di) + Math.abs(dj)
+        if (dist < bestDist) {
+          best = item
+          bestDist = dist
+        }
+      }
+    }
+    return best
+  }
+
+  /** Flies one cell toward the target, over land or water */
+  #flyToward(actor: Actor, field: IField, ti: number, tj: number) {
+    const toward = dirsToward(ti - actor.i, tj - actor.j)
+    const around = DIRS.filter((d) =>
+      !toward.includes(d) && !toward.includes(opposite(d))
+    )
+    for (const dir of [...toward, ...around]) {
+      const [ni, nj] = actor.nextGrid(dir)
+      if (field.canEnter(ni, nj)) {
+        actor.tryMove("go", dir, field)
+        return
+      }
+      if (
+        field.isWater(ni, nj) && field.actors.get(ni, nj).length === 0 &&
+        !field.props.get(ni, nj)
+      ) {
+        actor.forceMove(dir)
+        return
+      }
+    }
+    // Stuck. Waits a bit
+    this.#restUntil = field.time + 30
   }
 }

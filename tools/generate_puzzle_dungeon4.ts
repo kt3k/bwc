@@ -88,6 +88,9 @@ sign(93, 20, "BACK TO B3F")
 sign(100, 34, "NOTHING HERE MOVES FOR YOU. MAKE THE MACHINES DO IT")
 grid[12][88] = "x"
 item(112, 12, "coin")
+// The way down to the fifth floor (block_600.200)
+sign(111, 24, "B5F: THE MENAGERIE")
+prop(108, 24, "portal", { i: 700, j: 216 })
 
 const ROOMS: [number, number][] = [[6, 42], [46, 82], [86, 122], [126, 162], [
   166,

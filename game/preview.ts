@@ -109,6 +109,12 @@ const NOTES: Record<string, string> = {
     "walks back and forth between obstacles; presses buttons it bumps into; can't be shoved",
   "actor.ghost":
     "night only; walks through walls, fears lanterns, steals coins",
+  "actor.mirror":
+    "copies your every step with left and right swapped; bumps walls and buttons",
+  "actor.sheep":
+    "runs away from you (farther at night); can't be pushed; herd it onto plates",
+  "actor.crow":
+    "flies over water to steal coins and keys for its nest; bump it on land to drop the loot",
 }
 
 const CELL = 16

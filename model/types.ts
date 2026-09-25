@@ -29,9 +29,13 @@ export type IEntity = IBox & ILoader & {
   image(): ImageBitmap
 }
 
-export type IItem = IEntity & IStepper & IFollowable & {
+export type IItem = IEntity & IStepper & IFollower & {
   id: string
+  /** The item definition (the collect type tells what the item is) */
+  readonly def: { readonly type: string; readonly collect: string }
   isFollowing: boolean
+  /** Starts following the actor who set this item as its follower */
+  startFollowing(): void
   onCollect(actor: IActor, field: IField): void
   enqueueActions(
     ...actions: { type: "go"; dir: Dir; speed?: 1 | 2 | 4 | 8 | 16 }[]

@@ -280,6 +280,44 @@ prop(128, 73, "blue-wall", { group: "zoo-patrol" })
 prop(130, 73, "red-wall", { group: "zoo-patrol" })
 
 // ---------------------------------------------------------------------
+// animals with a mind of their own (see game-ideas-4.md)
+
+sign(4, 76, "ANIMALS: MIRROR, SHEEP, CROW")
+
+sign(6, 78, "MIRROR: IT COPIES YOU, LEFT AND RIGHT SWAPPED")
+rect(14, 80, 22, 88, "1")
+rect(15, 81, 21, 87, "0")
+grid[84][19] = "1" // a pillar to shift the pair out of sync
+actor(18, 84, "mirror")
+prop(15, 81, "switch", { group: "zoo-mirror" })
+prop(10, 80, "blue-wall", { group: "zoo-mirror" })
+prop(11, 80, "red-wall", { group: "zoo-mirror" })
+
+sign(30, 78, "SHEEP: HERD IT ONTO THE PLATE")
+rect(30, 80, 44, 90, "1")
+rect(31, 81, 43, 89, "f")
+grid[80][37] = "f" // the gate in the fence
+rect(40, 90, 42, 92, "1")
+rect(41, 90, 41, 91, "f") // the chute
+prop(41, 91, "plate", { group: "zoo-sheep" })
+rect(26, 84, 29, 86, "1")
+rect(27, 85, 29, 85, "0")
+grid[85][30] = "0"
+prop(30, 85, "door", { group: "zoo-sheep" })
+item(27, 85, "coin")
+actor(35, 85, "sheep")
+
+sign(52, 78, "CROW: STEALS SHINY THINGS, FLIES OVER WATER")
+rect(52, 80, 66, 90, "w")
+rect(59, 80, 59, 90, "0") // the strip to bump it on
+grid[85][56] = "0"
+item(56, 85, "key")
+grid[85][63] = "0"
+actor(63, 85, "crow", "left")
+item(68, 84, "coin")
+item(68, 86, "coin")
+
+// ---------------------------------------------------------------------
 // output (with a bounds check)
 
 for (const list of [actors, items, props]) {
