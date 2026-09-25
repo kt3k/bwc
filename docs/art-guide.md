@@ -77,12 +77,41 @@
 ## アイテム・プロップ・アクター
 
 - 輪郭は黒 `#000000` か濃い茶 `#3d1c00` / 濃い緑 `#253200`。
-- 金属・金は `#7f4b01` → `#d49d29` → `#f9e7b5` の 3 階調。
+- 金属・金は `#7f4b01` → `#d49d29` → `#f9e7b5` の 3 階調。コインのような
+  「光るもの」は最も明るい `#f9e7b5` を左上の広い面に使い、影は右下の細い
+  三日月だけにする (暗い階調が多いと卵や石に見える)。
 - 光源は左上固定。ハイライトは数ピクセル、影は右下に形として置く。
 - 仕掛けの状態は色で伝える: 青 (`#002e55` / `#1950c7` / `#cceaff`) は 「OFF
   で立つ壁」、赤 (`#4f1000` / `#983600` / `#e58d68`) は「ON で立つ壁」、
   金は「ボタン・ゲート」。
 - 16x16 の下 1 行は空けて奥行きを出す (門・壁・箱)。
+
+## アクターの 4 方向フレーム
+
+- `down` / `up` / `left` の 3 方向を描き、`right` は `left` の鏡像にする
+  (左右で非対称なデザインのときだけ別に描く)。
+- 横向きは 3/4 の横顔。頭の輪郭 (幅・高さ) は正面と同じにし、目を 1 つ
+  進行方向側の縁に寄せる。後ろ向きは顔を描かず、帽子・髪・うなじで頭を 埋める。
+- 頭の上端と足元の行は全方向・全フレームで揃える。上下のバウンドは入れない
+  (既存アクターは足の入れ替えと胴体の揺れだけで歩きを表現している)。
+- 2 フレーム歩行は「前足と後ろ足を入れ替える」+ 尻尾・腕などの付属物を
+  逆側へ振る。正面で左右に振れるものは後ろ向きでも左右に振る。
+- 参考: `static/actor/boco/` (正面 2 枚を元に横・後ろを起こした例)。
+
+## 参考資料
+
+- [SLYNYRD Pixelblog 22 - Top Down Character Sprites](https://www.slynyrd.com/blog/2019/10/21/pixelblog-22-top-down-character-sprites):
+  横向きは鏡像で足りる、頭は全高の 1/3〜1/2、ダミー (単色パーツ) で動きを
+  決めてから描き込む
+- [SLYNYRD Pixelblog 55 - Top Down Character Animation](https://www.slynyrd.com/blog/2025/3/24/pixelblog-55-top-down-character-animation)
+- [Sandro Maglione - Top-down game Pixel art](https://www.sandromaglione.com/articles/pixel-art-top-down-game-sprite-design-and-animation):
+  光は真上から (頭頂が明るく、頭の下の胴が暗い)、目は頭の下寄り、影で
+  奥行きを出す
+- OpenGameArt (CC0) の比較用素材:
+  [16x16 Characters + Putting Animation](https://opengameart.org/content/16x16-characters-putting-animation)、
+  [16x16 Animated Turtle](https://opengameart.org/content/16x16-animated-turtle)、
+  [16x16 Coin Animated](https://opengameart.org/content/16x16-coin-animated)、
+  [16x16 Spinning Coin + Pickup Animation](https://opengameart.org/content/16x16-spinning-coin-pickup-animation)
 
 ## 新しいセルの追加手順
 
