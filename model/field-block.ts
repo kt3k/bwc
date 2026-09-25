@@ -1,6 +1,7 @@
 import { CanvasWrapper } from "../util/canvas-wrapper.ts"
 import { BLOCK_CHUNK_SIZE, BLOCK_SIZE, CELL_SIZE } from "../util/constants.ts"
 import { seed } from "../util/random.ts"
+import { drawCell, variantKey } from "./cell-decor.ts"
 import { floorN, modulo } from "../util/math.ts"
 import { loadImage } from "../util/load.ts"
 import type { Dir, IBox } from "./types.ts"
@@ -378,46 +379,6 @@ export function drawCellColor(
   )
 }
 
-const ENABLE_AMBIENT_CELL_NOISE = true
-
-/** Draws a cell on the canvas */
-export function drawCell(
-  wrapper: CanvasWrapper,
-  i: number,
-  j: number,
-  cell: CellDefinition,
-  image: ImageBitmap,
-) {
-  const [localI, localJ] = g2l(i, j)
-  wrapper.drawImage(
-    image,
-    localI * CELL_SIZE,
-    localJ * CELL_SIZE,
-  )
-  if (ENABLE_AMBIENT_CELL_NOISE) {
-    if (cell.noise) {
-      const { randomInt } = seed(`${i}.${j}`)
-      for (
-        const [color, countStr] of new URLSearchParams(cell.noise).entries()
-      ) {
-        const count = +countStr
-        for (let n = 0; n < count; n++) {
-          const width = randomInt(3) + 1
-          const x = randomInt(15 - width) + 1
-          const y = randomInt(14) + 1
-          wrapper.drawRect(
-            localI * CELL_SIZE + x,
-            localJ * CELL_SIZE + y,
-            width,
-            1,
-            color,
-          )
-        }
-      }
-    }
-  }
-}
-
 function renderRange(
   wrapper: CanvasWrapper,
   i: number,
@@ -432,13 +393,8 @@ function renderRange(
     for (let jj = 0; jj < height; jj++) {
       const [localI, localJ] = g2l(i + ii, j + jj)
       const cell = cells[field[localJ][localI]]
-      drawCell(
-        wrapper,
-        i + ii,
-        j + jj,
-        cell,
-        imgMap[cell.name],
-      )
+      const north = localJ > 0 ? cells[field[localJ - 1][localI]] : undefined
+      drawCell(wrapper, i + ii, j + jj, cell, imgMap, north)
     }
   }
 }
@@ -517,6 +473,12 @@ export class FieldBlock {
     await Promise.all(
       Object.values(this.#map.catalog.cells).map(async (def) => {
         this.imgMap[def.name] = await this.loadCellImage(def.href, options)
+        await Promise.all((def.variants ?? []).map(async (v, k) => {
+          this.imgMap[variantKey(def.name, k)] = await this.loadCellImage(
+            v.href,
+            options,
+          )
+        }))
       }),
     )
   }
@@ -601,10 +563,9 @@ export class FieldBlock {
   /** Redraws a single cell (used after a runtime terrain change) */
   redrawCell(i: number, j: number) {
     const cell = this.getCell(i, j)
-    const image = this.imgMap[cell.name]
-    if (image) {
-      drawCell(this.canvasWrapper, i, j, cell, image)
-    }
+    const [, localJ] = g2l(i, j)
+    const north = localJ > 0 ? this.getCell(i, j - 1) : undefined
+    drawCell(this.canvasWrapper, i, j, cell, this.imgMap, north)
   }
 
   renderAll(canvas = this.canvas) {

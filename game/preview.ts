@@ -10,6 +10,9 @@ interface CatalogJson {
     water?: boolean
     conveyor?: string
     diggable?: boolean
+    flip?: string
+    variants?: Record<string, number>
+    casts?: boolean
   }>
   items: Record<string, { src: string; collect: string }>
   actors: Record<
@@ -176,6 +179,9 @@ async function main() {
       def.water ? "water" : "",
       def.conveyor ? `conveyor:${def.conveyor}` : "",
       def.diggable ? "diggable" : "",
+      def.flip ? `flip: ${def.flip}` : "",
+      def.casts ? "casts shadow" : "",
+      def.noise ? `noise: ${def.noise}` : "",
     ].filter(Boolean).join(" / ")
     const [c, body] = card(name, flags, NOTES[`cell.${name}`] ?? "")
     const [canvas, ctx] = spriteCanvas()
@@ -184,6 +190,15 @@ async function main() {
     loadImage(resolve(def.src)).then((img) => {
       ctx.drawImage(img, 0, 0, CELL * SCALE, CELL * SCALE)
     }).catch(() => {})
+    // The rare variant tiles, with their weight
+    for (const [src, weight] of Object.entries(def.variants ?? {})) {
+      const [vc, vctx] = spriteCanvas()
+      vc.title = `${src} (${weight}%)`
+      c.insertBefore(vc, body)
+      loadImage(resolve(src)).then((img) => {
+        vctx.drawImage(img, 0, 0, CELL * SCALE, CELL * SCALE)
+      }).catch(() => {})
+    }
   }
 
   const items = section(`ITEMS (${Object.keys(catalog.items).length})`)
