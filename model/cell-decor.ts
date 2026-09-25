@@ -9,6 +9,7 @@
 // - `flip`: a random mirror ("h", "v", "hv") or quarter turn ("rot")
 // - `noise`: small marks in a color, `color=count[:shape]`, gathered into
 //   patches by a smooth low-frequency field instead of an even sprinkle
+//   (`noisePatches: false` keeps the even sprinkle)
 // - `casts`: the cell darkens the top rows of the walkable cell below it
 //   by one step of the grayscale ramp, like a wall casting a shadow
 
@@ -281,7 +282,7 @@ export function drawCell(
   ctx.drawImage(image, -CELL_SIZE / 2, -CELL_SIZE / 2)
   ctx.restore()
   if (cell.noise) {
-    const factor = patchFactor(i, j)
+    const factor = cell.noisePatches === false ? 1 : patchFactor(i, j)
     for (const { color, count, shape } of parseNoise(cell.noise)) {
       const n = Math.floor(count * factor + rng())
       for (let m = 0; m < n; m++) {

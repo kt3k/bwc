@@ -76,3 +76,25 @@ Deno.test("darken steps down the palette grays and leaves colors alone", () => {
   assertEquals(darken(0x000000), 0x000000)
   assertEquals(darken(0xd49d29), 0xd49d29)
 })
+
+Deno.test("noisePatches: false survives the catalog round trip", async () => {
+  const { Catalog } = await import("./catalog.ts")
+  const catalog = Catalog.fromJSON([{
+    src: "catalog/base.json",
+    json: {
+      cells: {
+        "2": {
+          canEnter: false,
+          src: "../cell/wall1.png",
+          noise: "black=4",
+          noisePatches: false,
+        },
+      },
+      items: {},
+      actors: {},
+      props: {},
+    },
+  }], "http://localhost/")
+  assertEquals(catalog.cells["2"].noisePatches, false)
+  assertEquals(catalog.toJSON().cells["2"].noisePatches, false)
+})

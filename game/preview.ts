@@ -10,6 +10,7 @@ interface CatalogJson {
     water?: boolean
     conveyor?: string
     diggable?: boolean
+    noisePatches?: boolean
     flip?: string
     variants?: Record<string, number>
     casts?: boolean
@@ -181,7 +182,9 @@ async function main() {
       def.diggable ? "diggable" : "",
       def.flip ? `flip: ${def.flip}` : "",
       def.casts ? "casts shadow" : "",
-      def.noise ? `noise: ${def.noise}` : "",
+      def.noise
+        ? `noise: ${def.noise}${def.noisePatches === false ? " (even)" : ""}`
+        : "",
     ].filter(Boolean).join(" / ")
     const [c, body] = card(name, flags, NOTES[`cell.${name}`] ?? "")
     const [canvas, ctx] = spriteCanvas()

@@ -11,6 +11,8 @@ interface CatalogSource {
     readonly water?: boolean
     readonly conveyor?: "up" | "down" | "left" | "right"
     readonly diggable?: boolean
+    /** false: spread the noise evenly instead of gathering it into patches */
+    readonly noisePatches?: boolean
     readonly flip?: CellFlip
     /** Rare alternative images: src -> weight in percent */
     readonly variants?: Record<string, number>
@@ -54,6 +56,7 @@ export interface CellDefinition {
   readonly water?: boolean
   readonly conveyor?: "up" | "down" | "left" | "right"
   readonly diggable?: boolean
+  readonly noisePatches?: boolean
   readonly flip?: CellFlip
   readonly variants?: readonly {
     readonly src: string
@@ -123,6 +126,7 @@ export class Catalog {
           water: data.water,
           conveyor: data.conveyor,
           diggable: data.diggable,
+          noisePatches: data.noisePatches,
           flip: data.flip,
           variants: data.variants
             ? Object.entries(data.variants).map(([src, weight]) => ({
@@ -192,6 +196,7 @@ export class Catalog {
         water: def.water,
         conveyor: def.conveyor,
         diggable: def.diggable,
+        noisePatches: def.noisePatches,
         flip: def.flip,
         variants: def.variants
           ? Object.fromEntries(def.variants.map((v) => [v.src, v.weight]))
