@@ -719,7 +719,7 @@ export class ActorPushedDelegateRoll implements ActorPushedDelegate {
         field.spawnItem("coin", ni, nj)
         signal.playSound("explosion")
         for (
-          const effect of linePattern0(DIRS, ni, nj, 1, 0.7, 3, "#4d4a4d")
+          const effect of linePattern0(DIRS, ni, nj, 1, 0.7, 3, "#4a4d4a")
         ) {
           field.effects.add(effect)
         }
@@ -962,7 +962,7 @@ export class IdleDelegateGhost implements IdleDelegate {
                 1,
                 0.7,
                 3,
-                "#54070a",
+                "#5a0019",
               )
             ) {
               field.effects.add(effect)

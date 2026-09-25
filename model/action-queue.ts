@@ -165,7 +165,7 @@ export class ActionQueue<
                   j * CELL_SIZE,
                   dir,
                   16,
-                  "#4d4a4d",
+                  "#4a4d4a",
                   2,
                   speed,
                   delay,

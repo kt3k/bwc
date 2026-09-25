@@ -19,6 +19,7 @@
     "generate-dungeon4": "deno -A tools/generate_puzzle_dungeon4.ts",
     "generate-zoo": "deno -A tools/generate_preview_zoo.ts",
     "generate-debug": "deno -A tools/generate_debug_map.ts",
+    "check-palette": "deno -A tools/check_palette.ts",
     "reset-spawns": "deno task clear-spawns && deno task add-spawns",
     "dist": "deno run -A npm:cpx2 'out/**' dist",
     "serve": "deno run -A jsr:@std/http/file-server out -p 8000",

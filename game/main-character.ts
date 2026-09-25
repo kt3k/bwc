@@ -85,7 +85,7 @@ const mushroomEffect = function (
     1,
     0.5,
     2,
-    "#AA0000",
+    "#983600",
   )
 }
 
