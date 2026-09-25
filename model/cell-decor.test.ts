@@ -1,5 +1,6 @@
 import { assert, assertEquals } from "@std/assert"
 import {
+  edgePixels,
   parseNoise,
   patchFactor,
   pickTransform,
@@ -87,4 +88,12 @@ Deno.test("noisePatches: false survives the catalog round trip", async () => {
   }], "http://localhost/")
   assertEquals(catalog.cells["2"].noisePatches, false)
   assertEquals(catalog.toJSON().cells["2"].noisePatches, false)
+})
+
+Deno.test("edgePixels is a checker on the bottom 2 rows", () => {
+  const px = edgePixels()
+  assertEquals(px.length, 16)
+  for (const [x, y] of px) {
+    assertEquals(y, x % 2 === 0 ? 15 : 14)
+  }
 })

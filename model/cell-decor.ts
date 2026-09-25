@@ -10,8 +10,8 @@
 // - `noise`: small marks in a color, `color=count[:shape]`, gathered into
 //   patches by a smooth low-frequency field instead of an even sprinkle
 //   (`noisePatches: false` keeps the even sprinkle)
-// - `casts`: a wall; its bottom rows are painted black where it faces a
-//   non-wall cell below, so wall masses get a dark base edge
+// - `casts`: a wall; its bottom 2 rows get a black checker where it faces
+//   a non-wall cell below, so wall masses get a dark base edge
 
 import type { CanvasWrapper } from "../util/canvas-wrapper.ts"
 import { BLOCK_SIZE, CELL_SIZE } from "../util/constants.ts"
@@ -150,8 +150,18 @@ export function pickTransform(
   return [a * sx, b * sx, c * sy, d * sy]
 }
 
-/** Rows at the bottom of a casting cell painted black where it faces a floor */
-export const EDGE_ROWS = 2
+/**
+ * The base edge of a casting cell where it faces a floor, as the black
+ * pixels of its bottom rows: a checker, so the bottom row is black on the
+ * even columns and the row above it on the odd columns.
+ */
+export function edgePixels(): [x: number, y: number][] {
+  const out: [number, number][] = []
+  for (let x = 0; x < CELL_SIZE; x++) {
+    out.push([x, x % 2 === 0 ? CELL_SIZE - 1 : CELL_SIZE - 2])
+  }
+  return out
+}
 
 /** The color of the base edge */
 const EDGE_COLOR = "#000000"
@@ -263,12 +273,8 @@ export function drawCell(
     }
   }
   if (cell.casts && south && !south.casts) {
-    wrapper.drawRect(
-      x,
-      y + CELL_SIZE - EDGE_ROWS,
-      CELL_SIZE,
-      EDGE_ROWS,
-      EDGE_COLOR,
-    )
+    for (const [px, py] of edgePixels()) {
+      wrapper.drawRect(x + px, y + py, 1, 1, EDGE_COLOR)
+    }
   }
 }

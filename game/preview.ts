@@ -181,7 +181,7 @@ async function main() {
       def.conveyor ? `conveyor:${def.conveyor}` : "",
       def.diggable ? "diggable" : "",
       def.flip ? `flip: ${def.flip}` : "",
-      def.casts ? "wall (black base edge)" : "",
+      def.casts ? "wall (black checker base edge)" : "",
       def.noise
         ? `noise: ${def.noise}${def.noisePatches === false ? " (even)" : ""}`
         : "",
