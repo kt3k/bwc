@@ -25,7 +25,6 @@ import {
   ActorSpawn,
   BlockMap,
   createImageDataForRange,
-  drawCell,
   FieldBlock,
   ItemSpawn,
   PropSpawn,
@@ -661,9 +660,15 @@ async function CanvasLayers({ query, on, el, subscribe }: Context) {
     prev = block
 
     block.loadAssets({ loadImage }).then(() => {
+      // A changed cell also changes the shadow on the cell below it
+      const redraw = new Set<string>()
       for (const [i, j] of cellsDiff) {
-        const cell = block.getCell(i, j)
-        drawCell(cellsCanvasWrapper, i, j, cell, block.imgMap[cell.name])
+        redraw.add(`${i}.${j}`)
+        if (j + 1 < BLOCK_SIZE) redraw.add(`${i}.${j + 1}`)
+      }
+      for (const key of redraw) {
+        const [i, j] = key.split(".").map(Number)
+        block.drawCellTo(cellsCanvasWrapper, i, j)
       }
     })
 

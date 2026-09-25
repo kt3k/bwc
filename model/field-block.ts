@@ -562,10 +562,19 @@ export class FieldBlock {
 
   /** Redraws a single cell (used after a runtime terrain change) */
   redrawCell(i: number, j: number) {
+    this.drawCellTo(this.canvasWrapper, i, j)
+  }
+
+  /**
+   * Draws the cell at (i, j) on the given canvas, with the cell above
+   * passed along for the shadow. The editor draws on its own canvas.
+   * Note: when a cell changes, the cell below it needs redrawing too.
+   */
+  drawCellTo(wrapper: CanvasWrapper, i: number, j: number) {
     const cell = this.getCell(i, j)
     const [, localJ] = g2l(i, j)
     const north = localJ > 0 ? this.getCell(i, j - 1) : undefined
-    drawCell(this.canvasWrapper, i, j, cell, this.imgMap, north)
+    drawCell(wrapper, i, j, cell, this.imgMap, north)
   }
 
   renderAll(canvas = this.canvas) {
