@@ -76,7 +76,7 @@ rect(122, 66, 126, 192, "5") // east corridor
 // ---------------------------------------------------------------------
 // plaza (entry)
 
-rect(80, 10, 120, 60, "5")
+rect(80, 10, 120, 60, "c") // cobbled plaza
 prop(100, 20, "portal-out")
 prop(96, 20, "portal", { i: -110, j: 115 }) // back to the tutorial course
 sign(104, 20, "PUZZLE DUNGEON: 9 TRIALS")
@@ -140,7 +140,7 @@ sign(35, 51, "SLIDE TO THE ISLAND")
 // ---------------------------------------------------------------------
 // R2 (NE): chaser arena -> coins
 
-rect(130, 10, 190, 58, "5")
+rect(130, 10, 190, 58, "p") // gravel arena
 rect(158, 58, 162, 62, "5") // door stub
 actor(145, 30, "chaser")
 actor(170, 25, "chaser")
@@ -177,7 +177,7 @@ item(42, 112, "coin")
 // ---------------------------------------------------------------------
 // R4 (E): boulder-into-water bridges -> key 3
 
-rect(130, 70, 190, 120, "5")
+rect(130, 70, 190, 120, "y") // sandy banks
 rect(126, 93, 130, 97, "5") // door stub to the east corridor
 rect(158, 72, 160, 118, "w") // the channel
 actor(144, 95, "boulder")
@@ -261,7 +261,7 @@ prop(134, 168, "crate")
 // exit held by a button-linked wall. The bottom room drops the player
 // back onto the center corridor through a one-way belt.
 
-rect(104, 68, 120, 134, "5") // the strip
+rect(104, 68, 120, 134, "h") // the strip: steel plates for the machine rooms
 grid[67][106] = "5" // entrance from the spine
 sign(108, 66, "SWITCH TRIAL: SEVEN ROOMS, ONE WAY DOWN")
 for (const y of [77, 87, 97, 107, 117, 127]) rect(104, y, 120, y, "2")
@@ -376,7 +376,7 @@ grid[134][103] = "o" // one-way belt out to the center corridor
 // vault (B-8): three key gates guard the treasure
 
 rect(86, 140, 114, 172, "2")
-rect(88, 141, 112, 170, "5")
+rect(88, 141, 112, 170, "m") // mosaic vault floor
 rect(100, 136, 100, 140, "5") // the 1-wide gate corridor
 prop(100, 136, "key-gate")
 prop(100, 138, "key-gate")

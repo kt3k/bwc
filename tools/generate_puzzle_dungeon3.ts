@@ -65,7 +65,7 @@ const sign = (i: number, j: number, text: string) =>
 /** A walled alcove: walls on the given rect, floor inside */
 const alcove = (x0: number, y0: number, x1: number, y1: number) => {
   rect(x0, y0, x1, y1, "2")
-  rect(x0 + 1, y0 + 1, x1 - 1, y1 - 1, "6")
+  rect(x0 + 1, y0 + 1, x1 - 1, y1 - 1, "m") // alcoves get the mosaic floor
 }
 /** A blocking prop on a carved floor cell */
 const gate = (i: number, j: number, type: string, data?: unknown) => {
@@ -81,7 +81,7 @@ rect(4, 110, 196, 114, "6") // spine B
 for (const x of [52, 102, 152]) rect(x, 40, x + 2, 192, "6")
 
 // plaza (entry from the B2F vault)
-rect(80, 6, 120, 38, "6")
+rect(80, 6, 120, 38, "c") // cobbled plaza
 rect(98, 38, 102, 40, "6")
 prop(100, 20, "portal-out")
 prop(96, 20, "portal", { i: 300, j: 560 }) // back to the B2F vault
@@ -213,7 +213,7 @@ item(146, 78, "coin")
 // Catch a fish, push the clock, then walk the long way round: the
 // short way is paved with springs and a jump scares the fish off.
 
-rect(158, 46, 178, 62, "6") // the fishing area
+rect(158, 46, 178, 62, "y") // the fishing area: sand
 rect(160, 50, 164, 56, "w")
 prop(178, 58, "timer-button", { group: "t4", duration: 1080 })
 sign(166, 48, "CATCH A FISH: FACE THE WATER, PRESS SPACE")
@@ -347,7 +347,7 @@ item(166, 176, "coin")
 // Patrols run up and down open columns. They don't stop for anyone:
 // a bump knocks you a cell along their way.
 
-rect(6, 8, 74, 34, "6")
+rect(6, 8, 74, 34, "d") // the highway: planks
 rect(75, 20, 79, 22, "6") // connector to the plaza
 sign(72, 19, "THE HIGHWAY: PATROLS KNOCK YOU BACK. CROSS BETWEEN THEM")
 ;[

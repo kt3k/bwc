@@ -60,7 +60,7 @@ const sign = (i: number, j: number, text: string) =>
   prop(i, j, "sign", { text })
 const alcove = (x0: number, y0: number, x1: number, y1: number) => {
   rect(x0, y0, x1, y1, "2")
-  rect(x0 + 1, y0 + 1, x1 - 1, y1 - 1, "0")
+  rect(x0 + 1, y0 + 1, x1 - 1, y1 - 1, "m") // alcoves get the mosaic floor
 }
 const gate = (i: number, j: number, type: string, data?: unknown) => {
   grid[j][i] = "0"
@@ -78,7 +78,7 @@ const lane = (x0: number, x1: number, y: number) => {
 // ---------------------------------------------------------------------
 // skeleton: plaza, spine, five rooms in a row
 
-rect(80, 6, 120, 38, "0")
+rect(80, 6, 120, 38, "c") // cobbled plaza
 rect(98, 38, 102, 40, "0")
 rect(4, 40, 196, 44, "0")
 prop(100, 20, "portal-out")
@@ -196,7 +196,7 @@ sign(102, 48, "TWO CRYSTALS. THE WALLS OF ONE ARE THE BRAKES FOR THE OTHER")
 // and presses the switch on the far bank; the wall it opens stands a
 // few cells below the push spot, in plain view.
 
-rect(126, 46, 149, 106, "0") // the near bank
+rect(126, 46, 149, 106, "y") // the near bank: sand
 rect(150, 52, 150, 100, "w")
 rect(151, 52, 153, 100, "0") // the strip between the channels
 rect(154, 52, 154, 100, "w")
@@ -220,7 +220,7 @@ for (const y of [60, 80, 90]) item(152, y, "coin")
 // A short-lap patrol flips one crystal; blue and red walls alternate
 // along the corridor, and every pocket between them holds coins.
 
-rect(166, 46, 194, 106, "0")
+rect(166, 46, 194, 106, "h") // the clockwork corridor: steel plates
 lane(167, 171, 48) // a flip per lap: 5 cells keep the beat under 3 seconds
 prop(172, 48, "switch", { group: "k5" })
 grid[48][173] = "2"
@@ -248,7 +248,7 @@ rect(166, 57, 194, 57, "2")
 rect(166, 73, 194, 73, "2")
 grid[57][168] = "0" // the way in from the entry side
 grid[73][168] = "0"
-rect(166, 74, 194, 106, "0")
+rect(166, 74, 194, 106, "h")
 
 // ---------------------------------------------------------------------
 // verification

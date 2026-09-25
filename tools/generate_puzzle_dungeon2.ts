@@ -62,7 +62,7 @@ rect(122, 62, 126, 190, "4") // east corridor
 // ---------------------------------------------------------------------
 // plaza (entry from the B1F vault)
 
-rect(80, 10, 120, 55, "4")
+rect(80, 10, 120, 55, "c") // cobbled plaza
 prop(100, 20, "portal-out")
 prop(96, 20, "portal", { i: -292, j: 545 }) // back to the B1F vault
 sign(104, 20, "DUNGEON B2F: MASTERS ONLY")
@@ -104,7 +104,7 @@ sign(36, 47, "BELTS BEND THE SLIDE")
 // ---------------------------------------------------------------------
 // S2 (NE): double water channels -> chest
 
-rect(130, 10, 190, 53, "4")
+rect(130, 10, 190, 53, "y") // sandy banks
 rect(158, 53, 162, 58, "4") // door stub
 rect(146, 12, 147, 51, "w") // channel 1
 rect(156, 12, 157, 51, "w") // channel 2
@@ -229,7 +229,7 @@ prop(150, 180, "chest", { drops: "coin", count: 10 })
 // vault 2: two key gates -> the grand treasure
 
 rect(86, 135, 114, 172, "2")
-rect(88, 136, 112, 170, "4")
+rect(88, 136, 112, 170, "m") // mosaic vault floor
 rect(100, 132, 100, 136, "4") // 1-wide gate corridor
 prop(100, 132, "key-gate")
 prop(100, 134, "key-gate")

@@ -68,12 +68,18 @@ const CELLS = [
   "s",
   "o",
   "e",
+  "c",
+  "d",
+  "m",
+  "p",
+  "h",
+  "y",
   "g",
   "a",
   "r",
 ]
 CELLS.forEach((cell, n) => {
-  const x = 6 + n * 9
+  const x = 6 + n * 7
   rect(x, 12, x + 2, 14, cell)
   sign(x + 1, 10, cell.toUpperCase())
 })
