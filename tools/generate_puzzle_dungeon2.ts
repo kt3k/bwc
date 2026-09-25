@@ -183,7 +183,9 @@ rect(70, 148, 74, 152, "4") // door stub
 for (let y = 130; y <= 190; y++) grid[y][48] = "2"
 grid[150][48] = "4"
 prop(48, 150, "moon-gate")
-sign(52, 148, "MOON GARDEN: RICHES BY NIGHT, GHOSTS TOO")
+sign(52, 148, "MOON GARDEN: LIGHT THE LANTERN TO ENTER")
+// lighting this lantern opens the moon gate (within MOON_GATE_RANGE)
+prop(54, 146, "lantern-unlit")
 // the garden: coins, ghosts and unlit lanterns
 for (let y = 138; y <= 182; y += 6) {
   for (let x = 16; x <= 44; x += 7) {
@@ -379,7 +381,9 @@ console.log(`${vaultSealed ? "ok" : "NG"} vault 2 sealed without keys`)
 hardBlock.add("48.150")
 const gardenSealed = !reachable(100, 22).has("30.150")
 hardBlock.delete("48.150")
-console.log(`${gardenSealed ? "ok" : "NG"} moon garden sealed by day`)
+console.log(
+  `${gardenSealed ? "ok" : "NG"} moon garden sealed until the lantern is lit`,
+)
 if (!ok || !iceReturn || !bridged || !vaultSealed || !gardenSealed) {
   console.error("verification failed")
   Deno.exit(1)

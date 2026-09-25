@@ -149,6 +149,7 @@ station("TIMER GATE", (x) => {
 })
 station("MOON GATE", (x) => {
   prop(x, 38, "moon-gate")
+  prop(x + 2, 38, "lantern-unlit") // light it to open the gate
 })
 station("PLATE + DOOR", (x) => {
   prop(x, 38, "plate", { group: "zoo" })
@@ -193,9 +194,9 @@ PENNED.forEach((type, n) => {
   rect(x - 2, 48, x + 2, 52, "1")
   rect(x - 1, 49, x + 1, 51, "0")
   actor(x, 50, type)
+  // the ghost walks through walls; a lantern in the pen keeps it inside
+  if (type === "ghost") prop(x, 52, "lantern")
 })
-// the ghost walks through walls at night, so warn about it
-sign(70, 46, "GHOST ESCAPES AT NIGHT!")
 // the boulder gets an open lane instead of a pen
 sign(82, 46, "BOULDER: PUSH IT")
 actor(84, 50, "boulder")

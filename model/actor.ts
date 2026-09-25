@@ -854,11 +854,7 @@ export class IdleDelegateChase implements IdleDelegate {
     const di = me.i - actor.i
     const dj = me.j - actor.j
     const dist = Math.abs(di) + Math.abs(dj)
-    // At night the chaser sees twice as far
-    const range = signal.nightDarkness.get() > 0.3
-      ? this.#range * 2
-      : this.#range
-    if (dist === 0 || dist > range) {
+    if (dist === 0 || dist > this.#range) {
       // Out of range. Waits on the spot.
       return
     }
@@ -898,9 +894,8 @@ export class IdleDelegateChase implements IdleDelegate {
 }
 
 /**
- * A night-only wall-passing enemy. Active while it is dark: slowly
- * drifts toward the player through walls, avoiding lantern light, and
- * steals a coin on contact. Invisible and dormant during the day.
+ * A wall-passing enemy: slowly drifts toward the player through walls,
+ * avoiding lantern light, and steals a coin on contact.
  */
 export class IdleDelegateGhost implements IdleDelegate {
   /** The activation range in manhattan distance */
@@ -916,12 +911,6 @@ export class IdleDelegateGhost implements IdleDelegate {
   }
 
   onIdle(actor: Actor, field: IField): void {
-    if (signal.nightDarkness.get() <= 0.3) {
-      // Daytime: dormant and invisible
-      actor.buff.invisible = true
-      return
-    }
-    delete actor.buff.invisible
     if (--this.#cooldown > 0) {
       return
     }

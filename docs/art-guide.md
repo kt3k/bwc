@@ -32,6 +32,38 @@
 | 青緑       | `#c2fad7` `#46cb80` `#007644` `#013924`                     |
 | 水色       | `#c4f6f6` `#47c0c4` `#006e8a` `#002e55`                     |
 
+## 画面に出す色の方針
+
+**画面に表示される色は、すべてパレット (`tools/palette.ts`) の色でなければ
+ならない。** スプライトだけでなく、描画の結果として画面に出る色すべてが
+対象で、パレット内の色同士を混ぜてできる中間色も認めない。
+
+そのため次のことはしない。
+
+- 半透明の重ね塗り (`rgba()` / `hsla()` のアルファ、`globalAlpha`、CSS の
+  `opacity` を 0 と 1 以外にする、Tailwind の `bg-black/80` など)
+- グラデーション (`createRadialGradient` / `createLinearGradient`、CSS gradient)
+- フェードやクロスフェード (`opacity` や色の CSS `transition`)
+- 合成モードやフィルタでの色の変化 (`globalCompositeOperation` で色を作る、CSS
+  `filter`、`blur`、影)
+- 拡大縮小や回転での補間 (`imageSmoothingEnabled` は false、CSS は `crisp-edges`
+  / `pixelated`、回転は 90 度単位で整数の行列だけ)
+- パレット外の UI 色 (Tailwind の `text-gray-400` など)
+
+明るさを変えたいときは、パレットの隣の階調に置き換えるか、ディザ (市松
+などのパターンで黒を置く) で表現する。例: 壁の土台の縁 (`casts`) は黒の
+市松。夜の暗転はこの方針に反するため削除した。
+
+### 既知の違反 (未対応)
+
+| 場所                                                                | 内容                                                |
+| ------------------------------------------------------------------- | --------------------------------------------------- |
+| チャンク読み込みの覆い (`model/field-block.ts` の `#createOverlay`) | 10% グレー (`hsla(0, 0%, 10%)`) から 1 秒でフェード |
+| アイテム取得の演出 (`game/ui/item-get-effector.ts`)                 | `opacity` を 0.7 にしてフェード                     |
+| メッセージトースト (`static/index.html`)                            | 背景 `bg-black/80`、文字 `text-gray-200`            |
+| 右上の UI パネルの文字 (`static/index.html`)                        | `text-gray-400`                                     |
+| ゲーム画面の外の案内文 (`static/index.html`)                        | `text-neutral-500`                                  |
+
 ## 地形セル (static/cell)
 
 地形は **グレースケール** に限定する。キャラクター・アイテム・仕掛けが色で

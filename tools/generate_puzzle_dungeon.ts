@@ -6,7 +6,7 @@
 // - R2 chaser arena with boulder lanes (B-3)
 // - R3 plate + door + sapling boulder-stopper puzzle with a key (B-4)
 // - R4 boulder-into-water bridge puzzle with a key (B-1)
-// - R5 night corridor: lightable lanterns, ghosts, moon gate (B-5)
+// - R5 lantern corridor: lightable lanterns, ghosts, moon gate (B-5)
 // - R6 fish escort to the shrine across a spring field (B-6)
 // - R7 one-way conveyor maze (B-7)
 // - R8 the switch trial: seven rooms of button-linked walls
@@ -206,7 +206,9 @@ grid[76][83] = "x" // dig spot
 sign(95, 88, "ONE WAY BELTS")
 
 // ---------------------------------------------------------------------
-// R5 (SW): night corridor with ghosts and the moon gate
+// R5 (SW): lantern corridor with ghosts and the moon gate.
+// The last lantern (30, 150) is within MOON_GATE_RANGE of the gate, so
+// lighting the whole row opens it.
 
 rect(10, 130, 70, 190, "5")
 rect(70, 148, 74, 152, "5") // door stub to the west corridor
@@ -216,7 +218,7 @@ prop(42, 150, "lantern-unlit")
 prop(30, 150, "lantern-unlit")
 actor(25, 140, "ghost")
 actor(50, 170, "ghost")
-sign(66, 146, "GHOSTS FEAR LIGHT. THE MOON GATE OPENS AT NIGHT")
+sign(66, 146, "GHOSTS FEAR LIGHT. A LIT LANTERN OPENS THE MOON GATE")
 // the moonlit alcove
 rect(12, 142, 20, 158, "2")
 rect(14, 144, 18, 156, "5")
@@ -546,7 +548,9 @@ const alcoveSealed = !((() => {
   hardBlock.delete(`${20}.${150}`)
   return r
 })().has("16.150"))
-console.log(`${alcoveSealed ? "ok" : "NG"} moon alcove sealed by day`)
+console.log(
+  `${alcoveSealed ? "ok" : "NG"} moon alcove sealed until a lantern is lit`,
+)
 // R8: every room is sealed while its wall stands, and the whole trial
 // is walkable once the walls are down. The belt keeps the exit one-way.
 const r8Sealed = [

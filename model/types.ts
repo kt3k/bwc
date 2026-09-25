@@ -48,7 +48,7 @@ export type IProp =
     canEnter: boolean
     /** The prop type in the catalog */
     type: string
-    /** true if the prop emits light at night */
+    /** true if the prop emits light (lit lanterns): ghosts avoid it */
     isLightSource: boolean
   }
 

@@ -133,13 +133,15 @@ sign(6, 4, "PORTAL: BACK TO THE START ISLAND")
 
 // actors: one fenced pen each
 letters(2, 7, "ACTORS")
-sign(9, 7, "ACTORS: PENNED. THE GHOST ESCAPES AT NIGHT")
+sign(9, 7, "ACTORS: PENNED. A LANTERN HOLDS THE GHOST")
 ACTOR_TYPES.forEach((type, n) => {
   const cx = 4 + n * 7
   sign(cx, 8, label(type))
   rect(cx - 2, 9, cx + 2, 13, "1")
   rect(cx - 1, 10, cx + 1, 12, "0")
   actor(cx, 11, type)
+  // the ghost walks through walls; a lantern in the pen keeps it inside
+  if (type === "ghost") prop(cx, 13, "lantern")
 })
 
 // items: one row

@@ -77,12 +77,12 @@ const NOTES: Record<string, string> = {
   "prop.apple-gate": "opens if you carry enough apples",
   "prop.key-gate": "consumes 1 key to open",
   "prop.timer-gate": "push to open for a while, then it closes",
-  "prop.moon-gate": "open only at night",
+  "prop.moon-gate": "opens while a lit lantern is within 12 cells",
   "prop.door": "open while ANY actor stands on a plate of its group",
   "prop.plate": "pressure switch for doors (player, NPC or boulder)",
   "prop.shop": "push to buy (price in coins)",
   "prop.fish-shrine": "push with a fish follower: +5 coins",
-  "prop.lantern": "lights the night; ghosts fear it",
+  "prop.lantern": "a light; ghosts fear it, moon gates open near it",
   "prop.lantern-unlit": "push to light it",
   "prop.sapling": "grows to a fruit tree; push the grown tree for apples",
   "prop.race-start": "step on it to start the race clock",
@@ -106,13 +106,12 @@ const NOTES: Record<string, string> = {
   "actor.random-rotate": "rotates in place",
   "actor.inertial": "keeps going; bounces back off walls",
   "actor.static": "stands still",
-  "actor.chaser": "chases you in range (2x at night); steals apples",
+  "actor.chaser": "chases you in range; steals apples",
   "actor.boulder":
     "push it: rolls until blocked, crushes NPCs, sinks into water as a bridge, presses buttons",
   "actor.patrol":
     "walks back and forth between obstacles; presses buttons it bumps into; can't be shoved",
-  "actor.ghost":
-    "night only; walks through walls, fears lanterns, steals coins",
+  "actor.ghost": "walks through walls, fears lanterns, steals coins",
 }
 
 const CELL = 16
