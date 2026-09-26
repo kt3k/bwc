@@ -1,3 +1,4 @@
+import type { PaletteColor } from "../util/palette.ts"
 import * as signal from "../util/signals.ts"
 import { ceilN, floorN } from "../util/math.ts"
 import { BLOCK_CHUNK_SIZE, BLOCK_SIZE, CELL_SIZE } from "../util/constants.ts"
@@ -545,7 +546,7 @@ export class Field implements IField {
     return this.#time
   }
 
-  colorCell(i: number, j: number, color: string): void {
+  colorCell(i: number, j: number, color: PaletteColor): void {
     this.#getBlockOrNull(i, j)?.drawCellColor(i, j, color)
   }
 

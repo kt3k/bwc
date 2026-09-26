@@ -13,6 +13,7 @@ import {
   ItemDefinition,
   PropDefinition,
 } from "./catalog.ts"
+import { Palette, type PaletteColor } from "../util/palette.ts"
 
 /** A 2x2 checker of black and transparent pixels (PNG) */
 const CHECKER_URL = "data:image/png;base64," +
@@ -369,7 +370,7 @@ export function drawCellColor(
   wrapper: CanvasWrapper,
   i: number,
   j: number,
-  color: string,
+  color: PaletteColor,
 ) {
   const [localI, localJ] = g2l(i, j)
   const { randomInt } = seed(`${i}.${j}`)
@@ -553,7 +554,7 @@ export class FieldBlock {
     overlay.style.zIndex = "1"
     // Palette only (docs/art-guide.md): black while loading, then a black
     // checker for a moment instead of a fade, then gone
-    overlay.style.backgroundColor = "#000000"
+    overlay.style.backgroundColor = Palette.black
     this.canvas.parentElement?.appendChild(overlay)
     return () => {
       overlay.style.backgroundColor = "transparent"
@@ -564,7 +565,7 @@ export class FieldBlock {
     }
   }
 
-  drawCellColor(i: number, j: number, color: string) {
+  drawCellColor(i: number, j: number, color: PaletteColor) {
     drawCellColor(this.canvasWrapper, i, j, color)
   }
 

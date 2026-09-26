@@ -15,6 +15,7 @@ import type {
 import { PropSpawn } from "./field-block.ts"
 import { PropDefinition } from "./catalog.ts"
 import { ActionQueue, type PropAction } from "./action-queue.ts"
+import { Palette } from "../util/palette.ts"
 
 /** A moon gate opens while a lit lantern is within this many cells */
 export const MOON_GATE_RANGE = 12
@@ -583,7 +584,7 @@ export class Prop implements IProp {
             1.5,
             0.7,
             3,
-            "#cceaff",
+            Palette.blue1,
           )
         ) {
           field.effects.add(effect)

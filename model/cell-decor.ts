@@ -18,6 +18,7 @@ import { BLOCK_SIZE, CELL_SIZE } from "../util/constants.ts"
 import { modulo } from "../util/math.ts"
 import { seed } from "../util/random.ts"
 import type { CellDefinition, CellFlip } from "./catalog.ts"
+import { Palette } from "../util/palette.ts"
 
 export type NoiseShape = "line" | "dot" | "vline" | "speck" | "diag" | "cross"
 
@@ -164,7 +165,7 @@ export function edgePixels(): [x: number, y: number][] {
 }
 
 /** The color of the base edge */
-const EDGE_COLOR = "#000000"
+const EDGE_COLOR = Palette.black
 
 function drawMark(
   wrapper: CanvasWrapper,

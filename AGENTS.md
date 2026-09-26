@@ -6,10 +6,12 @@
 ## Colors
 
 - Everything shown on screen must use only the colors of the palette in
-  `tools/palette.ts` (the vscode-pixeledit palette), including UI and effects.
-  No alpha blending, gradients, fades or smoothing that would produce in-between
-  colors. See docs/art-guide.md. Run `deno task check-palette` after changing
-  sprites.
+  `util/palette.ts` (the vscode-pixeledit palette), including UI and effects. No
+  alpha blending, gradients, fades or smoothing that would produce in-between
+  colors. See docs/art-guide.md.
+- In code, use the `Palette` constants (e.g. `Palette.gray2`) instead of hex
+  literals; color parameters are typed `PaletteColor`.
+- Run `deno task check-palette` after changing sprites, the catalog or the page.
 
 ## Git operations
 

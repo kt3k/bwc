@@ -1,3 +1,4 @@
+import type { PaletteColor } from "../util/palette.ts"
 export type Dir = "up" | "down" | "left" | "right"
 export type LoadOptions = {
   loadImage?: (url: string) => Promise<ImageBitmap>
@@ -20,7 +21,7 @@ export type IBox = {
 }
 
 export type IColorBox = IBox & {
-  color: string
+  color: PaletteColor
 }
 
 export type IEntity = IBox & ILoader & {
@@ -90,7 +91,7 @@ export type IField = {
     add(effect: IColorBox & IStepper & IFinishable): void
   }
   get time(): number
-  colorCell(i: number, j: number, color: string): void
+  colorCell(i: number, j: number, color: PaletteColor): void
 }
 
 /** The implementor of 'step' function */
@@ -220,7 +221,7 @@ export type Action =
     readonly baseSpeed: number
     readonly p0: number
     readonly dist: number
-    readonly color: string
+    readonly color: PaletteColor
     readonly offsetI?: number
     readonly offsetJ?: number
   }

@@ -1,6 +1,8 @@
+import type { PaletteColor } from "../util/palette.ts"
 import type { Dir, IEntity, IField, MoveAction } from "./types.ts"
 import { EffectLine1, linePattern0 } from "./effect.ts"
 import { CELL_SIZE } from "../util/constants.ts"
+import { Palette } from "../util/palette.ts"
 
 type CommonAction = {
   type: "wait"
@@ -11,7 +13,7 @@ type CommonAction = {
   baseSpeed: number
   p0: number
   dist: number
-  color: string
+  color: PaletteColor
   offsetI?: number
   offsetJ?: number
 } | {
@@ -165,7 +167,7 @@ export class ActionQueue<
                   j * CELL_SIZE,
                   dir,
                   16,
-                  "#4a4d4a",
+                  Palette.gray4,
                   2,
                   speed,
                   delay,

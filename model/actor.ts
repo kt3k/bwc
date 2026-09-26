@@ -27,6 +27,7 @@ import { ActionQueue, type ActorAction } from "./action-queue.ts"
 import { ActorSpawn } from "./field-block.ts"
 import { linePattern0 } from "./effect.ts"
 import { MoveBounce, MoveGo, MoveJump } from "./move.ts"
+import { Palette } from "../util/palette.ts"
 
 const fallbackImagePhase0 = await fetch(
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAADdJREFUOE9jZMAE/9GEGNH4KPLokiC1Q9AAkpzMwMCA4m0QZxgYgJ4SSPLSaDqAJAqSAm3wJSQApTMgCUQZ7FoAAAAASUVORK5CYII=",
@@ -302,7 +303,7 @@ export class Actor implements IActor {
             1.3,
             0.4,
             2,
-            "#cceaff",
+            Palette.blue1,
           )
         ) {
           field.effects.add(effect)
@@ -606,7 +607,7 @@ export class Actor implements IActor {
         break
     }
     for (
-      const effect of linePattern0([event.dir], i, j, 1, 0.3, 3, "white")
+      const effect of linePattern0([event.dir], i, j, 1, 0.3, 3, Palette.white)
     ) {
       field.effects.add(effect)
     }
@@ -719,7 +720,7 @@ export class ActorPushedDelegateRoll implements ActorPushedDelegate {
         field.spawnItem("coin", ni, nj)
         signal.playSound("explosion")
         for (
-          const effect of linePattern0(DIRS, ni, nj, 1, 0.7, 3, "#4a4d4a")
+          const effect of linePattern0(DIRS, ni, nj, 1, 0.7, 3, Palette.gray4)
         ) {
           field.effects.add(effect)
         }
@@ -730,7 +731,7 @@ export class ActorPushedDelegateRoll implements ActorPushedDelegate {
         field.actors.remove(actor)
         signal.playSound("explosion")
         for (
-          const effect of linePattern0(DIRS, ni, nj, 1, 0.7, 3, "#002e55")
+          const effect of linePattern0(DIRS, ni, nj, 1, 0.7, 3, Palette.cyan4)
         ) {
           field.effects.add(effect)
         }
@@ -882,7 +883,15 @@ export class IdleDelegateChase implements IdleDelegate {
           signal.appleCount.update(count - 1)
           signal.playSound("hitHurt")
           for (
-            const effect of linePattern0(DIRS, me.i, me.j, 1, 0.7, 3, "#983600")
+            const effect of linePattern0(
+              DIRS,
+              me.i,
+              me.j,
+              1,
+              0.7,
+              3,
+              Palette.orange3,
+            )
           ) {
             field.effects.add(effect)
           }
@@ -951,7 +960,7 @@ export class IdleDelegateGhost implements IdleDelegate {
                 1,
                 0.7,
                 3,
-                "#5a0019",
+                Palette.pink4,
               )
             ) {
               field.effects.add(effect)

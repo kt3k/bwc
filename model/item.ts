@@ -16,6 +16,7 @@ import * as signal from "../util/signals.ts"
 import { linePattern0 } from "./effect.ts"
 import { ActionQueue, type ItemAction } from "./action-queue.ts"
 import { MoveGo } from "./move.ts"
+import { Palette } from "../util/palette.ts"
 
 const fallbackImage = await fetch(
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAADRJREFUOE9jZKAQMFKon2FoGPAfzZsoribGC0PQALxORo92bGEwDAwgKXUTkw7wGjjwBgAAiwgIEW1Cnt4AAAAASUVORK5CYII=",
@@ -256,7 +257,15 @@ export class CollectApple implements CollectDelegate {
     }
 
     for (
-      const effect of linePattern0(dirs, actor.i, actor.j, 1, 1, 2, "#5a0019")
+      const effect of linePattern0(
+        dirs,
+        actor.i,
+        actor.j,
+        1,
+        1,
+        2,
+        Palette.pink4,
+      )
     ) {
       field.effects.add(effect)
     }
@@ -272,7 +281,15 @@ export class CollectGreenApple implements CollectDelegate {
     field.collectItem(actor.i, actor.j, item.id)
 
     for (
-      const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#004000")
+      const effect of linePattern0(
+        DIRS,
+        actor.i,
+        actor.j,
+        1,
+        0.7,
+        3,
+        Palette.green4,
+      )
     ) {
       field.effects.add(effect)
     }
@@ -288,7 +305,15 @@ export class CollectCoin implements CollectDelegate {
     field.collectItem(actor.i, actor.j, item.id)
 
     for (
-      const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#7f4b01")
+      const effect of linePattern0(
+        DIRS,
+        actor.i,
+        actor.j,
+        1,
+        0.7,
+        3,
+        Palette.brown3,
+      )
     ) {
       field.effects.add(effect)
     }
@@ -304,7 +329,15 @@ export class CollectSeed implements CollectDelegate {
     field.collectItem(actor.i, actor.j, item.id)
 
     for (
-      const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#3d1c00")
+      const effect of linePattern0(
+        DIRS,
+        actor.i,
+        actor.j,
+        1,
+        0.7,
+        3,
+        Palette.brown4,
+      )
     ) {
       field.effects.add(effect)
     }
@@ -321,7 +354,15 @@ export class CollectKey implements CollectDelegate {
     signal.message.update({ text: "GOT A KEY" })
 
     for (
-      const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#7f4b01")
+      const effect of linePattern0(
+        DIRS,
+        actor.i,
+        actor.j,
+        1,
+        0.7,
+        3,
+        Palette.brown3,
+      )
     ) {
       field.effects.add(effect)
     }
@@ -395,7 +436,7 @@ export class CollectPurpleMushroom implements CollectDelegate {
         baseSpeed: 1.3,
         p0: 0.4,
         dist: 3,
-        color: "#540056",
+        color: Palette.magenta4,
         offsetI,
         offsetJ,
       }, {
@@ -422,7 +463,15 @@ export class CollectFish implements CollectDelegate {
     item.startFollowing()
 
     for (
-      const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#006e8a")
+      const effect of linePattern0(
+        DIRS,
+        actor.i,
+        actor.j,
+        1,
+        0.7,
+        3,
+        Palette.cyan3,
+      )
     ) {
       field.effects.add(effect)
     }
