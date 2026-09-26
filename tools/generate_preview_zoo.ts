@@ -4,6 +4,7 @@
 // game. Reached from static/preview.html (hash #10010,10004).
 //
 // Usage: deno -A tools/generate_preview_zoo.ts
+import { createRooms } from "./rooms.ts"
 import { loadCatalog } from "../model/catalog.ts"
 
 const SIZE = 200
@@ -316,9 +317,21 @@ for (const s of props) {
   }
 }
 
+// sections shown on screen as "ZOO-<section>" (see tools/rooms.ts)
+const { rooms, room } = createRooms(BI, BJ)
+room("CELLS", 0, 8, 199, 16)
+room("ITEMS", 0, 18, 199, 24)
+room("PROPS", 0, 26, 199, 32)
+room("GATES", 0, 34, 199, 42)
+room("ACTORS", 0, 44, 199, 54)
+room("COMBOS", 0, 56, 199, 64)
+room("WALLS", 0, 66, 199, 99)
+
 const json = {
   i: BI,
   j: BJ,
+  name: "ZOO",
+  rooms,
   catalogs: ["../catalog/base.json"],
   config: { showsExitButton: true },
   actors,

@@ -18,6 +18,7 @@
 // The layout is verified with an ice+conveyor movement simulation.
 //
 // Usage: deno -A tools/generate_puzzle_dungeon2.ts
+import { createRooms } from "./rooms.ts"
 import { loadCatalog } from "../model/catalog.ts"
 
 const SIZE = 200
@@ -390,11 +391,26 @@ if (!ok || !iceReturn || !bridged || !vaultSealed || !gardenSealed) {
 }
 
 // ---------------------------------------------------------------------
+// room names shown on screen as "B2F-<room>" (see tools/rooms.ts)
+
+const { rooms, room } = createRooms(BI, BJ)
+room("PLAZA", 80, 10, 120, 55)
+room("S1", 10, 10, 70, 53)
+room("S2", 130, 10, 190, 53)
+room("S3", 10, 70, 70, 115)
+room("S4", 130, 70, 190, 115)
+room("S5", 10, 130, 70, 190)
+room("S6", 130, 130, 190, 190)
+room("VAULT", 86, 132, 114, 172)
+
+// ---------------------------------------------------------------------
 // output
 
 const json = {
   i: BI,
   j: BJ,
+  name: "B2F",
+  rooms,
   catalogs: ["../catalog/base.json"],
   config: { showsExitButton: true },
   actors,

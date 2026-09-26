@@ -214,6 +214,7 @@ for (const s of props) {
 const json = {
   i: BI,
   j: BJ,
+  name: "DEBUG",
   catalogs: ["../catalog/base.json"],
   config: { showsExitButton: true },
   actors,

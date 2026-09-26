@@ -20,6 +20,7 @@
 // island is solvable, and the vault stays sealed without keys.
 //
 // Usage: deno -A tools/generate_puzzle_dungeon.ts
+import { createRooms } from "./rooms.ts"
 import { loadCatalog } from "../model/catalog.ts"
 
 const SIZE = 200
@@ -613,11 +614,36 @@ if (
 }
 
 // ---------------------------------------------------------------------
+// room names shown on screen as "B1F-<room>" (see tools/rooms.ts)
+
+const { rooms, room } = createRooms(BI, BJ)
+room("PLAZA", 80, 10, 120, 60)
+room("ANNEX", 86, 4, 114, 9)
+room("R1", 10, 10, 70, 58)
+room("R2", 130, 10, 190, 58)
+room("R3", 10, 70, 70, 120)
+room("R4", 130, 70, 190, 120)
+room("R5", 10, 130, 70, 190)
+room("R6", 130, 130, 190, 190)
+room("R7", 80, 72, 97, 120)
+room("R8", 104, 68, 120, 134)
+room("R8A", 104, 68, 120, 76)
+room("R8B", 104, 78, 120, 86)
+room("R8C", 104, 88, 120, 96)
+room("R8D", 104, 98, 120, 106)
+room("R8E", 104, 108, 120, 116)
+room("R8F", 104, 118, 120, 126)
+room("R8G", 104, 128, 120, 134)
+room("VAULT", 86, 136, 114, 172)
+
+// ---------------------------------------------------------------------
 // output
 
 const json = {
   i: BI,
   j: BJ,
+  name: "B1F",
+  rooms,
   catalogs: ["../catalog/base.json"],
   config: { showsExitButton: true },
   actors,

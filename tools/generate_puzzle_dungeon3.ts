@@ -19,6 +19,7 @@
 // solved reachability for every reward.
 //
 // Usage: deno -A tools/generate_puzzle_dungeon3.ts
+import { createRooms } from "./rooms.ts"
 import { loadCatalog } from "../model/catalog.ts"
 
 const SIZE = 200
@@ -664,11 +665,29 @@ if (!ok) {
 }
 
 // ---------------------------------------------------------------------
+// room names shown on screen as "B3F-<room>" (see tools/rooms.ts)
+
+const { rooms: namedRooms, room } = createRooms(BI, BJ)
+room("PLAZA", 80, 6, 120, 38)
+room("T1", 10, 46, 46, 104)
+room("T2", 56, 46, 100, 108)
+room("T3", 106, 46, 150, 108)
+room("T4", 158, 46, 185, 84)
+room("T5", 6, 116, 50, 192)
+room("T6", 56, 116, 100, 192)
+room("T7", 108, 116, 148, 164)
+room("T8", 156, 116, 179, 192)
+room("T9", 6, 8, 79, 34)
+room("T10", 121, 6, 194, 38)
+
+// ---------------------------------------------------------------------
 // output
 
 const json = {
   i: BI,
   j: BJ,
+  name: "B3F",
+  rooms: namedRooms,
   catalogs: ["../catalog/base.json"],
   config: { showsExitButton: true },
   actors,

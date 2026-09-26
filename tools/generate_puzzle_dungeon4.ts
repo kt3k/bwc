@@ -16,6 +16,7 @@
 //   every waiting pocket pays a coin
 //
 // Usage: deno -A tools/generate_puzzle_dungeon4.ts
+import { createRooms } from "./rooms.ts"
 import { loadCatalog } from "../model/catalog.ts"
 
 const SIZE = 200
@@ -487,9 +488,22 @@ if (!ok) {
   Deno.exit(1)
 }
 
+// ---------------------------------------------------------------------
+// room names shown on screen as "B4F-<room>" (see tools/rooms.ts)
+
+const { rooms, room } = createRooms(BI, BJ)
+room("PLAZA", 80, 6, 120, 38)
+room("K1", 6, 46, 42, 106)
+room("K2", 46, 46, 82, 106)
+room("K3", 86, 46, 122, 106)
+room("K4", 126, 46, 162, 106)
+room("K5", 166, 46, 194, 106)
+
 const json = {
   i: BI,
   j: BJ,
+  name: "B4F",
+  rooms,
   catalogs: ["../catalog/base.json"],
   config: { showsExitButton: true },
   actors,
