@@ -131,6 +131,8 @@ rect(70, 90, 74, 94, "4") // door stub
 // reward alcove behind the door
 rect(24, 74, 36, 86, "2")
 rect(26, 76, 34, 84, "4")
+// the alcove wall is 2 thick: open both rows, the door sits in the outer one
+grid[85][30] = "4"
 grid[86][30] = "4"
 prop(30, 86, "door", { group: "s3" })
 item(30, 80, "key")
@@ -163,7 +165,8 @@ actor(160, 108, "boulder")
 rect(132, 84, 140, 96, "2")
 rect(134, 86, 138, 94, "4")
 rect(141, 88, 144, 92, "2")
-for (const x of [140, 141, 142, 143, 144]) grid[90][x] = "4"
+// the tunnel runs through both columns of the alcove wall (139, 140)
+for (const x of [139, 140, 141, 142, 143, 144]) grid[90][x] = "4"
 prop(141, 90, "door", { group: "s4a" })
 prop(143, 90, "door", { group: "s4b" })
 item(136, 90, "key")
@@ -352,6 +355,9 @@ const mustReach: [string, number, number][] = [
   ["S2 boulders", 136, 30],
   ["S3 plates", 30, 89],
   ["S4 lanes", 160, 80],
+  // rewards behind doors (they count as open here)
+  ["S3 key alcove", 30, 80],
+  ["S4 key alcove", 136, 90],
   ["S5 gate front", 52, 150],
   ["S6 mushroom chamber", 133, 151],
   ["vault 2 door", 100, 130],

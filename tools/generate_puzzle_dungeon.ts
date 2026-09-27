@@ -169,6 +169,8 @@ sign(55, 100, "LEAVE AND RETURN TO RESET THE ROOM")
 // reward alcove opened by the door
 rect(36, 106, 44, 116, "2")
 rect(38, 108, 42, 114, "5")
+// the alcove wall is 2 thick: open both rows, the door sits in the inner one
+grid[106][40] = "5"
 grid[107][40] = "5"
 prop(40, 107, "door", { group: "r3" })
 item(40, 111, "key")
@@ -223,6 +225,8 @@ sign(66, 146, "GHOSTS FEAR LIGHT. A LIT LANTERN OPENS THE MOON GATE")
 // the moonlit alcove
 rect(12, 142, 20, 158, "2")
 rect(14, 144, 18, 156, "5")
+// the alcove wall is 2 thick: open both columns, the gate sits in the outer one
+grid[150][19] = "5"
 grid[150][20] = "5"
 prop(20, 150, "moon-gate")
 for (const [x, y] of [[15, 146], [17, 148], [15, 152]]) item(x, y, "coin")
@@ -513,6 +517,9 @@ const mustReach: [string, number, number][] = [
   ["R1 island (ice puzzle)", 40, 33],
   ["R2 arena", 160, 30],
   ["R3 plate", 29, 95],
+  // rewards behind doors and gates (they count as open here)
+  ["R3 key alcove", 40, 111],
+  ["R5 moon alcove", 16, 150],
   ["R4 boulders", 138, 95],
   ["R5 lanterns", 42, 151],
   ["R6 shrine", 134, 183],
