@@ -303,6 +303,62 @@
       "src": "../prop/stool.png",
       "canEnter": true
     },
+    "well": {
+      "src": "../prop/well.png",
+      "canEnter": false
+    },
+    "barrel": {
+      "src": "../prop/barrel.png",
+      "canEnter": false
+    },
+    "jar": {
+      "src": "../prop/jar.png",
+      "canEnter": false
+    },
+    "flowers": {
+      "src": "../prop/flowers.png",
+      "canEnter": true
+    },
+    "notice-board": {
+      "src": "../prop/notice_board.png",
+      "canEnter": false,
+      "pushed": "sign",
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      }
+    },
+    "sign-inn": {
+      "src": "../prop/sign_inn.png",
+      "canEnter": false
+    },
+    "sign-weapon": {
+      "src": "../prop/sign_weapon.png",
+      "canEnter": false
+    },
+    "sign-armor": {
+      "src": "../prop/sign_armor.png",
+      "canEnter": false
+    },
+    "sign-item": {
+      "src": "../prop/sign_item.png",
+      "canEnter": false
+    },
+    "sign-magic": {
+      "src": "../prop/sign_magic.png",
+      "canEnter": false
+    },
+    "sign-pub": {
+      "src": "../prop/sign_pub.png",
+      "canEnter": false
+    },
     "table": {
       "src": "../prop/table.png",
       "canEnter": false

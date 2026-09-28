@@ -18,6 +18,8 @@ type BlockJson = {
 }
 
 const TOWNSFOLK = new Set(["villager", "villager2", "keeper", "kid", "cat"])
+/** The town props, only ever placed in these blocks by this script */
+const TOWN_PROPS = new Set(["well", "barrel", "jar", "flowers", "notice-board"])
 /** Stalls placed by this script, told apart from other shops */
 const STALL = { sells: "mushroom", price: 3, stall: true }
 
@@ -32,7 +34,8 @@ for (const id of blocks) {
   const map: BlockJson = JSON.parse(await Deno.readTextFile(url))
   map.actors = map.actors.filter((a) => !TOWNSFOLK.has(a.type))
   map.props = map.props.filter((p) =>
-    !(p.type === "shop" && (p.data as { stall?: boolean })?.stall)
+    !(p.type === "shop" && (p.data as { stall?: boolean })?.stall) &&
+    !TOWN_PROPS.has(p.type)
   )
 
   const used = new Set<string>()
@@ -83,6 +86,30 @@ for (const id of blocks) {
     used.add(`${counter[0]}.${counter[1]}`)
     map.props.push({ i: counter[0], j: counter[1], type: "shop", data: STALL })
     add("keeper", [counter[0], counter[1] - 1])
+  }
+  const place = (
+    type: string,
+    at: readonly [number, number] | null,
+    data?: unknown,
+  ) => {
+    if (!at) return
+    used.add(`${at[0]}.${at[1]}`)
+    if (!(catalog.props[type]?.canEnter)) blocking.add(`${at[0]}.${at[1]}`)
+    map.props.push({ i: at[0], j: at[1], type, ...(data ? { data } : {}) })
+  }
+  // town props: barrels and a jar in the houses, a well and flower beds by
+  // the crossing, a notice board next to the stall
+  tables.forEach((t, n) => {
+    place(n % 2 === 0 ? "barrel" : "jar", near(t.i + 5, t.j, 3, true))
+  })
+  place("well", near(map.i + 106, map.j + 106, 4))
+  for (const [di, dj] of [[3, 3], [4, 3], [3, -3], [4, -3]]) {
+    place("flowers", near(map.i + 100 + di, map.j + 100 + dj, 2))
+  }
+  if (counter) {
+    place("notice-board", near(counter[0] + 3, counter[1], 3), {
+      text: "TOWN NEWS: FRESH MUSHROOMS AT THE STALL",
+    })
   }
   // kids playing south-east of the crossing
   for (const [di, dj] of [[6, 6], [9, 8], [5, 10]]) {

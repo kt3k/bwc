@@ -356,6 +356,22 @@ prop(22, 110, "lantern")
 prop(46, 110, "lantern")
 prop(50, 122, "table")
 prop(51, 122, "stool")
+// town props (grayscale, after the FFV town tiles): shop signboards by
+// the doors and the stall, barrels, a well, flower beds, a notice board
+prop(11, 108, "sign-inn")
+prop(63, 108, "sign-pub")
+prop(11, 126, "sign-weapon")
+prop(36, 101, "sign-item")
+prop(15, 104, "barrel")
+prop(15, 105, "barrel")
+prop(55, 106, "jar")
+prop(29, 102, "jar")
+prop(24, 116, "well")
+for (const x of [18, 19, 20, 40, 41, 42]) prop(x, 100, "flowers")
+for (const x of [32, 36]) prop(x, 112, "flowers")
+prop(40, 99, "notice-board", {
+  text: "TOWN NEWS: THE KIDS ARE LOOKING FOR A NEW PLAYMATE",
+})
 actor(12, 111, "villager")
 actor(28, 107, "villager2")
 actor(44, 112, "villager")

@@ -2,7 +2,7 @@
 // ideas/game-ideas-5.md).
 //
 // - villager: runs errands between the landmarks near its home (shop,
-//   tables, stools, signs, lanterns), lingers at each, goes home to
+//   well, tables, stools, flower beds, signs, lanterns), lingers at each, goes home to
 //   rest, stops to chat with the villagers it meets, and talks back when
 //   the player bumps into it
 // - keeper: minds its stall. Watches whoever comes near, greets the
@@ -48,6 +48,17 @@ export const LANDMARKS = new Set([
   "chest",
   "fish-shrine",
   "sapling",
+  "well",
+  "barrel",
+  "jar",
+  "flowers",
+  "notice-board",
+  "sign-inn",
+  "sign-weapon",
+  "sign-armor",
+  "sign-item",
+  "sign-magic",
+  "sign-pub",
 ])
 
 const VILLAGER_LINES = [

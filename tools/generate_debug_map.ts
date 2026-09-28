@@ -69,6 +69,7 @@ const letters = (i: number, j: number, word: string) => {
 const SAMPLE_DATA: Record<string, unknown> = {
   portal: { i: BI + ARRIVAL.i, j: BJ + ARRIVAL.j },
   sign: { text: "I AM A SIGN" },
+  "notice-board": { text: "I AM A NOTICE BOARD" },
   chest: { drops: "coin", count: 3 },
   plate: { group: "debug" },
   door: { group: "debug" },
