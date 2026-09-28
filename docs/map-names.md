@@ -23,6 +23,7 @@ B1F-R3 40,105
 | `B2F`   | `block_200.400.json`       | `tools/generate_puzzle_dungeon2.ts` |
 | `B3F`   | `block_400.400.json`       | `tools/generate_puzzle_dungeon3.ts` |
 | `B4F`   | `block_400.200.json`       | `tools/generate_puzzle_dungeon4.ts` |
+| `B5F`   | `block_600.200.json`       | `tools/generate_puzzle_dungeon5.ts` |
 | `ZOO`   | `block_10000.10000.json`   | `tools/generate_preview_zoo.ts`     |
 | `DEBUG` | `block_10000.-10000.json`  | `tools/generate_debug_map.ts`       |
 
@@ -30,13 +31,14 @@ B1F-R3 40,105
 
 ## 部屋の名前
 
-| マップ | 部屋                                                      |
-| ------ | --------------------------------------------------------- |
-| `B1F`  | `PLAZA` `ANNEX` `R1`〜`R7` `R8` (`R8A`〜`R8G`) `VAULT`    |
-| `B2F`  | `PLAZA` `S1`〜`S6` `VAULT`                                |
-| `B3F`  | `PLAZA` `T1`〜`T10`                                       |
-| `B4F`  | `PLAZA` `K1`〜`K5`                                        |
-| `ZOO`  | `CELLS` `ITEMS` `PROPS` `GATES` `ACTORS` `COMBOS` `WALLS` |
+| マップ | 部屋                                                                |
+| ------ | ------------------------------------------------------------------- |
+| `B1F`  | `PLAZA` `ANNEX` `R1`〜`R7` `R8` (`R8A`〜`R8G`) `VAULT`              |
+| `B2F`  | `PLAZA` `S1`〜`S6` `VAULT`                                          |
+| `B3F`  | `PLAZA` `T1`〜`T10`                                                 |
+| `B4F`  | `PLAZA` `K1`〜`K5`                                                  |
+| `B5F`  | `PLAZA` `M1`〜`M3`                                                  |
+| `ZOO`  | `CELLS` `ITEMS` `PROPS` `GATES` `ACTORS` `COMBOS` `WALLS` `ANIMALS` |
 
 各部屋の中身は、それぞれの生成スクリプトの先頭のコメントに一覧がある。
 
