@@ -16,7 +16,7 @@ const COLOR_ICE = Palette.white
 const COLOR_PLAYER = Palette.pink3
 
 /** The minimap ui which shows the current block and the player position */
-export function Minimap({ el, on, query, subscribe }: Context) {
+export function Minimap({ on, query, subscribe }: Context) {
   const canvas = query<HTMLCanvasElement>("canvas")!
   canvas.width = SIZE
   canvas.height = SIZE

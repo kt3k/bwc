@@ -594,7 +594,7 @@ function createCanvasFromImageData(imageData: ImageData) {
   return canvas
 }
 
-async function CanvasLayers({ query, on, el, subscribe }: Context) {
+function CanvasLayers({ query, on, el, subscribe }: Context) {
   const cellsCanvas = query<HTMLCanvasElement>(".field-cells-canvas")!
   const cellsCanvasWrapper = new CanvasWrapper(cellsCanvas)
   const propsCanvas = query<HTMLCanvasElement>(".field-props-canvas")!
