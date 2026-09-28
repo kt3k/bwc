@@ -10,6 +10,10 @@ interface CatalogJson {
     water?: boolean
     conveyor?: string
     diggable?: boolean
+    noisePatches?: boolean
+    flip?: string
+    variants?: Record<string, number>
+    casts?: boolean
   }>
   items: Record<string, { src: string; collect: string }>
   actors: Record<
@@ -73,12 +77,12 @@ const NOTES: Record<string, string> = {
   "prop.apple-gate": "opens if you carry enough apples",
   "prop.key-gate": "consumes 1 key to open",
   "prop.timer-gate": "push to open for a while, then it closes",
-  "prop.moon-gate": "open only at night",
+  "prop.moon-gate": "opens while a lit lantern is within 12 cells",
   "prop.door": "open while ANY actor stands on a plate of its group",
   "prop.plate": "pressure switch for doors (player, NPC or boulder)",
   "prop.shop": "push to buy (price in coins)",
   "prop.fish-shrine": "push with a fish follower: +5 coins",
-  "prop.lantern": "lights the night; ghosts fear it",
+  "prop.lantern": "a light; ghosts fear it, moon gates open near it",
   "prop.lantern-unlit": "push to light it",
   "prop.sapling": "grows to a fruit tree; push the grown tree for apples",
   "prop.race-start": "step on it to start the race clock",
@@ -102,17 +106,15 @@ const NOTES: Record<string, string> = {
   "actor.random-rotate": "rotates in place",
   "actor.inertial": "keeps going; bounces back off walls",
   "actor.static": "stands still",
-  "actor.chaser": "chases you in range (2x at night); steals apples",
+  "actor.chaser": "chases you in range; steals apples",
   "actor.boulder":
     "push it: rolls until blocked, crushes NPCs, sinks into water as a bridge, presses buttons",
   "actor.patrol":
     "walks back and forth between obstacles; presses buttons it bumps into; can't be shoved",
-  "actor.ghost":
-    "night only; walks through walls, fears lanterns, steals coins",
+  "actor.ghost": "walks through walls, fears lanterns, steals coins",
   "actor.mirror":
     "copies your every step with left and right swapped; bumps walls and buttons",
-  "actor.sheep":
-    "runs away from you (farther at night); can't be pushed; herd it onto plates",
+  "actor.sheep": "runs away from you; can't be pushed; herd it onto plates",
   "actor.crow":
     "flies over water to steal coins and keys for its nest; bump it on land to drop the loot",
 }
@@ -182,6 +184,11 @@ async function main() {
       def.water ? "water" : "",
       def.conveyor ? `conveyor:${def.conveyor}` : "",
       def.diggable ? "diggable" : "",
+      def.flip ? `flip: ${def.flip}` : "",
+      def.casts ? "wall (black checker base edge)" : "",
+      def.noise
+        ? `noise: ${def.noise}${def.noisePatches === false ? " (even)" : ""}`
+        : "",
     ].filter(Boolean).join(" / ")
     const [c, body] = card(name, flags, NOTES[`cell.${name}`] ?? "")
     const [canvas, ctx] = spriteCanvas()
@@ -190,6 +197,15 @@ async function main() {
     loadImage(resolve(def.src)).then((img) => {
       ctx.drawImage(img, 0, 0, CELL * SCALE, CELL * SCALE)
     }).catch(() => {})
+    // The rare variant tiles, with their weight
+    for (const [src, weight] of Object.entries(def.variants ?? {})) {
+      const [vc, vctx] = spriteCanvas()
+      vc.title = `${src} (${weight}%)`
+      c.insertBefore(vc, body)
+      loadImage(resolve(src)).then((img) => {
+        vctx.drawImage(img, 0, 0, CELL * SCALE, CELL * SCALE)
+      }).catch(() => {})
+    }
   }
 
   const items = section(`ITEMS (${Object.keys(catalog.items).length})`)

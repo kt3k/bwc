@@ -1,9 +1,12 @@
 // Checks that every pixel of every sprite under static/ uses a color of
-// the vscode-pixeledit palette (docs/art-guide.md). Fails with the list
+// the vscode-pixeledit palette (docs/art-guide.md), and that the colors
+// written as data (cell noise in the catalog, `#rrggbb` in the page HTML)
+// are palette colors too. Colors in TypeScript are checked by the type
+// checker instead (`PaletteColor` in util/palette.ts). Fails with the list
 // of offending files and colors.
 //
 // Usage: deno -A tools/check_palette.ts
-import { PALETTE } from "./palette.ts"
+import { isPaletteColor, PALETTE } from "../util/palette.ts"
 
 const IGNORED = new Set(["static/actor/lena.png"]) // a source sheet, not used by the game
 
@@ -123,9 +126,33 @@ async function* walk(dir: string): AsyncGenerator<string> {
   }
 }
 
+// Cell noise colors in the catalog: "color=count[:shape]&..."
+const catalog = JSON.parse(await Deno.readTextFile("static/catalog/base.json"))
+for (const [name, cell] of Object.entries(catalog.cells)) {
+  const noise = (cell as { noise?: string }).noise
+  if (!noise) continue
+  const bad = [...new URLSearchParams(noise).keys()].filter((c) =>
+    !isPaletteColor(c)
+  )
+  if (bad.length > 0) {
+    offenders.push(`static/catalog/base.json cell "${name}" noise: ${bad}`)
+  }
+}
+
+// Hex colors written in the pages (inline styles, filters, classes)
+for (const page of ["static/index.html"]) {
+  const html = await Deno.readTextFile(page)
+  const bad = new Set(
+    (html.match(/#[0-9a-fA-F]{6}\b/g) ?? []).filter((c) => !isPaletteColor(c)),
+  )
+  if (bad.size > 0) offenders.push(`${page}: ${[...bad].sort().join(" ")}`)
+}
+
 if (offenders.length > 0) {
   console.error(`${offenders.length} files use colors outside the palette:`)
   for (const o of offenders) console.error("  " + o)
   Deno.exit(1)
 }
-console.log(`ok: ${files} sprites use only palette colors`)
+console.log(
+  `ok: ${files} sprites, the catalog noise and the page use only palette colors`,
+)

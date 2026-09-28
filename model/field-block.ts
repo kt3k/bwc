@@ -1,6 +1,7 @@
 import { CanvasWrapper } from "../util/canvas-wrapper.ts"
 import { BLOCK_CHUNK_SIZE, BLOCK_SIZE, CELL_SIZE } from "../util/constants.ts"
 import { seed } from "../util/random.ts"
+import { drawCell, variantKey } from "./cell-decor.ts"
 import { floorN, modulo } from "../util/math.ts"
 import { loadImage } from "../util/load.ts"
 import type { Dir, IBox } from "./types.ts"
@@ -12,6 +13,11 @@ import {
   ItemDefinition,
   PropDefinition,
 } from "./catalog.ts"
+import { Palette, type PaletteColor } from "../util/palette.ts"
+
+/** A 2x2 checker of black and transparent pixels (PNG) */
+const CHECKER_URL = "data:image/png;base64," +
+  "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVR42mNgYGD4z4AE/gMADwMB/+56SD4AAAAASUVORK5CYII="
 
 /** Global coordinates to local chunk index */
 function g2c(i: number, j: number): [number, number] {
@@ -262,9 +268,25 @@ interface BlockConfig {
   showsExitButton: boolean
 }
 
+/**
+ * A named area of a block (a room), for talking about places: the room
+ * id is shown on screen together with the block name. Coordinates are
+ * world grid coordinates, like the spawns.
+ */
+export interface Room {
+  readonly id: string
+  readonly i: number
+  readonly j: number
+  readonly w: number
+  readonly h: number
+}
+
 interface BlockMapSource {
   i: number
   j: number
+  /** The short name of the block shown on screen, e.g. "B1F" */
+  name?: string
+  rooms?: Room[]
   catalogs: string[]
   actors: {
     i: number
@@ -310,6 +332,8 @@ export class BlockMap {
   readonly items: ItemSpawn[]
   readonly props: PropSpawn[] = []
   readonly field: string[]
+  readonly name?: string
+  readonly rooms: readonly Room[]
   #source: BlockMapSource
   catalog: Catalog
   readonly config: BlockConfig
@@ -317,6 +341,8 @@ export class BlockMap {
     this.url = url
     this.i = source.i
     this.j = source.j
+    this.name = source.name
+    this.rooms = source.rooms ?? []
     this.actors = (source.actors ?? []).map((spawn) =>
       new ActorSpawn(
         spawn.i,
@@ -364,7 +390,7 @@ export function drawCellColor(
   wrapper: CanvasWrapper,
   i: number,
   j: number,
-  color: string,
+  color: PaletteColor,
 ) {
   const [localI, localJ] = g2l(i, j)
   const { randomInt } = seed(`${i}.${j}`)
@@ -376,46 +402,6 @@ export function drawCellColor(
     CELL_SIZE - margin * 2,
     color,
   )
-}
-
-const ENABLE_AMBIENT_CELL_NOISE = true
-
-/** Draws a cell on the canvas */
-export function drawCell(
-  wrapper: CanvasWrapper,
-  i: number,
-  j: number,
-  cell: CellDefinition,
-  image: ImageBitmap,
-) {
-  const [localI, localJ] = g2l(i, j)
-  wrapper.drawImage(
-    image,
-    localI * CELL_SIZE,
-    localJ * CELL_SIZE,
-  )
-  if (ENABLE_AMBIENT_CELL_NOISE) {
-    if (cell.noise) {
-      const { randomInt } = seed(`${i}.${j}`)
-      for (
-        const [color, countStr] of new URLSearchParams(cell.noise).entries()
-      ) {
-        const count = +countStr
-        for (let n = 0; n < count; n++) {
-          const width = randomInt(3) + 1
-          const x = randomInt(15 - width) + 1
-          const y = randomInt(14) + 1
-          wrapper.drawRect(
-            localI * CELL_SIZE + x,
-            localJ * CELL_SIZE + y,
-            width,
-            1,
-            color,
-          )
-        }
-      }
-    }
-  }
 }
 
 function renderRange(
@@ -432,13 +418,10 @@ function renderRange(
     for (let jj = 0; jj < height; jj++) {
       const [localI, localJ] = g2l(i + ii, j + jj)
       const cell = cells[field[localJ][localI]]
-      drawCell(
-        wrapper,
-        i + ii,
-        j + jj,
-        cell,
-        imgMap[cell.name],
-      )
+      const south = localJ < BLOCK_SIZE - 1
+        ? cells[field[localJ + 1][localI]]
+        : undefined
+      drawCell(wrapper, i + ii, j + jj, cell, imgMap, south)
     }
   }
 }
@@ -517,6 +500,12 @@ export class FieldBlock {
     await Promise.all(
       Object.values(this.#map.catalog.cells).map(async (def) => {
         this.imgMap[def.name] = await this.loadCellImage(def.href, options)
+        await Promise.all((def.variants ?? []).map(async (v, k) => {
+          this.imgMap[variantKey(def.name, k)] = await this.loadCellImage(
+            v.href,
+            options,
+          )
+        }))
       }),
     )
   }
@@ -530,6 +519,37 @@ export class FieldBlock {
 
   get id(): string {
     return `${this.#i}.${this.#j}`
+  }
+
+  /** The short name of the block ("B1F"), or its id when it has none */
+  get name(): string {
+    return this.#map.name ?? this.id
+  }
+
+  /**
+   * The room at the given world grid coordinates: the smallest one that
+   * contains the cell when rooms are nested (e.g. R8 and its room A)
+   */
+  roomAt(i: number, j: number): Room | undefined {
+    let best: Room | undefined
+    for (const room of this.#map.rooms) {
+      if (
+        i >= room.i && i < room.i + room.w && j >= room.j && j < room.j + room.h
+      ) {
+        if (!best || room.w * room.h < best.w * best.h) best = room
+      }
+    }
+    return best
+  }
+
+  /**
+   * The label of a place for the screen: "<block>-<room> <i>,<j>" with the
+   * coordinates local to the block (as used by the map generators)
+   */
+  placeLabel(i: number, j: number): string {
+    const room = this.roomAt(i, j)
+    const name = room ? `${this.name}-${room.id}` : this.name
+    return `${name} ${modulo(i, BLOCK_SIZE)},${modulo(j, BLOCK_SIZE)}`
   }
 
   get url(): string {
@@ -583,28 +603,38 @@ export class FieldBlock {
     overlay.style.height = `${BLOCK_CHUNK_SIZE * CELL_SIZE}px`
     overlay.style.pointerEvents = "none"
     overlay.style.zIndex = "1"
-    overlay.style.backgroundColor = "hsla(0, 0%, 10%, 1)"
-    overlay.style.transition = "background-color 1s linear"
+    // Palette only (docs/art-guide.md): black while loading, then a black
+    // checker for a moment instead of a fade, then gone
+    overlay.style.backgroundColor = Palette.black
     this.canvas.parentElement?.appendChild(overlay)
     return () => {
-      overlay.style.backgroundColor = "hsla(0, 0%, 10%, 0)"
-      overlay.addEventListener("transitionend", () => {
-        overlay.remove()
-      })
+      overlay.style.backgroundColor = "transparent"
+      overlay.style.backgroundImage = `url(${CHECKER_URL})`
+      overlay.style.backgroundSize = "2px 2px"
+      overlay.style.imageRendering = "pixelated"
+      setTimeout(() => overlay.remove(), 150)
     }
   }
 
-  drawCellColor(i: number, j: number, color: string) {
+  drawCellColor(i: number, j: number, color: PaletteColor) {
     drawCellColor(this.canvasWrapper, i, j, color)
   }
 
   /** Redraws a single cell (used after a runtime terrain change) */
   redrawCell(i: number, j: number) {
+    this.drawCellTo(this.canvasWrapper, i, j)
+  }
+
+  /**
+   * Draws the cell at (i, j) on the given canvas, with the cell below
+   * passed along for the base edge of walls. The editor draws on its own
+   * canvas. Note: when a cell changes, the cell above it needs redrawing too.
+   */
+  drawCellTo(wrapper: CanvasWrapper, i: number, j: number) {
     const cell = this.getCell(i, j)
-    const image = this.imgMap[cell.name]
-    if (image) {
-      drawCell(this.canvasWrapper, i, j, cell, image)
-    }
+    const [, localJ] = g2l(i, j)
+    const south = localJ < BLOCK_SIZE - 1 ? this.getCell(i, j + 1) : undefined
+    drawCell(wrapper, i, j, cell, this.imgMap, south)
   }
 
   renderAll(canvas = this.canvas) {
@@ -727,6 +757,8 @@ export class FieldBlock {
     return new BlockMap(this.#map.url, {
       i: this.#i,
       j: this.#j,
+      ...(this.#map.name !== undefined ? { name: this.#map.name } : {}),
+      ...(this.#map.rooms.length > 0 ? { rooms: [...this.#map.rooms] } : {}),
       catalogs: this.#map.catalog.refs,
       config: this.config,
       actors: this.actorSpawns.toJSON(),

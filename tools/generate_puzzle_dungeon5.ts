@@ -15,6 +15,7 @@
 //
 // Usage: deno -A tools/generate_puzzle_dungeon5.ts
 import { loadCatalog } from "../model/catalog.ts"
+import { createRooms } from "./rooms.ts"
 
 const SIZE = 200
 const BI = 600
@@ -325,7 +326,7 @@ for (
 // M2: the sheep flees one step per turn, widening the manhattan
 // distance (straight away first, then a random sidestep). The random
 // sidestep is played by an adversary: the player must be able to force
-// the sheep onto the plate whatever it picks, by day and by night.
+// the sheep onto the plate whatever it picks.
 {
   const pasture = new Set<string>()
   for (let y = 49; y <= 63; y++) {
@@ -373,7 +374,7 @@ for (
   const plate = sheepIndex.get(PLATE)!
   const entry = playerArea.indexOf(M2_ENTRY.join("."))
   const start = sheepIndex.get("96.54")!
-  for (const range of [3, 6]) {
+  for (const range of [3]) {
     // The outcomes of each (player cell, sheep cell, player move) as
     // state indices; -1 stands for a sheep that left the pasture (a loss)
     const moves: [number, number][] = [[0, 0], ...DIRS4]
@@ -465,9 +466,20 @@ if (!ok) {
   Deno.exit(1)
 }
 
+// ---------------------------------------------------------------------
+// room names shown on screen as "B5F-<room>" (see tools/rooms.ts)
+
+const { rooms, room } = createRooms(BI, BJ)
+room("PLAZA", 80, 6, 120, 30)
+room("M1", 26, 45, 44, 64)
+room("M2", 82, 45, 112, 64)
+room("M3", 149, 45, 171, 80)
+
 const json = {
   i: BI,
   j: BJ,
+  name: "B5F",
+  rooms,
   catalogs: ["../catalog/base.json"],
   config: { showsExitButton: true },
   actors,

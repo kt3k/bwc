@@ -73,8 +73,8 @@ async function moveImage(
   Object.assign(canvas.style, {
     right: "47%",
     top: "48%",
-    opacity: "1",
-    transition: "right 0.3s ease, top 0.3s ease, opacity 0.3s ease",
+    // Moves only; fading would blend colors outside the palette
+    transition: "right 0.3s ease, top 0.3s ease",
   })
   canvas.getContext("2d")!.drawImage(bmp, 0, 0)
   el.appendChild(canvas)
@@ -86,7 +86,6 @@ async function moveImage(
       Object.assign(canvas.style, {
         right: "58px",
         top: endTop,
-        opacity: "0.7",
       }),
     30,
   )

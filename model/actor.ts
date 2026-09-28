@@ -28,6 +28,7 @@ import { ActionQueue, type ActorAction } from "./action-queue.ts"
 import { ActorSpawn } from "./field-block.ts"
 import { linePattern0 } from "./effect.ts"
 import { MoveBounce, MoveGo, MoveJump } from "./move.ts"
+import { Palette } from "../util/palette.ts"
 
 const fallbackImagePhase0 = await fetch(
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAADdJREFUOE9jZMAE/9GEGNH4KPLokiC1Q9AAkpzMwMCA4m0QZxgYgJ4SSPLSaDqAJAqSAm3wJSQApTMgCUQZ7FoAAAAASUVORK5CYII=",
@@ -320,7 +321,7 @@ export class Actor implements IActor {
             1.3,
             0.4,
             2,
-            "#cceaff",
+            Palette.blue1,
           )
         ) {
           field.effects.add(effect)
@@ -627,7 +628,7 @@ export class Actor implements IActor {
         break
     }
     for (
-      const effect of linePattern0([event.dir], i, j, 1, 0.3, 3, "white")
+      const effect of linePattern0([event.dir], i, j, 1, 0.3, 3, Palette.white)
     ) {
       field.effects.add(effect)
     }
@@ -742,7 +743,7 @@ export class ActorPushedDelegateRoll implements ActorPushedDelegate {
         field.spawnItem("coin", ni, nj)
         signal.playSound("explosion")
         for (
-          const effect of linePattern0(DIRS, ni, nj, 1, 0.7, 3, "#4a4d4a")
+          const effect of linePattern0(DIRS, ni, nj, 1, 0.7, 3, Palette.gray4)
         ) {
           field.effects.add(effect)
         }
@@ -753,7 +754,7 @@ export class ActorPushedDelegateRoll implements ActorPushedDelegate {
         field.actors.remove(actor)
         signal.playSound("explosion")
         for (
-          const effect of linePattern0(DIRS, ni, nj, 1, 0.7, 3, "#002e55")
+          const effect of linePattern0(DIRS, ni, nj, 1, 0.7, 3, Palette.cyan4)
         ) {
           field.effects.add(effect)
         }
@@ -877,11 +878,7 @@ export class IdleDelegateChase implements IdleDelegate {
     const di = me.i - actor.i
     const dj = me.j - actor.j
     const dist = Math.abs(di) + Math.abs(dj)
-    // At night the chaser sees twice as far
-    const range = signal.nightDarkness.get() > 0.3
-      ? this.#range * 2
-      : this.#range
-    if (dist === 0 || dist > range) {
+    if (dist === 0 || dist > this.#range) {
       // Out of range. Waits on the spot.
       return
     }
@@ -909,7 +906,15 @@ export class IdleDelegateChase implements IdleDelegate {
           signal.appleCount.update(count - 1)
           signal.playSound("hitHurt")
           for (
-            const effect of linePattern0(DIRS, me.i, me.j, 1, 0.7, 3, "#983600")
+            const effect of linePattern0(
+              DIRS,
+              me.i,
+              me.j,
+              1,
+              0.7,
+              3,
+              Palette.orange3,
+            )
           ) {
             field.effects.add(effect)
           }
@@ -921,9 +926,8 @@ export class IdleDelegateChase implements IdleDelegate {
 }
 
 /**
- * A night-only wall-passing enemy. Active while it is dark: slowly
- * drifts toward the player through walls, avoiding lantern light, and
- * steals a coin on contact. Invisible and dormant during the day.
+ * A wall-passing enemy: slowly drifts toward the player through walls,
+ * avoiding lantern light, and steals a coin on contact.
  */
 export class IdleDelegateGhost implements IdleDelegate {
   /** The activation range in manhattan distance */
@@ -939,12 +943,6 @@ export class IdleDelegateGhost implements IdleDelegate {
   }
 
   onIdle(actor: Actor, field: IField): void {
-    if (signal.nightDarkness.get() <= 0.3) {
-      // Daytime: dormant and invisible
-      actor.buff.invisible = true
-      return
-    }
-    delete actor.buff.invisible
     if (--this.#cooldown > 0) {
       return
     }
@@ -985,7 +983,7 @@ export class IdleDelegateGhost implements IdleDelegate {
                 1,
                 0.7,
                 3,
-                "#5a0019",
+                Palette.pink4,
               )
             ) {
               field.effects.add(effect)
@@ -1119,8 +1117,8 @@ export class IdleDelegateMirror implements IdleDelegate {
 }
 
 /**
- * The sheep. Runs away from the player who comes within the range
- * (twice as far at night), taking any step that widens the distance.
+ * The sheep. Runs away from the player who comes within the range,
+ * taking any step that widens the distance.
  * Cornered, it trembles on the spot. Out of range it grazes, turning
  * now and then. The player herds it with the approach angle, as the
  * sheep can't be pushed (see ActorPushedDelegateStartle).
@@ -1142,10 +1140,7 @@ export class IdleDelegateFlee implements IdleDelegate {
     const di = actor.i - me.i
     const dj = actor.j - me.j
     const dist = Math.abs(di) + Math.abs(dj)
-    const range = signal.nightDarkness.get() > 0.3
-      ? this.#range * 2
-      : this.#range
-    if (dist > range) {
+    if (dist > this.#range) {
       // Grazing
       const { randomInt, choice } = seed(`${actor.id}.${field.time}`)
       if (randomInt(120) === 0) {
@@ -1273,7 +1268,7 @@ export class CrowDelegate implements IdleDelegate, ActorPushedDelegate {
           1,
           0.7,
           2,
-          "#d49d29",
+          Palette.brown2,
         )
       ) {
         field.effects.add(effect)
@@ -1295,7 +1290,15 @@ export class CrowDelegate implements IdleDelegate, ActorPushedDelegate {
     this.#drop(actor, field)
     signal.playSound("hitHurt")
     for (
-      const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#1f008a")
+      const effect of linePattern0(
+        DIRS,
+        actor.i,
+        actor.j,
+        1,
+        0.7,
+        3,
+        Palette.indigo4,
+      )
     ) {
       field.effects.add(effect)
     }

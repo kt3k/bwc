@@ -10,6 +10,7 @@
     "seedrandom": "npm:seedrandom@^3.0.5"
   },
   "tasks": {
+    "check": "deno check editor.tsx extension.tsx",
     "compile": "deno task extension && deno task webview && deno task webview-style",
     "extension": "deno bundle --platform browser extension.tsx -o out/extension.js --external vscode --format cjs",
     "webview": "deno bundle --platform browser editor.tsx -o out/editor.js",

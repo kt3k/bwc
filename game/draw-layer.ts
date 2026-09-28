@@ -2,6 +2,7 @@ import { CanvasWrapper } from "../util/canvas-wrapper.ts"
 import { type RectScope } from "../util/rect-scope.ts"
 import type { IColorBox, IEntity } from "../model/types.ts"
 import { randomInt } from "../util/random.ts"
+import { Palette } from "../util/palette.ts"
 
 export class DrawLayer {
   #canvasWrapper: CanvasWrapper
@@ -54,7 +55,7 @@ export class DrawLayer {
     } else {
       this.#noiseCount = randomInt(6) + 1
     }
-    this.#canvasWrapper.ctx.fillStyle = "white"
+    this.#canvasWrapper.ctx.fillStyle = Palette.white
     for (const _ of Array(randomInt(500))) {
       const i = randomInt(this.#canvasWrapper.width)
       const j = randomInt(this.#canvasWrapper.height)

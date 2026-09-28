@@ -10,6 +10,7 @@ import type { Dir, IField, Move } from "../model/types.ts"
 import { linePattern0 } from "../model/effect.ts"
 import { Item } from "../model/item.ts"
 import * as signal from "../util/signals.ts"
+import { Palette } from "../util/palette.ts"
 
 /**
  * Digs the diggable cell the actor stands on. Each spot yields its
@@ -28,7 +29,15 @@ function tryDig(actor: Actor, field: IField): boolean {
   actor.jump()
   signal.playSound("explosion")
   for (
-    const effect of linePattern0(DIRS, actor.i, actor.j, 1, 0.7, 3, "#3d1c00")
+    const effect of linePattern0(
+      DIRS,
+      actor.i,
+      actor.j,
+      1,
+      0.7,
+      3,
+      Palette.brown4,
+    )
   ) {
     field.effects.add(effect)
   }
@@ -67,7 +76,15 @@ function tryPlantSeed(actor: Actor, field: IField): boolean {
   signal.seedCount.update(signal.seedCount.get() - 1)
   signal.playSound("powerUp")
   for (
-    const effect of linePattern0([actor.dir], fi, fj, 1, 0.7, 2, "#5e6400")
+    const effect of linePattern0(
+      [actor.dir],
+      fi,
+      fj,
+      1,
+      0.7,
+      2,
+      Palette.yellow3,
+    )
   ) {
     field.effects.add(effect)
   }
@@ -85,7 +102,7 @@ const mushroomEffect = function (
     1,
     0.5,
     2,
-    "#983600",
+    Palette.orange3,
   )
 }
 
@@ -174,7 +191,15 @@ export class IdleMainActor implements IdleDelegate {
       signal.message.update({ text: "NO LUCK..." })
     }
     for (
-      const effect of linePattern0([actor.dir], fi, fj, 1, 0.7, 3, "#006e8a")
+      const effect of linePattern0(
+        [actor.dir],
+        fi,
+        fj,
+        1,
+        0.7,
+        3,
+        Palette.cyan3,
+      )
     ) {
       field.effects.add(effect)
     }

@@ -68,3 +68,44 @@ Deno.test("SpawnMap works with negative world coordinates", () => {
   map.remove(-199, -1)
   assertEquals(map.getChunk(-199, -1).length, 0)
 })
+
+Deno.test("FieldBlock names the room at a cell, smallest room first", () => {
+  const source = {
+    i: -400,
+    j: 400,
+    name: "B1F",
+    rooms: [
+      { id: "R8", i: -296, j: 468, w: 17, h: 67 },
+      { id: "R8A", i: -296, j: 468, w: 17, h: 9 },
+    ],
+    catalogs: [],
+    actors: [],
+    items: [],
+    props: [],
+    field: Array(200).fill(".".repeat(200)),
+    config: {},
+  }
+  const block = new FieldBlock(
+    new BlockMap("file:///block_-400.400.json", source, new Catalog([])),
+  )
+  assertEquals(block.name, "B1F")
+  assertEquals(block.roomAt(-296, 468)?.id, "R8A")
+  assertEquals(block.roomAt(-296, 477)?.id, "R8") // below room A
+  assertEquals(block.roomAt(-297, 468), undefined)
+  // local coordinates in the label, "<block>-<room>" when in a room
+  assertEquals(block.placeLabel(-290, 470), "B1F-R8A 110,70")
+  assertEquals(block.placeLabel(-399, 401), "B1F 1,1")
+  // names and rooms survive the editor's round trip
+  assertEquals(block.clone().placeLabel(-290, 470), "B1F-R8A 110,70")
+
+  const unnamed = new FieldBlock(
+    new BlockMap("file:///block_0.200.json", {
+      ...source,
+      i: 0,
+      j: 200,
+      name: undefined,
+      rooms: undefined,
+    }, new Catalog([])),
+  )
+  assertEquals(unnamed.placeLabel(12, 240), "0.200 12,40")
+})

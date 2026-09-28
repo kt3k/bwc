@@ -1,4 +1,4 @@
-import { Prop, resetSwitchStates } from "./prop.ts"
+import { MOON_GATE_RANGE, Prop, resetSwitchStates } from "./prop.ts"
 import { Actor } from "./actor.ts"
 import { PropSpawn } from "./field-block.ts"
 import type { ActorDefinition, PropDefinition } from "./catalog.ts"
@@ -253,4 +253,52 @@ Deno.test("door opens while a plate of the same group is occupied", () => {
   occupied.delete("5.5")
   door.step(field)
   assertFalse(door.canEnter)
+})
+
+Deno.test("moon gate opens once a lantern within range is lit", () => {
+  const me = new Actor(0, 0, actorDef, "main")
+  const clock = { time: 0 }
+  const base = makeField(me, () => new Set(), clock)
+  const gate = spawn(
+    {
+      type: "moon-gate",
+      canEnter: false,
+      src: "../prop/moon_gate.png",
+      href: "./prop/moon_gate.png",
+    },
+    0,
+    0,
+    undefined,
+  )
+  const lanternDef = {
+    ...stateDef("lantern-unlit", false, "light-lantern"),
+  }
+  const near = spawn(lanternDef, MOON_GATE_RANGE, 0, undefined)
+  const far = spawn(lanternDef, MOON_GATE_RANGE + 1, 0, undefined)
+  const props = [gate, near, far]
+  const field: IField = {
+    ...base,
+    props: { get: () => undefined, remove: () => {}, iter: () => props },
+    get time() {
+      return clock.time
+    },
+  }
+  const tick = () => {
+    clock.time += 15
+    gate.step(field)
+  }
+
+  tick()
+  assertFalse(gate.canEnter)
+
+  // A lit lantern out of range does nothing
+  far.onPushed(push(me), field)
+  assert(far.isLightSource)
+  tick()
+  assertFalse(gate.canEnter)
+
+  // The one within range opens it
+  near.onPushed(push(me), field)
+  tick()
+  assert(gate.canEnter)
 })

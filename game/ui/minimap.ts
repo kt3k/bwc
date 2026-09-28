@@ -2,18 +2,18 @@ import type { Context } from "@kt3k/cell"
 import * as signal from "../../util/signals.ts"
 import { BLOCK_SIZE } from "../../util/constants.ts"
 import type { FieldBlock } from "../../model/field-block.ts"
+import { Palette, type PaletteColor } from "../../util/palette.ts"
 
 /** The number of cells represented by one minimap pixel */
 const SCALE = 4
 /** The size of the minimap canvas in pixels */
 const SIZE = BLOCK_SIZE / SCALE
 
-// NES palette colors (see the pixeledit palette)
-const COLOR_FLOOR = "#b9bcb9"
-const COLOR_WALL = "#4a4d4a"
-const COLOR_WATER = "#1950c7"
-const COLOR_ICE = "#ffffff"
-const COLOR_PLAYER = "#9d285c"
+const COLOR_FLOOR = Palette.gray2
+const COLOR_WALL = Palette.gray4
+const COLOR_WATER = Palette.blue3
+const COLOR_ICE = Palette.white
+const COLOR_PLAYER = Palette.pink3
 
 /** The minimap ui which shows the current block and the player position */
 export function Minimap({ el, on, query, subscribe }: Context) {
@@ -39,7 +39,7 @@ export function Minimap({ el, on, query, subscribe }: Context) {
     for (let y = 0; y < SIZE; y++) {
       for (let x = 0; x < SIZE; x++) {
         const cell = block.getCell(x * SCALE, y * SCALE)
-        let color = COLOR_WALL
+        let color: PaletteColor = COLOR_WALL
         if (cell.slippery) {
           color = COLOR_ICE
         } else if (cell.canEnter) {

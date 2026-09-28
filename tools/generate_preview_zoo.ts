@@ -4,6 +4,7 @@
 // game. Reached from static/preview.html (hash #10010,10004).
 //
 // Usage: deno -A tools/generate_preview_zoo.ts
+import { createRooms } from "./rooms.ts"
 import { loadCatalog } from "../model/catalog.ts"
 
 const SIZE = 200
@@ -149,6 +150,7 @@ station("TIMER GATE", (x) => {
 })
 station("MOON GATE", (x) => {
   prop(x, 38, "moon-gate")
+  prop(x + 2, 38, "lantern-unlit") // light it to open the gate
 })
 station("PLATE + DOOR", (x) => {
   prop(x, 38, "plate", { group: "zoo" })
@@ -193,9 +195,9 @@ PENNED.forEach((type, n) => {
   rect(x - 2, 48, x + 2, 52, "1")
   rect(x - 1, 49, x + 1, 51, "0")
   actor(x, 50, type)
+  // the ghost walks through walls; a lantern in the pen keeps it inside
+  if (type === "ghost") prop(x, 52, "lantern")
 })
-// the ghost walks through walls at night, so warn about it
-sign(70, 46, "GHOST ESCAPES AT NIGHT!")
 // the boulder gets an open lane instead of a pen
 sign(82, 46, "BOULDER: PUSH IT")
 actor(84, 50, "boulder")
@@ -353,9 +355,22 @@ for (const s of props) {
   }
 }
 
+// sections shown on screen as "ZOO-<section>" (see tools/rooms.ts)
+const { rooms, room } = createRooms(BI, BJ)
+room("CELLS", 0, 8, 199, 16)
+room("ITEMS", 0, 18, 199, 24)
+room("PROPS", 0, 26, 199, 32)
+room("GATES", 0, 34, 199, 42)
+room("ACTORS", 0, 44, 199, 54)
+room("COMBOS", 0, 56, 199, 64)
+room("WALLS", 0, 66, 199, 74)
+room("ANIMALS", 0, 76, 199, 99)
+
 const json = {
   i: BI,
   j: BJ,
+  name: "ZOO",
+  rooms,
   catalogs: ["../catalog/base.json"],
   config: { showsExitButton: true },
   actors,

@@ -11,6 +11,13 @@ interface CatalogSource {
     readonly water?: boolean
     readonly conveyor?: "up" | "down" | "left" | "right"
     readonly diggable?: boolean
+    /** false: spread the noise evenly instead of gathering it into patches */
+    readonly noisePatches?: boolean
+    readonly flip?: CellFlip
+    /** Rare alternative images: src -> weight in percent */
+    readonly variants?: Record<string, number>
+    /** A wall: painted with a black base edge where it faces a floor below */
+    readonly casts?: boolean
   }>
   readonly items: Record<string, {
     readonly src: string
@@ -35,6 +42,9 @@ interface CatalogSource {
   }>
 }
 
+/** How a cell image may be flipped per cell: mirrored or quarter-turned */
+export type CellFlip = "h" | "v" | "hv" | "rot"
+
 /** Parsed cell definition */
 export interface CellDefinition {
   readonly name: string
@@ -46,6 +56,14 @@ export interface CellDefinition {
   readonly water?: boolean
   readonly conveyor?: "up" | "down" | "left" | "right"
   readonly diggable?: boolean
+  readonly noisePatches?: boolean
+  readonly flip?: CellFlip
+  readonly variants?: readonly {
+    readonly src: string
+    readonly href: string
+    readonly weight: number
+  }[]
+  readonly casts?: boolean
 }
 
 /** Parsed item definition */
@@ -108,6 +126,16 @@ export class Catalog {
           water: data.water,
           conveyor: data.conveyor,
           diggable: data.diggable,
+          noisePatches: data.noisePatches,
+          flip: data.flip,
+          variants: data.variants
+            ? Object.entries(data.variants).map(([src, weight]) => ({
+              src,
+              href: new URL(src, url).href,
+              weight,
+            }))
+            : undefined,
+          casts: data.casts,
         }
       }
 
@@ -168,6 +196,12 @@ export class Catalog {
         water: def.water,
         conveyor: def.conveyor,
         diggable: def.diggable,
+        noisePatches: def.noisePatches,
+        flip: def.flip,
+        variants: def.variants
+          ? Object.fromEntries(def.variants.map((v) => [v.src, v.weight]))
+          : undefined,
+        casts: def.casts,
       }
     }
 

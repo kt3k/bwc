@@ -1,3 +1,4 @@
+import type { PaletteColor } from "../util/palette.ts"
 import { CELL_SIZE } from "../util/constants.ts"
 import type { Dir, IColorBox, IField, IFinishable, IStepper } from "./types.ts"
 
@@ -19,7 +20,7 @@ export class EffectLine0 implements IColorBox, IFinishable, IStepper {
     startX: number,
     startY: number,
     dir: Dir,
-    public readonly color: string,
+    public readonly color: PaletteColor,
     length: number,
     duration: number,
     speed: number = 1,
@@ -85,7 +86,7 @@ export function linePattern0(
   baseSpeed: number,
   p0: number,
   dist: number,
-  color: string,
+  color: PaletteColor,
 ): EffectLine0[] {
   const baseX = i * CELL_SIZE
   const baseY = j * CELL_SIZE
@@ -141,7 +142,7 @@ export class EffectLine1 implements IColorBox, IFinishable, IStepper {
     y: number,
     dir: Dir,
     duration: number,
-    public readonly color: string,
+    public readonly color: PaletteColor,
     width: number = 1,
     speed: number = 1,
     delay: number = 0,

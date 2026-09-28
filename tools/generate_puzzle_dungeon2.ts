@@ -18,6 +18,7 @@
 // The layout is verified with an ice+conveyor movement simulation.
 //
 // Usage: deno -A tools/generate_puzzle_dungeon2.ts
+import { createRooms } from "./rooms.ts"
 import { loadCatalog } from "../model/catalog.ts"
 
 const SIZE = 200
@@ -130,6 +131,8 @@ rect(70, 90, 74, 94, "4") // door stub
 // reward alcove behind the door
 rect(24, 74, 36, 86, "2")
 rect(26, 76, 34, 84, "4")
+// the alcove wall is 2 thick: open both rows, the door sits in the outer one
+grid[85][30] = "4"
 grid[86][30] = "4"
 prop(30, 86, "door", { group: "s3" })
 item(30, 80, "key")
@@ -162,7 +165,8 @@ actor(160, 108, "boulder")
 rect(132, 84, 140, 96, "2")
 rect(134, 86, 138, 94, "4")
 rect(141, 88, 144, 92, "2")
-for (const x of [140, 141, 142, 143, 144]) grid[90][x] = "4"
+// the tunnel runs through both columns of the alcove wall (139, 140)
+for (const x of [139, 140, 141, 142, 143, 144]) grid[90][x] = "4"
 prop(141, 90, "door", { group: "s4a" })
 prop(143, 90, "door", { group: "s4b" })
 item(136, 90, "key")
@@ -183,7 +187,9 @@ rect(70, 148, 74, 152, "4") // door stub
 for (let y = 130; y <= 190; y++) grid[y][48] = "2"
 grid[150][48] = "4"
 prop(48, 150, "moon-gate")
-sign(52, 148, "MOON GARDEN: RICHES BY NIGHT, GHOSTS TOO")
+sign(52, 148, "MOON GARDEN: LIGHT THE LANTERN TO ENTER")
+// lighting this lantern opens the moon gate (within MOON_GATE_RANGE)
+prop(54, 146, "lantern-unlit")
 // the garden: coins, ghosts and unlit lanterns
 for (let y = 138; y <= 182; y += 6) {
   for (let x = 16; x <= 44; x += 7) {
@@ -349,6 +355,9 @@ const mustReach: [string, number, number][] = [
   ["S2 boulders", 136, 30],
   ["S3 plates", 30, 89],
   ["S4 lanes", 160, 80],
+  // rewards behind doors (they count as open here)
+  ["S3 key alcove", 30, 80],
+  ["S4 key alcove", 136, 90],
   ["S5 gate front", 52, 150],
   ["S6 mushroom chamber", 133, 151],
   ["vault 2 door", 100, 130],
@@ -379,11 +388,26 @@ console.log(`${vaultSealed ? "ok" : "NG"} vault 2 sealed without keys`)
 hardBlock.add("48.150")
 const gardenSealed = !reachable(100, 22).has("30.150")
 hardBlock.delete("48.150")
-console.log(`${gardenSealed ? "ok" : "NG"} moon garden sealed by day`)
+console.log(
+  `${gardenSealed ? "ok" : "NG"} moon garden sealed until the lantern is lit`,
+)
 if (!ok || !iceReturn || !bridged || !vaultSealed || !gardenSealed) {
   console.error("verification failed")
   Deno.exit(1)
 }
+
+// ---------------------------------------------------------------------
+// room names shown on screen as "B2F-<room>" (see tools/rooms.ts)
+
+const { rooms, room } = createRooms(BI, BJ)
+room("PLAZA", 80, 10, 120, 55)
+room("S1", 10, 10, 70, 53)
+room("S2", 130, 10, 190, 53)
+room("S3", 10, 70, 70, 115)
+room("S4", 130, 70, 190, 115)
+room("S5", 10, 130, 70, 190)
+room("S6", 130, 130, 190, 190)
+room("VAULT", 86, 132, 114, 172)
 
 // ---------------------------------------------------------------------
 // output
@@ -391,6 +415,8 @@ if (!ok || !iceReturn || !bridged || !vaultSealed || !gardenSealed) {
 const json = {
   i: BI,
   j: BJ,
+  name: "B2F",
+  rooms,
   catalogs: ["../catalog/base.json"],
   config: { showsExitButton: true },
   actors,

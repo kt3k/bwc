@@ -15,6 +15,10 @@ import type {
 import { PropSpawn } from "./field-block.ts"
 import { PropDefinition } from "./catalog.ts"
 import { ActionQueue, type PropAction } from "./action-queue.ts"
+import { Palette } from "../util/palette.ts"
+
+/** A moon gate opens while a lit lantern is within this many cells */
+export const MOON_GATE_RANGE = 12
 
 const fallbackImage = await fetch(
   // TODO(kt3k): Update
@@ -348,6 +352,19 @@ export class Prop implements IProp {
     return this.def.type
   }
 
+  /** true if a light source stands within MOON_GATE_RANGE cells */
+  #nearLitLantern(field: IField): boolean {
+    for (const prop of field.props.iter()) {
+      if (
+        prop.isLightSource &&
+        Math.abs(prop.i - this.i) + Math.abs(prop.j - this.j) <= MOON_GATE_RANGE
+      ) {
+        return true
+      }
+    }
+    return false
+  }
+
   get isLightSource(): boolean {
     if (this.def.type === "lantern") {
       return true
@@ -457,8 +474,10 @@ export class Prop implements IProp {
         break
       }
       case "moon-gate": {
-        // Open only in the dark of the night
-        const open = signal.nightDarkness.get() > 0.5
+        // Open while a lit lantern stands nearby (checked a few times a
+        // second; lanterns never go out, so this only ever opens it)
+        if (field.time % 15 !== 0) break
+        const open = this.#nearLitLantern(field)
         if (
           open !== this.isOpen &&
           (open || field.actors.get(this.i, this.j).length === 0)
@@ -565,7 +584,7 @@ export class Prop implements IProp {
             1.5,
             0.7,
             3,
-            "#cceaff",
+            Palette.blue1,
           )
         ) {
           field.effects.add(effect)

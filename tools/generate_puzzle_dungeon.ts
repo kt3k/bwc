@@ -6,7 +6,7 @@
 // - R2 chaser arena with boulder lanes (B-3)
 // - R3 plate + door + sapling boulder-stopper puzzle with a key (B-4)
 // - R4 boulder-into-water bridge puzzle with a key (B-1)
-// - R5 night corridor: lightable lanterns, ghosts, moon gate (B-5)
+// - R5 lantern corridor: lightable lanterns, ghosts, moon gate (B-5)
 // - R6 fish escort to the shrine across a spring field (B-6)
 // - R7 one-way conveyor maze (B-7)
 // - R8 the switch trial: seven rooms of button-linked walls
@@ -20,6 +20,7 @@
 // island is solvable, and the vault stays sealed without keys.
 //
 // Usage: deno -A tools/generate_puzzle_dungeon.ts
+import { createRooms } from "./rooms.ts"
 import { loadCatalog } from "../model/catalog.ts"
 
 const SIZE = 200
@@ -168,6 +169,8 @@ sign(55, 100, "LEAVE AND RETURN TO RESET THE ROOM")
 // reward alcove opened by the door
 rect(36, 106, 44, 116, "2")
 rect(38, 108, 42, 114, "5")
+// the alcove wall is 2 thick: open both rows, the door sits in the inner one
+grid[106][40] = "5"
 grid[107][40] = "5"
 prop(40, 107, "door", { group: "r3" })
 item(40, 111, "key")
@@ -206,7 +209,9 @@ grid[76][83] = "x" // dig spot
 sign(95, 88, "ONE WAY BELTS")
 
 // ---------------------------------------------------------------------
-// R5 (SW): night corridor with ghosts and the moon gate
+// R5 (SW): lantern corridor with ghosts and the moon gate.
+// The last lantern (30, 150) is within MOON_GATE_RANGE of the gate, so
+// lighting the whole row opens it.
 
 rect(10, 130, 70, 190, "5")
 rect(70, 148, 74, 152, "5") // door stub to the west corridor
@@ -216,10 +221,12 @@ prop(42, 150, "lantern-unlit")
 prop(30, 150, "lantern-unlit")
 actor(25, 140, "ghost")
 actor(50, 170, "ghost")
-sign(66, 146, "GHOSTS FEAR LIGHT. THE MOON GATE OPENS AT NIGHT")
+sign(66, 146, "GHOSTS FEAR LIGHT. A LIT LANTERN OPENS THE MOON GATE")
 // the moonlit alcove
 rect(12, 142, 20, 158, "2")
 rect(14, 144, 18, 156, "5")
+// the alcove wall is 2 thick: open both columns, the gate sits in the outer one
+grid[150][19] = "5"
 grid[150][20] = "5"
 prop(20, 150, "moon-gate")
 for (const [x, y] of [[15, 146], [17, 148], [15, 152]]) item(x, y, "coin")
@@ -510,6 +517,9 @@ const mustReach: [string, number, number][] = [
   ["R1 island (ice puzzle)", 40, 33],
   ["R2 arena", 160, 30],
   ["R3 plate", 29, 95],
+  // rewards behind doors and gates (they count as open here)
+  ["R3 key alcove", 40, 111],
+  ["R5 moon alcove", 16, 150],
   ["R4 boulders", 138, 95],
   ["R5 lanterns", 42, 151],
   ["R6 shrine", 134, 183],
@@ -546,7 +556,9 @@ const alcoveSealed = !((() => {
   hardBlock.delete(`${20}.${150}`)
   return r
 })().has("16.150"))
-console.log(`${alcoveSealed ? "ok" : "NG"} moon alcove sealed by day`)
+console.log(
+  `${alcoveSealed ? "ok" : "NG"} moon alcove sealed until a lantern is lit`,
+)
 // R8: every room is sealed while its wall stands, and the whole trial
 // is walkable once the walls are down. The belt keeps the exit one-way.
 const r8Sealed = [
@@ -609,11 +621,36 @@ if (
 }
 
 // ---------------------------------------------------------------------
+// room names shown on screen as "B1F-<room>" (see tools/rooms.ts)
+
+const { rooms, room } = createRooms(BI, BJ)
+room("PLAZA", 80, 10, 120, 60)
+room("ANNEX", 86, 4, 114, 9)
+room("R1", 10, 10, 70, 58)
+room("R2", 130, 10, 190, 58)
+room("R3", 10, 70, 70, 120)
+room("R4", 130, 70, 190, 120)
+room("R5", 10, 130, 70, 190)
+room("R6", 130, 130, 190, 190)
+room("R7", 80, 72, 97, 120)
+room("R8", 104, 68, 120, 134)
+room("R8A", 104, 68, 120, 76)
+room("R8B", 104, 78, 120, 86)
+room("R8C", 104, 88, 120, 96)
+room("R8D", 104, 98, 120, 106)
+room("R8E", 104, 108, 120, 116)
+room("R8F", 104, 118, 120, 126)
+room("R8G", 104, 128, 120, 134)
+room("VAULT", 86, 136, 114, 172)
+
+// ---------------------------------------------------------------------
 // output
 
 const json = {
   i: BI,
   j: BJ,
+  name: "B1F",
+  rooms,
   catalogs: ["../catalog/base.json"],
   config: { showsExitButton: true },
   actors,
