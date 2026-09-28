@@ -320,6 +320,53 @@ item(68, 84, "coin")
 item(68, 86, "coin")
 
 // ---------------------------------------------------------------------
+// a small town square where the townsfolk live (see game-ideas-5.md)
+
+rect(30, 96, 38, 98, "c") // the way down from the showcase floor
+rect(2, 98, 70, 130, "c")
+sign(36, 99, "TOWN: BUMP INTO PEOPLE TO TALK")
+const house = (
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  door: number,
+) => {
+  rect(x0, y0, x1, y1, "1")
+  rect(x0 + 1, y0 + 1, x1 - 1, y1 - 1, "d")
+  grid[y1][door] = "d"
+  prop(x0 + 2, y0 + 2, "table")
+  prop(x0 + 3, y0 + 2, "stool")
+}
+house(4, 101, 14, 108, 9)
+house(56, 101, 66, 108, 61)
+house(4, 118, 14, 126, 9)
+// the stall: the keeper minds it from behind the counter
+rect(30, 101, 38, 103, "1")
+rect(31, 102, 37, 102, "d")
+grid[103][34] = "c"
+prop(34, 103, "shop", { sells: "mushroom", price: 3 })
+actor(34, 102, "keeper", "down")
+// the fountain and the benches around it
+rect(33, 113, 35, 115, "w")
+prop(30, 114, "stool")
+prop(38, 114, "stool")
+prop(34, 118, "table")
+prop(22, 110, "lantern")
+prop(46, 110, "lantern")
+prop(50, 122, "table")
+prop(51, 122, "stool")
+actor(12, 111, "villager")
+actor(28, 107, "villager2")
+actor(44, 112, "villager")
+actor(60, 112, "villager2")
+actor(20, 124, "kid")
+actor(25, 127, "kid")
+actor(30, 124, "kid")
+actor(16, 113, "cat")
+actor(52, 105, "cat")
+
+// ---------------------------------------------------------------------
 // output (with a bounds check)
 
 for (const list of [actors, items, props]) {
@@ -364,7 +411,8 @@ room("GATES", 0, 34, 199, 42)
 room("ACTORS", 0, 44, 199, 54)
 room("COMBOS", 0, 56, 199, 64)
 room("WALLS", 0, 66, 199, 74)
-room("ANIMALS", 0, 76, 199, 99)
+room("ANIMALS", 0, 76, 199, 95)
+room("TOWN", 0, 96, 199, 131)
 
 const json = {
   i: BI,

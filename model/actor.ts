@@ -28,6 +28,13 @@ import { ActionQueue, type ActorAction } from "./action-queue.ts"
 import { ActorSpawn } from "./field-block.ts"
 import { linePattern0 } from "./effect.ts"
 import { MoveBounce, MoveGo, MoveJump } from "./move.ts"
+import { dirsToward, stepAway } from "./steering.ts"
+import {
+  CatDelegate,
+  KeeperDelegate,
+  KidDelegate,
+  VillagerDelegate,
+} from "./townsfolk.ts"
 import { Palette } from "../util/palette.ts"
 
 const fallbackImagePhase0 = await fetch(
@@ -69,8 +76,13 @@ export function spawnActor(
   let moveEnd: MoveEndDelegate | null = null
   let idle: IdleDelegate | null = null
   let pushed: ActorPushedDelegate | null = null
-  // The crow's idle and pushed behaviors share the carrying state
-  let crow: CrowDelegate | null = null
+  // Delegates that handle both idle and pushed share one instance (e.g.
+  // the crow's carrying state, the villager's chat)
+  const instances = new Map<unknown, unknown>()
+  const shared = <T>(Class: new () => T): T => {
+    if (!instances.has(Class)) instances.set(Class, new Class())
+    return instances.get(Class) as T
+  }
   switch (def.moveEnd) {
     case "inertial":
       moveEnd = new MoveEndDelegateInertial()
@@ -105,7 +117,19 @@ export function spawnActor(
       idle = new IdleDelegateFlee()
       break
     case "crow":
-      idle = crow ??= new CrowDelegate()
+      idle = shared(CrowDelegate)
+      break
+    case "villager":
+      idle = shared(VillagerDelegate)
+      break
+    case "keeper":
+      idle = shared(KeeperDelegate)
+      break
+    case "kid":
+      idle = shared(KidDelegate)
+      break
+    case "cat":
+      idle = shared(CatDelegate)
       break
   }
   switch (def.pushed) {
@@ -119,7 +143,19 @@ export function spawnActor(
       pushed = new ActorPushedDelegateStartle()
       break
     case "crow":
-      pushed = crow ??= new CrowDelegate()
+      pushed = shared(CrowDelegate)
+      break
+    case "villager":
+      pushed = shared(VillagerDelegate)
+      break
+    case "keeper":
+      pushed = shared(KeeperDelegate)
+      break
+    case "kid":
+      pushed = shared(KidDelegate)
+      break
+    case "cat":
+      pushed = shared(CatDelegate)
       break
   }
   return new Actor(i, j, def, id, dir, speed, moveEnd, idle, pushed)
@@ -1049,18 +1085,6 @@ export class IdleDelegateRandomRotate implements IdleDelegate {
   }
 }
 
-/**
- * Returns the directions that bring (0, 0) closer to (di, dj), the axis
- * with the larger distance first.
- */
-function dirsToward(di: number, dj: number): Dir[] {
-  const dirI: Dir | null = di !== 0 ? (di > 0 ? RIGHT : LEFT) : null
-  const dirJ: Dir | null = dj !== 0 ? (dj > 0 ? DOWN : UP) : null
-  return (Math.abs(di) >= Math.abs(dj) ? [dirI, dirJ] : [dirJ, dirI]).filter((
-    d,
-  ): d is Dir => d !== null)
-}
-
 /** The mirrored direction of the player's move: left and right swapped */
 function mirrorDir(dir: Dir): Dir {
   return dir === LEFT ? RIGHT : dir === RIGHT ? LEFT : dir
@@ -1150,23 +1174,8 @@ export class IdleDelegateFlee implements IdleDelegate {
     }
     // Straight away first, then sideways: any step off both axes of the
     // player widens the manhattan distance
-    const away = dirsToward(di, dj)
     const { choice } = seed(`${actor.id}.${field.time}`)
-    for (const dir of away) {
-      const [ni, nj] = actor.nextGrid(dir)
-      if (field.canEnter(ni, nj)) {
-        actor.tryMove("go", dir, field)
-        return
-      }
-    }
-    // Blocked ahead: a random free sidestep that still widens the distance
-    const sideways = DIRS.filter((d) => {
-      const [ni, nj] = nextGrid(actor.i, actor.j, d)
-      return !away.includes(d) && field.canEnter(ni, nj) &&
-        Math.abs(ni - me.i) + Math.abs(nj - me.j) > dist
-    })
-    if (sideways.length > 0) {
-      actor.tryMove("go", choice(sideways), field)
+    if (stepAway(actor, field, me.i, me.j, choice)) {
       return
     }
     // Cornered: faces the player and trembles

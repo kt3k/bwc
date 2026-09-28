@@ -31,14 +31,14 @@ B1F-R3 40,105
 
 ## 部屋の名前
 
-| マップ | 部屋                                                                |
-| ------ | ------------------------------------------------------------------- |
-| `B1F`  | `PLAZA` `ANNEX` `R1`〜`R7` `R8` (`R8A`〜`R8G`) `VAULT`              |
-| `B2F`  | `PLAZA` `S1`〜`S6` `VAULT`                                          |
-| `B3F`  | `PLAZA` `T1`〜`T10`                                                 |
-| `B4F`  | `PLAZA` `K1`〜`K5`                                                  |
-| `B5F`  | `PLAZA` `M1`〜`M3`                                                  |
-| `ZOO`  | `CELLS` `ITEMS` `PROPS` `GATES` `ACTORS` `COMBOS` `WALLS` `ANIMALS` |
+| マップ | 部屋                                                                       |
+| ------ | -------------------------------------------------------------------------- |
+| `B1F`  | `PLAZA` `ANNEX` `R1`〜`R7` `R8` (`R8A`〜`R8G`) `VAULT`                     |
+| `B2F`  | `PLAZA` `S1`〜`S6` `VAULT`                                                 |
+| `B3F`  | `PLAZA` `T1`〜`T10`                                                        |
+| `B4F`  | `PLAZA` `K1`〜`K5`                                                         |
+| `B5F`  | `PLAZA` `M1`〜`M3`                                                         |
+| `ZOO`  | `CELLS` `ITEMS` `PROPS` `GATES` `ACTORS` `COMBOS` `WALLS` `ANIMALS` `TOWN` |
 
 各部屋の中身は、それぞれの生成スクリプトの先頭のコメントに一覧がある。
 

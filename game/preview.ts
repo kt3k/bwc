@@ -117,6 +117,14 @@ const NOTES: Record<string, string> = {
   "actor.sheep": "runs away from you; can't be pushed; herd it onto plates",
   "actor.crow":
     "flies over water to steal coins and keys for its nest; bump it on land to drop the loot",
+  "actor.villager":
+    "runs errands to nearby shops, tables and stools; chats with other villagers; bump to talk",
+  "actor.villager2": "a villager in other clothes",
+  "actor.keeper":
+    "minds its stall; watches passers-by, greets you, tidies up when alone",
+  "actor.kid":
+    "plays tag with the other kids; if it tags you, you're it: bump a kid to tag back",
+  "actor.cat": "naps and strolls; shy of strangers; pat it and it follows you",
 }
 
 const CELL = 16
