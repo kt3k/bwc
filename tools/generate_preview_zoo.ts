@@ -10,6 +10,10 @@ import { loadCatalog } from "../model/catalog.ts"
 const SIZE = 200
 const BI = 10000
 const BJ = 10000
+/** Where the portal from the start island lands in the town (local) */
+const TOWN_ARRIVAL = { i: 26, j: 106 }
+/** The start position of the game (see game/game-screen.ts) */
+const START = { i: -9964, j: -9981 }
 
 type Spawn = {
   i: number
@@ -325,6 +329,10 @@ item(68, 86, "coin")
 rect(30, 96, 38, 98, "c") // the way down from the showcase floor
 rect(2, 98, 70, 130, "c")
 sign(36, 99, "TOWN: BUMP INTO PEOPLE TO TALK")
+// the arrival from the start island, and the way back
+prop(TOWN_ARRIVAL.i, TOWN_ARRIVAL.j, "portal-out")
+prop(TOWN_ARRIVAL.i - 3, TOWN_ARRIVAL.j, "portal", START)
+sign(TOWN_ARRIVAL.i - 4, TOWN_ARRIVAL.j - 1, "BACK TO THE START ISLAND")
 const house = (
   x0: number,
   y0: number,
@@ -447,3 +455,65 @@ await Deno.writeTextFile(
   JSON.stringify(json, null, 2),
 )
 console.log("generated block_10000.10000.json (preview zoo)")
+
+// ---------------------------------------------------------------------
+// the town portal room on the start island (block_-10000.-10000)
+//
+// Mirrors the free roam room across the start corridor (as the debug
+// room mirrors the tutorial room): a passage opens to the left at the
+// same row, marked with a red cell, a "T" label and a sign, leading to
+// a walled room with the portal to the town square.
+
+type BlockJson = { i: number; j: number; props: Spawn[]; field: string[] }
+const startPath = new URL(
+  "../static/map/block_-10000.-10000.json",
+  import.meta.url,
+)
+const start = JSON.parse(await Deno.readTextFile(startPath)) as BlockJson
+const sgrid = start.field.map((row) => [...row])
+const carve = (
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  cell: string,
+) => {
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) sgrid[y][x] = cell
+  }
+}
+carve(24, 36, 28, 40, "3") // the room ring
+carve(25, 37, 27, 39, "6") // the room floor
+carve(29, 36, 32, 40, "0") // the passage
+carve(33, 38, 33, 38, "0") // the opening from the start corridor
+carve(31, 38, 31, 38, "r") // the red marker cell
+start.field = sgrid.map((row) => row.join(""))
+const startLocal = (i: number, j: number) => ({
+  i: start.i + i,
+  j: start.j + j,
+})
+for (
+  const add of [
+    {
+      ...startLocal(26, 38),
+      type: "portal",
+      data: { i: BI + TOWN_ARRIVAL.i, j: BJ + TOWN_ARRIVAL.j },
+    },
+    { ...startLocal(31, 38), type: "r_white" },
+    { ...startLocal(30, 38), type: "t" },
+    {
+      ...startLocal(29, 36),
+      type: "sign",
+      data: { text: "TOWN: WHERE THE TOWNSFOLK LIVE" },
+    },
+  ]
+) {
+  const index = start.props.findIndex((p) => p.i === add.i && p.j === add.j)
+  if (index >= 0) {
+    start.props[index] = add
+  } else {
+    start.props.push(add)
+  }
+}
+await Deno.writeTextFile(startPath, JSON.stringify(start, null, 2))
+console.log("linked the town from the start island")
