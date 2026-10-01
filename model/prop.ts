@@ -17,6 +17,9 @@ import { PropDefinition } from "./catalog.ts"
 import { ActionQueue, type PropAction } from "./action-queue.ts"
 import { Palette } from "../util/palette.ts"
 
+/** How many cells a spring launches the player */
+export const SPRING_DISTANCE = 10
+
 /** A moon gate opens while a lit lantern is within this many cells */
 export const MOON_GATE_RANGE = 12
 
@@ -591,12 +594,30 @@ export class Prop implements IProp {
         }
         // The jump scares a following fish off
         actor.unsetFollower()
-        actor.unshiftActions(
-          { type: "jump" },
-          { type: "slide", dir, speed: 4 },
-          { type: "slide", dir, speed: 4 },
-          { type: "slide", dir, speed: 4 },
-        )
+        // Flies cell by cell and lands at the first obstacle (instead of
+        // bumping into it again and again). Ice, belts and the next spring
+        // take over the flight where it touches them, as for a walk
+        const fly = (left: number) => {
+          actor.unshiftActions({
+            type: "slide",
+            dir,
+            speed: 4,
+            cb: (move) => {
+              if (
+                move.type === "move" && left > 1 &&
+                !field.isSlippery(actor.i, actor.j) &&
+                !field.conveyorDir(actor.i, actor.j) &&
+                field.props.get(actor.i, actor.j)?.type !== "spring"
+              ) {
+                fly(left - 1)
+              }
+            },
+          })
+        }
+        actor.unshiftActions({
+          type: "jump",
+          cb: () => fly(SPRING_DISTANCE),
+        })
       } else {
         // The way is blocked. Jumps on the spot to prevent a soft lock
         // caused by infinite bouncing

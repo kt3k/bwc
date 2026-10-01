@@ -70,7 +70,7 @@ const NOTES: Record<string, string> = {
   "prop.chest": "push to break; scatters its drops",
   "prop.sign": "push to read the message",
   "prop.spring":
-    "step on it: launched 3 cells at 4x in your heading; a fish follower flees",
+    "step on it: launched up to 10 cells at 4x in your heading; a fish follower flees",
   "prop.portal": "step on it to teleport",
   "prop.portal-out": "teleport arrival marker",
   "prop.reset-portal": "push to wipe the save and restart",
