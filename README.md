@@ -18,6 +18,12 @@ Go to `http://localhost:8000`
 item / prop / actor with its behavior) and links to the interactive zoo block
 where all of them are placed live.
 
+`http://localhost:8000/maps.html` is the world map viewer: every block at once,
+from the whole world down to the sprites (drag to pan, wheel to zoom, hover for
+the cell details, double click to play from there). It renders one pixel per
+cell when zoomed out and builds sprite chunks only for the visible area when
+zoomed in. Run `deno task generate-map-index` after adding or removing a block.
+
 `http://localhost:8000/#10002,-9996` is the debug map: every actor / item / prop
 of the catalog listed at once with a labeled sign. It is also linked by the
 "DEBUG" portal to the left of the start corridor. Regenerate it after changing

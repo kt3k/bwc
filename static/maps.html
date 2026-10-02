@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bwc maps</title>
+    <style>
+    /* Only palette colors may reach the screen (docs/art-guide.md) */
+    img,
+    canvas {
+      image-rendering: pixelated;
+    }
+    @font-face {
+      font-family: "8bit";
+      src: url(./font/vaticanus.woff) format("woff");
+    }
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+    /* The 8bit font is drawn on an 8px grid: used at 8px or 16px only */
+    .pixel-text {
+      font-family: "8bit", monospace;
+      font-size: 16px;
+      line-height: 16px;
+      -webkit-font-smoothing: none;
+      font-smooth: never;
+    }
+    .pixel-text-sm {
+      font-size: 8px;
+      line-height: 8px;
+    }
+    .ink-white {
+      filter: url(#ink-white);
+    }
+    .ink-light {
+      filter: url(#ink-light);
+    }
+    .ink-mid {
+      filter: url(#ink-mid);
+    }
+    #map {
+      position: fixed;
+      inset: 0;
+      cursor: grab;
+      touch-action: none;
+    }
+    #map:active {
+      cursor: grabbing;
+    }
+    #labels {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .label {
+      position: absolute;
+      left: 0;
+      top: 0;
+      white-space: nowrap;
+    }
+    .panel {
+      position: fixed;
+      background: #000000;
+      border: 1px solid #4a4d4a;
+      padding: 8px;
+    }
+    #toolbar {
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    #places {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    button {
+      background: #000000;
+      border: 1px solid #6a6d6a;
+      padding: 4px 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      border-color: #ffffff;
+    }
+    label.toggle {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      cursor: pointer;
+    }
+    input[type="checkbox"] {
+      accent-color: #b9bcb9;
+      margin: 0;
+    }
+    .info-panel {
+      bottom: 8px;
+      left: 8px;
+      white-space: pre;
+      max-width: calc(100vw - 32px);
+      overflow: hidden;
+    }
+    #info {
+      white-space: pre;
+    }
+    .status-panel {
+      bottom: 8px;
+      right: 8px;
+    }
+    .legend {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .legend i {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+    }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <filter id="ink-white" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#ffffff" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+        <filter id="ink-light" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#b9bcb9" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+        <filter id="ink-mid" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#6a6d6a" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+      </defs>
+    </svg>
+    <canvas id="map"></canvas>
+    <div id="labels"></div>
+    <div id="toolbar" class="panel">
+      <span class="pixel-text ink-white">BWC MAPS</span>
+      <div id="places"></div>
+      <label class="toggle"
+      ><input type="checkbox" id="show-grid" /><span
+          class="pixel-text pixel-text-sm ink-light"
+        >GRID</span></label>
+      <label class="toggle"
+      ><input type="checkbox" id="show-rooms" /><span
+          class="pixel-text pixel-text-sm ink-light"
+        >ROOMS</span></label>
+      <label class="toggle"
+      ><input type="checkbox" id="show-props" /><span
+          class="pixel-text pixel-text-sm ink-light"
+        >PROPS</span></label>
+      <label class="toggle"
+      ><input type="checkbox" id="show-actors" /><span
+          class="pixel-text pixel-text-sm ink-light"
+        >ACTORS</span></label>
+      <label class="toggle"
+      ><input type="checkbox" id="show-items" /><span
+          class="pixel-text pixel-text-sm ink-light"
+        >ITEMS</span></label>
+      <span class="legend">
+        <span class="pixel-text pixel-text-sm ink-mid">DOTS</span>
+        <i style="background: #d49d29"></i><span
+          class="pixel-text pixel-text-sm ink-mid"
+        >PROP</span>
+        <i style="background: #68a5ff"></i><span
+          class="pixel-text pixel-text-sm ink-mid"
+        >PORTAL</span>
+        <i style="background: #e377b9"></i><span
+          class="pixel-text pixel-text-sm ink-mid"
+        >ACTOR</span>
+        <i style="background: #f1f0aa"></i><span
+          class="pixel-text pixel-text-sm ink-mid"
+        >ITEM</span>
+      </span>
+    </div>
+    <div class="panel info-panel">
+      <div
+        id="info"
+        class="pixel-text pixel-text-sm ink-light"
+      ></div>
+    </div>
+    <div class="panel status-panel">
+      <div
+        id="status"
+        class="pixel-text pixel-text-sm ink-mid"
+      ></div>
+    </div>
+    <script type="module" src="./maps.js"></script>
+  </body>
+</html>
