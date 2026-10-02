@@ -81,8 +81,8 @@ function walk(starts: [number, number][], keyGatesOpen: boolean) {
   return seen
 }
 
-/** Where the START portals land in the world (tutorial, free roam) */
-const ARRIVALS: [number, number][] = [[-131, 183], [-82, -65]]
+/** Where the START portals land in the world (tutorial, free roam, WILDS) */
+const ARRIVALS: [number, number][] = [[-131, 183], [-82, -65], [2128, 312]]
 /** A plaza cell of every dungeon floor (world coordinates) */
 const FLOORS: [string, number, number][] = [
   ["B1F", -300, 422],
@@ -113,6 +113,8 @@ const open = walk(ARRIVALS, true)
 for (const [name, i, j] of FLOORS) {
   check(`${name} reached on foot`, open.has(`${i}.${j}`))
 }
+// the WILDS CAVERN, down the old tunnel from the cave mouth
+check("CAVERN reached on foot", open.has("2400.611"))
 const sealed = walk(ARRIVALS, false)
 check("B1F reached without keys", sealed.has(`${FLOORS[0][1]}.${FLOORS[0][2]}`))
 for (const [name, i, j] of FLOORS.slice(1)) {

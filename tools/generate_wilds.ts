@@ -31,6 +31,7 @@ import { loadCatalog } from "../model/catalog.ts"
 import { createRooms } from "./rooms.ts"
 import { Palette } from "../util/palette.ts"
 import { encodePng } from "./png.ts"
+import { fbm, hash, smoothstep } from "./noise.ts"
 
 type Spawn = { i: number; j: number; type: string; data?: unknown }
 type Anchor = { x: number; y: number; name: string }
@@ -42,6 +43,7 @@ type Plan = {
   villages: { x: number; y: number; name: string; houses: number }[]
   landmarks: { x: number; y: number; name: string; kind: string }[]
   camps: number
+  cave: { x: number; y: number; name: string }
 }
 
 const plan: Plan = JSON.parse(
@@ -58,40 +60,6 @@ const catalog = await loadCatalog(
   new URL("../static/catalog/base.json", import.meta.url).href,
   ["base.json"],
 )
-
-// ---------------------------------------------------------------------
-// noise
-
-function hash(x: number, y: number, s: number): number {
-  let h = (x * 374761393 + y * 668265263 + s * 982451653) | 0
-  h = Math.imul(h ^ (h >>> 13), 1274126177)
-  h ^= h >>> 16
-  return (h >>> 0) / 4294967295
-}
-const smooth = (t: number) => t * t * (3 - 2 * t)
-function valueNoise(x: number, y: number, s: number): number {
-  const xi = Math.floor(x)
-  const yi = Math.floor(y)
-  const u = smooth(x - xi)
-  const v = smooth(y - yi)
-  const a = hash(xi, yi, s), b = hash(xi + 1, yi, s)
-  const c = hash(xi, yi + 1, s), d = hash(xi + 1, yi + 1, s)
-  return (a + (b - a) * u) + ((c + (d - c) * u) - (a + (b - a) * u)) * v
-}
-function fbm(x: number, y: number, s: number, octaves = 5): number {
-  let amp = 0.5, freq = 1, sum = 0, norm = 0
-  for (let o = 0; o < octaves; o++) {
-    sum += amp * valueNoise(x * freq, y * freq, s + o * 101)
-    norm += amp
-    amp *= 0.5
-    freq *= 2
-  }
-  return sum / norm
-}
-const smoothstep = (a: number, b: number, x: number) => {
-  const t = Math.max(0, Math.min(1, (x - a) / (b - a)))
-  return t * t * (3 - 2 * t)
-}
 
 // ---------------------------------------------------------------------
 // 1. height and moisture
@@ -458,6 +426,20 @@ for (const l of plan.landmarks) {
   const [x, y] = snap(l.x, l.y, 6)
   nodes.push({ x, y, name: l.name, kind: l.kind })
 }
+// the cave mouth: on a fixed column (the cavern below lines up with it),
+// at the nearest spot along it with room
+{
+  const x = Math.round(plan.cave.x * W)
+  const y0 = Math.round(plan.cave.y * H)
+  let found = -1
+  for (let d = 0; d < H && found < 0; d++) {
+    for (const y of [y0 - d, y0 + d]) {
+      if (found < 0 && fits(x, y, 4)) found = y
+    }
+  }
+  if (found < 0) throw new Error("no room for the cave mouth")
+  nodes.push({ x, y: found, name: plan.cave.name, kind: "cave" })
+}
 // camps: spaced out on the remaining land (Poisson disc against the rest)
 {
   const cands: [number, number][] = []
@@ -489,6 +471,19 @@ for (const n of nodes) {
       ? T.PLAZA
       : T.STONE,
   )
+}
+
+// the old tunnel: from the cave mouth straight south across the border,
+// walled on both sides (it crosses the shore and the sea)
+{
+  const cave = nodes.find((n) => n.kind === "cave")!
+  for (let y = cave.y + 4; y < H; y++) {
+    for (let dx = -2; dx <= 2; dx++) {
+      const p = idx(cave.x + dx, y)
+      terrain[p] = Math.abs(dx) === 2 ? T.ROCK : T.CAMP
+      keepClear[p] = 1
+    }
+  }
 }
 
 // ---------------------------------------------------------------------
@@ -769,6 +764,13 @@ for (const n of nodes) {
       put(actors, n.x + 5, n.y + 3, "boulder")
       break
     }
+    case "cave":
+      put(props, n.x - 3, n.y + 3, "lantern")
+      put(props, n.x + 3, n.y + 3, "lantern")
+      put(props, n.x + 3, n.y, "sign", {
+        text: "THE OLD TUNNEL: SOUTH TO THE CAVERN. THREE TRIALS, ONE HOARD",
+      })
+      break
     case "camp":
       put(props, n.x, n.y - 1, "lantern")
       put(props, n.x + 1, n.y + 1, "chest", { drops: "coin", count: 3 })

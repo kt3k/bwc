@@ -19,7 +19,8 @@ B1F-R3 40,105
 ブロック (200x200) は座標どおりに並び、境目は歩いてそのまま越えられる。
 **ポータルは START と世界をつなぐためだけに使う** (START / DEBUG / ZOO
 は世界の外の島なので例外)。東の離れた場所にある WILDS (有機的な生成の試作の島)
-も START の「W」部屋から行く。ダンジョンも世界の一部で、隣のブロックから
+も START の「W」部屋から行く。その南の CAVE MOUTH から古いトンネルを歩いて
+下ると CAVERN (洞窟) に入る。ダンジョンも世界の一部で、隣のブロックから
 歩いて入る。
 
 ```
@@ -50,35 +51,38 @@ B1F-R3 40,105
   `generate-blocks` を実行したら `connect-world` も実行する
 - `deno task check-world` で、START のポータルの着地点から全フロアに
   歩いて行けること、世界の中にポータルがないこと、B1F の金庫を開けるまで B2F
-  以降に入れないことを確かめる
+  以降に入れないことを確かめる。WILDS の着地点から CAVERN
+  に歩いて入れることも確かめる
 
 ## マップの名前
 
-| 名前    | ファイル                                                    | 生成スクリプト                                                        |
-| ------- | ----------------------------------------------------------- | --------------------------------------------------------------------- |
-| `START` | `block_-10000.-10000.json`                                  | (手作業、各スクリプトが一部を更新)                                    |
-| `B1F`   | `block_-400.400.json`                                       | `tools/generate_puzzle_dungeon.ts`                                    |
-| `B2F`   | `block_200.400.json`                                        | `tools/generate_puzzle_dungeon2.ts`                                   |
-| `B3F`   | `block_400.400.json`                                        | `tools/generate_puzzle_dungeon3.ts`                                   |
-| `B4F`   | `block_400.200.json`                                        | `tools/generate_puzzle_dungeon4.ts`                                   |
-| `B5F`   | `block_600.200.json`                                        | `tools/generate_puzzle_dungeon5.ts`                                   |
-| `ZOO`   | `block_10000.10000.json`                                    | `tools/generate_preview_zoo.ts`                                       |
-| `DEBUG` | `block_10000.-10000.json`                                   | `tools/generate_debug_map.ts`                                         |
-| `WILDS` | `block_2000.0.json` など 12 枚 (`i` 2000〜2600, `j` 0〜400) | `tools/generate_wilds.ts` (有機的な生成の試作、ideas/organic-maps.md) |
+| 名前     | ファイル                                                       | 生成スクリプト                                                         |
+| -------- | -------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `START`  | `block_-10000.-10000.json`                                     | (手作業、各スクリプトが一部を更新)                                     |
+| `B1F`    | `block_-400.400.json`                                          | `tools/generate_puzzle_dungeon.ts`                                     |
+| `B2F`    | `block_200.400.json`                                           | `tools/generate_puzzle_dungeon2.ts`                                    |
+| `B3F`    | `block_400.400.json`                                           | `tools/generate_puzzle_dungeon3.ts`                                    |
+| `B4F`    | `block_400.200.json`                                           | `tools/generate_puzzle_dungeon4.ts`                                    |
+| `B5F`    | `block_600.200.json`                                           | `tools/generate_puzzle_dungeon5.ts`                                    |
+| `ZOO`    | `block_10000.10000.json`                                       | `tools/generate_preview_zoo.ts`                                        |
+| `DEBUG`  | `block_10000.-10000.json`                                      | `tools/generate_debug_map.ts`                                          |
+| `WILDS`  | `block_2000.0.json` など 12 枚 (`i` 2000〜2600, `j` 0〜400)    | `tools/generate_wilds.ts` (有機的な生成の試作、ideas/organic-maps.md)  |
+| `CAVERN` | `block_2200.600.json` など 4 枚 (`i` 2200〜2400, `j` 600〜800) | `tools/generate_cavern.ts` (有機的な洞窟の試作、ideas/organic-maps.md) |
 
 地上のマップ (`block_0.0.json` など) には名前がなく、ブロック ID が出る。
 
 ## 部屋の名前
 
-| マップ  | 部屋                                                                        |
-| ------- | --------------------------------------------------------------------------- |
-| `B1F`   | `PLAZA` `ANNEX` `R1`〜`R7` `R8` (`R8A`〜`R8G`) `VAULT`                      |
-| `B2F`   | `PLAZA` `S1`〜`S6` `VAULT`                                                  |
-| `B3F`   | `PLAZA` `T1`〜`T10`                                                         |
-| `B4F`   | `PLAZA` `K1`〜`K5`                                                          |
-| `B5F`   | `PLAZA` `M1`〜`M3`                                                          |
-| `WILDS` | `LANDING` `ASHFORD` `MILLBROOK` `LOOKOUT` `SHRINE` `RUINS` `CAMP1`〜`CAMP5` |
-| `ZOO`   | `CELLS` `ITEMS` `PROPS` `GATES` `ACTORS` `COMBOS` `WALLS` `ANIMALS` `TOWN`  |
+| マップ   | 部屋                                                                        |
+| -------- | --------------------------------------------------------------------------- |
+| `B1F`    | `PLAZA` `ANNEX` `R1`〜`R7` `R8` (`R8A`〜`R8G`) `VAULT`                      |
+| `B2F`    | `PLAZA` `S1`〜`S6` `VAULT`                                                  |
+| `B3F`    | `PLAZA` `T1`〜`T10`                                                         |
+| `B4F`    | `PLAZA` `K1`〜`K5`                                                          |
+| `B5F`    | `PLAZA` `M1`〜`M3`                                                          |
+| `WILDS`  | `LANDING` `ASHFORD` `MILLBROOK` `LOOKOUT` `SHRINE` `RUINS` `CAMP1`〜`CAMP5` |
+| `CAVERN` | `HALL` `LAKE` `GROTTO` `DEEP` `NOOK1`〜 `TRIAL1`〜`TRIAL3` `VAULT`          |
+| `ZOO`    | `CELLS` `ITEMS` `PROPS` `GATES` `ACTORS` `COMBOS` `WALLS` `ANIMALS` `TOWN`  |
 
 各部屋の中身は、それぞれの生成スクリプトの先頭のコメントに一覧がある。
 
