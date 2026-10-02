@@ -67,10 +67,10 @@ const gate = (i: number, j: number, type: string, data?: unknown) => {
 rect(80, 6, 120, 30, "c") // cobbled plaza
 rect(98, 31, 102, 39, "0")
 rect(10, 40, 190, 44, "0")
-prop(100, 16, "portal-out")
-prop(96, 16, "portal", { i: 500, j: 220 }) // back to the B4F plaza
 sign(104, 16, "DUNGEON B5F: THE MENAGERIE")
-sign(93, 16, "BACK TO B4F")
+// The way in: the passage from the B4F plaza (west) across the border
+rect(0, 20, 79, 20, "0")
+sign(81, 18, "WEST: BACK TO B4F")
 sign(100, 26, "THEY ALL HAVE MINDS OF THEIR OWN. WORK WITH THEM")
 sign(100, 36, "LOST? WALK FAR AWAY AND THE ROOM RESETS")
 item(84, 10, "coin")

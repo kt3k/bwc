@@ -9,6 +9,9 @@
 //   road with a straight corridor, so the whole map is walkable.
 // - Removes blocking prop spawns from the carved cells.
 //
+// Run tools/connect_world.ts afterwards: it carves the tunnel between
+// the B1F and B2F dungeon floors through the lake and forest blocks.
+//
 // Usage: deno -A tools/generate_map_blocks.ts
 import { seed } from "../util/random.ts"
 import { loadCatalog } from "../model/catalog.ts"
@@ -522,9 +525,17 @@ function buildTutorialCourse(
     },
     { i: 85, j: 112, type: "switch", data: { group: "tutorial" } },
     { i: 91, j: 113, type: "blue-wall", data: { group: "tutorial" } },
-    // The portal to the puzzle dungeon (block_-400.400)
-    { i: 89, j: 114, type: "sign", data: { text: "PUZZLE DUNGEON PORTAL" } },
-    { i: 91, j: 116, type: "portal", data: { i: -300, j: 420 } },
+    // The way on to the puzzle dungeon (block_-400.400): no portal, you
+    // walk there (see tools/connect_world.ts)
+    {
+      i: 89,
+      j: 114,
+      type: "sign",
+      data: {
+        text: "WELL DONE! THE PUZZLE DUNGEON IS SOUTH OF THE WEST VILLAGE",
+      },
+    },
+    { i: 91, j: 116, type: "chest", data: { drops: "coin", count: 5 } },
   ]
   const items: Spawn[] = [
     // Apples: enough for the gate

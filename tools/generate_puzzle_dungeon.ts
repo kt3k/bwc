@@ -78,10 +78,13 @@ rect(122, 66, 126, 192, "5") // east corridor
 // plaza (entry)
 
 rect(80, 10, 120, 60, "c") // cobbled plaza
-prop(100, 20, "portal-out")
-prop(96, 20, "portal", { i: -110, j: 115 }) // back to the tutorial course
 sign(104, 20, "PUZZLE DUNGEON: 9 TRIALS")
-sign(93, 20, "BACK TO TUTORIAL")
+// The way in: the west village's south road runs on into the dungeon
+// (block_-400.200 is right above). It skirts the annex and drops into
+// the plaza's north-east corner
+rect(99, 0, 118, 2, "c")
+rect(116, 0, 118, 9, "c")
+sign(115, 11, "UP: THE WEST VILLAGE")
 prop(110, 30, "shop", { sells: "seed", price: 3 })
 prop(113, 30, "shop", { sells: "mushroom", price: 5 })
 sign(107, 30, "SHOP: PUSH TO BUY")
@@ -397,9 +400,12 @@ for (let y = 146; y <= 166; y += 4) {
 prop(90, 168, "chest", { drops: "coin", count: 10 })
 prop(110, 168, "chest", { drops: "seed", count: 3 })
 sign(100, 144, "MASTER OF GIMMICKS!")
-// The way down to the second floor (block_200.400)
-sign(110, 144, "B2F: THE DEEPER TRIAL")
-prop(108, 144, "portal", { i: 300, j: 420 })
+// The way down to the second floor (block_200.400): a tunnel from the
+// vault floor south, then east under the lake and the forest blocks
+// (tools/connect_world.ts carries it on) to B2F's west corridor
+rect(100, 171, 100, 196, "5")
+rect(100, 196, 199, 196, "5")
+sign(101, 169, "B2F: THE DEEPER TRIAL. THE TUNNEL GOES EAST")
 
 // ---------------------------------------------------------------------
 // verification

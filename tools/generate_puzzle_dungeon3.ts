@@ -84,19 +84,23 @@ for (const x of [52, 102, 152]) rect(x, 40, x + 2, 192, "6")
 // plaza (entry from the B2F vault)
 rect(80, 6, 120, 38, "c") // cobbled plaza
 rect(98, 38, 102, 40, "6")
-prop(100, 20, "portal-out")
-prop(96, 20, "portal", { i: 300, j: 560 }) // back to the B2F vault
 sign(104, 20, "DUNGEON B3F: TEN MIXED TRIALS")
-sign(93, 20, "BACK TO B2F")
+// The way in: the tunnel from the B2F vault (west) runs along the south
+// border and comes up to spine B between the bottom rooms
+rect(0, 195, 106, 195, "6")
+rect(106, 115, 106, 195, "6")
+sign(107, 116, "SOUTH-WEST: THE TUNNEL BACK TO THE B2F VAULT")
 prop(110, 30, "shop", { sells: "mushroom", price: 5 })
 prop(113, 30, "shop", { sells: "seed", price: 3 })
 sign(107, 30, "SHOP: PUSH TO BUY")
 sign(100, 34, "KEYS ARE HIDDEN IN THE TRIALS. THE VAULT IS EAST")
 grid[10][85] = "x" // dig spot
 item(115, 12, "mushroom")
-// The way down to the fourth floor (block_400.200)
-sign(87, 30, "B4F: THE CLOCKWORK")
-prop(84, 30, "portal", { i: 500, j: 220 })
+// The way on to the fourth floor (block_400.200, right above): a
+// passage from the plaza north across the border
+// (at x 84, where B4F's passage comes down between its K2 and K3)
+rect(84, 0, 84, 5, "c")
+sign(86, 7, "NORTH: B4F THE CLOCKWORK")
 
 // row 1 rooms (y 46..108) and their door stubs on spine A
 const ROW1: [number, number][] = [[6, 50], [56, 100], [106, 150], [156, 194]]

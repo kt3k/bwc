@@ -64,10 +64,12 @@ rect(122, 62, 126, 190, "4") // east corridor
 // plaza (entry from the B1F vault)
 
 rect(80, 10, 120, 55, "c") // cobbled plaza
-prop(100, 20, "portal-out")
-prop(96, 20, "portal", { i: -292, j: 545 }) // back to the B1F vault
 sign(104, 20, "DUNGEON B2F: MASTERS ONLY")
-sign(93, 20, "BACK TO B1F")
+// The way in: the tunnel from the B1F vault (west, under the forest and
+// the lake) comes up at the foot of the west corridor
+rect(0, 196, 76, 196, "4")
+rect(76, 191, 76, 196, "4")
+sign(77, 189, "WEST: THE TUNNEL BACK TO THE B1F VAULT")
 grid[50][85] = "x" // dig spot
 
 // ---------------------------------------------------------------------
@@ -250,12 +252,11 @@ prop(108, 168, "chest", { drops: "seed", count: 4 })
 sign(100, 139, "GIMMICK GRANDMASTER!")
 grid[166][95] = "x" // dig spots
 grid[166][105] = "x"
-prop(100, 166, "portal", { i: -300, j: 420 }) // shortcut to the B1F plaza
-sign(103, 166, "SHORTCUT OUT")
-// The way down to the third floor (block_400.400)
-sign(103, 160, "B3F: TEN MIXED TRIALS")
-prop(100, 160, "portal-out")
-prop(96, 160, "portal", { i: 500, j: 420 })
+// The way down to the third floor (block_400.400, right next door): a
+// tunnel from the vault floor south, then east to the border
+rect(100, 171, 100, 195, "4")
+rect(100, 195, 199, 195, "4")
+sign(101, 169, "B3F: TEN MIXED TRIALS. THE TUNNEL GOES EAST")
 
 // ---------------------------------------------------------------------
 // verification (movement simulation with ice and conveyor belts)

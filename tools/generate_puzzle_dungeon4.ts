@@ -82,16 +82,14 @@ const lane = (x0: number, x1: number, y: number) => {
 rect(80, 6, 120, 38, "c") // cobbled plaza
 rect(98, 38, 102, 40, "0")
 rect(4, 40, 196, 44, "0")
-prop(100, 20, "portal-out")
-prop(96, 20, "portal", { i: 488, j: 434 }) // back to the B3F plaza
 sign(104, 20, "DUNGEON B4F: THE CLOCKWORK")
-sign(93, 20, "BACK TO B3F")
 sign(100, 34, "NOTHING HERE MOVES FOR YOU. MAKE THE MACHINES DO IT")
 grid[12][88] = "x"
 item(112, 12, "coin")
-// The way down to the fifth floor (block_600.200)
-sign(111, 24, "B5F: THE MENAGERIE")
-prop(108, 24, "portal", { i: 700, j: 216 })
+// The way on to the fifth floor (block_600.200, right next door): a
+// passage from the plaza east across the border
+rect(121, 20, 199, 20, "0")
+sign(119, 22, "EAST: B5F THE MENAGERIE")
 
 const ROOMS: [number, number][] = [[6, 42], [46, 82], [86, 122], [126, 162], [
   166,
@@ -101,6 +99,10 @@ for (const [x0, x1] of ROOMS) {
   const c = Math.floor((x0 + x1) / 2)
   rect(c - 1, 45, c + 1, 45, "0")
 }
+// The way in from B3F (block_400.400, right below): a passage from the
+// south border up the wall between K2 and K3 to the spine
+rect(84, 45, 84, 199, "0")
+sign(85, 46, "SOUTH: BACK TO B3F")
 
 // ---------------------------------------------------------------------
 // K1 (x 6..42): the pusher -> chest
