@@ -651,11 +651,15 @@ function buildToolbar() {
     bar.appendChild(btn)
   }
   add("WORLD", () => blocks.filter((b) => Math.abs(b.entry.i) < ISLAND))
+  // one button per named map (a map may span several blocks)
+  const named = new Map<string, Block[]>()
   for (const b of blocks) {
     if (Math.abs(b.entry.i) >= ISLAND || b.entry.name) {
-      add(b.entry.name ?? b.entry.id, () => [b])
+      const name = b.entry.name ?? b.entry.id
+      named.set(name, [...(named.get(name) ?? []), b])
     }
   }
+  for (const [name, list] of named) add(name, () => list)
   for (const key of Object.keys(show) as (keyof typeof show)[]) {
     const input = document.querySelector<HTMLInputElement>(`#show-${key}`)!
     input.checked = show[key]

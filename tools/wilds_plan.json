@@ -1,0 +1,17 @@
+{
+  "comment": "The hand-made anchors of the WILDS (tools/generate_wilds.ts). Positions are fractions of the region (0..1); the generator snaps each to the nearest fitting land and grows the rest around them.",
+  "seed": "wilds-1",
+  "origin": { "i": 2000, "j": 0 },
+  "blocks": { "w": 4, "h": 3 },
+  "arrival": { "x": 0.16, "y": 0.52, "name": "LANDING" },
+  "villages": [
+    { "x": 0.33, "y": 0.42, "name": "ASHFORD", "houses": 6 },
+    { "x": 0.70, "y": 0.62, "name": "MILLBROOK", "houses": 5 }
+  ],
+  "landmarks": [
+    { "x": 0.55, "y": 0.22, "name": "LOOKOUT", "kind": "lookout" },
+    { "x": 0.84, "y": 0.30, "name": "SHRINE", "kind": "shrine" },
+    { "x": 0.48, "y": 0.80, "name": "RUINS", "kind": "ruins" }
+  ],
+  "camps": 5
+}
