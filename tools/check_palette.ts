@@ -35,7 +35,7 @@ for await (const entry of walk("static")) {
     const errors = itemRingErrors(w, h, rgba)
     if (errors.length > 0) {
       offenders.push(
-        `${entry}: not ringed in gray2 at ${
+        `${entry}: breaks the outer pixel rule at ${
           errors.join(" ")
         } (deno task item-ring ${entry})`,
       )
@@ -79,5 +79,5 @@ if (offenders.length > 0) {
   Deno.exit(1)
 }
 console.log(
-  `ok: ${files} sprites, the catalog noise and the page use only palette colors, the items are ringed`,
+  `ok: ${files} sprites, the catalog noise and the page use only palette colors, the items keep the outer pixel rule`,
 )

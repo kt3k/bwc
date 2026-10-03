@@ -13,9 +13,9 @@
   literals; color parameters are typed `PaletteColor`.
 - Run `deno task check-palette` after changing sprites, the catalog or the page.
 - Item sprites (`static/item/`) are wrapped in a 1px ring of outer pixels in
-  `Palette.gray2` just outside their outline, like the apple. Add it with
-  `deno task item-ring <png>`; `check-palette` enforces it. See "アイテムの外周
-  ピクセル" in docs/art-guide.md.
+  `Palette.gray2` just outside their outline, like the apple, and the outline is
+  black only. Fix both with `deno task item-ring <png>`; `check-palette`
+  enforces it. See "アイテムの外周 ピクセル" in docs/art-guide.md.
 
 ## Git operations
 
