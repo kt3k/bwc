@@ -179,6 +179,10 @@
       "variants": {
         "../cell/sand_shell.png": 5
       }
+    },
+    "t": {
+      "canEnter": true,
+      "src": "../cell/tilled.png"
     }
   },
   "actors": {
@@ -264,22 +268,22 @@
       "src": "../actor/cat/"
     },
     "merchant": {
-      "idle": "villager",
+      "idle": "traveler",
       "pushed": "villager",
       "src": "../actor/merchant/"
     },
     "guard": {
-      "idle": "villager",
+      "idle": "sentry",
       "pushed": "villager",
       "src": "../actor/guard/"
     },
     "sage": {
-      "idle": "villager",
+      "idle": "elder",
       "pushed": "villager",
       "src": "../actor/sage/"
     },
     "bard": {
-      "idle": "villager",
+      "idle": "performer",
       "pushed": "villager",
       "src": "../actor/bard/"
     },
@@ -289,7 +293,7 @@
       "src": "../actor/blacksmith/"
     },
     "fishwife": {
-      "idle": "villager",
+      "idle": "fisher",
       "pushed": "villager",
       "src": "../actor/fishwife/"
     },
@@ -304,27 +308,27 @@
       "src": "../actor/princess/"
     },
     "chancellor": {
-      "idle": "villager",
+      "idle": "attendant",
       "pushed": "villager",
       "src": "../actor/chancellor/"
     },
     "sailor": {
-      "idle": "villager",
+      "idle": "fisher",
       "pushed": "villager",
       "src": "../actor/sailor/"
     },
     "farmer": {
-      "idle": "villager",
+      "idle": "farmer",
       "pushed": "villager",
       "src": "../actor/farmer/"
     },
     "nun": {
-      "idle": "villager",
+      "idle": "elder",
       "pushed": "villager",
       "src": "../actor/nun/"
     },
     "apprentice": {
-      "idle": "villager",
+      "idle": "sweeper",
       "pushed": "villager",
       "src": "../actor/apprentice/"
     },
@@ -334,12 +338,12 @@
       "src": "../actor/inventor/"
     },
     "lady-knight": {
-      "idle": "villager",
+      "idle": "sentry",
       "pushed": "villager",
       "src": "../actor/lady-knight/"
     },
     "dancer": {
-      "idle": "villager",
+      "idle": "dancer",
       "pushed": "villager",
       "src": "../actor/dancer/"
     },
@@ -1229,7 +1233,7 @@
     },
     "bench": {
       "src": "../prop/bench.png",
-      "canEnter": false
+      "canEnter": true
     }
   }
 }

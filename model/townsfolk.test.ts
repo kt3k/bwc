@@ -8,6 +8,7 @@ import {
   KeeperDelegate,
   KidDelegate,
   resetTag,
+  ROLES,
   VillagerDelegate,
 } from "./townsfolk.ts"
 import type { IActor, IField, IProp } from "./types.ts"
@@ -24,6 +25,7 @@ function makeTown(
   others: Actor[],
   props: IProp[] = [],
   walls = new Set<string>(),
+  water = new Set<string>(),
 ) {
   let time = 0
   const all = () => [me, ...others]
@@ -34,11 +36,13 @@ function makeTown(
       return me
     },
     canEnter: (i, j) =>
-      !walls.has(`${i}.${j}`) && !blockedByProp(i, j) &&
-      !all().some((a) => a.i === i && a.j === j),
-    canEnterStatic: (i, j) => !walls.has(`${i}.${j}`) && !blockedByProp(i, j),
+      !walls.has(`${i}.${j}`) && !water.has(`${i}.${j}`) &&
+      !blockedByProp(i, j) && !all().some((a) => a.i === i && a.j === j),
+    canEnterStatic: (i, j) =>
+      !walls.has(`${i}.${j}`) && !water.has(`${i}.${j}`) &&
+      !blockedByProp(i, j),
     isSlippery: () => false,
-    isWater: () => false,
+    isWater: (i, j) => water.has(`${i}.${j}`),
     conveyorDir: () => null,
     isDiggable: () => false,
     updateCell: () => {},
@@ -180,6 +184,105 @@ Deno.test("VillagerDelegate", async (t) => {
     assert(signal.message.get()?.text)
     assertEquals(villager.dir, "right")
     assertEquals([villager.i, villager.j], [0, 0])
+  })
+})
+
+Deno.test("villager roles", async (t) => {
+  /** Runs the delegate for n frames, one step per frame */
+  const run = (
+    delegate: VillagerDelegate,
+    actor: Actor,
+    tick: (n?: number) => void,
+    field: IField,
+    n: number,
+  ) => {
+    for (let k = 0; k < n; k++) {
+      delegate.onIdle(actor, field)
+      tick()
+    }
+  }
+
+  await t.step("sentry: walks its beat to the end and looks on", () => {
+    const me = new Actor(50, 50, def, "main")
+    const guard = new Actor(0, 0, def, "g")
+    // a corridor running right from the post
+    const walls = new Set<string>()
+    for (let i = -1; i <= 9; i++) walls.add(`${i}.-1`).add(`${i}.1`)
+    walls.add("-1.0")
+    const { field, tick } = makeTown(me, [guard], [], walls)
+    const delegate = new VillagerDelegate(ROLES.sentry())
+    run(delegate, guard, tick, field, 12)
+    assertEquals([guard.i, guard.j], [6, 0])
+    assertEquals(guard.dir, "right")
+  })
+
+  await t.step("fisher: stands at the bank facing the water", () => {
+    const me = new Actor(50, 50, def, "main")
+    const fisher = new Actor(0, 0, def, "f")
+    const water = new Set<string>()
+    for (let j = -5; j <= 5; j++) water.add(`4.${j}`)
+    const { field, tick } = makeTown(me, [fisher], [], new Set(), water)
+    const delegate = new VillagerDelegate(ROLES.fisher())
+    run(delegate, fisher, tick, field, 8)
+    assertEquals(fisher.i, 3)
+    assertEquals(fisher.dir, "right")
+  })
+
+  await t.step("elder: sits on the bench", () => {
+    const me = new Actor(50, 50, def, "main")
+    const elder = new Actor(0, 0, def, "e")
+    const bench = makeProp("bench", 0, 4, true)
+    const { field, tick } = makeTown(me, [elder], [bench])
+    const delegate = new VillagerDelegate(ROLES.elder())
+    run(delegate, elder, tick, field, 8)
+    assertEquals([elder.i, elder.j], [0, 4])
+  })
+
+  await t.step("farmer: works next to a crop", () => {
+    const me = new Actor(50, 50, def, "main")
+    const farmer = new Actor(0, 0, def, "fa")
+    const crop = makeProp("sapling", 5, 0)
+    const { field, tick } = makeTown(me, [farmer], [crop])
+    const delegate = new VillagerDelegate(ROLES.farmer())
+    run(delegate, farmer, tick, field, 8)
+    assertEquals([farmer.i, farmer.j], [4, 0])
+    assertEquals(farmer.dir, "right")
+  })
+
+  await t.step("attendant: keeps near the princess", () => {
+    const me = new Actor(50, 50, def, "main")
+    const princess = new Actor(
+      8,
+      0,
+      { ...def, type: "princess" },
+      "p",
+    )
+    const chancellor = new Actor(0, 0, def, "c")
+    const { field, tick } = makeTown(me, [princess, chancellor])
+    const delegate = new VillagerDelegate(ROLES.attendant())
+    run(delegate, chancellor, tick, field, 10)
+    assertEquals(
+      Math.abs(chancellor.i - 8) + Math.abs(chancellor.j),
+      2,
+    )
+  })
+
+  await t.step("performer: stays on its spot and draws a listener", () => {
+    const me = new Actor(50, 50, def, "main")
+    const bard = new Actor(0, 0, def, "b")
+    const listener = new Actor(6, 0, def, "l")
+    const { field, tick } = makeTown(me, [bard, listener])
+    const db = new VillagerDelegate(ROLES.performer())
+    const dl = new VillagerDelegate()
+    let came = false
+    for (let k = 0; k < 4000 && !came; k++) {
+      db.onIdle(bard, field)
+      dl.onIdle(listener, field)
+      came = Math.abs(listener.i) + Math.abs(listener.j) === 2
+      tick()
+    }
+    assertEquals([bard.i, bard.j], [0, 0])
+    assert(came)
   })
 })
 

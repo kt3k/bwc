@@ -33,6 +33,7 @@ import {
   CatDelegate,
   KeeperDelegate,
   KidDelegate,
+  ROLES,
   VillagerDelegate,
 } from "./townsfolk.ts"
 import { Palette } from "../util/palette.ts"
@@ -83,6 +84,9 @@ export function spawnActor(
     if (!instances.has(Class)) instances.set(Class, new Class())
     return instances.get(Class) as T
   }
+  // the townsfolk: one villager delegate for idle and pushed, living by
+  // the role its idle name gives (model/townsfolk.ts)
+  let villager: VillagerDelegate | undefined
   switch (def.moveEnd) {
     case "inertial":
       moveEnd = new MoveEndDelegateInertial()
@@ -120,7 +124,16 @@ export function spawnActor(
       idle = shared(CrowDelegate)
       break
     case "villager":
-      idle = shared(VillagerDelegate)
+    case "sentry":
+    case "performer":
+    case "dancer":
+    case "fisher":
+    case "farmer":
+    case "elder":
+    case "traveler":
+    case "sweeper":
+    case "attendant":
+      idle = villager ??= new VillagerDelegate(ROLES[def.idle]())
       break
     case "keeper":
       idle = shared(KeeperDelegate)
@@ -146,7 +159,7 @@ export function spawnActor(
       pushed = shared(CrowDelegate)
       break
     case "villager":
-      pushed = shared(VillagerDelegate)
+      pushed = villager ??= new VillagerDelegate()
       break
     case "keeper":
       pushed = shared(KeeperDelegate)

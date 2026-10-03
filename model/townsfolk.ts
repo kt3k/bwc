@@ -4,14 +4,25 @@
 // - villager: runs errands between the landmarks near its home (shop,
 //   well, tables, stools, flower beds, signs, lanterns), lingers at each, goes home to
 //   rest, stops to chat with the villagers it meets, and talks back when
-//   the player bumps into it
+//   the player bumps into it. Other roles live the same way but pick
+//   their errands differently (the idle name in the catalog):
+//   - sentry (guard, lady knight): walks a beat from its post and back,
+//     watching the player
+//   - performer / dancer (bard, dancer): plays on its spot (notes, a
+//     spin); the villagers nearby come to listen now and then
+//   - fisher (fishwife, sailor): fishes from the nearest bank
+//   - farmer: works the field, crop by crop
+//   - elder (sage, nun): sits on a bench for a long while
+//   - traveler (merchant): walks to the landmarks far off
+//   - sweeper (apprentice): sweeps around its spot
+//   - attendant (chancellor): keeps near the princess
 // - keeper: minds its stall. Watches whoever comes near, greets the
 //   player, and tidies up (a step aside and back) when nobody is around
 // - kid: plays tag with the other kids. The one who is "it" runs after
 //   the others (and after the player, who can join in)
 // - cat: naps, strolls, keeps clear of strangers; pet it and it follows
 //   you for a while
-import { DIRS, opposite, UP } from "../util/dir.ts"
+import { DIRS, nextGrid, opposite, UP } from "../util/dir.ts"
 import { Palette, type PaletteColor } from "../util/palette.ts"
 import { seed } from "../util/random.ts"
 import * as signal from "../util/signals.ts"
@@ -103,31 +114,325 @@ const ROLE_LINES: Record<string, readonly string[]> = {
 
 /** The villagers on the field, to find someone to chat with */
 const villagers = new WeakMap<IActor, VillagerDelegate>()
+/** The performers on the field: the villagers gather round to listen */
+const performers = new Set<IActor>()
+
+/** One errand: where to go, and what to do there */
+export interface Errand {
+  /** Where to stand */
+  goal: (i: number, j: number) => boolean
+  /** The spot to face on arrival (the landmark, the water...) */
+  face?: (actor: IActor, field: IField) => [number, number] | null
+  /** How long to stay */
+  linger: number
+  /** Called every frame while staying (puffs, turning around) */
+  activity?: (actor: Actor, field: IField) => void
+}
 
 /**
- * Runs errands: picks a landmark within the range of its home, walks
- * there by the shortest path, lingers a while facing it, and after a
- * few errands goes home to rest. Two villagers who meet stop and chat.
+ * How a villager spends the day: the errand it picks next. Every
+ * `errands` errands it goes home to rest (0: never). With `watch`, it
+ * turns to the player who comes that near while it stays somewhere.
+ */
+export interface Role {
+  readonly range: number
+  readonly errands: number
+  readonly watch?: number
+  next(
+    actor: Actor,
+    field: IField,
+    home: readonly [number, number],
+    random: ReturnType<typeof seed>,
+  ): Errand | null
+}
+
+/** Stands next to the prop (or on it, when it can be entered) */
+const besideProp = (prop: IProp, linger: number): Errand => ({
+  goal: (i, j) =>
+    prop.canEnter
+      ? i === prop.i && j === prop.j
+      : manhattan(i, j, prop.i, prop.j) === 1,
+  face: (actor) =>
+    actor.i === prop.i && actor.j === prop.j ? null : [prop.i, prop.j],
+  linger,
+})
+
+/** The props of the given types within the range of home */
+function propsNear(
+  field: IField,
+  home: readonly [number, number],
+  range: number,
+  types: ReadonlySet<string>,
+): IProp[] {
+  const found: IProp[] = []
+  for (const prop of field.props.iter()) {
+    if (
+      types.has(prop.type) &&
+      manhattan(prop.i, prop.j, home[0], home[1]) <= range
+    ) {
+      found.push(prop)
+    }
+  }
+  return found
+}
+
+/** The default: runs errands to the landmarks, or listens to a show */
+export function errandsRole(range = 10): Role {
+  let last = ""
+  return {
+    range,
+    errands: 3,
+    next(actor, field, home, { choice, randomInt }) {
+      // A show nearby draws a crowd now and then
+      const shows = [...performers].filter((p) => {
+        // forgets the performers who are gone from the field
+        if (!field.actors.get(p.i, p.j).includes(p)) {
+          performers.delete(p)
+          return false
+        }
+        return p !== actor && manhattan(p.i, p.j, home[0], home[1]) <= range
+      })
+      if (shows.length > 0 && randomInt(3) === 0) {
+        const p = choice(shows)
+        return {
+          goal: (i, j) => manhattan(i, j, p.i, p.j) === 2,
+          face: () => [p.i, p.j],
+          linger: 240 + randomInt(180),
+        }
+      }
+      const landmarks = propsNear(field, home, range, LANDMARKS).filter((p) =>
+        `${p.i}.${p.j}` !== last
+      )
+      if (landmarks.length === 0) return null
+      const prop = choice(landmarks)
+      last = `${prop.i}.${prop.j}`
+      return besideProp(prop, 120 + randomInt(180))
+    },
+  }
+}
+
+/**
+ * The guard: walks a beat from its post to the end of the longest
+ * straight run (up to 6 cells) and back, pausing at each end, and keeps
+ * an eye on the player
+ */
+export function sentryRole(beat = 6): Role {
+  let end: [number, number] | null = null
+  let out = false
+  return {
+    range: beat + 2,
+    errands: 0,
+    watch: 5,
+    next(_actor, field, home) {
+      if (!end) {
+        end = [home[0], home[1]]
+        let best = 0
+        for (const dir of DIRS) {
+          let [i, j] = [home[0], home[1]]
+          let n = 0
+          while (n < beat) {
+            const [ni, nj] = nextGrid(i, j, dir)
+            if (!field.canEnterStatic(ni, nj)) break
+            ;[i, j] = [ni, nj]
+            n++
+          }
+          if (n > best) {
+            best = n
+            end = [i, j]
+          }
+        }
+      }
+      out = !out
+      const [ti, tj] = out ? end : home
+      const [fi, fj] = out ? home : end
+      return {
+        goal: (i, j) => i === ti && j === tj,
+        // looks on along the beat, away from where it came from
+        face: () => [ti + Math.sign(ti - fi), tj + Math.sign(tj - fj)],
+        linger: 150,
+      }
+    },
+  }
+}
+
+/** The bard and the dancer: perform on their spot; folk come to listen */
+export function performerRole(dance = false): Role {
+  return {
+    range: 1,
+    errands: 0,
+    watch: dance ? undefined : 4,
+    next(actor) {
+      performers.add(actor)
+      let turn = 0
+      return {
+        goal: () => true,
+        linger: 600,
+        activity: (actor, field) => {
+          if (field.time % 40 === 0) {
+            puff(field, actor, dance ? Palette.pink2 : Palette.yellow1)
+          }
+          if (dance && field.time % 20 === 0) {
+            actor.setDir(DIRS[turn++ % 4])
+          }
+        },
+      }
+    },
+  }
+}
+
+/** Fishes from the nearest bank: faces the water, now and then a bite */
+export function fisherRole(range = 16): Role {
+  const waterBeside = (field: IField, i: number, j: number) =>
+    DIRS.map((d) => nextGrid(i, j, d)).find(([wi, wj]) =>
+      field.isWater(wi, wj)
+    ) ?? null
+  return {
+    range,
+    errands: 1,
+    next(_actor, _field, _home, { randomInt }) {
+      return {
+        goal: (i, j) => waterBeside(_field, i, j) !== null,
+        face: (actor, field) => waterBeside(field, actor.i, actor.j),
+        linger: 600 + randomInt(600),
+        activity: (actor, field) => {
+          if (field.time % 150 === 0) {
+            puff(field, actor, Palette.cyan2)
+          }
+        },
+      }
+    },
+  }
+}
+
+const CROPS = new Set(["sapling"])
+/** Tends the field: goes from crop to crop, working at each */
+export function farmerRole(range = 14): Role {
+  let last = ""
+  return {
+    range,
+    errands: 6,
+    next(_actor, field, home, { choice, randomInt }) {
+      const crops = propsNear(field, home, range, CROPS).filter((p) =>
+        `${p.i}.${p.j}` !== last
+      )
+      if (crops.length === 0) return null
+      const crop = choice(crops)
+      last = `${crop.i}.${crop.j}`
+      return {
+        ...besideProp(crop, 150 + randomInt(120)),
+        activity: (actor, field) => {
+          if (field.time % 50 === 0) puff(field, actor, Palette.green2)
+        },
+      }
+    },
+  }
+}
+
+const SEATS = new Set(["bench", "stool"])
+/** The old folk: sit on a bench for a long while, rarely go elsewhere */
+export function elderRole(range = 14): Role {
+  return {
+    range,
+    errands: 2,
+    watch: 3,
+    next(_actor, field, home, { choice, randomInt }) {
+      const seats = propsNear(field, home, range, SEATS)
+      if (seats.length === 0) return null
+      return besideProp(choice(seats), 900 + randomInt(600))
+    },
+  }
+}
+
+/** The merchant: walks to the landmarks far off, a short stop at each */
+export function travelerRole(range = 40): Role {
+  return {
+    range,
+    errands: 5,
+    next(actor, field, home, { choice, randomInt }) {
+      const far = propsNear(field, home, range, LANDMARKS).filter((p) =>
+        manhattan(p.i, p.j, actor.i, actor.j) > range / 3
+      )
+      if (far.length === 0) return null
+      return besideProp(choice(far), 90 + randomInt(90))
+    },
+  }
+}
+
+/** Sweeps around home: short steps to and fro, raising dust */
+export function sweeperRole(range = 3): Role {
+  return {
+    range,
+    errands: 0,
+    next(_actor, _field, home, { randomInt }) {
+      const ti = home[0] + randomInt(2 * range + 1) - range
+      const tj = home[1] + randomInt(2 * range + 1) - range
+      return {
+        goal: (i, j) => i === ti && j === tj,
+        linger: 60 + randomInt(60),
+        activity: (actor, field) => {
+          if (field.time % 15 === 0) {
+            actor.setDir(DIRS[(field.time / 15) % 2 ? 2 : 3])
+          }
+          if (field.time % 30 === 0) puff(field, actor, Palette.gray3)
+        },
+      }
+    },
+  }
+}
+
+/** Follows someone of the given type around (the chancellor) */
+export function attendantRole(whom: string, range = 30): Role {
+  return {
+    range,
+    errands: 0,
+    next(actor, field, _home, { randomInt }) {
+      let target: IActor | null = null
+      for (const other of field.actors.iter()) {
+        if (
+          other.type === whom &&
+          manhattan(other.i, other.j, actor.i, actor.j) <= range
+        ) {
+          target = other
+          break
+        }
+      }
+      if (!target) return null
+      const t = target
+      if (manhattan(t.i, t.j, actor.i, actor.j) <= 2) {
+        return { goal: () => true, face: () => [t.i, t.j], linger: 40 }
+      }
+      return {
+        goal: (i, j) => manhattan(i, j, t.i, t.j) === 2,
+        face: () => [t.i, t.j],
+        linger: 20 + randomInt(40),
+      }
+    },
+  }
+}
+
+/**
+ * Lives by its role (errands to the landmarks by default): walks to each
+ * errand by the shortest path, stays a while, and after a few errands
+ * goes home to rest. Two villagers who meet on the way stop and chat, and
+ * the player who bumps into one gets a word.
  */
 export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
-  /** How far from home the errands go */
-  #range: number
+  #role: Role
   #home: [number, number] | null = null
   #path: Dir[] = []
-  /** Where the villager is heading: a landmark, or home */
-  #target: [number, number] | null = null
+  #errand: Errand | null = null
   #goingHome = false
+  #arrived = false
   #lingerUntil = 0
   #errands = 0
   #waited = 0
-  #lastLandmark = ""
   #chatUntil = 0
   #chatWith: [number, number] | null = null
   #chatCooldownUntil = 0
   #line = -1
 
-  constructor(range = 10) {
-    this.#range = range
+  constructor(role: Role | number = 10) {
+    this.#role = typeof role === "number" ? errandsRole(role) : role
   }
 
   get isChatting(): boolean {
@@ -148,6 +453,10 @@ export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
       this.#chatWith = null
     }
     if (field.time < this.#lingerUntil) {
+      if (this.#arrived) {
+        this.#errand?.activity?.(actor, field)
+        this.#watch(actor, field)
+      }
       return
     }
     if (this.#path.length > 0) {
@@ -166,30 +475,40 @@ export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
       actor.setDir(dir)
       if (++this.#waited > 60) {
         this.#path = []
-        this.#target = null
+        this.#errand = null
+        this.#goingHome = false
         this.#waited = 0
         this.#lingerUntil = field.time + 30
       }
       return
     }
-    const { randomInt } = rng(actor, field)
-    if (this.#target) {
+    const random = rng(actor, field)
+    if (this.#errand && !this.#arrived) {
+      // Arrived
+      this.#arrived = true
       if (this.#goingHome) {
         // Home: rests a good while
         this.#goingHome = false
-        this.#lingerUntil = field.time + 300 + randomInt(300)
-      } else {
-        // Arrived: lingers at the landmark
-        face(actor, ...this.#target)
-        this.#errands += 1
-        this.#lingerUntil = field.time + 120 + randomInt(180)
+        this.#errand = null
+        this.#lingerUntil = field.time + 300 + random.randomInt(300)
+        return
       }
-      this.#target = null
+      const spot = this.#errand.face?.(actor, field)
+      if (spot) face(actor, ...spot)
+      this.#errands += 1
+      this.#lingerUntil = field.time + this.#errand.linger
       return
     }
-    if (this.#errands >= 3) {
+    this.#errand = null
+    this.#arrived = false
+    const { errands } = this.#role
+    if (errands > 0 && this.#errands >= errands) {
       // Enough errands: goes home
       this.#errands = 0
+      if (actor.i === home[0] && actor.j === home[1]) {
+        this.#lingerUntil = field.time + 300 + random.randomInt(300)
+        return
+      }
       const path = this.#pathTo(
         actor,
         field,
@@ -197,14 +516,33 @@ export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
       )
       if (path) {
         this.#path = path
-        this.#target = home
+        this.#errand = { goal: () => true, linger: 0 }
         this.#goingHome = true
       } else {
         this.#lingerUntil = field.time + 60
       }
       return
     }
-    this.#pickErrand(actor, field)
+    const errand = this.#role.next(actor, field, home, random)
+    if (errand) {
+      const path = this.#pathTo(actor, field, errand.goal)
+      if (path) {
+        this.#path = path
+        this.#errand = errand
+        return
+      }
+    }
+    // Nowhere to go: a stroll around the spot
+    const range = Math.max(this.#role.range, 2)
+    const dirs = DIRS.filter((d) => {
+      const [ni, nj] = actor.nextGrid(d)
+      return field.canEnter(ni, nj) &&
+        manhattan(ni, nj, home[0], home[1]) <= range
+    })
+    if (dirs.length > 0 && this.#role.errands !== 0) {
+      actor.tryMove("go", random.choice(dirs), field)
+    }
+    this.#lingerUntil = field.time + 60
   }
 
   onPushed(event: PushedEvent, actor: Actor, field: IField): void {
@@ -224,6 +562,16 @@ export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
       signal.message.update({ text: lines[this.#line % lines.length] })
       this.#line = (this.#line + 1) % lines.length
       puff(field, actor, Palette.white)
+    }
+  }
+
+  /** Turns to the player when they come near */
+  #watch(actor: Actor, field: IField) {
+    const near = this.#role.watch
+    if (!near) return
+    const me = field.me
+    if (manhattan(me.i, me.j, actor.i, actor.j) <= near) {
+      face(actor, me.i, me.j)
     }
   }
 
@@ -257,63 +605,37 @@ export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
     return false
   }
 
-  #pickErrand(actor: Actor, field: IField) {
-    const home = this.#home!
-    const { choice } = rng(actor, field)
-    const landmarks: IProp[] = []
-    for (const prop of field.props.iter()) {
-      if (
-        LANDMARKS.has(prop.type) &&
-        manhattan(prop.i, prop.j, home[0], home[1]) <= this.#range &&
-        `${prop.i}.${prop.j}` !== this.#lastLandmark
-      ) {
-        landmarks.push(prop)
-      }
-    }
-    if (landmarks.length > 0) {
-      const prop = choice(landmarks)
-      const path = this.#pathTo(
-        actor,
-        field,
-        (i, j) =>
-          prop.canEnter
-            ? i === prop.i && j === prop.j // sits on the stool
-            : manhattan(i, j, prop.i, prop.j) === 1,
-      )
-      if (path) {
-        this.#path = path
-        this.#target = [prop.i, prop.j]
-        this.#lastLandmark = `${prop.i}.${prop.j}`
-        return
-      }
-    }
-    // Nowhere to go: a stroll around the spot
-    const dirs = DIRS.filter((d) => {
-      const [ni, nj] = actor.nextGrid(d)
-      return field.canEnter(ni, nj) &&
-        manhattan(ni, nj, home[0], home[1]) <= this.#range
-    })
-    if (dirs.length > 0) {
-      actor.tryMove("go", choice(dirs), field)
-    }
-    this.#lingerUntil = field.time + 60
-  }
-
   #pathTo(
     actor: Actor,
     field: IField,
     isGoal: (i: number, j: number) => boolean,
   ): Dir[] | null {
     const home = this.#home!
+    const range = this.#role.range
     return findPath(
       actor.i,
       actor.j,
       isGoal,
       (i, j) =>
         field.canEnterStatic(i, j) &&
-        manhattan(i, j, home[0], home[1]) <= this.#range + 2,
+        manhattan(i, j, home[0], home[1]) <= range + 2,
+      Math.max(600, (2 * range + 5) ** 2),
     )
   }
+}
+
+/** The roles by the idle name in the catalog */
+export const ROLES: Record<string, () => Role> = {
+  villager: () => errandsRole(),
+  sentry: () => sentryRole(),
+  performer: () => performerRole(),
+  dancer: () => performerRole(true),
+  fisher: () => fisherRole(),
+  farmer: () => farmerRole(),
+  elder: () => elderRole(),
+  traveler: () => travelerRole(),
+  sweeper: () => sweeperRole(),
+  attendant: () => attendantRole("princess"),
 }
 
 // ---------------------------------------------------------------------

@@ -16,8 +16,11 @@
 // 5. roads: a spanning tree over the anchors plus a couple of loops,
 //    each routed by A* around water and rock (bridges where rivers are
 //    crossed), so they wind with the land
-// 6. villages grown along those roads: houses facing the road, a plaza
-//    with a well and a stall, the townsfolk
+// 6. the towns, each by its layout in the plan (crossroads, ring around
+//    a pond, walled grid, market street with fields; the land, streets
+//    and walls are laid before the roads, so the roads join the streets
+//    and come in by the gates): houses facing the streets, plazas,
+//    stalls, and townsfolk who live by their roles
 // 7. scatter by density and spacing (Poisson disc): trees in forests,
 //    rocks on hills, flowers by the water, coins far from the roads,
 //    animals where they belong
@@ -40,7 +43,14 @@ type Plan = {
   origin: { i: number; j: number }
   blocks: { w: number; h: number }
   arrival: { x: number; y: number; name: string }
-  villages: { x: number; y: number; name: string; houses: number }[]
+  villages: {
+    x: number
+    y: number
+    name: string
+    houses: number
+    /** crossroads (default), ring, walled or market */
+    layout?: string
+  }[]
   landmarks: { x: number; y: number; name: string; kind: string }[]
   camps: number
   cave: { x: number; y: number; name: string }
@@ -111,6 +121,7 @@ enum T {
   TREE,
   STONE, // shrine / ruins floor
   CAMP,
+  FIELD, // tilled soil of the farms
 }
 const CELL: Record<T, string> = {
   [T.SEA]: "w",
@@ -129,6 +140,7 @@ const CELL: Record<T, string> = {
   [T.TREE]: "2",
   [T.STONE]: "m",
   [T.CAMP]: "p",
+  [T.FIELD]: "t",
 }
 const terrain = new Uint8Array(W * H)
 const isWater = (t: T) => t === T.SEA || t === T.RIVER || t === T.LAKE
@@ -419,7 +431,7 @@ const nodes: Node[] = []
   nodes.push({ x, y, name: plan.arrival.name, kind: "arrival" })
 }
 for (const v of plan.villages) {
-  const [x, y] = snap(v.x, v.y, 8)
+  const [x, y] = snap(v.x, v.y, 12)
   nodes.push({ x, y, name: v.name, kind: "village" })
 }
 for (const l of plan.landmarks) {
@@ -528,6 +540,8 @@ function stepCost(p: number, q: number): number {
   let c: number
   switch (t) {
     case T.SEA:
+    case T.WALL: // the town walls: the roads come in by the gates
+    case T.FLOOR:
       return Infinity
     case T.RIVER:
       c = 10
@@ -573,13 +587,134 @@ function route(ax: number, ay: number, bx: number, by: number): number[] {
   )
 }
 const roadCells = new Set<number>()
+/** The town ponds: the roads stop at the bank (no bridge to the middle) */
+const ponds = new Set<number>()
 function lay(p: number) {
   const t = terrain[p]
-  if (t === T.PLAZA || t === T.STONE || t === T.CAMP) return
+  if (t === T.PLAZA || t === T.STONE || t === T.CAMP || ponds.has(p)) return
   terrain[p] = isWater(t) ? T.BRIDGE : t === T.BRIDGE ? T.BRIDGE : T.ROAD
   keepClear[p] = 1
   roadCells.add(p)
 }
+// ---------------------------------------------------------------------
+// the towns' ground: cleared land, streets, walls and ponds, laid before
+// the roads so that the roads join the streets (and come in by the gates)
+
+type Layout = "crossroads" | "ring" | "walled" | "market"
+/** The radius of each kind of town */
+const TOWN_R: Record<Layout, number> = {
+  crossroads: 30,
+  ring: 24,
+  walled: 26,
+  market: 30,
+}
+const layoutOf = (n: Node): Layout =>
+  (plan.villages.find((v) => v.name === n.name)?.layout ??
+    "crossroads") as Layout
+const townR = (n: Node) => TOWN_R[layoutOf(n)]
+
+/** A straight street, 2 cells wide (the second cell right or below) */
+function street(x0: number, y0: number, x1: number, y1: number) {
+  const steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))
+  const sx = Math.sign(x1 - x0), sy = Math.sign(y1 - y0)
+  for (let k = 0; k <= steps; k++) {
+    const x = x0 + sx * k, y = y0 + sy * k
+    for (const [dx, dy] of sx !== 0 ? [[0, 0], [0, 1]] : [[0, 0], [1, 0]]) {
+      if (!inside(x + dx, y + dy)) continue
+      const t = terrain[idx(x + dx, y + dy)]
+      if (t === T.SEA || t === T.WALL) continue
+      lay(idx(x + dx, y + dy))
+    }
+  }
+}
+
+for (const n of nodes) {
+  if (n.kind !== "village") continue
+  const { x: cx, y: cy } = n
+  const R = townR(n)
+  // the land of the town is cleared to meadow (the water stays)
+  for (let dy = -R; dy <= R; dy++) {
+    for (let dx = -R; dx <= R; dx++) {
+      if (!inside(cx + dx, cy + dy) || Math.hypot(dx, dy) > R + 2) continue
+      const p = idx(cx + dx, cy + dy)
+      const t = terrain[p] as T
+      if (isWater(t) || t === T.PLAZA) continue
+      terrain[p] = T.MEADOW
+      keepClear[p] = 1
+    }
+  }
+  switch (layoutOf(n)) {
+    case "crossroads":
+      // two main streets crossing at the plaza
+      street(cx - R, cy, cx + R, cy)
+      street(cx, cy - R, cx, cy + R)
+      break
+    case "ring": {
+      // a green with a pond in the middle, a ring street around it, and
+      // four spokes out
+      for (let dy = -R; dy <= R; dy++) {
+        for (let dx = -R; dx <= R; dx++) {
+          const d = Math.hypot(dx, dy), p = idx(cx + dx, cy + dy)
+          if (!inside(cx + dx, cy + dy)) continue
+          if (d <= 4.2) {
+            terrain[p] = T.LAKE
+            ponds.add(p)
+          } else if (d <= 11) {
+            if (terrain[p] === T.PLAZA) terrain[p] = T.MEADOW
+          } else if (d <= 13.2 && !isWater(terrain[p] as T)) lay(p)
+        }
+      }
+      street(cx + 13, cy, cx + R, cy)
+      street(cx - R, cy, cx - 13, cy)
+      street(cx, cy + 13, cx, cy + R)
+      street(cx, cy - R, cx, cy - 13)
+      break
+    }
+    case "walled": {
+      // a square wall with a gate on each side; a grid of streets inside
+      const S = R - 2
+      for (let d = -S; d <= S; d++) {
+        for (
+          const [x, y] of [[cx + d, cy - S], [cx + d, cy + S], [
+            cx - S,
+            cy + d,
+          ], [cx + S, cy + d]]
+        ) {
+          if (!inside(x, y) || isWater(terrain[idx(x, y)] as T)) continue
+          // the gates: 3 wide where the middle streets go out
+          if (Math.abs(d) <= 1 || d === 2) continue
+          terrain[idx(x, y)] = T.WALL
+        }
+      }
+      for (const o of [-12, 0, 12]) {
+        street(cx + o, cy - S + 1, cx + o, cy + S - 1)
+        street(cx - S + 1, cy + o, cx + S - 1, cy + o)
+      }
+      // the middle streets run out of the gates
+      street(cx, cy - S - 4, cx, cy - S + 1)
+      street(cx, cy + S - 1, cx, cy + S + 4)
+      street(cx - S - 4, cy, cx - S + 1, cy)
+      street(cx + S - 1, cy, cx + S + 4, cy)
+      disc(cx, cy, 4, T.PLAZA)
+      break
+    }
+    case "market": {
+      // one long market street, a cross street, a back lane where the
+      // folk live, fields at the east end
+      street(cx - R, cy, cx + R, cy)
+      street(cx, cy - 10, cx, cy + 13)
+      street(cx - R + 2, cy + 13, cx + R - 2, cy + 13)
+      for (let y = cy - 14; y <= cy - 3; y++) {
+        for (let x = cx + 12; x <= cx + 28; x++) {
+          if (!inside(x, y) || isWater(terrain[idx(x, y)] as T)) continue
+          terrain[idx(x, y)] = T.FIELD
+        }
+      }
+      break
+    }
+  }
+}
+
 for (const [a, b] of edges) {
   const path = route(nodes[a].x, nodes[a].y, nodes[b].x, nodes[b].y)
   for (let k = 0; k < path.length; k++) {
@@ -602,7 +737,7 @@ for (const [a, b] of edges) {
 }
 
 // ---------------------------------------------------------------------
-// 6. villages along the roads
+// 6. the towns: houses along the streets, and what makes each kind
 
 const houses: {
   x0: number
@@ -615,135 +750,308 @@ const VILLAGER_SIGNS = ["sign-inn", "sign-item", "sign-pub", "sign-weapon"]
 /** Who lives in the houses, in turn (the folk of kt3k/ff5study among them) */
 const RESIDENTS = [
   "villager",
-  "merchant",
-  "farmer",
-  "fishwife",
-  "villager2",
   "blacksmith",
-  "sailor",
-  "nun",
+  "villager2",
   "inventor",
-  "apprentice",
-  "dancer",
+  "thief",
+  "villager",
+  "assassin",
+  "villager2",
 ]
 let residents = 0
+let signs = 0
 /** Who sits by the campfires, camp by camp */
 const CAMPERS = ["bard", "thief", "assassin", "lady-knight", "sailor"]
 
-function buildVillage(n: Node, count: number) {
+/**
+ * A house by the street cell (sx, sy), set back along (nx, ny) (away
+ * from the street) with its door facing the street, a path to it, a
+ * table, a stool and a barrel inside, and someone living just inside
+ * the door. Returns false if there's no room.
+ */
+function house(
+  village: string,
+  sx: number,
+  sy: number,
+  nx: number,
+  ny: number,
+  resident = RESIDENTS[residents % RESIDENTS.length],
+): boolean {
+  const w = 7 + randomInt(3), h = 6 + randomInt(2)
+  let x0: number, y0: number, door: [number, number]
+  if (nx !== 0) {
+    y0 = sy - (h >> 1)
+    x0 = nx > 0 ? sx + 2 : sx - 1 - w
+    door = [nx > 0 ? x0 : x0 + w - 1, sy]
+  } else {
+    x0 = sx - (w >> 1)
+    y0 = ny > 0 ? sy + 2 : sy - 1 - h
+    door = [sx, ny > 0 ? y0 : y0 + h - 1]
+  }
+  const x1 = x0 + w - 1, y1 = y0 + h - 1
+  for (let y = y0 - 1; y <= y1 + 1; y++) {
+    for (let x = x0 - 1; x <= x1 + 1; x++) {
+      if (!inside(x, y)) return false
+      const p = idx(x, y)
+      const t = terrain[p]
+      if (!(t === T.MEADOW || t === T.FOREST || t === T.HILL)) return false
+      if (taken.has(p) || roadCells.has(p)) return false
+    }
+  }
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      const edge = x === x0 || x === x1 || y === y0 || y === y1
+      terrain[idx(x, y)] = edge ? T.WALL : T.FLOOR
+      keepClear[idx(x, y)] = 1
+    }
+  }
+  terrain[idx(...door)] = T.FLOOR
+  // the path from the door to the street
+  let [px, py] = door
+  for (let k = 0; k < 8; k++) {
+    px -= nx
+    py -= ny
+    const q = idx(px, py)
+    if (!inside(px, py) || roadCells.has(q) || isWater(terrain[q] as T)) break
+    terrain[q] = T.ROAD
+    keepClear[q] = 1
+  }
+  put(props, x0 + 2, y0 + 2, "table")
+  put(props, x0 + 3, y0 + 2, "stool")
+  put(props, x1 - 1, y0 + 1, houses.length % 2 ? "jar" : "barrel")
+  put(actors, door[0] + nx, door[1] + ny, resident)
+  residents++
+  // a shop sign beside some doors (on the wall cell next to it)
+  if (signs < VILLAGER_SIGNS.length && ny !== 0) {
+    put(props, door[0] + 1, door[1], VILLAGER_SIGNS[signs++])
+  }
+  houses.push({ x0, y0, x1, y1, village })
+  return true
+}
+
+/** Houses at the candidate spots (tried in random order) up to count */
+function housesAt(
+  n: Node,
+  spots: [number, number, number, number][],
+  count: number,
+  residentsOf: (k: number) => string | undefined = () => undefined,
+) {
+  let built = 0
+  for (const [sx, sy, nx, ny] of shuffle(spots)) {
+    if (built >= count) break
+    if (house(n.name, sx, sy, nx, ny, residentsOf(built))) built++
+  }
+}
+
+/** Spots on both sides of a 2-wide street from (x0, y0), every `step` */
+function alongStreet(
+  x0: number,
+  y0: number,
+  dx: number,
+  dy: number,
+  from: number,
+  to: number,
+  step: number,
+): [number, number, number, number][] {
+  const spots: [number, number, number, number][] = []
+  for (let t = from; t <= to; t += step) {
+    const x = x0 + dx * t, y = y0 + dy * t
+    if (dx !== 0) {
+      spots.push([x, y, 0, -1], [x, y + 1, 0, 1])
+    } else {
+      spots.push([x, y, -1, 0], [x + 1, y, 1, 0])
+    }
+  }
+  return spots
+}
+
+/** The plaza: a well, the stall and its keeper, the notice board */
+function plaza(n: Node, sells = "mushroom") {
   const { x: cx, y: cy } = n
-  // the plaza: a well at the center, the stall and its keeper north
-  put(props, cx, cy, "well")
-  put(props, cx, cy - 3, "shop", { sells: "mushroom", price: 3 })
-  put(actors, cx, cy - 4, "keeper")
-  put(props, cx + 3, cy - 3, "notice-board", {
+  put(props, cx - 2, cy - 2, "well")
+  put(props, cx + 2, cy - 3, "shop", { sells, price: 3 })
+  put(actors, cx + 2, cy - 4, "keeper")
+  put(props, cx + 3, cy + 3, "notice-board", {
     text: `${n.name}: WELCOME, TRAVELER`,
   })
-  for (const [dx, dy] of [[-2, 5], [2, -5]]) {
-    put(props, cx + dx, cy + dy, "lantern")
+}
+
+/** A lamp post by the street, only on open ground (not in a house) */
+function lampPost(x: number, y: number) {
+  if (inside(x, y) && terrain[idx(x, y)] === T.MEADOW) {
+    put(props, x, y, "lamp-post")
   }
-  for (const [dx, dy] of [[-5, -2], [5, 2]]) {
+}
+
+/** Kids at play and a cat by the spot */
+function kidsAndCat(x: number, y: number) {
+  put(actors, x - 2, y, "kid")
+  put(actors, x + 2, y, "kid")
+  put(actors, x, y + 2, "child")
+  put(actors, x - 4, y + 3, "cat")
+}
+
+function buildCrossroads(n: Node, count: number) {
+  const { x: cx, y: cy } = n
+  const R = townR(n)
+  plaza(n)
+  for (const [dx, dy] of [[-5, -3], [5, 3], [-3, 5], [3, -5]]) {
     put(props, cx + dx, cy + dy, "lamp-post")
   }
-  put(props, cx - 2, cy + 2, "bench")
-  put(props, cx + 2, cy + 2, "flower-pot")
-  put(actors, cx + 4, cy - 4, "guard")
-  for (const [dx, dy] of [[-3, 3], [3, 3]]) {
-    put(actors, cx + dx, cy + dy, "kid")
+  put(props, cx - 4, cy + 3, "bench")
+  put(actors, cx - 4, cy + 4, "sage")
+  put(props, cx + 4, cy - 1, "flower-pot")
+  put(actors, cx - 3, cy - 4, "bard")
+  // guards at the ends of the main streets
+  put(actors, cx + R - 2, cy - 1, "guard")
+  put(actors, cx - 1, cy - R + 2, "lady-knight")
+  kidsAndCat(cx + 6, cy + 6)
+  housesAt(n, [
+    ...alongStreet(cx, cy, 1, 0, 10, R - 4, 9),
+    ...alongStreet(cx, cy, -1, 0, 10, R - 4, 9),
+    ...alongStreet(cx, cy, 0, 1, 10, R - 4, 9),
+    ...alongStreet(cx, cy, 0, -1, 10, R - 4, 9),
+  ], count)
+  // lamp posts along the main streets
+  for (let t = 8; t < R; t += 8) {
+    for (const [dx, dy] of [[t, -1], [-t, 2], [-1, t], [2, -t]]) {
+      lampPost(cx + dx, cy + dy)
+    }
   }
-  put(actors, cx - 4, cy, "child")
-  // houses: on road cells near the plaza, set back from the road with
-  // the door facing it
-  const near = shuffle(
-    [...roadCells].filter((p) => {
-      const x = p % W, y = (p / W) | 0
-      const d = Math.hypot(x - cx, y - cy)
-      return d > 9 && d < 34
-    }),
-  )
-  let built = 0
-  for (const p of near) {
-    if (built >= count) break
-    const rx = p % W, ry = (p / W) | 0
-    const horizontal = roadCells.has(p - 1) && roadCells.has(p + 1)
-    const vertical = roadCells.has(p - W) && roadCells.has(p + W)
-    if (horizontal === vertical) continue
-    const w = 7 + randomInt(4), h = 6 + randomInt(3)
-    const side = rng() < 0.5 ? -1 : 1
-    let x0: number, y0: number, door: [number, number]
-    if (horizontal) {
-      x0 = rx - (w >> 1)
-      y0 = side < 0 ? ry - 3 - h : ry + 4
-      door = [rx, side < 0 ? y0 + h - 1 : y0]
-    } else {
-      y0 = ry - (h >> 1)
-      x0 = side < 0 ? rx - 3 - w : rx + 4
-      door = [side < 0 ? x0 + w - 1 : x0, ry]
-    }
-    const x1 = x0 + w - 1, y1 = y0 + h - 1
-    let ok = true
-    for (let y = y0 - 1; y <= y1 + 1 && ok; y++) {
-      for (let x = x0 - 1; x <= x1 + 1 && ok; x++) {
-        if (!inside(x, y)) ok = false
-        else {
-          const t = terrain[idx(x, y)]
-          if (!(t === T.MEADOW || t === T.FOREST || t === T.HILL)) ok = false
-          if (taken.has(idx(x, y))) ok = false
-        }
-      }
-    }
-    if (!ok) continue
-    for (let y = y0; y <= y1; y++) {
-      for (let x = x0; x <= x1; x++) {
-        const edge = x === x0 || x === x1 || y === y0 || y === y1
-        terrain[idx(x, y)] = edge ? T.WALL : T.FLOOR
-        keepClear[idx(x, y)] = 1
-      }
-    }
-    terrain[idx(...door)] = T.FLOOR
-    // the path from the door to the road
-    let [px, py] = door
-    const [sx, sy] = horizontal
-      ? [0, side < 0 ? 1 : -1]
-      : [side < 0 ? 1 : -1, 0]
-    for (let k = 0; k < 6; k++) {
-      px += sx
-      py += sy
-      const q = idx(px, py)
-      if (roadCells.has(q)) break
-      terrain[q] = T.ROAD
-      keepClear[q] = 1
-    }
-    put(props, x0 + 2, y0 + 2, "table")
-    put(props, x0 + 3, y0 + 2, "stool")
-    put(props, x1 - 1, y0 + 1, built % 2 ? "jar" : "barrel")
-    // the villager lives just inside the door
-    const [ix, iy] = horizontal
-      ? [door[0], door[1] + (side < 0 ? -1 : 1)]
-      : [door[0] + (side < 0 ? -1 : 1), door[1]]
-    put(actors, ix, iy, RESIDENTS[residents++ % RESIDENTS.length])
-    // a shop sign beside some doors (on the wall cell next to it)
-    if (built < VILLAGER_SIGNS.length && horizontal) {
-      put(props, door[0] + 1, door[1], VILLAGER_SIGNS[built])
-    }
-    houses.push({ x0, y0, x1, y1, village: n.name })
-    built++
+}
+
+function buildRing(n: Node, count: number) {
+  const { x: cx, y: cy } = n
+  // the green: benches and flowers around the pond, a stall, a show
+  for (const [dx, dy] of [[0, -7], [7, 0], [0, 7], [-7, 0]]) {
+    put(props, cx + dx, cy + dy, "bench")
   }
-  // a cat by the plaza, flowers around it
-  put(actors, cx - 6, cy + 4, "cat")
-  for (let k = 0; k < 10; k++) {
-    const a = (k / 10) * Math.PI * 2
-    const x = Math.round(cx + Math.cos(a) * 7),
-      y = Math.round(cy + Math.sin(a) * 7)
-    if (inside(x, y) && isWild(terrain[idx(x, y)])) put(props, x, y, "flowers")
+  for (const [dx, dy] of [[5, -5], [-5, 5], [5, 5], [-5, -5]]) {
+    put(props, cx + dx, cy + dy, "flower-pot")
   }
+  put(props, cx + 3, cy - 9, "shop", { sells: "bread", price: 3 })
+  put(actors, cx + 3, cy - 10, "keeper")
+  put(props, cx - 3, cy - 9, "notice-board", {
+    text: `${n.name}: MIND THE POND`,
+  })
+  put(actors, cx - 9, cy + 2, "dancer")
+  put(actors, cx + 6, cy + 2, "fishwife")
+  put(actors, cx - 2, cy + 6, "sailor")
+  put(actors, cx + 1, cy - 6, "nun")
+  kidsAndCat(cx + 8, cy - 4)
+  // lamp posts on the ring
+  for (let k = 0; k < 8; k++) {
+    const a = (k + 0.5) * Math.PI / 4
+    lampPost(
+      Math.round(cx + Math.cos(a) * 10.5),
+      Math.round(cy + Math.sin(a) * 10.5),
+    )
+  }
+  // the houses face the green from outside the ring
+  const spots: [number, number, number, number][] = []
+  for (let k = 0; k < 16; k++) {
+    const a = (k + 0.5) * Math.PI / 8
+    const c = Math.cos(a), s = Math.sin(a)
+    const [nx, ny] = Math.abs(c) > Math.abs(s)
+      ? [Math.sign(c), 0]
+      : [0, Math.sign(s)]
+    spots.push([
+      Math.round(cx + c * 14),
+      Math.round(cy + s * 14),
+      nx,
+      ny,
+    ])
+  }
+  housesAt(n, spots, count)
+}
+
+function buildWalled(n: Node, count: number) {
+  const { x: cx, y: cy } = n
+  const S = townR(n) - 2
+  put(props, cx, cy - 2, "well")
+  put(actors, cx + 2, cy + 2, "dancer")
+  // the royal party is in town, the chancellor never far behind
+  put(actors, cx - 3, cy + 1, "princess")
+  put(actors, cx - 3, cy + 3, "chancellor")
+  // a guard by each gate, inside
+  put(actors, cx + 2, cy - S + 2, "guard")
+  put(actors, cx + 2, cy + S - 2, "guard")
+  put(actors, cx - S + 2, cy + 2, "lady-knight")
+  put(actors, cx + S - 2, cy + 2, "lady-knight")
+  // the market around the plaza
+  put(props, cx + 5, cy - 3, "shop", { sells: "potion", price: 4 })
+  put(actors, cx + 5, cy - 4, "keeper")
+  put(props, cx - 5, cy - 3, "shop", { sells: "seed", price: 1 })
+  put(actors, cx - 5, cy - 4, "keeper")
+  put(actors, cx - 6, cy + 3, "apprentice")
+  put(props, cx + 3, cy + 5, "notice-board", {
+    text: `${n.name}: THE GATES CLOSE AT NIGHT (THEY DON'T)`,
+  })
+  kidsAndCat(cx + 7, cy + 8)
+  const spots: [number, number, number, number][] = []
+  for (const o of [-12, 0, 12]) {
+    for (const t of [-18, -6, 6, 18]) {
+      spots.push([cx + o, cy + t, -1, 0], [cx + o + 1, cy + t, 1, 0])
+    }
+  }
+  housesAt(n, spots, count)
+  // lamp posts at the crossings
+  for (const ox of [-12, 12]) {
+    for (const oy of [-12, 12]) lampPost(cx + ox - 1, cy + oy - 1)
+  }
+}
+
+function buildMarket(n: Node, count: number) {
+  const { x: cx, y: cy } = n
+  const R = townR(n)
+  // stalls along the north side of the street, keepers behind them
+  const stalls: [string, number][] = [
+    ["seed", 1],
+    ["bread", 3],
+    ["mushroom", 3],
+    ["potion", 4],
+  ]
+  stalls.forEach(([sells, price], k) => {
+    const x = cx - 4 - k * 5
+    put(props, x, cy - 2, "shop", { sells, price })
+    put(actors, x, cy - 3, "keeper")
+  })
+  put(props, cx - 24, cy - 2, "notice-board", {
+    text: `${n.name} MARKET: EVERY DAY IS MARKET DAY`,
+  })
+  put(actors, cx + 2, cy - 2, "bard")
+  put(actors, cx - 11, cy - 1, "apprentice")
+  put(actors, cx - 8, cy - 1, "merchant")
+  put(props, cx + 4, cy - 4, "bench")
+  put(actors, cx + 5, cy - 4, "sage")
+  // the fields: rows of saplings, the farmers among them
+  for (let y = cy - 13; y <= cy - 4; y += 3) {
+    for (let x = cx + 13; x <= cx + 27; x += 2) {
+      if (terrain[idx(x, y)] === T.FIELD) put(props, x, y, "sapling")
+    }
+  }
+  put(actors, cx + 14, cy - 2, "farmer")
+  put(actors, cx + 22, cy - 2, "farmer")
+  kidsAndCat(cx + 4, cy + 4)
+  // the folk live along the back lane
+  housesAt(n, [
+    ...alongStreet(cx, cy + 13, -1, 0, 5, R - 6, 9),
+    ...alongStreet(cx, cy + 13, 1, 0, 5, R - 6, 9),
+  ], count)
+  for (let t = -24; t <= 24; t += 8) lampPost(cx + t, cy + 2)
 }
 
 for (const n of nodes) {
   switch (n.kind) {
     case "village": {
       const v = plan.villages.find((v) => v.name === n.name)!
-      buildVillage(n, v.houses)
+      const build = {
+        crossroads: buildCrossroads,
+        ring: buildRing,
+        walled: buildWalled,
+        market: buildMarket,
+      }[layoutOf(n)]
+      build(n, v.houses)
       break
     }
     case "arrival":
@@ -766,9 +1074,9 @@ for (const n of nodes) {
       for (const [dx, dy] of [[-3, -3], [3, -3], [-3, 3], [3, 3]]) {
         put(props, n.x + dx, n.y + dy, "lantern")
       }
-      // the princess slipped out to the shrine; the chancellor followed
-      put(actors, n.x - 1, n.y + 2, "princess")
-      put(actors, n.x + 2, n.y + 2, "chancellor")
+      // a nun keeps the shrine
+      put(actors, n.x - 1, n.y + 2, "nun")
+      put(props, n.x - 2, n.y + 3, "bench")
       put(props, n.x, n.y + 3, "flower-pot")
       break
     case "ruins": {
@@ -936,7 +1244,7 @@ const villageNodes = nodes.filter((n) => n.kind === "village")
 for (const v of villageNodes) {
   // a flock of sheep on a meadow near the village
   for (let n = 0; n < 200; n++) {
-    const a = rng() * Math.PI * 2, r = 20 + rng() * 25
+    const a = rng() * Math.PI * 2, r = townR(v) + 6 + rng() * 25
     const x = Math.round(v.x + Math.cos(a) * r),
       y = Math.round(v.y + Math.sin(a) * r)
     if (!inside(x, y) || terrain[idx(x, y)] !== T.MEADOW) continue
@@ -1104,7 +1412,9 @@ let ok = true
     }
   }
   for (const n of nodes) {
-    const near = D8.some(([dx, dy]) => reached[idx(n.x + dx, n.y + dy)])
+    // a ring town's middle is its pond: the ring street is checked
+    const x = n.kind === "village" && layoutOf(n) === "ring" ? n.x + 12 : n.x
+    const near = D8.some(([dx, dy]) => reached[idx(x + dx, n.y + dy)])
     console.log(`${near ? "ok" : "NG"} ${n.name} reachable from the arrival`)
     if (!near) ok = false
   }
@@ -1121,10 +1431,6 @@ let ok = true
     console.log(`${n >= 3 ? "ok" : "NG"} ${v.name} has ${n} houses`)
     if (n < 3) ok = false
   }
-}
-if (!ok) {
-  console.error("wilds verification failed")
-  Deno.exit(1)
 }
 
 // ---------------------------------------------------------------------
@@ -1150,6 +1456,7 @@ if (previewAt >= 0) {
     [T.TREE]: Palette.green4,
     [T.STONE]: Palette.violet2,
     [T.CAMP]: Palette.orange3,
+    [T.FIELD]: Palette.brown3,
   }
   const rgba = new Uint8Array(W * H * 4)
   for (let p = 0; p < W * H; p++) {
@@ -1167,6 +1474,11 @@ if (previewAt >= 0) {
   mark(propsOut, Palette.magenta2)
   await Deno.writeFile(Deno.args[previewAt + 1], await encodePng(W, H, rgba))
   console.log(`wrote the preview to ${Deno.args[previewAt + 1]}`)
+}
+// (the preview is written even when a check fails, to see why)
+if (!ok) {
+  console.error("wilds verification failed")
+  Deno.exit(1)
 }
 
 // ---------------------------------------------------------------------
@@ -1188,7 +1500,7 @@ for (let by = 0; by < plan.blocks.h; by++) {
     // rooms: the named places, clipped to the block
     const { rooms, room } = createRooms(bi, bj)
     for (const n of nodes) {
-      const r = n.kind === "village" ? 34 : n.kind === "ruins" ? 9 : 6
+      const r = n.kind === "village" ? townR(n) + 2 : n.kind === "ruins" ? 9 : 6
       const x0 = Math.max(0, n.x - r - bx * BLOCK)
       const y0 = Math.max(0, n.y - r - by * BLOCK)
       const x1 = Math.min(BLOCK - 1, n.x + r - bx * BLOCK)

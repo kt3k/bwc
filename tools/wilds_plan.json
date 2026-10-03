@@ -5,8 +5,28 @@
   "blocks": { "w": 4, "h": 3 },
   "arrival": { "x": 0.16, "y": 0.52, "name": "LANDING" },
   "villages": [
-    { "x": 0.33, "y": 0.42, "name": "ASHFORD", "houses": 6 },
-    { "x": 0.70, "y": 0.62, "name": "MILLBROOK", "houses": 5 }
+    {
+      "x": 0.33,
+      "y": 0.42,
+      "name": "ASHFORD",
+      "houses": 10,
+      "layout": "crossroads"
+    },
+    {
+      "x": 0.70,
+      "y": 0.62,
+      "name": "MILLBROOK",
+      "houses": 9,
+      "layout": "ring"
+    },
+    {
+      "x": 0.55,
+      "y": 0.47,
+      "name": "STONEGATE",
+      "houses": 12,
+      "layout": "walled"
+    },
+    { "x": 0.27, "y": 0.72, "name": "HAYWARD", "houses": 8, "layout": "market" }
   ],
   "landmarks": [
     { "x": 0.55, "y": 0.22, "name": "LOOKOUT", "kind": "lookout" },

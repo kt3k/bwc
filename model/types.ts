@@ -148,6 +148,8 @@ export type IActor =
   & FieldEventTarget
   & {
     get id(): string
+    /** The actor type in the catalog (e.g. "villager") */
+    get type(): string
     get physicalGridKey(): string
     get dir(): Dir
     get follower(): IFollower | null

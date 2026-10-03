@@ -166,6 +166,7 @@
 | `y`       | sand.png       | 砂紋              | 水辺                   |
 | `i`       | ice.png        | 氷 (滑る)         |                        |
 | `x`       | cracked.png    | ひび (掘れる)     |                        |
+| `t`       | tilled.png     | 耕した土 (畑)     | WILDS の HAYWARD       |
 | `n s o e` | conveyor_*.png | ベルト (強制移動) |                        |
 
 ## アイテム・プロップ・アクター
