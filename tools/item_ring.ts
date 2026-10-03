@@ -2,14 +2,14 @@
 // a 1px ring of gray2 just outside its dark outline, like the apple, so
 // items stand out on any floor. The ring is the set of opaque pixels
 // that touch the outside (the transparent area connected to the sprite's
-// border, or the border itself) in 8 directions; holes inside the item
-// (the key's bow) stay transparent. Right inside the ring is the outline,
-// in black only.
+// border, or the border itself) in 8 directions. Right inside the ring is
+// the outline, in black only. An item has no see-through holes: a hole
+// (like the key's bow) is filled black.
 //
 // `deno task check-palette` checks the rule. This script fixes the given
 // item sprites: it adds the ring on the transparent pixels around them
 // and paints the outline (the pixels right inside the ring, in 4
-// directions) black:
+// directions) and any holes black:
 //
 // Usage: deno -A tools/item_ring.ts static/item/<name>.png ...
 import { Palette } from "../util/palette.ts"
@@ -110,6 +110,16 @@ function outlineOf(w: number, h: number, rgba: Uint8Array, ring: Uint8Array) {
   return outline
 }
 
+/** Transparent pixels enclosed by the item (not reached from outside) */
+function holesOf(w: number, h: number, rgba: Uint8Array): number[] {
+  const out = outside(w, h, rgba)
+  const holes: number[] = []
+  for (let p = 0; p < w * h; p++) {
+    if (rgba[p * 4 + 3] === 0 && !out[p]) holes.push(p)
+  }
+  return holes
+}
+
 /** The pixels breaking the rule, as "x,y (part)" (empty when it holds) */
 export function itemRingErrors(
   w: number,
@@ -127,6 +137,9 @@ export function itemRingErrors(
     if (!isColor(rgba, p, outlineRgb)) {
       errors.push(`${p % w},${(p / w) | 0} (outline)`)
     }
+  }
+  for (const p of holesOf(w, h, rgba)) {
+    errors.push(`${p % w},${(p / w) | 0} (hole)`)
   }
   return errors
 }
@@ -150,9 +163,12 @@ export function addItemRing(w: number, h: number, rgba: Uint8Array) {
   return result
 }
 
-/** Paints the outline (the pixels right inside the ring) black */
+/** Paints the outline (the pixels right inside the ring) and holes black */
 export function blackenOutline(w: number, h: number, rgba: Uint8Array) {
   const result = rgba.slice()
+  for (const p of holesOf(w, h, rgba)) {
+    result.set([...outlineRgb, 255], p * 4)
+  }
   for (const p of outlineOf(w, h, rgba, ringOf(w, h, rgba))) {
     result.set([...outlineRgb, 255], p * 4)
   }
@@ -176,6 +192,6 @@ if (import.meta.main) {
       Deno.exit(1)
     }
     await Deno.writeFile(path, await encodePng(w, h, fixed))
-    console.log(`${path}: fixed (the ring and a black outline)`)
+    console.log(`${path}: fixed (the ring, a black outline, no holes)`)
   }
 }

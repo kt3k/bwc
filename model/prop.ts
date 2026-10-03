@@ -122,6 +122,9 @@ export class Prop implements IProp {
         case "spawn-drops": {
           const dirs = DIRS.filter((d) => {
             const [ni, nj] = nextGrid(this.i, this.j, d)
+            if (action.avoid?.[0] === ni && action.avoid?.[1] === nj) {
+              return false
+            }
             return field.canEnterStatic(ni, nj)
           })
           for (let n = 0; n < action.count; n++) {
@@ -707,7 +710,14 @@ class PushedDelegateChest implements PushedDelegate {
           prop.vanish()
         },
       },
-      { type: "spawn-drops", itemType, count },
+      // not onto the pusher (a bounce there would pick them up unseen):
+      // they scatter to the other sides, or pile up where the chest was
+      {
+        type: "spawn-drops",
+        itemType,
+        count,
+        avoid: event.pusher ? [event.pusher.i, event.pusher.j] : undefined,
+      },
       { type: "remove" },
     )
   }

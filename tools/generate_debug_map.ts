@@ -122,7 +122,9 @@ const width = Math.max(
   2 + ACTOR_TYPES.length * 7 + 2,
   2 + PROPS_PER_ROW * PITCH + 1,
 )
-const height = PROPS_Y + propRows * 2 + 2
+/** The stack station: chests in dead ends drop all onto one cell */
+const STACKS_Y = PROPS_Y + propRows * 2 + 1
+const height = STACKS_Y + 8
 rect(1, 1, width, height, "0")
 
 // title + arrival
@@ -164,6 +166,46 @@ PROP_TYPES.forEach((type, n) => {
   sign(x, y, label(type, data, NOTES[type]))
   prop(x + 1, y, type, data)
 })
+
+// stacks: a chest's drops never land on the one who pushed it, so a
+// chest in a dead end (open only toward the pusher) leaves all of them
+// in a pile where it stood. Step in to take the pile at once ("xN")
+letters(2, STACKS_Y, "STACKS")
+sign(9, STACKS_Y, "STACKS: PUSH A CHEST, THEN STEP IN TO TAKE THE PILE")
+/** A chest in a dead end above (cx, y), pushed up from (cx, y) */
+const deadEndChest = (
+  cx: number,
+  y: number,
+  drops: string,
+  count: number,
+) => {
+  rect(cx - 1, y - 2, cx + 1, y - 2, "1")
+  rect(cx - 1, y - 1, cx - 1, y - 1, "1")
+  rect(cx + 1, y - 1, cx + 1, y - 1, "1")
+  prop(cx, y - 1, "chest", { drops, count })
+}
+{
+  const y = STACKS_Y + 5
+  // 5 coins in one pile
+  deadEndChest(4, y, "coin", 5)
+  sign(6, y - 1, "5 COINS IN ONE PILE")
+  // a mixed pile: two chests side by side, walled in but for the
+  // cells to push them from (below the right one, left of the left
+  // one). Whichever goes first leaves its pile where it stood, and the
+  // other drops onto it
+  {
+    const cx = 15
+    rect(cx - 1, y - 2, cx + 1, y - 2, "1")
+    rect(cx + 1, y - 1, cx + 1, y - 1, "1")
+    rect(cx - 1, y, cx - 1, y, "1")
+    prop(cx, y - 1, "chest", { drops: "coin", count: 3 })
+    prop(cx - 1, y - 1, "chest", { drops: "seed", count: 2 })
+    sign(cx + 2, y - 1, "PUSH BOTH: COINS AND SEEDS IN ONE PILE")
+  }
+  // keys: "GOT 2 KEYS"
+  deadEndChest(24, y, "key", 2)
+  sign(26, y - 1, "2 KEYS IN ONE PILE")
+}
 
 // ---------------------------------------------------------------------
 // checks

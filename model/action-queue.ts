@@ -30,7 +30,14 @@ export type PropAction =
   | CommonAction
   | { type: "break"; dir: Dir; cb?: (motion: Motion) => void }
   | { type: "remove" }
-  | { type: "spawn-drops"; itemType: string; count: number }
+  | {
+    type: "spawn-drops"
+    itemType: string
+    count: number
+    /** A cell the drops never go to (who broke the chest); with no other
+     * open side they stay on the prop's own cell */
+    avoid?: readonly [number, number]
+  }
 
 export type ItemAction =
   | CommonAction
