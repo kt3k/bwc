@@ -42,6 +42,7 @@ function makeField(
     isDiggable: () => false,
     updateCell: () => {},
     peekItem: () => undefined,
+    peekItems: () => [],
     spawnActor: () => null,
     spawnItem: () => null,
     spawnProp: () => null,

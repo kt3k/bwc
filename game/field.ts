@@ -90,6 +90,12 @@ export class FieldItems implements IStepper, ILoader {
     return Item.isCollected(id)
   }
 
+  getAll(i: number, j: number): IItem[] {
+    return [...this.#gridSet.get(i, j)?.values() ?? []].filter((item) =>
+      !item.isFollowing
+    )
+  }
+
   get(i: number, j: number): IItem | undefined {
     // exclude items that are following actors or items
     return this.#gridSet.get(i, j)?.values().filter((item) => !item.isFollowing)
@@ -627,6 +633,9 @@ export class Field implements IField {
   }
   peekItem(i: number, j: number): IItem | undefined {
     return this.#items.get(i, j)
+  }
+  peekItems(i: number, j: number): IItem[] {
+    return this.#items.getAll(i, j)
   }
   collectItem(i: number, j: number, id: string): void {
     this.#items.collect(i, j, id)

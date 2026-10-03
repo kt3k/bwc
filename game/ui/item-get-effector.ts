@@ -3,60 +3,27 @@ import { loadImage } from "../../util/load.ts"
 import * as signal from "../../util/signals.ts"
 
 export function ItemGetEffector({ el, subscribe }: Context) {
-  let prevCount = signal.appleCount.get()
-  subscribe(signal.appleCount, (count) => {
-    const increased = count > prevCount
-    prevCount = count
-    if (!increased) {
-      return
-    }
-
-    moveImage(el, "./item/apple.png", "10px")
-  })
-
-  let prevGreenAppleCount = signal.greenAppleCount.get()
-  subscribe(signal.greenAppleCount, (count) => {
-    const increased = count > prevGreenAppleCount
-    prevGreenAppleCount = count
-    if (!increased) {
-      return
-    }
-
-    moveImage(el, "./item/green-apple.png", "36px")
-  })
-
-  let prevCoinCount = signal.coinCount.get()
-  subscribe(signal.coinCount, (count) => {
-    const increased = count > prevCoinCount
-    prevCoinCount = count
-    if (!increased) {
-      return
-    }
-
-    moveImage(el, "./item/coin.png", "62px")
-  })
-
-  let prevSeedCount = signal.seedCount.get()
-  subscribe(signal.seedCount, (count) => {
-    const increased = count > prevSeedCount
-    prevSeedCount = count
-    if (!increased) {
-      return
-    }
-
-    moveImage(el, "./item/seed.png", "88px")
-  })
-
-  let prevKeyCount = signal.keyCount.get()
-  subscribe(signal.keyCount, (count) => {
-    const increased = count > prevKeyCount
-    prevKeyCount = count
-    if (!increased) {
-      return
-    }
-
-    moveImage(el, "./item/key.png", "114px")
-  })
+  // An icon flies to the counter for each item got, so a stack picked up
+  // at once sends a little volley (up to 5 icons, one after another)
+  const watch = (
+    counter: typeof signal.appleCount,
+    src: string,
+    endTop: string,
+  ) => {
+    let prev = counter.get()
+    subscribe(counter, (count) => {
+      const increase = count - prev
+      prev = count
+      for (let n = 0; n < Math.min(increase, 5); n++) {
+        setTimeout(() => moveImage(el, src, endTop), n * 70)
+      }
+    })
+  }
+  watch(signal.appleCount, "./item/apple.png", "10px")
+  watch(signal.greenAppleCount, "./item/green-apple.png", "36px")
+  watch(signal.coinCount, "./item/coin.png", "62px")
+  watch(signal.seedCount, "./item/seed.png", "88px")
+  watch(signal.keyCount, "./item/key.png", "114px")
 }
 
 async function moveImage(

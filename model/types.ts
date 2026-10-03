@@ -37,7 +37,8 @@ export type IItem = IEntity & IStepper & IFollower & {
   isFollowing: boolean
   /** Starts following the actor who set this item as its follower */
   startFollowing(): void
-  onCollect(actor: IActor, field: IField): void
+  /** amount: how many of this kind are picked up at once (default 1) */
+  onCollect(actor: IActor, field: IField, amount?: number): void
   enqueueActions(
     ...actions: { type: "go"; dir: Dir; speed?: 1 | 2 | 4 | 8 | 16 }[]
   ): void
@@ -75,6 +76,8 @@ export type IField = {
   /** replaces the cell terrain at the given coordinates (e.g. a bridge) */
   updateCell(i: number, j: number, cell: string): void
   peekItem(i: number, j: number): IItem | undefined
+  /** All the items lying on the cell (not the following ones) */
+  peekItems(i: number, j: number): IItem[]
   spawnActor(type: string, i: number, j: number, dir: Dir): IActor | null
   spawnItem(type: string, i: number, j: number, id?: string): IItem | null
   spawnProp(type: string, i: number, j: number): IProp | null

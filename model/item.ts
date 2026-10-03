@@ -13,7 +13,7 @@ import type {
 } from "./types.ts"
 import { DIRS } from "../util/dir.ts"
 import * as signal from "../util/signals.ts"
-import { linePattern0 } from "./effect.ts"
+import { countPopup, linePattern0 } from "./effect.ts"
 import { ActionQueue, type ItemAction } from "./action-queue.ts"
 import { MoveGo } from "./move.ts"
 import { Palette } from "../util/palette.ts"
@@ -110,46 +110,50 @@ export class Item implements IItem {
     this.def = def
   }
 
-  onCollect(actor: Actor, field: IField) {
+  /**
+   * @param amount How many items of this kind are picked up at once (the
+   * others of a stack are collected by collectAll)
+   */
+  onCollect(actor: Actor, field: IField, amount = 1) {
     switch (this.def.collect) {
       case "apple": {
         const delegate = new CollectApple()
-        delegate.onCollect(actor, field, this)
+        delegate.onCollect(actor, field, this, amount)
         break
       }
       case "green-apple": {
         const delegate = new CollectGreenApple()
-        delegate.onCollect(actor, field, this)
+        delegate.onCollect(actor, field, this, amount)
         break
       }
       case "coin": {
         const delegate = new CollectCoin()
-        delegate.onCollect(actor, field, this)
+        delegate.onCollect(actor, field, this, amount)
         break
       }
       case "seed": {
         const delegate = new CollectSeed()
-        delegate.onCollect(actor, field, this)
+        delegate.onCollect(actor, field, this, amount)
         break
       }
       case "key": {
         const delegate = new CollectKey()
-        delegate.onCollect(actor, field, this)
+        delegate.onCollect(actor, field, this, amount)
         break
       }
       case "mushroom": {
         const delegate = new CollectMushroom()
-        delegate.onCollect(actor, field, this)
+        delegate.onCollect(actor, field, this, amount)
         break
       }
       case "purple-mushroom": {
         const delegate = new CollectPurpleMushroom()
-        delegate.onCollect(actor, field, this)
+        delegate.onCollect(actor, field, this, amount)
         break
       }
       case "fish": {
         const delegate = new CollectFish()
-        delegate.onCollect(actor, field, this)
+        delegate.onCollect(actor, field, this, amount)
         break
       }
     }
@@ -240,11 +244,49 @@ export class Item implements IItem {
 }
 
 interface CollectDelegate {
-  onCollect(actor: IActor, field: IField, item: Item): void
+  onCollect(actor: IActor, field: IField, item: Item, amount: number): void
+}
+
+/**
+ * Picks up every item on the actor's cell at once. Items of a kind are
+ * collected together (the counter goes up by their number, the effect
+ * plays once); fish each start following. When more than one item is
+ * taken, "xN" pops up over the cell.
+ */
+export function collectAll(
+  actor: Actor,
+  field: IField,
+  items: readonly IItem[],
+): void {
+  const kinds = new Map<string, IItem[]>()
+  for (const item of items) {
+    const kind = kinds.get(item.def.collect)
+    if (kind) kind.push(item)
+    else kinds.set(item.def.collect, [item])
+  }
+  for (const [collect, kind] of kinds) {
+    if (collect === "fish") {
+      for (const item of kind) item.onCollect(actor, field)
+      continue
+    }
+    const [first, ...rest] = kind
+    for (const item of rest) field.collectItem(actor.i, actor.j, item.id)
+    first.onCollect(actor, field, kind.length)
+  }
+  if (items.length > 1) {
+    for (const effect of countPopup(actor.i, actor.j, items.length)) {
+      field.effects.add(effect)
+    }
+  }
 }
 
 export class CollectApple implements CollectDelegate {
-  onCollect(actor: IActor, field: IField, item: Item): void {
+  onCollect(
+    actor: IActor,
+    field: IField,
+    item: Item,
+    amount: number,
+  ): void {
     field.collectItem(actor.i, actor.j, item.id)
     const dirs = [] as Dir[]
     for (const dir of DIRS) {
@@ -271,13 +313,18 @@ export class CollectApple implements CollectDelegate {
     }
 
     const count = signal.appleCount.get()
-    signal.appleCount.update(count + 1)
+    signal.appleCount.update(count + amount)
     signal.playSound("pickupCoin")
   }
 }
 
 export class CollectGreenApple implements CollectDelegate {
-  onCollect(actor: IActor, field: IField, item: Item): void {
+  onCollect(
+    actor: IActor,
+    field: IField,
+    item: Item,
+    amount: number,
+  ): void {
     field.collectItem(actor.i, actor.j, item.id)
 
     for (
@@ -295,13 +342,18 @@ export class CollectGreenApple implements CollectDelegate {
     }
 
     const count = signal.greenAppleCount.get()
-    signal.greenAppleCount.update(count + 1)
+    signal.greenAppleCount.update(count + amount)
     signal.playSound("pickupCoin")
   }
 }
 
 export class CollectCoin implements CollectDelegate {
-  onCollect(actor: IActor, field: IField, item: Item): void {
+  onCollect(
+    actor: IActor,
+    field: IField,
+    item: Item,
+    amount: number,
+  ): void {
     field.collectItem(actor.i, actor.j, item.id)
 
     for (
@@ -319,13 +371,18 @@ export class CollectCoin implements CollectDelegate {
     }
 
     const count = signal.coinCount.get()
-    signal.coinCount.update(count + 1)
+    signal.coinCount.update(count + amount)
     signal.playSound("pickupCoin")
   }
 }
 
 export class CollectSeed implements CollectDelegate {
-  onCollect(actor: IActor, field: IField, item: Item): void {
+  onCollect(
+    actor: IActor,
+    field: IField,
+    item: Item,
+    amount: number,
+  ): void {
     field.collectItem(actor.i, actor.j, item.id)
 
     for (
@@ -343,15 +400,22 @@ export class CollectSeed implements CollectDelegate {
     }
 
     const count = signal.seedCount.get()
-    signal.seedCount.update(count + 1)
+    signal.seedCount.update(count + amount)
     signal.playSound("pickupCoin")
   }
 }
 
 export class CollectKey implements CollectDelegate {
-  onCollect(actor: IActor, field: IField, item: Item): void {
+  onCollect(
+    actor: IActor,
+    field: IField,
+    item: Item,
+    amount: number,
+  ): void {
     field.collectItem(actor.i, actor.j, item.id)
-    signal.message.update({ text: "GOT A KEY" })
+    signal.message.update({
+      text: amount > 1 ? `GOT ${amount} KEYS` : "GOT A KEY",
+    })
 
     for (
       const effect of linePattern0(
@@ -368,13 +432,18 @@ export class CollectKey implements CollectDelegate {
     }
 
     const count = signal.keyCount.get()
-    signal.keyCount.update(count + 1)
+    signal.keyCount.update(count + amount)
     signal.playSound("powerUp")
   }
 }
 
 export class CollectMushroom implements CollectDelegate {
-  onCollect(actor: IActor, field: IField, item: Item): void {
+  onCollect(
+    actor: IActor,
+    field: IField,
+    item: Item,
+    _amount: number,
+  ): void {
     field.collectItem(actor.i, actor.j, item.id)
     signal.playSound("powerUp")
     actor.clearActionQueue()
@@ -394,7 +463,12 @@ export class CollectMushroom implements CollectDelegate {
 }
 
 export class CollectPurpleMushroom implements CollectDelegate {
-  onCollect(actor: IActor, field: IField, item: Item): void {
+  onCollect(
+    actor: IActor,
+    field: IField,
+    item: Item,
+    _amount: number,
+  ): void {
     field.collectItem(actor.i, actor.j, item.id)
     signal.playSound("powerUp")
     actor.clearActionQueue()
@@ -455,7 +529,12 @@ export class CollectPurpleMushroom implements CollectDelegate {
 }
 
 export class CollectFish implements CollectDelegate {
-  onCollect(actor: IActor, field: IField, item: Item): void {
+  onCollect(
+    actor: IActor,
+    field: IField,
+    item: Item,
+    _amount: number,
+  ): void {
     if (item.isFollowing) {
       return
     }

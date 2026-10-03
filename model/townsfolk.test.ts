@@ -43,6 +43,7 @@ function makeTown(
     isDiggable: () => false,
     updateCell: () => {},
     peekItem: () => undefined,
+    peekItems: () => [],
     spawnActor: () => null,
     spawnItem: () => null,
     spawnProp: () => null,

@@ -1,4 +1,4 @@
-import type { PaletteColor } from "../util/palette.ts"
+import { Palette, type PaletteColor } from "../util/palette.ts"
 import { CELL_SIZE } from "../util/constants.ts"
 import type { Dir, IColorBox, IField, IFinishable, IStepper } from "./types.ts"
 
@@ -218,4 +218,99 @@ export class EffectLine1 implements IColorBox, IFinishable, IStepper {
   get finished(): boolean {
     return this.#duration <= 0
   }
+}
+
+/** Digits for the count popup: 3x5, drawn doubled (6x10) */
+const DIGITS: Record<string, string[]> = {
+  "0": ["xxx", "x.x", "x.x", "x.x", "xxx"],
+  "1": [".x.", "xx.", ".x.", ".x.", "xxx"],
+  "2": ["xxx", "..x", "xxx", "x..", "xxx"],
+  "3": ["xxx", "..x", ".xx", "..x", "xxx"],
+  "4": ["x.x", "x.x", "xxx", "..x", "..x"],
+  "5": ["xxx", "x..", "xxx", "..x", "xxx"],
+  "6": ["xxx", "x..", "xxx", "x.x", "xxx"],
+  "7": ["xxx", "..x", ".x.", ".x.", ".x."],
+  "8": ["xxx", "x.x", "xxx", "x.x", "xxx"],
+  "9": ["xxx", "x.x", "xxx", "..x", "xxx"],
+}
+/** The multiplication sign, at full size: bold strokes so the outline
+ * doesn't fill it into a checkerboard */
+const TIMES = [
+  "xx...xx",
+  ".xx.xx.",
+  "..xxx..",
+  ".xx.xx.",
+  "xx...xx",
+]
+
+/** One block of the count popup: rises, holds, then vanishes at once */
+export class EffectPopupPixel implements IColorBox, IFinishable, IStepper {
+  #frame = 0
+  #x: number
+  #y: number
+  constructor(
+    x: number,
+    y: number,
+    readonly w: number,
+    readonly h: number,
+    readonly color: PaletteColor,
+  ) {
+    this.#x = x
+    this.#y = y
+  }
+  /** Frames rising (1px every 2 frames), then frames holding still */
+  static readonly RISE = 16
+  static readonly HOLD = 34
+  step(_field: IField): void {
+    this.#frame++
+  }
+  get x(): number {
+    return this.#x
+  }
+  get y(): number {
+    return this.#y -
+      Math.floor(Math.min(this.#frame, EffectPopupPixel.RISE) / 2)
+  }
+  get finished(): boolean {
+    return this.#frame >= EffectPopupPixel.RISE + EffectPopupPixel.HOLD
+  }
+}
+
+/**
+ * "xN" over the cell (i, j), shown when several items are picked up at
+ * once. White pixels in a 1px black outline, so it reads on any floor;
+ * the outline comes first so the white is drawn over it.
+ */
+export function countPopup(
+  i: number,
+  j: number,
+  count: number,
+): EffectPopupPixel[] {
+  const pixels: [number, number][] = []
+  TIMES.forEach((row, y) =>
+    [...row].forEach((c, x) => c === "x" && pixels.push([x, y + 4]))
+  )
+  let left = TIMES[0].length + 2
+  for (const digit of String(count)) {
+    DIGITS[digit].forEach((row, y) =>
+      [...row].forEach((c, x) => {
+        if (c !== "x") return
+        for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
+          pixels.push([left + x * 2 + dx, y * 2 + dy])
+        }
+      })
+    )
+    left += 8
+  }
+  const width = left - 2
+  const x0 = i * CELL_SIZE + Math.floor((CELL_SIZE - width) / 2)
+  const y0 = j * CELL_SIZE - 12
+  return [
+    ...pixels.map(([x, y]) =>
+      new EffectPopupPixel(x0 + x - 1, y0 + y - 1, 3, 3, Palette.black)
+    ),
+    ...pixels.map(([x, y]) =>
+      new EffectPopupPixel(x0 + x, y0 + y, 1, 1, Palette.white)
+    ),
+  ]
 }

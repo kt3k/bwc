@@ -8,7 +8,7 @@ import {
 import { opposite } from "../util/dir.ts"
 import type { Dir, IField, Move } from "../model/types.ts"
 import { linePattern0 } from "../model/effect.ts"
-import { Item } from "../model/item.ts"
+import { collectAll, Item } from "../model/item.ts"
 import * as signal from "../util/signals.ts"
 import { Palette } from "../util/palette.ts"
 
@@ -208,7 +208,8 @@ export class IdleMainActor implements IdleDelegate {
 
 export class MoveEndMainActor implements MoveEndDelegate {
   onMoveEnd(actor: Actor, field: IField, move: Move): void {
-    field.peekItem(actor.i, actor.j)?.onCollect(actor, field)
+    // everything on the cell at once (a stack shows "xN")
+    collectAll(actor, field, field.peekItems(actor.i, actor.j))
 
     // Only an actual cell-entering move triggers onEnter. Jumps and
     // bounces end on the same cell, and firing onEnter for them

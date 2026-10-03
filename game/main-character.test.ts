@@ -33,6 +33,7 @@ function makeField(me: IActor, props: Map<string, IProp>): IField {
     isDiggable: () => false,
     updateCell: () => {},
     peekItem: () => undefined,
+    peekItems: () => [],
     spawnActor: () => null,
     spawnItem: () => null,
     spawnProp: () => null,
