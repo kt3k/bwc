@@ -59,6 +59,12 @@ export const LANDMARKS = new Set([
   "sign-item",
   "sign-magic",
   "sign-pub",
+  "lamp-post",
+  "bench",
+  "flower-pot",
+  "campfire",
+  "tent",
+  "gravestone",
 ])
 
 const VILLAGER_LINES = [
@@ -70,6 +76,30 @@ const VILLAGER_LINES = [
   "I DROPPED A COIN SOMEWHERE...",
   "WELCOME TO OUR TOWN!",
 ]
+
+/**
+ * What the folk of ff5study (original/) say, by actor type; the others
+ * say the VILLAGER_LINES
+ */
+const ROLE_LINES: Record<string, readonly string[]> = {
+  merchant: ["WARES FROM FAR AWAY!", "MY PACK GETS HEAVIER EVERY TOWN"],
+  guard: ["ALL QUIET HERE", "MOVE ALONG, TRAVELER"],
+  sage: ["THE RIVERS REMEMBER", "SEEK THE CAVERN'S THREE TRIALS"],
+  bard: ["SHALL I SING OF THE WILDS?", "LA LA LAAA..."],
+  blacksmith: ["MIND THE SPARKS", "A GOOD SWORD IS WORTH 6 COINS"],
+  fishwife: ["FRESH FISH! WELL, YESTERDAY'S", "TRY FISHING BY THE RIVER"],
+  assassin: ["...", "YOU SAW NOTHING"],
+  princess: ["IT IS SO NICE TO BE OUTSIDE", "DON'T TELL THE CHANCELLOR"],
+  chancellor: ["HAVE YOU SEEN THE PRINCESS?", "PROTOCOL, PROTOCOL..."],
+  sailor: ["THE SEA IS CALLING", "HEAVE HO!"],
+  farmer: ["PLANT A SEED, WAIT A WHILE", "THE APPLES ARE GOOD THIS YEAR"],
+  nun: ["BLESSINGS ON YOUR ROAD", "REST A WHILE, CHILD"],
+  apprentice: ["I'M STILL LEARNING", "MASTER SAYS TO SWEEP AGAIN"],
+  inventor: ["IT ALMOST WORKS!", "STAND BACK, IT MIGHT GO BOOM"],
+  "lady-knight": ["I GUARD THE ROAD", "TRAIN EVERY DAY"],
+  dancer: ["ONE, TWO, TURN!", "MUSIC MAKES THE ROAD SHORT"],
+  thief: ["NOTHING TO SEE HERE", "NICE COINS YOU'VE GOT..."],
+}
 
 /** The villagers on the field, to find someone to chat with */
 const villagers = new WeakMap<IActor, VillagerDelegate>()
@@ -187,11 +217,12 @@ export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
     this.#chatUntil = field.time + 120
     face(actor, pusher.i, pusher.j)
     if (pusher.id === "main") {
+      const lines = ROLE_LINES[actor.type] ?? VILLAGER_LINES
       if (this.#line < 0) {
-        this.#line = seed(actor.id).randomInt(VILLAGER_LINES.length)
+        this.#line = seed(actor.id).randomInt(lines.length)
       }
-      signal.message.update({ text: VILLAGER_LINES[this.#line] })
-      this.#line = (this.#line + 1) % VILLAGER_LINES.length
+      signal.message.update({ text: lines[this.#line % lines.length] })
+      this.#line = (this.#line + 1) % lines.length
       puff(field, actor, Palette.white)
     }
   }

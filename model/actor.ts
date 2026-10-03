@@ -516,6 +516,11 @@ export class Actor implements IActor {
     return this.#id
   }
 
+  /** The actor type in the catalog (e.g. "villager") */
+  get type(): string {
+    return this.#def.type
+  }
+
   get dir(): Dir {
     return this.#dir
   }

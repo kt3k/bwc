@@ -262,6 +262,106 @@
       "idle": "cat",
       "pushed": "cat",
       "src": "../actor/cat/"
+    },
+    "merchant": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/merchant/"
+    },
+    "guard": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/guard/"
+    },
+    "sage": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/sage/"
+    },
+    "bard": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/bard/"
+    },
+    "blacksmith": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/blacksmith/"
+    },
+    "fishwife": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/fishwife/"
+    },
+    "assassin": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/assassin/"
+    },
+    "princess": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/princess/"
+    },
+    "chancellor": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/chancellor/"
+    },
+    "sailor": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/sailor/"
+    },
+    "farmer": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/farmer/"
+    },
+    "nun": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/nun/"
+    },
+    "apprentice": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/apprentice/"
+    },
+    "inventor": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/inventor/"
+    },
+    "lady-knight": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/lady-knight/"
+    },
+    "dancer": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/dancer/"
+    },
+    "thief": {
+      "idle": "villager",
+      "pushed": "villager",
+      "src": "../actor/thief/"
+    },
+    "child": {
+      "idle": "kid",
+      "pushed": "kid",
+      "src": "../actor/child/"
+    },
+    "fox": {
+      "idle": "cat",
+      "pushed": "cat",
+      "src": "../actor/fox/"
+    },
+    "slime": {
+      "idle": "wander",
+      "pushed": "jump",
+      "src": "../actor/slime/"
     }
   },
   "items": {
@@ -296,6 +396,51 @@
     "fish": {
       "collect": "fish",
       "src": "../item/fish.png"
+    },
+    "coin-bag": {
+      "collect": "treasure",
+      "value": 10,
+      "src": "../item/coin-bag.png"
+    },
+    "gem": {
+      "collect": "treasure",
+      "value": 8,
+      "src": "../item/gem.png"
+    },
+    "sword": {
+      "collect": "treasure",
+      "value": 6,
+      "src": "../item/sword.png"
+    },
+    "shield": {
+      "collect": "treasure",
+      "value": 6,
+      "src": "../item/shield.png"
+    },
+    "scroll": {
+      "collect": "treasure",
+      "value": 4,
+      "src": "../item/scroll.png"
+    },
+    "potion": {
+      "collect": "treasure",
+      "value": 3,
+      "src": "../item/potion.png"
+    },
+    "ether": {
+      "collect": "treasure",
+      "value": 3,
+      "src": "../item/ether.png"
+    },
+    "herb": {
+      "collect": "treasure",
+      "value": 2,
+      "src": "../item/herb.png"
+    },
+    "bread": {
+      "collect": "treasure",
+      "value": 2,
+      "src": "../item/bread.png"
     }
   },
   "props": {
@@ -1061,6 +1206,30 @@
     "3_white": {
       "src": "../prop/3_white.png",
       "canEnter": true
+    },
+    "lamp-post": {
+      "src": "../prop/lamp-post.png",
+      "canEnter": false
+    },
+    "campfire": {
+      "src": "../prop/campfire.png",
+      "canEnter": false
+    },
+    "tent": {
+      "src": "../prop/tent.png",
+      "canEnter": false
+    },
+    "flower-pot": {
+      "src": "../prop/flower-pot.png",
+      "canEnter": false
+    },
+    "gravestone": {
+      "src": "../prop/gravestone.png",
+      "canEnter": false
+    },
+    "bench": {
+      "src": "../prop/bench.png",
+      "canEnter": false
     }
   }
 }

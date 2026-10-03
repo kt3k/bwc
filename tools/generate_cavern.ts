@@ -344,7 +344,10 @@ function iceSolve(rows: string[], a: [number, number], b: [number, number]) {
   put(props, x0 + 5, y0 + 5, "chest", { drops: "coin", count: 15 })
   put(props, x0 + 13, y0 + 5, "chest", { drops: "seed", count: 4 })
   for (let y = y0 + 2; y <= y0 + 8; y += 3) {
-    for (let x = x0 + 3; x <= x0 + 15; x += 3) put(items, x, y, "coin")
+    for (let x = x0 + 3; x <= x0 + 15; x += 3) {
+      // the coin bag in the middle of the hoard
+      put(items, x, y, x === x0 + 9 && y === y0 + 5 ? "coin-bag" : "coin")
+    }
   }
   put(props, x0 + 9, y0 + 3, "sign", { text: "MASTER OF THE CAVERN!" })
   chambers.push({ name: "VAULT", x0, y0, w: 19, h: 11, outside })
@@ -707,14 +710,35 @@ put(props, ENTRY_X + 2, 14, "sign", {
 for (const c of mainCaves) {
   put(props, c.x, c.y, "lantern")
 }
-// the nooks are dark, with a little to find
-for (const c of caves.slice(mainCaves.length)) {
+// the nooks are dark, with a little to find (a treasure in each) and a
+// slime living in each
+const NOOK_TREASURES = ["gem", "ether", "potion", "scroll", "gem", "herb"]
+for (const [k, c] of caves.slice(mainCaves.length).entries()) {
   for (let n = 0, found = 0; n < 40 && found < 3; n++) {
     const x = c.x + randomInt(c.r) - (c.r >> 1)
     const y = c.y + randomInt(c.r) - (c.r >> 1)
     if (freeOpen(x, y)) {
-      put(items, x, y, found === 0 && rng() < 0.5 ? "mushroom" : "coin")
+      put(
+        items,
+        x,
+        y,
+        found === 2
+          ? NOOK_TREASURES[k % NOOK_TREASURES.length]
+          : found === 0 && rng() < 0.5
+          ? "mushroom"
+          : "coin",
+      )
       found++
+    }
+  }
+  slime: for (let r = 1; r <= 5; r++) {
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (freeOpen(c.x + dx, c.y + dy)) {
+          put(actors, c.x + dx, c.y + dy, "slime")
+          break slime
+        }
+      }
     }
   }
 }

@@ -22,6 +22,8 @@ interface CatalogSource {
   readonly items: Record<string, {
     readonly src: string
     readonly collect: string
+    /** "treasure": how many coins it is worth */
+    readonly value?: number
   }>
   readonly actors: Record<string, {
     readonly moveEnd?: string
@@ -70,6 +72,8 @@ export interface CellDefinition {
 export interface ItemDefinition {
   readonly type: string
   readonly collect: string
+  /** "treasure": how many coins it is worth */
+  readonly value?: number
   readonly src: string
   readonly href: string
 }
@@ -143,6 +147,7 @@ export class Catalog {
         catalog.items[type] = {
           type: type,
           collect: data.collect,
+          value: data.value,
           src: data.src,
           href: new URL(data.src, url).href,
         }
@@ -210,6 +215,7 @@ export class Catalog {
       items[def.type] = {
         src: def.src,
         collect: def.collect,
+        value: def.value,
       }
     }
 

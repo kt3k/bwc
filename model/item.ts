@@ -151,6 +151,11 @@ export class Item implements IItem {
         delegate.onCollect(actor, field, this, amount)
         break
       }
+      case "treasure": {
+        const delegate = new CollectTreasure()
+        delegate.onCollect(actor, field, this, amount)
+        break
+      }
       case "fish": {
         const delegate = new CollectFish()
         delegate.onCollect(actor, field, this, amount)
@@ -373,6 +378,43 @@ export class CollectCoin implements CollectDelegate {
     const count = signal.coinCount.get()
     signal.coinCount.update(count + amount)
     signal.playSound("pickupCoin")
+  }
+}
+
+/**
+ * Treasures (gems, swords, potions... from ff5study): there is nothing
+ * to use them for yet, so they are worth coins (the value in the catalog)
+ */
+export class CollectTreasure implements CollectDelegate {
+  onCollect(
+    actor: IActor,
+    field: IField,
+    item: Item,
+    amount: number,
+  ): void {
+    field.collectItem(actor.i, actor.j, item.id)
+    const coins = (item.def.value ?? 1) * amount
+    const name = item.def.type.toUpperCase().replaceAll("-", " ")
+    signal.message.update({
+      text: amount > 1
+        ? `GOT ${amount} ${name}S! +${coins} COINS`
+        : `GOT ${/^[AEIOU]/.test(name) ? "AN" : "A"} ${name}! +${coins} COINS`,
+    })
+    for (
+      const effect of linePattern0(
+        DIRS,
+        actor.i,
+        actor.j,
+        1,
+        0.7,
+        3,
+        Palette.brown2,
+      )
+    ) {
+      field.effects.add(effect)
+    }
+    signal.coinCount.update(signal.coinCount.get() + coins)
+    signal.playSound("powerUp")
   }
 }
 

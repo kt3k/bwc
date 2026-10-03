@@ -612,6 +612,23 @@ const houses: {
   village: string
 }[] = []
 const VILLAGER_SIGNS = ["sign-inn", "sign-item", "sign-pub", "sign-weapon"]
+/** Who lives in the houses, in turn (the folk of kt3k/ff5study among them) */
+const RESIDENTS = [
+  "villager",
+  "merchant",
+  "farmer",
+  "fishwife",
+  "villager2",
+  "blacksmith",
+  "sailor",
+  "nun",
+  "inventor",
+  "apprentice",
+  "dancer",
+]
+let residents = 0
+/** Who sits by the campfires, camp by camp */
+const CAMPERS = ["bard", "thief", "assassin", "lady-knight", "sailor"]
 
 function buildVillage(n: Node, count: number) {
   const { x: cx, y: cy } = n
@@ -622,12 +639,19 @@ function buildVillage(n: Node, count: number) {
   put(props, cx + 3, cy - 3, "notice-board", {
     text: `${n.name}: WELCOME, TRAVELER`,
   })
-  for (const [dx, dy] of [[-5, -2], [5, 2], [-2, 5], [2, -5]]) {
+  for (const [dx, dy] of [[-2, 5], [2, -5]]) {
     put(props, cx + dx, cy + dy, "lantern")
   }
-  for (const [dx, dy] of [[-3, 3], [3, 3], [-4, 0]]) {
+  for (const [dx, dy] of [[-5, -2], [5, 2]]) {
+    put(props, cx + dx, cy + dy, "lamp-post")
+  }
+  put(props, cx - 2, cy + 2, "bench")
+  put(props, cx + 2, cy + 2, "flower-pot")
+  put(actors, cx + 4, cy - 4, "guard")
+  for (const [dx, dy] of [[-3, 3], [3, 3]]) {
     put(actors, cx + dx, cy + dy, "kid")
   }
+  put(actors, cx - 4, cy, "child")
   // houses: on road cells near the plaza, set back from the road with
   // the door facing it
   const near = shuffle(
@@ -697,7 +721,7 @@ function buildVillage(n: Node, count: number) {
     const [ix, iy] = horizontal
       ? [door[0], door[1] + (side < 0 ? -1 : 1)]
       : [door[0] + (side < 0 ? -1 : 1), door[1]]
-    put(actors, ix, iy, built % 2 ? "villager2" : "villager")
+    put(actors, ix, iy, RESIDENTS[residents++ % RESIDENTS.length])
     // a shop sign beside some doors (on the wall cell next to it)
     if (built < VILLAGER_SIGNS.length && horizontal) {
       put(props, door[0] + 1, door[1], VILLAGER_SIGNS[built])
@@ -735,12 +759,17 @@ for (const n of nodes) {
       })
       put(props, n.x + 2, n.y, "chest", { drops: "coin", count: 6 })
       put(props, n.x - 2, n.y, "lantern")
+      put(actors, n.x, n.y + 2, "guard")
       break
     case "shrine":
       put(props, n.x, n.y, "fish-shrine")
       for (const [dx, dy] of [[-3, -3], [3, -3], [-3, 3], [3, 3]]) {
         put(props, n.x + dx, n.y + dy, "lantern")
       }
+      // the princess slipped out to the shrine; the chancellor followed
+      put(actors, n.x - 1, n.y + 2, "princess")
+      put(actors, n.x + 2, n.y + 2, "chancellor")
+      put(props, n.x, n.y + 3, "flower-pot")
       break
     case "ruins": {
       // broken walls around the stone floor
@@ -762,6 +791,12 @@ for (const n of nodes) {
       put(props, n.x - 3, n.y + 2, "crate")
       put(props, n.x + 3, n.y - 2, "hatena")
       put(actors, n.x + 5, n.y + 3, "boulder")
+      // old graves, the sage who tends them, and what the old ones left
+      for (const dx of [-6, -4]) put(props, n.x + dx, n.y - 3, "gravestone")
+      put(actors, n.x - 5, n.y - 1, "sage")
+      put(items, n.x + 5, n.y - 3, "sword")
+      put(items, n.x + 6, n.y - 3, "shield")
+      put(items, n.x - 1, n.y + 4, "scroll")
       break
     }
     case "cave":
@@ -771,11 +806,18 @@ for (const n of nodes) {
         text: "THE OLD TUNNEL: SOUTH TO THE CAVERN. THREE TRIALS, ONE HOARD",
       })
       break
-    case "camp":
+    case "camp": {
+      const k = Number(n.name.split(" ")[1]) - 1
       put(props, n.x, n.y - 1, "lantern")
-      put(props, n.x + 1, n.y + 1, "chest", { drops: "coin", count: 3 })
+      put(props, n.x + 1, n.y + 1, "chest", { drops: "bread", count: 3 })
       put(props, n.x - 1, n.y + 1, "stool")
+      put(props, n.x, n.y, "campfire")
+      put(props, n.x - 1, n.y - 1, "tent")
+      put(actors, n.x + 1, n.y - 1, CAMPERS[k % CAMPERS.length])
+      put(actors, n.x - 2, n.y, "fox")
+      put(items, n.x + 2, n.y, k % 2 ? "potion" : "herb")
       break
+    }
   }
 }
 

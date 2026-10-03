@@ -114,12 +114,19 @@ const PROP_TYPES = Object.keys(catalog.props)
 const PROPS_PER_ROW = 12
 /** Each entry takes 3 cells: sign, spawn, gap */
 const PITCH = 3
+const PENS_PER_ROW = 14
+/** A row of pens: the label signs, then 5 rows of pen, then a gap */
+const PEN_ROW_H = 7
 
-// The floor: as wide as the widest section, as tall as the last row
+// The sections, top to bottom
+const ACTORS_Y = 7
+const actorRows = Math.ceil(ACTOR_TYPES.length / PENS_PER_ROW)
+const ITEMS_Y = ACTORS_Y + actorRows * PEN_ROW_H + 1
+const PROPS_LABEL_Y = ITEMS_Y + 4
+const PROPS_Y = PROPS_LABEL_Y + 2
 const propRows = Math.ceil(PROP_TYPES.length / PROPS_PER_ROW)
-const PROPS_Y = 21
 const width = Math.max(
-  2 + ACTOR_TYPES.length * 7 + 2,
+  2 + Math.min(ACTOR_TYPES.length, PENS_PER_ROW) * 7 + 2,
   2 + PROPS_PER_ROW * PITCH + 1,
 )
 /** The stack station: chests in dead ends drop all onto one cell */
@@ -134,31 +141,32 @@ prop(ARRIVAL.i, ARRIVAL.j, "portal-out")
 prop(5, 4, "portal", { i: START.i, j: START.j })
 sign(6, 4, "PORTAL: BACK TO THE START ISLAND")
 
-// actors: one fenced pen each
-letters(2, 7, "ACTORS")
-sign(9, 7, "ACTORS: PENNED. A LANTERN HOLDS THE GHOST")
+// actors: one fenced pen each, in rows
+letters(2, ACTORS_Y, "ACTORS")
+sign(9, ACTORS_Y, "ACTORS: PENNED. A LANTERN HOLDS THE GHOST")
 ACTOR_TYPES.forEach((type, n) => {
-  const cx = 4 + n * 7
-  sign(cx, 8, label(type))
-  rect(cx - 2, 9, cx + 2, 13, "1")
-  rect(cx - 1, 10, cx + 1, 12, "0")
-  actor(cx, 11, type)
+  const cx = 4 + (n % PENS_PER_ROW) * 7
+  const y = ACTORS_Y + 1 + Math.floor(n / PENS_PER_ROW) * PEN_ROW_H
+  sign(cx, y, label(type))
+  rect(cx - 2, y + 1, cx + 2, y + 5, "1")
+  rect(cx - 1, y + 2, cx + 1, y + 4, "0")
+  actor(cx, y + 3, type)
   // the ghost walks through walls; a lantern in the pen keeps it inside
-  if (type === "ghost") prop(cx, 13, "lantern")
+  if (type === "ghost") prop(cx, y + 5, "lantern")
 })
 
 // items: one row
-letters(2, 15, "ITEMS")
-sign(8, 15, "ITEMS: WALK OVER TO COLLECT")
+letters(2, ITEMS_Y, "ITEMS")
+sign(8, ITEMS_Y, "ITEMS: WALK OVER TO COLLECT")
 ITEM_TYPES.forEach((type, n) => {
   const x = 2 + n * PITCH
-  sign(x, 17, label(type))
-  item(x + 1, 17, type)
+  sign(x, ITEMS_Y + 2, label(type))
+  item(x + 1, ITEMS_Y + 2, type)
 })
 
 // props: rows of PROPS_PER_ROW, with a walkway row between them
-letters(2, 19, "PROPS")
-sign(8, 19, "PROPS: PUSH OR STEP ON THEM")
+letters(2, PROPS_LABEL_Y, "PROPS")
+sign(8, PROPS_LABEL_Y, "PROPS: PUSH OR STEP ON THEM")
 PROP_TYPES.forEach((type, n) => {
   const x = 2 + (n % PROPS_PER_ROW) * PITCH
   const y = PROPS_Y + Math.floor(n / PROPS_PER_ROW) * 2
