@@ -18,6 +18,7 @@ import { ExitButton } from "./ui/exit-button.ts"
 import { Minimap } from "./ui/minimap.ts"
 import { PlaceLabel } from "./ui/place-label.ts"
 import { SoundPlayer } from "./ui/sound-player.ts"
+import { SpeedButtons } from "./ui/speed-buttons.ts"
 
 globalThis.addEventListener("blur", clearInput)
 
@@ -37,3 +38,4 @@ register(MessageToast, "js-message-toast")
 register(SoundPlayer, "js-sound-player")
 register(Minimap, "js-minimap")
 register(PlaceLabel, "js-place-label")
+register(SpeedButtons, "js-speed-buttons")

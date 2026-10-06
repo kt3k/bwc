@@ -12,6 +12,8 @@ type SaveData = {
   collectedItemIds?: string[]
   bestTimes?: Record<string, number>
   position?: { i: number; j: number }
+  /** the player's walking speed (the speed buttons) */
+  speed?: 1 | 2 | 4
 }
 
 let data: SaveData = {}
@@ -53,8 +55,15 @@ export function restoreSave() {
     signal.seedCount.update(saved.seedCount ?? 0)
     signal.keyCount.update(saved.keyCount ?? 0)
     Item.deserializeCollected(saved.collectedItemIds ?? [])
+    if (saved.speed === 1 || saved.speed === 2 || saved.speed === 4) {
+      signal.playerSpeed.update(saved.speed)
+    }
   }
   restored = true
+  signal.playerSpeed.subscribe((v) => {
+    data.speed = v
+    write()
+  })
   signal.appleCount.subscribe((v) => {
     data.appleCount = v
     write()

@@ -64,6 +64,8 @@ type ActorAssets = {
   [K in ActorAppearance]: ImageBitmap
 }
 
+type Speed = 1 | 2 | 4 | 8 | 16
+
 export type MoveEndType = "inertial"
 export type IdleType = "random-rotate" | "random-walk" | "wander"
 
@@ -193,6 +195,8 @@ export class Actor implements IActor {
   #id: string
   /** The speed of the move */
   #speed: 1 | 2 | 4 | 8 | 16
+  /** The speed without boosts (what "reset" goes back to) */
+  #baseSpeed: Speed
   /** The counter of the idle state */
   #idleCounter = 0
   /** The key of the physical grid, which is used for collision detection */
@@ -229,14 +233,15 @@ export class Actor implements IActor {
           this.#speedUpCb?.()
           this.#speedUpCb = undefined
           switch (action.change) {
+            // boosts are relative to the base speed (the player's choice)
             case "2x":
-              this.speed = 2
+              this.speed = Math.min(16, this.#baseSpeed * 2) as Speed
               break
             case "4x":
-              this.speed = 4
+              this.speed = Math.min(16, this.#baseSpeed * 4) as Speed
               break
             case "reset":
-              this.speed = 1
+              this.speed = this.#baseSpeed
               break
             default:
               action.change satisfies never
@@ -337,6 +342,7 @@ export class Actor implements IActor {
     this.#i = i
     this.#j = j
     this.#speed = speed
+    this.#baseSpeed = speed
     this.#id = id
     this.#def = def
     this.#physicalGridKey = this.#calcPhysicalGridKey()
@@ -605,6 +611,18 @@ export class Actor implements IActor {
 
   set speed(value: 1 | 2 | 4 | 8 | 16) {
     this.#speed = value
+  }
+
+  /**
+   * The speed without boosts. Changing it changes the current speed too,
+   * unless a boost (a mushroom) is on
+   */
+  get baseSpeed(): Speed {
+    return this.#baseSpeed
+  }
+  set baseSpeed(value: Speed) {
+    if (this.#speed === this.#baseSpeed) this.#speed = value
+    this.#baseSpeed = value
   }
 
   /** Loads the assets and store ImageBitmaps in #assets. */

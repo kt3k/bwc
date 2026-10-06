@@ -78,7 +78,7 @@ export function GameScreen({ el, query }: Context) {
     kimiDef,
     "main",
     "down",
-    1,
+    signals.playerSpeed.get(),
     new MoveEndMainActor(),
     new IdleMainActor(),
   )
@@ -99,6 +99,10 @@ export function GameScreen({ el, query }: Context) {
     field.checkBlockUnload(field.me.i, field.me.j)
   }
   signals.centerGrid10.subscribe(loadBlocks)
+  // The speed buttons set the player's walking speed
+  signals.playerSpeed.subscribe((v) => {
+    me.baseSpeed = v
+  })
 
   // Persist the last position as the player moves around
   signals.centerGrid10.subscribe(() => {

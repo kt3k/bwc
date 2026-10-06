@@ -22,6 +22,8 @@ export const coinCount = new Signal(0)
 export const seedCount = new Signal(0)
 // The current count of keys
 export const keyCount = new Signal(0)
+// The player's walking speed, chosen with the speed buttons (pixels per frame)
+export const playerSpeed = new Signal<1 | 2 | 4>(2)
 // The message to show in the toast ui. Wrapped in an object so that
 // the same text shown twice still triggers the subscribers.
 export const message = new Signal<{ text: string } | null>(null)
