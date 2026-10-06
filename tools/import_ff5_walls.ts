@@ -1,9 +1,9 @@
 // Imports wall cells from the FF5 tilesets of kt3k/ff5study
 // (materials/rom_extract/tilesets, 16x16 tiles) and fits them to
-// docs/art-guide.md: the terrain is grayscale, so each tile's colors get
-// the 5 tones (black, gray4, gray3, gray2, white) by their brightness in
-// the tile, from its darkest to its brightest, which keeps the drawing
-// whatever the original colors were.
+// docs/art-guide.md: a wall is drawn in #b9bcb9 (gray2) and black only,
+// so each tile's colors are split by their brightness in the tile, the
+// darker black and the lighter gray2, which keeps the drawing whatever
+// the original colors were.
 //
 // Usage: deno -A tools/import_ff5_walls.ts [path/to/ff5study]
 import { Palette } from "../util/palette.ts"
@@ -19,8 +19,8 @@ type Wall = {
   /** the tileset and the tile (column, row) in it */
   from: string
   tile: [number, number]
-  /** the darkest and the brightest tone used (0 black .. 4 white) */
-  tones?: [number, number]
+  /** where black ends: a fraction of the tile's brightness range */
+  cut?: number
 }
 
 export const WALLS: Wall[] = [
@@ -29,9 +29,9 @@ export const WALLS: Wall[] = [
   // the castle's parapet: crenels over a dripping cornice
   { name: "wall_battlement", from: "00_castle_exterior_1", tile: [9, 6] },
   // dressed stone, darker and rougher
-  { name: "wall_masonry", from: "07_cave_1", tile: [3, 11], tones: [0, 3] },
+  { name: "wall_masonry", from: "07_cave_1", tile: [3, 11] },
   // the mossy rock face of the caves
-  { name: "wall_rock", from: "07_cave_1", tile: [4, 3], tones: [0, 3] },
+  { name: "wall_rock", from: "07_cave_1", tile: [4, 3] },
   // a library's shelves of books
   { name: "wall_bookshelf", from: "21_library", tile: [3, 2] },
   // planks standing on end: wooden houses and sheds
@@ -39,27 +39,23 @@ export const WALLS: Wall[] = [
   // carved sandstone of the desert pyramid
   { name: "wall_sandstone", from: "19_desert_pyramid", tile: [1, 2] },
   // the forest's dense canopy, a wall of leaves
-  { name: "wall_canopy", from: "12_forest_1", tile: [4, 9], tones: [0, 3] },
+  { name: "wall_canopy", from: "12_forest_1", tile: [4, 9] },
 ]
 
-const TONES = [
-  Palette.black,
-  Palette.gray4,
-  Palette.gray3,
-  Palette.gray2,
-  Palette.white,
-].map((hex) => [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16)))
+const BLACK = [0, 0, 0]
+const GRAY2 = [1, 3, 5].map((k) => parseInt(Palette.gray2.slice(k, k + 2), 16))
 
 /**
- * The 16x16 tile turned to grays: its darkest color to the darkest tone,
- * its brightest to the brightest, the colors between spread evenly by
- * brightness (each color stays one tone, so the drawing keeps its shapes)
+ * The 16x16 tile in the two colors of a wall (docs/art-guide.md): the
+ * darker colors black, the lighter ones gray2, split at `cut` of the way
+ * from the tile's darkest color to its brightest. Each color of the tile
+ * goes all one way, so the drawing keeps its shapes.
  */
 export function grayTile(
   rgba: Uint8Array,
   w: number,
   [tx, ty]: [number, number],
-  [lo, hi]: [number, number] = [0, 4],
+  cut = 0.45,
 ): Uint8Array {
   const lum: number[] = []
   for (let y = 0; y < 16; y++) {
@@ -71,8 +67,8 @@ export function grayTile(
   const min = Math.min(...lum), max = Math.max(...lum)
   const tile = new Uint8Array(16 * 16 * 4)
   lum.forEach((l, k) => {
-    const t = max > min ? (l - min) / (max - min) : 0
-    tile.set([...TONES[lo + Math.round(t * (hi - lo))], 255], k * 4)
+    const t = max > min ? (l - min) / (max - min) : 1
+    tile.set([...(t < cut ? BLACK : GRAY2), 255], k * 4)
   })
   return tile
 }
@@ -82,7 +78,7 @@ if (import.meta.main) {
     const { w, rgba } = await decodePng(
       await Deno.readFile(`${tilesets}/${wall.from}.png`),
     )
-    const tile = grayTile(rgba, w, wall.tile, wall.tones)
+    const tile = grayTile(rgba, w, wall.tile, wall.cut)
     await Deno.writeFile(
       `${out}${wall.name}.png`,
       await encodePng(16, 16, tile),
