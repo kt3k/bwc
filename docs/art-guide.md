@@ -150,24 +150,39 @@
 
 ## 床セルの一覧
 
-| 記号      | ファイル       | 見た目            | 主な用途                           |
-| --------- | -------------- | ----------------- | ---------------------------------- |
-| `0`       | floor0.png     | 市松の点          | 汎用の床、道                       |
-| `3`       | floor2.png     | 縁取りの点線      | チュートリアル・WILDS と CITY の道 |
-| `4`       | floor3.png     | 十字の刻み        | B2F                                |
-| `5`       | floor4.png     | レンガ敷き        | B1F                                |
-| `6`       | floor5.png     | 細かいディザ      | B3F                                |
-| `f`       | forest.png     | 暗い地に斑点      | 森・草地                           |
-| `c`       | cobble.png     | 丸い石畳          | 村・広場                           |
-| `d`       | planks.png     | 板張り            | 桟橋・回廊・室内                   |
-| `m`       | mosaic.png     | 4px タイル + 光点 | 金庫・祭壇・広場の中心             |
-| `p`       | gravel.png     | 砂利              | アリーナ・岩のレーン               |
-| `h`       | steel.png      | 鋼板の菱形刻印    | 機械室・ベルト周り                 |
-| `y`       | sand.png       | 砂紋              | 水辺                               |
-| `i`       | ice.png        | 氷 (滑る)         |                                    |
-| `x`       | cracked.png    | ひび (掘れる)     |                                    |
-| `t`       | tilled.png     | 耕した土 (畑)     | WILDS の HAYWARD                   |
-| `n s o e` | conveyor_*.png | ベルト (強制移動) |                                    |
+| 記号      | ファイル            | 見た目            | 主な用途                           |
+| --------- | ------------------- | ----------------- | ---------------------------------- |
+| `0`       | floor0.png          | 市松の点          | 汎用の床、道                       |
+| `3`       | floor2.png          | 縁取りの点線      | チュートリアル・WILDS と CITY の道 |
+| `4`       | floor3.png          | 十字の刻み        | B2F                                |
+| `5`       | floor4.png          | レンガ敷き        | B1F                                |
+| `6`       | floor5.png          | 細かいディザ      | B3F                                |
+| `f`       | forest.png          | 暗い地に斑点      | 森・草地                           |
+| `c`       | cobble.png          | 丸い石畳          | 村・広場                           |
+| `d`       | planks.png          | 板張り            | 桟橋・回廊・室内                   |
+| `m`       | mosaic.png          | 4px タイル + 光点 | 金庫・祭壇・広場の中心             |
+| `p`       | gravel.png          | 砂利              | アリーナ・岩のレーン               |
+| `h`       | steel.png           | 鋼板の菱形刻印    | 機械室・ベルト周り                 |
+| `y`       | sand.png            | 砂紋              | 水辺                               |
+| `i`       | ice.png             | 氷 (滑る)         |                                    |
+| `x`       | cracked.png         | ひび (掘れる)     |                                    |
+| `t`       | tilled.png          | 耕した土 (畑)     | WILDS の HAYWARD                   |
+| `K`       | wall_castle.png     | 城の大きな石積み  | CITY の城・山の手                  |
+| `L`       | wall_battlement.png | 胸壁 (狭間)       | 城壁・STONEGATE の町壁             |
+| `M`       | wall_masonry.png    | 切り石            | CITY の家                          |
+| `Q`       | wall_rock.png       | 岩肌              | WILDS の岩山・洞窟                 |
+| `U`       | wall_bookshelf.png  | 本棚              | CITY の天守の広間                  |
+| `V`       | wall_planks.png     | 板壁              | WILDS の家・港の倉庫               |
+| `Z`       | wall_sandstone.png  | 彫りのある砂岩    | 遺跡・礼拝堂                       |
+| `J`       | wall_canopy.png     | 茂った葉          | 木・公園・町の外周                 |
+| `n s o e` | conveyor_*.png      | ベルト (強制移動) |                                    |
+
+壁 `K` `L` `M` `Q` `U` `V` `Z` `J` は kt3k/ff5study の FFV のタイルセット
+(`materials/rom_extract/tilesets`) から 16x16 を 1 枚ずつ選び、
+`tools/import_ff5_walls.ts` でグレーにしたもの。タイルの中で一番暗い色を 黒
+(壁によっては `gray4`)、一番明るい色を白 (同じく `gray2`) にして、間の
+色を明るさの順に 5 階調へ割り当てる。元の色ごとに 1 階調になるので絵の形が
+崩れない。どれも `casts` (下が床なら黒の土台の縁)。一覧は `cells.html`。
 
 ## アイテム・プロップ・アクター
 
