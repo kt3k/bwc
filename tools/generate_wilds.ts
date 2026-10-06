@@ -35,6 +35,7 @@ import { createRooms } from "./rooms.ts"
 import { Palette } from "../util/palette.ts"
 import { encodePng } from "./png.ts"
 import { fbm, hash, smoothstep } from "./noise.ts"
+import { type Kind, MAKERS } from "./minipuzzles.ts"
 
 type Spawn = { i: number; j: number; type: string; data?: unknown }
 type Anchor = { x: number; y: number; name: string }
@@ -126,6 +127,8 @@ enum T {
   FIELD, // tilled soil of the farms
   RAMPART, // a town wall (STONEGATE)
   RUIN, // the broken walls of the ruins
+  TRIAL, // the floor of a mini puzzle room
+  ICE, // the ice of a mini puzzle room
 }
 const CELL: Record<T, string> = {
   [T.SEA]: "w",
@@ -147,6 +150,8 @@ const CELL: Record<T, string> = {
   [T.FIELD]: "t",
   [T.RAMPART]: "L", // wall_battlement
   [T.RUIN]: "Z", // wall_sandstone
+  [T.TRIAL]: "4",
+  [T.ICE]: "i",
 }
 const terrain = new Uint8Array(W * H)
 const isWater = (t: T) => t === T.SEA || t === T.RIVER || t === T.LAKE
@@ -1161,6 +1166,78 @@ for (const n of nodes) {
 }
 
 // ---------------------------------------------------------------------
+// mini puzzles (tools/minipuzzles.ts): small walled rooms with a treasure
+// at the goal, scattered over the open land away from the anchors
+
+/** The cells of the puzzle rooms (left alone by the reachability fix) */
+const puzzleCells = new Uint8Array(W * H)
+const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
+{
+  const KINDS: Kind[] = ["ice", "boulder", "switch"]
+  const TREASURES = ["gem", "coin-bag", "potion", "ether", "scroll", "sword"]
+  const SIGNS: Record<Kind, string> = {
+    ice: "ICE TRIAL: SLIDE TO THE TREASURE",
+    boulder: "WEIGHT TRIAL: THE DOOR OPENS WHILE THE PLATE IS HELD",
+    switch: "SWITCH TRIAL: BLUE STANDS WHILE OFF, RED WHILE ON",
+  }
+  for (let n = 0; n < 6000 && puzzles.length < 9; n++) {
+    const kind = KINDS[puzzles.length % KINDS.length]
+    const x0 = 20 + randomInt(W - 40), y0 = 20 + randomInt(H - 40)
+    // the room (11x9) and a margin of 2, all open land, nothing built
+    let fits = true
+    for (let y = y0 - 2; y < y0 + 9 + 4 && fits; y++) {
+      for (let x = x0 - 2; x < x0 + 11 + 2 && fits; x++) {
+        const t = terrain[idx(x, y)] as T
+        if (
+          !(t === T.MEADOW || t === T.FOREST || t === T.HILL) ||
+          keepClear[idx(x, y)] || taken.has(idx(x, y))
+        ) fits = false
+      }
+    }
+    if (!fits) continue
+    if (
+      [...nodes, ...puzzles].some((o) =>
+        Math.hypot(o.x - x0, o.y - y0) < (nodes.includes(o as Node) ? 45 : 70)
+      )
+    ) continue
+    const puzzle = MAKERS[kind]({ rng, randomInt })
+    const group = `mini-${puzzles.length + 1}`
+    puzzle.rows.forEach((row, dy) => {
+      ;[...row].forEach((c, dx) => {
+        const x = x0 + dx, y = y0 + dy
+        const p = idx(x, y)
+        terrain[p] = c === "#" ? T.RUIN : c === "_" ? T.ICE : T.TRIAL
+        keepClear[p] = 1
+        puzzleCells[p] = 1
+        if (c === "B") put(actors, x, y, "boulder")
+        else if (c === "P") put(props, x, y, "plate", { group })
+        else if (c === "D") put(props, x, y, "door", { group })
+        else if (c === "S") put(props, x, y, "switch", { group })
+        else if (c === "b") put(props, x, y, "blue-wall", { group })
+        else if (c === "r") put(props, x, y, "red-wall", { group })
+        else if (c === "G") {
+          put(items, x, y, TREASURES[puzzles.length % TREASURES.length])
+        }
+      })
+    })
+    // the way in: a path down from the entrance, a sign beside it
+    const ex = x0 + 5
+    for (let y = y0 + 9; y < y0 + 12; y++) {
+      terrain[idx(ex, y)] = T.ROAD
+      keepClear[idx(ex, y)] = 1
+    }
+    put(props, ex + 1, y0 + 10, "sign", { text: SIGNS[kind] })
+    for (let y = y0 - 1; y <= y0 + 9; y++) {
+      for (let x = x0 - 1; x <= x0 + 11; x++) keepClear[idx(x, y)] = 1
+    }
+    puzzles.push({ x: x0, y: y0, kind, solution: puzzle.solution })
+  }
+  console.log(
+    `mini puzzles: ${puzzles.map((p) => `${p.kind} ${p.solution.length}`)}`,
+  )
+}
+
+// ---------------------------------------------------------------------
 // 7. scatter by density and spacing
 
 /** Poisson disc: candidates in random order, kept if far enough apart */
@@ -1336,7 +1413,9 @@ for (let round = 0; round < 50; round++) {
   const pocketOf = new Int32Array(W * H).fill(-1)
   const pockets: number[][] = []
   for (let p = 0; p < W * H; p++) {
-    if (!walkable(p) || reached[p] || pocketOf[p] >= 0) continue
+    if (!walkable(p) || reached[p] || pocketOf[p] >= 0 || puzzleCells[p]) {
+      continue
+    }
     const cells = [p]
     pocketOf[p] = pockets.length
     for (let q = 0; q < cells.length; q++) {
@@ -1449,8 +1528,18 @@ let ok = true
     console.log(`${near ? "ok" : "NG"} ${n.name} reachable from the arrival`)
     if (!near) ok = false
   }
+  for (const [k, pz] of puzzles.entries()) {
+    const ok1 = reached[idx(pz.x + 5, pz.y + 7)] === 1
+    console.log(
+      `${ok1 ? "ok" : "NG"} mini puzzle ${k + 1} (${pz.kind}) reached`,
+    )
+    if (!ok1) ok = false
+  }
   let unreached = 0
-  for (let p = 0; p < W * H; p++) if (walkable(p) && !reached[p]) unreached++
+  for (let p = 0; p < W * H; p++) {
+    // (a puzzle room's inner parts open as it's solved)
+    if (walkable(p) && !reached[p] && !puzzleCells[p]) unreached++
+  }
   console.log(
     `${
       unreached === 0 ? "ok" : "NG"
