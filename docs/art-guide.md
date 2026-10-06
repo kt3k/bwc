@@ -170,14 +170,13 @@
 | `K`       | wall_castle.png     | 城の大きな石積み  | CITY の城・山の手                  |
 | `L`       | wall_battlement.png | 胸壁 (狭間)       | 城壁・STONEGATE の町壁             |
 | `M`       | wall_masonry.png    | 切り石            | CITY の家                          |
-| `Q`       | wall_rock.png       | 岩肌              | WILDS の岩山・洞窟                 |
 | `U`       | wall_bookshelf.png  | 本棚              | CITY の天守の広間                  |
 | `V`       | wall_planks.png     | 板壁              | WILDS の家・港の倉庫               |
 | `Z`       | wall_sandstone.png  | 彫りのある砂岩    | 遺跡・礼拝堂                       |
 | `J`       | wall_canopy.png     | 茂った葉          | 木・公園・町の外周                 |
 | `n s o e` | conveyor_*.png      | ベルト (強制移動) |                                    |
 
-壁 `K` `L` `M` `Q` `U` `V` `Z` `J` は kt3k/ff5study の FFV のタイルセット
+壁 `K` `L` `M` `U` `V` `Z` `J` は kt3k/ff5study の FFV のタイルセット
 (`materials/rom_extract/tilesets`) から 16x16 を 1 枚ずつ選び、
 `tools/import_ff5_walls.ts` で壁の 2 色 (`#b9bcb9` と黒)
 にしたもの。タイルの中で 一番暗い色から一番明るい色までの明るさの幅を切り分け

@@ -53,7 +53,7 @@ const catalog = await loadCatalog(
   ["base.json"],
 )
 
-const ROCK = "Q" // wall_rock: the rock face of the caves
+const ROCK = "2"
 const grid: string[] = Array(W * H).fill(ROCK)
 const idx = (x: number, y: number) => y * W + x
 const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < W && y < H

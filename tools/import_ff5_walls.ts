@@ -30,8 +30,6 @@ export const WALLS: Wall[] = [
   { name: "wall_battlement", from: "00_castle_exterior_1", tile: [9, 6] },
   // dressed stone, darker and rougher
   { name: "wall_masonry", from: "07_cave_1", tile: [3, 11] },
-  // the mossy rock face of the caves
-  { name: "wall_rock", from: "07_cave_1", tile: [4, 3] },
   // a library's shelves of books
   { name: "wall_bookshelf", from: "21_library", tile: [3, 2] },
   // planks standing on end: wooden houses and sheds
