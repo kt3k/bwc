@@ -75,6 +75,13 @@ function patch(
   return canvas
 }
 
+/** The section of the page a cell goes in */
+function section(cell: CellDefinition): "walls" | "floors" | "others" {
+  if (cell.casts) return "walls"
+  if (cell.canEnter) return "floors"
+  return "others"
+}
+
 async function main() {
   const base = new URL("catalog/base.json", location.href).href
   const catalog = await loadCatalog(base, ["base.json"])
@@ -90,7 +97,6 @@ async function main() {
   }))
   const floor = catalog.cells["0"]
 
-  const list = document.getElementById("cells")!
   document.getElementById("count")!.textContent = `${cells.length} CELLS`
   const usage = new Map<string, HTMLElement>()
   for (const cell of cells) {
@@ -125,7 +131,11 @@ async function main() {
     const used = text("pixel-text-sm ink-mid", "USED IN ...")
     usage.set(cell.name, used)
     card.append(used)
-    list.append(card)
+    document.getElementById(section(cell))!.append(card)
+  }
+  for (const id of ["walls", "floors", "others"]) {
+    const n = cells.filter((cell) => section(cell) === id).length
+    document.getElementById(`${id}-count`)!.textContent = `${n} CELLS`
   }
 
   // the maps that use each cell (all blocks of the map index)

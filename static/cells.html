@@ -47,7 +47,15 @@
       padding: 16px;
       border-bottom: 2px solid #4a4d4a;
     }
-    #cells {
+    section h2 {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin: 0;
+      padding: 16px 16px 0;
+      font-weight: normal;
+    }
+    .list {
       display: flex;
       flex-wrap: wrap;
       gap: 16px;
@@ -109,7 +117,32 @@
       <span class="pixel-text pixel-text-sm ink-mid"
       >EACH PATCH IS DRAWN AS IN THE GAME (NOISE, VARIANTS, FLIPS, WALL EDGES)</span>
     </header>
-    <div id="cells"></div>
+    <section>
+      <h2>
+        <span class="pixel-text ink-white">WALLS</span>
+        <span id="walls-count"
+          class="pixel-text pixel-text-sm ink-light"></span>
+      </h2>
+      <div id="walls" class="list"></div>
+    </section>
+    <section>
+      <h2>
+        <span class="pixel-text ink-white">FLOORS</span>
+        <span id="floors-count"
+          class="pixel-text pixel-text-sm ink-light"></span>
+      </h2>
+      <div id="floors" class="list"></div>
+    </section>
+    <section>
+      <h2>
+        <span class="pixel-text ink-white">OTHERS</span>
+        <span id="others-count"
+          class="pixel-text pixel-text-sm ink-light"></span>
+        <span
+          class="pixel-text pixel-text-sm ink-mid">BLOCKING, NOT WALLS</span>
+      </h2>
+      <div id="others" class="list"></div>
+    </section>
     <script src="./cells.js"></script>
   </body>
 </html>
