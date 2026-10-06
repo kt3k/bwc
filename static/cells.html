@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bwc cells</title>
+    <style>
+    /* Only palette colors may reach the screen (docs/art-guide.md) */
+    img,
+    canvas {
+      image-rendering: pixelated;
+    }
+    @font-face {
+      font-family: "8bit";
+      src: url(./font/vaticanus.woff) format("woff");
+    }
+    html,
+    body {
+      margin: 0;
+      background: #000000;
+    }
+    /* The 8bit font is drawn on an 8px grid: used at 8px or 16px only */
+    .pixel-text {
+      font-family: "8bit", monospace;
+      font-size: 16px;
+      line-height: 16px;
+      -webkit-font-smoothing: none;
+      font-smooth: never;
+    }
+    .pixel-text-sm {
+      font-size: 8px;
+      line-height: 8px;
+    }
+    .ink-white {
+      filter: url(#ink-white);
+    }
+    .ink-light {
+      filter: url(#ink-light);
+    }
+    .ink-mid {
+      filter: url(#ink-mid);
+    }
+    header {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      padding: 16px;
+      border-bottom: 2px solid #4a4d4a;
+    }
+    #cells {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 16px;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
+      border: 2px solid #4a4d4a;
+      width: 384px;
+    }
+    .row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .plain {
+      margin-left: auto;
+      border: 2px solid #4a4d4a;
+    }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <filter id="ink-white" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#ffffff" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+        <filter id="ink-light" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#b9bcb9" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+        <filter id="ink-mid" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#6a6d6a" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+      </defs>
+    </svg>
+    <header>
+      <span class="pixel-text ink-white">BWC CELLS</span>
+      <span id="count" class="pixel-text pixel-text-sm ink-light"></span>
+      <span class="pixel-text pixel-text-sm ink-mid"
+      >EACH PATCH IS DRAWN AS IN THE GAME (NOISE, VARIANTS, FLIPS, WALL EDGES)</span>
+    </header>
+    <div id="cells"></div>
+    <script src="./cells.js"></script>
+  </body>
+</html>

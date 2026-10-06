@@ -840,6 +840,9 @@ put(props, coast[ENTRY_Y] + 2, ENTRY_Y - 3, "sign", {
   text: "THE CITY: WELCOME, TRAVELER. THE SQUARE IS EAST OF THE MARKET",
 })
 put(actors, coast[ENTRY_Y] + 4, ENTRY_Y + 4, "guard")
+/** Where the portal from the START island lands: on the quay by the bridge */
+const ARRIVAL: [number, number] = [coast[ENTRY_Y] + 5, ENTRY_Y + 1]
+put(props, ...ARRIVAL, "portal-out")
 // on the streets: lamplighters, commuters, shoppers, sweepers, travelers
 {
   const streetCells: [number, number][] = []
@@ -1080,3 +1083,47 @@ for (let by = 0; by < H / BLOCK; by++) {
   }
 }
 console.log(`generated the CITY (4 blocks) at ${OI},${OJ}`)
+
+// ---------------------------------------------------------------------
+// the "C" portal room on the START island, beside the "W" room of the
+// WILDS (off the same passage down from the start corridor)
+
+type StartJson = { i: number; j: number; props: Spawn[]; field: string[] }
+const startPath = new URL(
+  "../static/map/block_-10000.-10000.json",
+  import.meta.url,
+)
+const start = JSON.parse(await Deno.readTextFile(startPath)) as StartJson
+const sgrid = start.field.map((row) => [...row])
+const carve = (x0: number, y0: number, x1: number, y1: number, c: string) => {
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) sgrid[y][x] = c
+}
+carve(38, 42, 44, 43, "0") // the passage east from the W passage
+carve(41, 44, 47, 48, "3") // the room ring
+carve(42, 45, 46, 47, "6") // the room floor
+carve(44, 44, 44, 44, "0") // the door
+carve(43, 42, 43, 42, "r") // the red marker cell
+start.field = sgrid.map((row) => row.join(""))
+const local = (x: number, y: number) => ({ i: start.i + x, j: start.j + y })
+for (
+  const add of [
+    {
+      ...local(44, 46),
+      type: "portal",
+      data: { i: OI + ARRIVAL[0], j: OJ + ARRIVAL[1] },
+    },
+    { ...local(43, 42), type: "r_white" },
+    { ...local(42, 42), type: "c" },
+    {
+      ...local(45, 43),
+      type: "sign",
+      data: { text: "THE CITY: STREETS, SHOPS AND A CASTLE BY THE SEA" },
+    },
+  ]
+) {
+  const k = start.props.findIndex((p) => p.i === add.i && p.j === add.j)
+  if (k >= 0) start.props[k] = add
+  else start.props.push(add)
+}
+await Deno.writeTextFile(startPath, JSON.stringify(start, null, 2))
+console.log("linked the CITY from the start island")

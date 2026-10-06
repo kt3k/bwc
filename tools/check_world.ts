@@ -81,8 +81,13 @@ function walk(starts: [number, number][], keyGatesOpen: boolean) {
   return seen
 }
 
-/** Where the START portals land in the world (tutorial, free roam, WILDS) */
-const ARRIVALS: [number, number][] = [[-131, 183], [-82, -65], [2128, 312]]
+/** Where the START portals land in the world (tutorial, free roam, WILDS, CITY) */
+const ARRIVALS: [number, number][] = [
+  [-131, 183],
+  [-82, -65],
+  [2128, 312],
+  [2855, 103],
+]
 /** A plaza cell of every dungeon floor (world coordinates) */
 const FLOORS: [string, number, number][] = [
   ["B1F", -300, 422],

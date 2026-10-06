@@ -65,7 +65,9 @@ for (const [name, cell] of Object.entries(catalog.cells)) {
 }
 
 // Hex colors written in the pages (inline styles, filters, classes)
-for (const page of ["static/index.html"]) {
+for (
+  const page of ["static/index.html", "static/maps.html", "static/cells.html"]
+) {
   const html = await Deno.readTextFile(page)
   const bad = new Set(
     (html.match(/#[0-9a-fA-F]{6}\b/g) ?? []).filter((c) => !isPaletteColor(c)),
@@ -79,5 +81,5 @@ if (offenders.length > 0) {
   Deno.exit(1)
 }
 console.log(
-  `ok: ${files} sprites, the catalog noise and the page use only palette colors, the items keep the outer pixel rule`,
+  `ok: ${files} sprites, the catalog noise and the pages use only palette colors, the items keep the outer pixel rule`,
 )
