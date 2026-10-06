@@ -20,8 +20,8 @@ B1F-R3 40,105
 **ポータルは START と世界をつなぐためだけに使う** (START / DEBUG / ZOO
 は世界の外の島なので例外)。東の離れた場所にある WILDS (有機的な生成の試作の島)
 も START の「W」部屋から行く。その南の CAVE MOUTH から古いトンネルを歩いて
-下ると CAVERN (洞窟) に入る。ダンジョンも世界の一部で、隣のブロックから
-歩いて入る。
+下ると CAVERN (洞窟) に入る。東の EAST PIER からは長い橋で海を渡って CITY
+(市街地) に入る。ダンジョンも世界の一部で、隣のブロックから 歩いて入る。
 
 ```
  j\i    -400     -200     0        200      400      600
@@ -51,7 +51,7 @@ B1F-R3 40,105
   `generate-blocks` を実行したら `connect-world` も実行する
 - `deno task check-world` で、START のポータルの着地点から全フロアに
   歩いて行けること、世界の中にポータルがないこと、B1F の金庫を開けるまで B2F
-  以降に入れないことを確かめる。WILDS の着地点から CAVERN
+  以降に入れないことを確かめる。WILDS の着地点から CAVERN と CITY
   に歩いて入れることも確かめる
 
 ## マップの名前
@@ -68,21 +68,23 @@ B1F-R3 40,105
 | `DEBUG`  | `block_10000.-10000.json`                                      | `tools/generate_debug_map.ts`                                          |
 | `WILDS`  | `block_2000.0.json` など 12 枚 (`i` 2000〜2600, `j` 0〜400)    | `tools/generate_wilds.ts` (有機的な生成の試作、ideas/organic-maps.md)  |
 | `CAVERN` | `block_2200.600.json` など 4 枚 (`i` 2200〜2400, `j` 600〜800) | `tools/generate_cavern.ts` (有機的な洞窟の試作、ideas/organic-maps.md) |
+| `CITY`   | `block_2800.0.json` など 4 枚 (`i` 2800〜3000, `j` 0〜200)     | `tools/generate_city.ts` (住宅と商店の多い市街地)                      |
 
 地上のマップ (`block_0.0.json` など) には名前がなく、ブロック ID が出る。
 
 ## 部屋の名前
 
-| マップ   | 部屋                                                                                              |
-| -------- | ------------------------------------------------------------------------------------------------- |
-| `B1F`    | `PLAZA` `ANNEX` `R1`〜`R7` `R8` (`R8A`〜`R8G`) `VAULT`                                            |
-| `B2F`    | `PLAZA` `S1`〜`S6` `VAULT`                                                                        |
-| `B3F`    | `PLAZA` `T1`〜`T10`                                                                               |
-| `B4F`    | `PLAZA` `K1`〜`K5`                                                                                |
-| `B5F`    | `PLAZA` `M1`〜`M3`                                                                                |
-| `WILDS`  | `LANDING` `ASHFORD` `MILLBROOK` `STONEGATE` `HAYWARD` `LOOKOUT` `SHRINE` `RUINS` `CAMP1`〜`CAMP5` |
-| `CAVERN` | `HALL` `LAKE` `GROTTO` `DEEP` `NOOK1`〜 `TRIAL1`〜`TRIAL3` `VAULT`                                |
-| `ZOO`    | `CELLS` `ITEMS` `PROPS` `GATES` `ACTORS` `COMBOS` `WALLS` `ANIMALS` `TOWN`                        |
+| マップ   | 部屋                                                                                                                           |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `B1F`    | `PLAZA` `ANNEX` `R1`〜`R7` `R8` (`R8A`〜`R8G`) `VAULT`                                                                         |
+| `B2F`    | `PLAZA` `S1`〜`S6` `VAULT`                                                                                                     |
+| `B3F`    | `PLAZA` `T1`〜`T10`                                                                                                            |
+| `B4F`    | `PLAZA` `K1`〜`K5`                                                                                                             |
+| `B5F`    | `PLAZA` `M1`〜`M3`                                                                                                             |
+| `WILDS`  | `LANDING` `ASHFORD` `MILLBROOK` `STONEGATE` `HAYWARD` `LOOKOUT` `SHRINE` `RUINS` `EASTPIER` `CAMP1`〜`CAMP5`                   |
+| `CAVERN` | `HALL` `LAKE` `GROTTO` `DEEP` `NOOK1`〜 `TRIAL1`〜`TRIAL3` `VAULT`                                                             |
+| `CITY`   | `HARBOR` `NORTHSIDE` `MARKET` `SOUTHSIDE` `UPTOWN` `CASTLE` `PARKSIDE` `SQUARE` `BAZAAR` `FISHMARKET` `PARK` `GARDEN` `CHAPEL` |
+| `ZOO`    | `CELLS` `ITEMS` `PROPS` `GATES` `ACTORS` `COMBOS` `WALLS` `ANIMALS` `TOWN`                                                     |
 
 各部屋の中身は、それぞれの生成スクリプトの先頭のコメントに一覧がある。
 

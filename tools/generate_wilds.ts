@@ -54,6 +54,8 @@ type Plan = {
   landmarks: { x: number; y: number; name: string; kind: string }[]
   camps: number
   cave: { x: number; y: number; name: string }
+  /** the pier of the bridge to the CITY (the row is fixed) */
+  east: { y: number; name: string }
 }
 
 const plan: Plan = JSON.parse(
@@ -451,6 +453,22 @@ for (const l of plan.landmarks) {
   }
   if (found < 0) throw new Error("no room for the cave mouth")
   nodes.push({ x, y: found, name: plan.cave.name, kind: "cave" })
+}
+// the east pier: on a fixed row (the city lines its bridge up with it),
+// at the easternmost land with room; a bridge runs from it over the sea
+// to the edge of the WILDS
+{
+  const y = Math.round(plan.east.y * H)
+  let x = W - 1
+  while (x > W / 2 && !fits(x, y, 3)) x--
+  nodes.push({ x, y, name: plan.east.name, kind: "east" })
+  for (let bx = x + 3; bx < W; bx++) {
+    for (const by of [y, y + 1]) {
+      const p = idx(bx, by)
+      terrain[p] = isWater(terrain[p] as T) ? T.BRIDGE : T.ROAD
+      keepClear[p] = 1
+    }
+  }
 }
 // camps: spaced out on the remaining land (Poisson disc against the rest)
 {
@@ -1107,6 +1125,13 @@ for (const n of nodes) {
       put(items, n.x - 1, n.y + 4, "scroll")
       break
     }
+    case "east":
+      put(props, n.x - 2, n.y - 2, "lantern")
+      put(props, n.x + 2, n.y - 1, "sign", {
+        text: "EAST PIER: THE LONG BRIDGE EAST TO THE CITY",
+      })
+      put(actors, n.x, n.y + 2, "sailor")
+      break
     case "cave":
       put(props, n.x - 3, n.y + 3, "lantern")
       put(props, n.x + 3, n.y + 3, "lantern")

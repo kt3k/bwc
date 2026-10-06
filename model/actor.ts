@@ -133,6 +133,11 @@ export function spawnActor(
     case "traveler":
     case "sweeper":
     case "attendant":
+    case "lamplighter":
+    case "crier":
+    case "shopper":
+    case "commuter":
+    case "beggar":
       idle = villager ??= new VillagerDelegate(ROLES[def.idle]())
       break
     case "keeper":

@@ -34,6 +34,11 @@
     { "x": 0.48, "y": 0.80, "name": "RUINS", "kind": "ruins" }
   ],
   "camps": 5,
+  "east": {
+    "y": 0.17,
+    "name": "EAST PIER",
+    "comment": "the row is fixed (y * height): a bridge runs from here east over the sea to the CITY (tools/generate_city.ts), which lands it on the same row"
+  },
   "cave": {
     "x": 0.5,
     "y": 0.82,

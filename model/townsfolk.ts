@@ -16,6 +16,11 @@
 //   - traveler (merchant): walks to the landmarks far off
 //   - sweeper (apprentice): sweeps around its spot
 //   - attendant (chancellor): keeps near the princess
+//   - lamplighter: makes the round of the lamp posts, lighting each
+//   - crier: calls the news in the square to whoever passes by
+//   - shopper: goes from stall to stall
+//   - commuter: goes to work a way off, and home again, day after day
+//   - beggar: asks for a coin, and takes one when bumped
 // - keeper: minds its stall. Watches whoever comes near, greets the
 //   player, and tidies up (a step aside and back) when nobody is around
 // - kid: plays tag with the other kids. The one who is "it" runs after
@@ -110,6 +115,11 @@ const ROLE_LINES: Record<string, readonly string[]> = {
   "lady-knight": ["I GUARD THE ROAD", "TRAIN EVERY DAY"],
   dancer: ["ONE, TWO, TURN!", "MUSIC MAKES THE ROAD SHORT"],
   thief: ["NOTHING TO SEE HERE", "NICE COINS YOU'VE GOT..."],
+  lamplighter: ["ONE MORE LAMP AND I'M DONE", "THE CITY NEVER SLEEPS"],
+  shopper: ["SO MANY STALLS!", "THE BREAD HERE IS THE BEST"],
+  commuter: ["CAN'T STOP, I'M LATE!", "WORK, HOME, WORK, HOME..."],
+  townsman: ["THE CITY IS BUSY TODAY", "HAVE YOU SEEN THE CASTLE?"],
+  townswoman: ["THE HARBOR SMELLS OF FISH", "LOVELY WEATHER IN THE PARK"],
 }
 
 /** The villagers on the field, to find someone to chat with */
@@ -138,6 +148,8 @@ export interface Role {
   readonly range: number
   readonly errands: number
   readonly watch?: number
+  /** What it says when the player bumps into it (null: its usual lines) */
+  talk?(actor: Actor, field: IField): string | null
   next(
     actor: Actor,
     field: IField,
@@ -555,12 +567,17 @@ export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
     this.#chatUntil = field.time + 120
     face(actor, pusher.i, pusher.j)
     if (pusher.id === "main") {
-      const lines = ROLE_LINES[actor.type] ?? VILLAGER_LINES
-      if (this.#line < 0) {
-        this.#line = seed(actor.id).randomInt(lines.length)
+      const said = this.#role.talk?.(actor, field)
+      if (said) {
+        signal.message.update({ text: said })
+      } else {
+        const lines = ROLE_LINES[actor.type] ?? VILLAGER_LINES
+        if (this.#line < 0) {
+          this.#line = seed(actor.id).randomInt(lines.length)
+        }
+        signal.message.update({ text: lines[this.#line % lines.length] })
+        this.#line = (this.#line + 1) % lines.length
       }
-      signal.message.update({ text: lines[this.#line % lines.length] })
-      this.#line = (this.#line + 1) % lines.length
       puff(field, actor, Palette.white)
     }
   }
@@ -624,6 +641,133 @@ export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
   }
 }
 
+const LAMPS = new Set(["lamp-post"])
+/**
+ * Lights the lamps: makes the round of the lamp posts near home in order
+ * around it, a little glow at each
+ */
+export function lamplighterRole(range = 24): Role {
+  let round: IProp[] = []
+  let k = 0
+  return {
+    range,
+    errands: 0,
+    next(_actor, field, home) {
+      if (round.length === 0) {
+        round = propsNear(field, home, range, LAMPS).sort((a, b) =>
+          Math.atan2(a.j - home[1], a.i - home[0]) -
+          Math.atan2(b.j - home[1], b.i - home[0])
+        )
+        if (round.length === 0) return null
+      }
+      const lamp = round[k++ % round.length]
+      return {
+        ...besideProp(lamp, 90),
+        activity: (actor, field) => {
+          if (field.time % 20 === 0) puff(field, actor, Palette.yellow1)
+        },
+      }
+    },
+  }
+}
+
+const NEWS = [
+  "HEAR YE! THE CASTLE GATES ARE OPEN TO ALL",
+  "HEAR YE! FRESH FISH AT THE HARBOR TODAY",
+  "HEAR YE! THREE TRIALS AWAIT IN THE CAVERN",
+  "HEAR YE! THE PRINCESS WAS SEEN IN THE GARDEN",
+  "HEAR YE! MIND THE CANAL, IT IS DEEP",
+]
+/** The town crier: stays in the square and calls the news to passers-by */
+export function crierRole(): Role {
+  let k = 0
+  return {
+    range: 1,
+    errands: 0,
+    watch: 8,
+    talk: () => NEWS[k++ % NEWS.length],
+    next() {
+      return {
+        goal: () => true,
+        linger: 600,
+        activity: (actor, field) => {
+          if (field.time % 300 !== 0) return
+          puff(field, actor, Palette.white)
+          const me = field.me
+          if (manhattan(me.i, me.j, actor.i, actor.j) <= 8) {
+            signal.message.update({ text: NEWS[k++ % NEWS.length] })
+          }
+        },
+      }
+    },
+  }
+}
+
+const SHOPS = new Set(["shop"])
+/** Goes from stall to stall, looking at the goods */
+export function shopperRole(range = 24): Role {
+  let last = ""
+  return {
+    range,
+    errands: 4,
+    next(_actor, field, home, { choice, randomInt }) {
+      const shops = propsNear(field, home, range, SHOPS).filter((p) =>
+        `${p.i}.${p.j}` !== last
+      )
+      if (shops.length === 0) return null
+      const shop = choice(shops)
+      last = `${shop.i}.${shop.j}`
+      return besideProp(shop, 150 + randomInt(150))
+    },
+  }
+}
+
+/** Where the commuters work */
+const WORKPLACES = new Set([
+  ...LANDMARKS,
+  "crate",
+  "shop",
+])
+/**
+ * Goes to work and back: picks a workplace a way off from home, spends
+ * a long while there, then goes home to rest, day after day
+ */
+export function commuterRole(range = 60): Role {
+  let work: IProp | null = null
+  return {
+    range,
+    errands: 1,
+    next(_actor, field, home, { choice, randomInt }) {
+      if (!work) {
+        const far = propsNear(field, home, range, WORKPLACES).filter((p) =>
+          manhattan(p.i, p.j, home[0], home[1]) >= 15
+        )
+        if (far.length === 0) return null
+        work = choice(far)
+      }
+      return besideProp(work, 900 + randomInt(900))
+    },
+  }
+}
+
+/** Sits on its spot and asks for a coin; takes one if the player has any */
+export function beggarRole(): Role {
+  return {
+    range: 1,
+    errands: 0,
+    watch: 4,
+    talk: () => {
+      const coins = signal.coinCount.get()
+      if (coins <= 0) return "SPARE A COIN, TRAVELER?"
+      signal.coinCount.update(coins - 1)
+      return "BLESS YOU! (YOU GAVE 1 COIN)"
+    },
+    next() {
+      return { goal: () => true, linger: 900 }
+    },
+  }
+}
+
 /** The roles by the idle name in the catalog */
 export const ROLES: Record<string, () => Role> = {
   villager: () => errandsRole(),
@@ -636,6 +780,11 @@ export const ROLES: Record<string, () => Role> = {
   traveler: () => travelerRole(),
   sweeper: () => sweeperRole(),
   attendant: () => attendantRole("princess"),
+  lamplighter: () => lamplighterRole(),
+  crier: () => crierRole(),
+  shopper: () => shopperRole(),
+  commuter: () => commuterRole(),
+  beggar: () => beggarRole(),
 }
 
 // ---------------------------------------------------------------------

@@ -115,6 +115,8 @@ for (const [name, i, j] of FLOORS) {
 }
 // the WILDS CAVERN, down the old tunnel from the cave mouth
 check("CAVERN reached on foot", open.has("2400.611"))
+// the CITY, over the long bridge from the WILDS' east pier
+check("CITY reached on foot", open.has("2950.102"))
 const sealed = walk(ARRIVALS, false)
 check("B1F reached without keys", sealed.has(`${FLOORS[0][1]}.${FLOORS[0][2]}`))
 for (const [name, i, j] of FLOORS.slice(1)) {

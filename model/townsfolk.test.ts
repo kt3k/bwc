@@ -267,6 +267,77 @@ Deno.test("villager roles", async (t) => {
     )
   })
 
+  await t.step("lamplighter: goes round the lamp posts", () => {
+    const me = new Actor(50, 50, def, "main")
+    const lighter = new Actor(0, 0, def, "ll")
+    const lamps = [makeProp("lamp-post", 6, 0), makeProp("lamp-post", 0, 6)]
+    const { field, tick } = makeTown(me, [lighter], lamps)
+    const delegate = new VillagerDelegate(ROLES.lamplighter())
+    const visited = new Set<string>()
+    for (let k = 0; k < 600; k++) {
+      delegate.onIdle(lighter, field)
+      tick()
+      for (const l of lamps) {
+        if (Math.abs(l.i - lighter.i) + Math.abs(l.j - lighter.j) === 1) {
+          visited.add(`${l.i}.${l.j}`)
+        }
+      }
+    }
+    assertEquals(visited.size, 2)
+  })
+
+  await t.step("shopper: looks at a stall", () => {
+    const me = new Actor(50, 50, def, "main")
+    const shopper = new Actor(0, 0, def, "sh")
+    const shop = makeProp("shop", 0, 5)
+    const { field, tick } = makeTown(me, [shopper], [shop])
+    const delegate = new VillagerDelegate(ROLES.shopper())
+    run(delegate, shopper, tick, field, 8)
+    assertEquals([shopper.i, shopper.j], [0, 4])
+    assertEquals(shopper.dir, "down")
+  })
+
+  await t.step("commuter: goes to work far off, then home", () => {
+    const me = new Actor(80, 80, def, "main")
+    const commuter = new Actor(0, 0, def, "co")
+    const work = makeProp("notice-board", 20, 0)
+    const { field, tick } = makeTown(me, [commuter], [work])
+    const delegate = new VillagerDelegate(ROLES.commuter())
+    run(delegate, commuter, tick, field, 25)
+    assertEquals([commuter.i, commuter.j], [19, 0])
+    // after the work, back home
+    for (let k = 0; k < 60 && commuter.i !== 0; k++) {
+      delegate.onIdle(commuter, field)
+      tick(60)
+    }
+    assertEquals([commuter.i, commuter.j], [0, 0])
+  })
+
+  await t.step("beggar: takes a coin when bumped", () => {
+    signal.coinCount.update(2)
+    const me = new Actor(1, 0, def, "main")
+    const beggar = new Actor(0, 0, def, "be")
+    const { field } = makeTown(me, [beggar])
+    const delegate = new VillagerDelegate(ROLES.beggar())
+    delegate.onPushed(
+      { type: "pushed", dir: "left", peakAt: 7, pusher: me },
+      beggar,
+      field,
+    )
+    assertEquals(signal.coinCount.get(), 1)
+    assert(signal.message.get()?.text.includes("BLESS"))
+  })
+
+  await t.step("crier: calls the news to the player nearby", () => {
+    signal.message.update(null)
+    const me = new Actor(3, 0, def, "main")
+    const crier = new Actor(0, 0, def, "cr")
+    const { field, tick } = makeTown(me, [crier])
+    const delegate = new VillagerDelegate(ROLES.crier())
+    run(delegate, crier, tick, field, 320)
+    assert(signal.message.get()?.text.startsWith("HEAR YE"))
+  })
+
   await t.step("performer: stays on its spot and draws a listener", () => {
     const me = new Actor(50, 50, def, "main")
     const bard = new Actor(0, 0, def, "b")
