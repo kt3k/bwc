@@ -134,7 +134,7 @@ const CELL: Record<T, string> = {
   [T.ROCK]: "1",
   [T.RIVER]: "w",
   [T.LAKE]: "w",
-  [T.ROAD]: "0",
+  [T.ROAD]: "3", // floor2.png: tiles with a dotted edge, apart from the meadow
   [T.BRIDGE]: "d",
   [T.PLAZA]: "c",
   [T.WALL]: "1",

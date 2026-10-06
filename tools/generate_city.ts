@@ -60,7 +60,7 @@ const catalog = await loadCatalog(
 const C = {
   SEA: "w",
   LAND: "6",
-  STREET: "0",
+  STREET: "3", // floor2.png, apart from the meadow
   AVENUE: "c",
   SQUARE: "m",
   WALL: "1",
