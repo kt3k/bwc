@@ -124,6 +124,8 @@ enum T {
   STONE, // shrine / ruins floor
   CAMP,
   FIELD, // tilled soil of the farms
+  RAMPART, // a town wall (STONEGATE)
+  RUIN, // the broken walls of the ruins
 }
 const CELL: Record<T, string> = {
   [T.SEA]: "w",
@@ -131,18 +133,20 @@ const CELL: Record<T, string> = {
   [T.MEADOW]: "6",
   [T.FOREST]: "f",
   [T.HILL]: "p",
-  [T.ROCK]: "1",
+  [T.ROCK]: "Q", // wall_rock: the rock face of the mountains
   [T.RIVER]: "w",
   [T.LAKE]: "w",
   [T.ROAD]: "3", // floor2.png: tiles with a dotted edge, apart from the meadow
   [T.BRIDGE]: "d",
   [T.PLAZA]: "c",
-  [T.WALL]: "1",
+  [T.WALL]: "V", // wall_planks: the wooden houses
   [T.FLOOR]: "d",
-  [T.TREE]: "2",
+  [T.TREE]: "J", // wall_canopy: the trees, a mass of leaves
   [T.STONE]: "m",
   [T.CAMP]: "p",
   [T.FIELD]: "t",
+  [T.RAMPART]: "L", // wall_battlement
+  [T.RUIN]: "Z", // wall_sandstone
 }
 const terrain = new Uint8Array(W * H)
 const isWater = (t: T) => t === T.SEA || t === T.RIVER || t === T.LAKE
@@ -558,7 +562,9 @@ function stepCost(p: number, q: number): number {
   let c: number
   switch (t) {
     case T.SEA:
-    case T.WALL: // the town walls: the roads come in by the gates
+    case T.WALL:
+    case T.RUIN:
+    case T.RAMPART: // the town walls: the roads come in by the gates
     case T.FLOOR:
       return Infinity
     case T.RIVER:
@@ -640,7 +646,7 @@ function street(x0: number, y0: number, x1: number, y1: number) {
     for (const [dx, dy] of sx !== 0 ? [[0, 0], [0, 1]] : [[0, 0], [1, 0]]) {
       if (!inside(x + dx, y + dy)) continue
       const t = terrain[idx(x + dx, y + dy)]
-      if (t === T.SEA || t === T.WALL) continue
+      if (t === T.SEA || t === T.RAMPART) continue
       lay(idx(x + dx, y + dy))
     }
   }
@@ -701,7 +707,7 @@ for (const n of nodes) {
           if (!inside(x, y) || isWater(terrain[idx(x, y)] as T)) continue
           // the gates: 3 wide where the middle streets go out
           if (Math.abs(d) <= 1 || d === 2) continue
-          terrain[idx(x, y)] = T.WALL
+          terrain[idx(x, y)] = T.RAMPART
         }
       }
       for (const o of [-12, 0, 12]) {
@@ -1105,7 +1111,7 @@ for (const n of nodes) {
           const x = n.x + dx, y = n.y + dy
           if (!inside(x, y) || taken.has(idx(x, y))) continue
           if (edge && rng() < 0.6) {
-            terrain[idx(x, y)] = T.WALL
+            terrain[idx(x, y)] = T.RUIN
             keepClear[idx(x, y)] = 1
           } else if (!edge && rng() < 0.7) {
             terrain[idx(x, y)] = T.STONE
@@ -1479,6 +1485,8 @@ if (previewAt >= 0) {
     [T.WALL]: Palette.black,
     [T.FLOOR]: Palette.brown2,
     [T.TREE]: Palette.green4,
+    [T.RAMPART]: Palette.black,
+    [T.RUIN]: Palette.yellow3,
     [T.STONE]: Palette.violet2,
     [T.CAMP]: Palette.orange3,
     [T.FIELD]: Palette.brown3,

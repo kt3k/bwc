@@ -66,7 +66,14 @@ const C = {
   WALL: "1",
   FLOOR: "d",
   PIER: "d",
-  TREE: "2",
+  TREE: "J", // wall_canopy: the leaves of the parks and the edge belt
+  // the walls by kind (tools/import_ff5_walls.ts)
+  CASTLE: "K", // wall_castle: the keep, the barracks, the uptown houses
+  RAMPART: "L", // wall_battlement: the castle's outer wall
+  MASONRY: "M", // wall_masonry: the houses of the town
+  PLANKS: "V", // wall_planks: the harbor's warehouses and houses
+  SANDSTONE: "Z", // wall_sandstone: the chapel
+  BOOKS: "U", // wall_bookshelf: the keep's library wall
   YARD: "4",
   GRAVEL: "p",
 } as const
@@ -302,6 +309,26 @@ function clear(r: Rect): boolean {
   return true
 }
 
+/** Every wall character (the walls of the buildings by kind) */
+const WALLS = new Set<string>([
+  C.WALL,
+  C.CASTLE,
+  C.RAMPART,
+  C.MASONRY,
+  C.PLANKS,
+  C.SANDSTONE,
+  C.BOOKS,
+])
+/** The wall of a building, by what it is and where */
+function wallOf(kind: Building["kind"], district: District): string {
+  if (kind === "chapel") return C.SANDSTONE
+  if (kind === "keep" || district === "CASTLE") return C.CASTLE
+  if (kind === "warehouse" || district === "HARBOR") return C.PLANKS
+  if (kind === "shop") return C.WALL
+  if (district === "UPTOWN") return C.CASTLE
+  return C.MASONRY
+}
+
 /** Walls round a floor, a door in the middle of the given side */
 function build(
   r: Rect,
@@ -313,7 +340,7 @@ function build(
   for (let y = r.y0; y <= r.y1; y++) {
     for (let x = r.x0; x <= r.x1; x++) {
       const edge = x === r.x0 || x === r.x1 || y === r.y0 || y === r.y1
-      set(x, y, edge ? C.WALL : C.FLOOR)
+      set(x, y, edge ? wallOf(kind, district) : C.FLOOR)
       fixed[idx(x, y)] = 1
     }
   }
@@ -712,7 +739,7 @@ function castle(r: Rect) {
       const gate = (Math.abs(y - cy) <= 1 && (x === wall.x0)) ||
         (Math.abs(x - cx) <= 1 && (y === wall.y0 || y === wall.y1))
       if (!inside(x, y) || isWater(at(x, y))) continue
-      set(x, y, edge && !gate ? C.WALL : C.GRAVEL)
+      set(x, y, edge && !gate ? C.RAMPART : C.GRAVEL)
       if (edge) fixed[idx(x, y)] = 1
     }
   }
@@ -729,7 +756,12 @@ function castle(r: Rect) {
     for (let x = keep.x0; x <= keep.x1; x++) {
       const edge = x === keep.x0 || x === keep.x1 || y === keep.y0 ||
         y === keep.y1
-      set(x, y, edge ? C.WALL : C.SQUARE)
+      // the north wall of the hall is lined with books
+      set(
+        x,
+        y,
+        edge ? (y === keep.y0 ? C.BOOKS : C.CASTLE) : C.SQUARE,
+      )
     }
   }
   set(keep.x0, cy, C.SQUARE)
@@ -990,7 +1022,7 @@ const actorsOut = actors.filter((s) =>
 const itemsOut = items.filter(standable)
 const propsOut = props.filter((s) =>
   s.type.startsWith("sign-")
-    ? grid[idx(s.i - OI, s.j - OJ)] === C.WALL
+    ? WALLS.has(grid[idx(s.i - OI, s.j - OJ)])
     : standable(s)
 )
 const census = new Map<string, number>()
@@ -1014,6 +1046,12 @@ if (previewAt >= 0) {
     [C.AVENUE]: Palette.gray2,
     [C.SQUARE]: Palette.orange2,
     [C.WALL]: Palette.black,
+    [C.CASTLE]: Palette.gray4,
+    [C.RAMPART]: Palette.black,
+    [C.MASONRY]: Palette.gray4,
+    [C.PLANKS]: Palette.brown3,
+    [C.SANDSTONE]: Palette.yellow3,
+    [C.BOOKS]: Palette.brown4,
     [C.FLOOR]: Palette.brown2,
     [C.TREE]: Palette.green3,
     [C.YARD]: Palette.lime1,
