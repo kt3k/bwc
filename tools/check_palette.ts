@@ -66,7 +66,12 @@ for (const [name, cell] of Object.entries(catalog.cells)) {
 
 // Hex colors written in the pages (inline styles, filters, classes)
 for (
-  const page of ["static/index.html", "static/maps.html", "static/cells.html"]
+  const page of [
+    "static/index.html",
+    "static/maps.html",
+    "static/cells.html",
+    "static/effects.html",
+  ]
 ) {
   const html = await Deno.readTextFile(page)
   const bad = new Set(

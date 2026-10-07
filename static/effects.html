@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bwc break fx lab</title>
+    <style>
+    /* Only palette colors may reach the screen (docs/art-guide.md) */
+    img,
+    canvas {
+      image-rendering: pixelated;
+    }
+    @font-face {
+      font-family: "8bit";
+      src: url(./font/vaticanus.woff) format("woff");
+    }
+    html,
+    body {
+      margin: 0;
+      background: #000000;
+    }
+    /* Text: its edges are snapped to one color by the ink filters */
+    .t {
+      font-family: sans-serif;
+      font-size: 14px;
+      line-height: 20px;
+    }
+    .pixel-text {
+      font-family: "8bit", monospace;
+      font-size: 16px;
+      line-height: 16px;
+    }
+    .ink-white {
+      filter: url(#ink-white);
+    }
+    .ink-light {
+      filter: url(#ink-light);
+    }
+    .ink-mid {
+      filter: url(#ink-mid);
+    }
+    .ink-black {
+      filter: url(#ink-black);
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      padding: 16px;
+      border-bottom: 2px solid #4a4d4a;
+    }
+    h2 {
+      margin: 0;
+      padding: 16px 16px 0;
+      font-weight: normal;
+    }
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 16px;
+    }
+    .tile {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 224px;
+      padding: 6px;
+      border: 2px solid #4a4d4a;
+    }
+    .note {
+      margin: 0;
+    }
+    #editor {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 16px;
+      align-items: flex-start;
+    }
+    .left {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .stage-wrap {
+      border: 2px solid #4a4d4a;
+      align-self: flex-start;
+      line-height: 0;
+    }
+    .stage {
+      cursor: pointer;
+    }
+    .panel {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
+      border: 2px solid #4a4d4a;
+      max-width: 560px;
+    }
+    .layers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      flex: 1;
+      min-width: 320px;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 330px;
+      padding: 8px;
+      border: 2px solid #b9bcb9;
+    }
+    .card.off {
+      border-color: #4a4d4a;
+    }
+    .card.off .params {
+      display: none;
+    }
+    .params {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .param {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+    }
+    .chip {
+      background: #000000;
+      border: 2px solid #6a6d6a;
+      padding: 0 6px;
+      cursor: pointer;
+    }
+    .chip.on {
+      background: #ffffff;
+      border-color: #ffffff;
+    }
+    .chip.small {
+      padding: 0 4px;
+    }
+    .slider {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .track {
+      position: relative;
+      width: 160px;
+      height: 10px;
+      border: 2px solid #6a6d6a;
+      background: #000000;
+      cursor: pointer;
+      touch-action: none;
+    }
+    .fill {
+      height: 100%;
+      background: #b9bcb9;
+    }
+    .swatch {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #6a6d6a;
+      cursor: pointer;
+      padding: 0;
+    }
+    .swatch.small {
+      width: 16px;
+      height: 16px;
+    }
+    .palette {
+      display: grid;
+      grid-template-columns: repeat(6, 16px);
+      gap: 2px;
+      padding: 4px 0;
+    }
+    .hidden {
+      display: none;
+    }
+    #export {
+      padding: 0 16px 32px;
+    }
+    .json {
+      margin: 8px 0 0;
+      padding: 8px;
+      border: 2px solid #4a4d4a;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 240px;
+      overflow: auto;
+    }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <filter id="ink-white" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#ffffff" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+        <filter id="ink-light" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#b9bcb9" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+        <filter id="ink-mid" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#6a6d6a" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+        <filter id="ink-black" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#000000" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+      </defs>
+    </svg>
+    <header>
+      <span class="pixel-text ink-white">BREAK FX LAB</span>
+      <span class="t ink-light"
+      >物が壊れる瞬間の表現を研究するページ。パレットの色だけ、ドット単位 (サブピクセルなし)
+        で描く。ステージをクリックすると割れる。</span>
+    </header>
+    <h2><span class="t ink-white">プリセット (同時に再生。押す向き・物・床は下の設定と共通)</span></h2>
+    <div id="gallery"></div>
+    <h2><span class="t ink-white">エディタ: 効果を重ねて調整する</span></h2>
+    <div id="editor"></div>
+    <div id="export"></div>
+    <script src="./effects.js"></script>
+  </body>
+</html>
