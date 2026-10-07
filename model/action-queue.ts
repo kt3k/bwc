@@ -30,6 +30,8 @@ export type PropAction =
   | CommonAction
   | { type: "break"; dir: Dir; cb?: (motion: Motion) => void }
   | { type: "remove" }
+  /** Runs the function (e.g. what comes out once a thing is broken) */
+  | { type: "call"; fn: (field: IField) => void }
   | {
     type: "spawn-drops"
     itemType: string
@@ -73,6 +75,7 @@ export type ActorAction =
     readonly type: "remove-buff"
     readonly buff: string
   }
+  | { readonly type: "call"; readonly fn: (field: IField) => void }
 
 export class ActionQueue<
   T extends IEntity,

@@ -87,6 +87,8 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "seal-wall": { group: "debug-seq", count: 1 },
   "slide-button": { group: "debug-slide" },
   "slide-wall": { group: "debug-slide", index: 0 },
+  "bell-stone": { group: "debug-bell", order: 1, count: 1, note: 0 },
+  "slipper-mat": { group: "debug-mat" },
 }
 
 /** Extra notes shown on the label sign of some props */
@@ -122,7 +124,10 @@ const PEN_ROW_H = 7
 const ACTORS_Y = 7
 const actorRows = Math.ceil(ACTOR_TYPES.length / PENS_PER_ROW)
 const ITEMS_Y = ACTORS_Y + actorRows * PEN_ROW_H + 1
-const PROPS_LABEL_Y = ITEMS_Y + 4
+/** Items wrap to rows of this many, 2 rows apart */
+const ITEMS_PER_ROW = 30
+const itemRows = Math.ceil(ITEM_TYPES.length / ITEMS_PER_ROW)
+const PROPS_LABEL_Y = ITEMS_Y + 2 + itemRows * 2
 const PROPS_Y = PROPS_LABEL_Y + 2
 const propRows = Math.ceil(PROP_TYPES.length / PROPS_PER_ROW)
 const width = Math.max(
@@ -131,7 +136,14 @@ const width = Math.max(
 )
 /** The stack station: chests in dead ends drop all onto one cell */
 const STACKS_Y = PROPS_Y + propRows * 2 + 1
-const height = STACKS_Y + 8
+/** The oddity garden (ideas/breakables.md): a plot for each oddity */
+const GARDEN_Y = STACKS_Y + 9
+const PLOT_W = 11
+const PLOT_H = 9
+const PLOT_COLS = 6
+/** Each plot: the walls, then the rows of plots 2 cells apart */
+const GARDEN_ROWS = 4
+const height = GARDEN_Y + 2 + GARDEN_ROWS * (PLOT_H + 2) + 1
 rect(1, 1, width, height, "0")
 
 // title + arrival
@@ -159,9 +171,10 @@ ACTOR_TYPES.forEach((type, n) => {
 letters(2, ITEMS_Y, "ITEMS")
 sign(8, ITEMS_Y, "ITEMS: WALK OVER TO COLLECT")
 ITEM_TYPES.forEach((type, n) => {
-  const x = 2 + n * PITCH
-  sign(x, ITEMS_Y + 2, label(type))
-  item(x + 1, ITEMS_Y + 2, type)
+  const x = 2 + (n % ITEMS_PER_ROW) * PITCH
+  const y = ITEMS_Y + 2 + Math.floor(n / ITEMS_PER_ROW) * 2
+  sign(x, y, label(type))
+  item(x + 1, y, type)
 })
 
 // props: rows of PROPS_PER_ROW, with a walkway row between them
@@ -214,6 +227,113 @@ const deadEndChest = (
   deadEndChest(24, y, "key", 2)
   sign(26, y - 1, "2 KEYS IN ONE PILE")
 }
+
+// the oddity garden: things that break and let something out, and
+// actors that aren't people. Each plot is walled, open at the bottom
+letters(2, GARDEN_Y, "ODDITIES")
+sign(11, GARDEN_Y, "ODDITIES: BREAK THEM, BUMP THEM (IDEAS/BREAKABLES.MD)")
+type Plot = { x: number; y: number }
+/** Plot contents; (x, y) is the top left inside the walls (9x7) */
+const PLOTS: [string, (p: Plot) => void][] = [
+  [
+    "NESTING JARS: A JAR IN A JAR IN A JAR",
+    (p) => prop(p.x + 4, p.y + 3, "nest-jar-4"),
+  ],
+  [
+    "PACKED BOX: TWO DOZEN THINGS INSIDE",
+    (p) => prop(p.x + 4, p.y + 2, "packed-box"),
+  ],
+  ["EGGSHELL WALL: CRACK ONE", (p) => {
+    for (let dy = 0; dy < 3; dy++) {
+      for (let dx = 0; dx < 7; dx++) {
+        prop(p.x + 1 + dx, p.y + 1 + dy, "egg-wall")
+      }
+    }
+  }],
+  ["BELL STONES: LEFT TO RIGHT", (p) => {
+    const notes = [0, 2, 4, 5, 7]
+    notes.forEach((note, n) =>
+      prop(p.x + n * 2, p.y + 2, "bell-stone", {
+        group: "garden-bell",
+        order: n + 1,
+        count: notes.length,
+        note,
+      })
+    )
+  }],
+  ["BALLOON ROCK: PUSH IT 3 TIMES", (p) => {
+    prop(p.x + 4, p.y + 3, "balloon-rock")
+    prop(p.x + 4, p.y + 2, "crate")
+    prop(p.x + 3, p.y + 3, "nest-jar-2")
+    prop(p.x + 5, p.y + 3, "egg-wall")
+  }],
+  [
+    "DRAWER TOWER: PUSH IT AGAIN AND AGAIN",
+    (p) => prop(p.x + 4, p.y + 2, "drawer-tower"),
+  ],
+  ["FALLEN MOON", (p) => prop(p.x + 4, p.y + 3, "moon-shell")],
+  ["A WINDOW IN A FIELD", (p) => prop(p.x + 4, p.y + 3, "lone-window")],
+  ["CLOCK: STOPS THE WALKERS", (p) => {
+    prop(p.x + 4, p.y + 1, "clock")
+    actor(p.x + 1, p.y + 4, "chick")
+    actor(p.x + 7, p.y + 4, "sheep")
+    actor(p.x + 4, p.y + 5, "slime")
+  }],
+  ["PINATA TREE: SHAKE IT", (p) => prop(p.x + 4, p.y + 2, "pinata-tree")],
+  ["TOOTHPASTE ROCK: PUSH IT OVER THE WATER", (p) => {
+    // a pond with a gem on its far shore, the tube on the near one
+    rect(p.x + 3, p.y, p.x + 8, p.y + 4, "w")
+    rect(p.x + 8, p.y + 2, p.x + 8, p.y + 2, "0")
+    item(p.x + 8, p.y + 2, "gem")
+    prop(p.x + 2, p.y + 2, "paste-tube")
+  }],
+  ["YOUR STATUE: AN ECHO OPENS THE DOOR", (p) => {
+    prop(p.x + 1, p.y + 5, "self-statue")
+    prop(p.x + 1, p.y + 1, "plate", { group: "garden-echo" })
+    rect(p.x + 5, p.y, p.x + 8, p.y + 2, "1")
+    rect(p.x + 6, p.y, p.x + 8, p.y + 1, "0")
+    prop(p.x + 6, p.y + 2, "door", { group: "garden-echo" })
+    item(p.x + 7, p.y, "coin-bag")
+  }],
+  ["SPORE BLOB: POKE IT", (p) => actor(p.x + 4, p.y + 3, "spore")],
+  ["PIGGY BANK: CORNER IT", (p) => actor(p.x + 4, p.y + 3, "piggy")],
+  ["A FIN: CATCH THE FISH", (p) => actor(p.x + 4, p.y + 3, "fin")],
+  ["CLOUD: PRESS IT AGAINST A WALL", (p) => actor(p.x + 4, p.y + 3, "cloud")],
+  [
+    "PEBBLES: KICK THE ONE WITH EYES",
+    (p) => actor(p.x + 4, p.y + 1, "pebble-leader"),
+  ],
+  ["A SHADOW: STEP ON IT", (p) => actor(p.x + 4, p.y + 3, "shadow")],
+  ["BOOK: CATCH IT, SPELL ITS WORD", (p) => actor(p.x + 4, p.y + 3, "book")],
+  ["BOILED EGG: ROLL IT INTO A WALL", (p) => actor(p.x + 4, p.y + 4, "egg-s")],
+  ["FLUFF: TOUCH IT, FILL THE PLOT", (p) => actor(p.x + 4, p.y + 3, "fluff")],
+  ["SLIPPERS: ONE ON EACH MAT", (p) => {
+    actor(p.x + 2, p.y + 4, "slipper")
+    prop(p.x + 6, p.y + 1, "slipper-mat", { group: "garden-mat" })
+    prop(p.x + 7, p.y + 1, "slipper-mat", { group: "garden-mat" })
+  }],
+  ["SNAIL: BREAK ITS SHELL", (p) => {
+    actor(p.x + 1, p.y + 3, "snail")
+    rect(p.x + 3, p.y + 1, p.x + 8, p.y + 5, "w")
+  }],
+  ["BLOCK FISH: FOUR IN A ROW", (p) => {
+    actor(p.x + 1, p.y + 1, "block-fish")
+    actor(p.x + 4, p.y + 2, "block-fish")
+    actor(p.x + 7, p.y + 1, "block-fish")
+    actor(p.x + 2, p.y + 4, "block-fish")
+    actor(p.x + 6, p.y + 5, "block-fish")
+  }],
+]
+PLOTS.forEach(([text, fill], n) => {
+  const px = 2 + (n % PLOT_COLS) * (PLOT_W + 1)
+  const py = GARDEN_Y + 2 + Math.floor(n / PLOT_COLS) * (PLOT_H + 2)
+  rect(px, py, px + PLOT_W - 1, py + PLOT_H - 1, "1")
+  rect(px + 1, py + 1, px + PLOT_W - 2, py + PLOT_H - 2, "0")
+  // the way in, at the bottom
+  rect(px + 4, py + PLOT_H - 1, px + 6, py + PLOT_H - 1, "0")
+  sign(px + 3, py + PLOT_H, text)
+  fill({ x: px + 1, y: py + 1 })
+})
 
 // ---------------------------------------------------------------------
 // checks

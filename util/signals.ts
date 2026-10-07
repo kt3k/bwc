@@ -35,13 +35,21 @@ export type SoundName =
   | "hitHurt"
   | "explosion"
   | "powerUp"
+  | "blipSelect"
+  /** A clear tone; give it a note (semitones above C5) */
+  | "bell"
 // The sound effect to play. Wrapped in an object so that the same
 // sound played twice still triggers the subscribers.
-export const sound = new Signal<{ name: SoundName } | null>(null)
+export const sound = new Signal<{ name: SoundName; note?: number } | null>(
+  null,
+)
 
-/** Requests playing the sound effect of the given name */
-export function playSound(name: SoundName) {
-  sound.update({ name })
+/**
+ * Requests playing the sound effect of the given name. `note` sets the
+ * pitch of a "bell" in semitones above C5 (0 = C5, 12 = C6)
+ */
+export function playSound(name: SoundName, note?: number) {
+  sound.update({ name, note })
 }
 // The current loading state
 export const isGameLoading = new Signal(true)

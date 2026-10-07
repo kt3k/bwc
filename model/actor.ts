@@ -37,6 +37,7 @@ import {
   VillagerDelegate,
 } from "./townsfolk.ts"
 import { Palette } from "../util/palette.ts"
+import { addLostCoins, isFrozen, ODD_ACTORS } from "./oddities.ts"
 
 const fallbackImagePhase0 = await fetch(
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAADdJREFUOE9jZMAE/9GEGNH4KPLokiC1Q9AAkpzMwMCA4m0QZxgYgJ4SSPLSaDqAJAqSAm3wJSQApTMgCUQZ7FoAAAAASUVORK5CYII=",
@@ -151,6 +152,11 @@ export function spawnActor(
     case "cat":
       idle = shared(CatDelegate)
       break
+    default:
+      // the oddities (model/oddities.ts)
+      if (def.idle && ODD_ACTORS[def.idle]) {
+        idle = shared(ODD_ACTORS[def.idle]) as IdleDelegate
+      }
   }
   switch (def.pushed) {
     case "roll":
@@ -177,6 +183,10 @@ export function spawnActor(
     case "cat":
       pushed = shared(CatDelegate)
       break
+    default:
+      if (def.pushed && ODD_ACTORS[def.pushed]) {
+        pushed = shared(ODD_ACTORS[def.pushed]) as ActorPushedDelegate
+      }
   }
   return new Actor(i, j, def, id, dir, speed, moveEnd, idle, pushed)
 }
@@ -311,6 +321,10 @@ export class Actor implements IActor {
         }
         case "remove-buff": {
           delete this.buff[action.buff]
+          return "next"
+        }
+        case "call": {
+          action.fn(field)
           return "next"
         }
         default: {
@@ -487,7 +501,8 @@ export class Actor implements IActor {
   step(field: IField) {
     if (this.#move === null) {
       const state = this.#actionQueue.process(this, field)
-      if (state === "idle") {
+      // a stopped clock holds the actor still (it can still be shoved)
+      if (state === "idle" && !isFrozen(this, field)) {
         this.#idle?.onIdle(this, field)
       }
     }
@@ -685,6 +700,21 @@ export class Actor implements IActor {
   }
 
   onPushed(event: PushedEvent, field: IField): void {
+    if (isFrozen(this, field)) {
+      // stopped in time: slides off like on ice until it hits something
+      const slide = () =>
+        this.enqueueActions({
+          type: "slide",
+          dir: event.dir,
+          speed: 4,
+          cb: (move) => {
+            if (move.type === "move" && this.canGo(event.dir, field)) slide()
+          },
+        })
+      this.enqueueActions({ type: "wait", until: field.time + event.peakAt })
+      slide()
+      return
+    }
     if (this.#pushed) {
       this.#pushed.onPushed(event, this, field)
       return
@@ -1051,6 +1081,8 @@ export class IdleDelegateGhost implements IdleDelegate {
           const count = signal.coinCount.get()
           if (count > 0) {
             signal.coinCount.update(count - 1)
+            // the piggy bank gives the lost coins back
+            addLostCoins(1)
             signal.playSound("hitHurt")
             for (
               const effect of linePattern0(

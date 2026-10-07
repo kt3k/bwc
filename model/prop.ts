@@ -16,6 +16,7 @@ import { PropSpawn } from "./field-block.ts"
 import { PropDefinition } from "./catalog.ts"
 import { ActionQueue, type PropAction } from "./action-queue.ts"
 import { Palette } from "../util/palette.ts"
+import { ODD_PROP_INIT, ODD_PROP_PUSHED, ODD_PROP_STEP } from "./oddities.ts"
 
 /** How many cells a spring launches the player */
 export const SPRING_DISTANCE = 10
@@ -103,6 +104,8 @@ export class Prop implements IProp {
   readonly j: number
   readonly def: PropDefinition
   readonly data: unknown
+  /** true once it started breaking (a second push is ignored) */
+  isBreaking = false
   #motion: Motion | null = null
   readonly #actionQueue = new ActionQueue<Prop, PropAction>(
     (field, action) => {
@@ -117,6 +120,10 @@ export class Prop implements IProp {
         }
         case "remove": {
           field.props.remove(this.i, this.j)
+          return "next"
+        }
+        case "call": {
+          action.fn(field)
           return "next"
         }
         case "spawn-drops": {
@@ -152,6 +159,9 @@ export class Prop implements IProp {
   #hidden = false
   /** The field time when a timer gate closes again */
   #openUntil: number | null = null
+  /** Pixels above its cell while falling into place (see drop) */
+  #fall = 0
+  #onLand: (() => void) | null = null
 
   static fromSpawn(spawn: PropSpawn) {
     let pushed: PushedDelegate | null = null
@@ -201,6 +211,9 @@ export class Prop implements IProp {
       case "slide-button":
         pushed = new PushedDelegateSlideButton()
         break
+      default:
+        // the oddities (model/oddities.ts)
+        pushed = ODD_PROP_PUSHED[spawn.def.pushed ?? ""]?.() ?? null
     }
     return new Prop(
       spawn.id,
@@ -250,6 +263,7 @@ export class Prop implements IProp {
       }
       indices.add(slideIndexOf(data))
     }
+    ODD_PROP_INIT[def.type]?.(this)
   }
 
   /**
@@ -334,12 +348,24 @@ export class Prop implements IProp {
     return this.#image ?? fallbackImage
   }
 
+  /**
+   * An image larger than a cell (a swelling balloon rock) is centered
+   * on the cell and stands on its bottom edge
+   */
   get x(): number {
-    return this.i * CELL_SIZE
+    const w = this.#image?.width ?? CELL_SIZE
+    return this.i * CELL_SIZE - Math.floor((w - CELL_SIZE) / 2)
   }
 
   get y(): number {
-    return this.j * CELL_SIZE
+    const h = this.#image?.height ?? CELL_SIZE
+    return this.j * CELL_SIZE - (h - CELL_SIZE) - this.#fall
+  }
+
+  /** Falls into its cell from `height` pixels above, then calls onLand */
+  drop(height: number, onLand?: () => void) {
+    this.#fall = height
+    this.#onLand = onLand ?? null
   }
 
   get w(): number {
@@ -391,7 +417,7 @@ export class Prop implements IProp {
   }
 
   /** Shows the given growth stage image (the state images of walls and buttons) */
-  #showStage(stage: number) {
+  showStage(stage: number) {
     const state = this.growthState
     if (state && state.stage !== stage) {
       state.stage = stage
@@ -426,6 +452,14 @@ export class Prop implements IProp {
   step(field: IField) {
     this.#stepGrowth()
     this.#stepGate(field)
+    ODD_PROP_STEP[this.def.type]?.(this, field)
+    if (this.#fall > 0) {
+      this.#fall = Math.max(0, this.#fall - 4)
+      if (this.#fall === 0) {
+        this.#onLand?.()
+        this.#onLand = null
+      }
+    }
 
     if (!this.#motion) {
       this.#actionQueue.process(this, field)
@@ -494,19 +528,19 @@ export class Prop implements IProp {
       }
       case "switch": {
         // The crystal shows the color of the walls standing now
-        this.#showStage(isSwitchOn(groupOf(this.data)) ? 1 : 0)
+        this.showStage(isSwitchOn(groupOf(this.data)) ? 1 : 0)
         break
       }
       case "blue-wall": {
         // Stands while the switch group is OFF
         this.#setWall(field, isSwitchOn(groupOf(this.data)))
-        this.#showStage(this.isOpen ? 1 : 0)
+        this.showStage(this.isOpen ? 1 : 0)
         break
       }
       case "red-wall": {
         // Stands while the switch group is ON
         this.#setWall(field, !isSwitchOn(groupOf(this.data)))
-        this.#showStage(this.isOpen ? 1 : 0)
+        this.showStage(this.isOpen ? 1 : 0)
         break
       }
       case "and-wall": {
@@ -516,24 +550,24 @@ export class Prop implements IProp {
           ? groups.every((g) => typeof g === "string" && isSwitchOn(g))
           : false
         this.#setWall(field, all)
-        this.#showStage(this.isOpen ? 1 : 0)
+        this.showStage(this.isOpen ? 1 : 0)
         break
       }
       case "timer-button": {
         const until = shutterOpenUntil.get(groupOf(this.data)) ?? -1
-        this.#showStage(field.time < until ? 1 : 0)
+        this.showStage(field.time < until ? 1 : 0)
         break
       }
       case "shutter": {
         // Open while the timer button of the group holds it
         const until = shutterOpenUntil.get(groupOf(this.data)) ?? -1
         this.#setWall(field, field.time < until)
-        this.#showStage(this.isOpen ? 1 : 0)
+        this.showStage(this.isOpen ? 1 : 0)
         break
       }
       case "seq-button": {
         const next = sequenceNext.get(groupOf(this.data)) ?? 1
-        this.#showStage(seqOrderOf(this.data) < next ? 1 : 0)
+        this.showStage(seqOrderOf(this.data) < next ? 1 : 0)
         break
       }
       case "seal-wall": {
@@ -545,7 +579,7 @@ export class Prop implements IProp {
           this.setOpen(true, false)
           signal.playSound("powerUp")
         }
-        this.#showStage(this.isOpen ? 1 : 0)
+        this.showStage(this.isOpen ? 1 : 0)
         break
       }
       case "slide-wall": {
@@ -555,7 +589,7 @@ export class Prop implements IProp {
         const offset = slideOffsets.get(group) ?? 0
         const gap = ((slideIndexOf(this.data) - offset) % n + n) % n === 0
         this.#setWall(field, gap)
-        this.#showStage(this.isOpen ? 1 : 0)
+        this.showStage(this.isOpen ? 1 : 0)
         break
       }
     }
@@ -668,7 +702,7 @@ export class Prop implements IProp {
   }
 }
 
-interface PushedDelegate {
+export interface PushedDelegate {
   onPushed(event: PushedEvent, prop: Prop, field: IField): void
 }
 

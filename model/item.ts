@@ -17,6 +17,7 @@ import { countPopup, linePattern0 } from "./effect.ts"
 import { ActionQueue, type ItemAction } from "./action-queue.ts"
 import { MoveGo } from "./move.ts"
 import { Palette } from "../util/palette.ts"
+import { collectLetter, collectShard } from "./oddities.ts"
 
 const fallbackImage = await fetch(
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAADRJREFUOE9jZKAQMFKon2FoGPAfzZsoribGC0PQALxORo92bGEwDAwgKXUTkw7wGjjwBgAAiwgIEW1Cnt4AAAAASUVORK5CYII=",
@@ -161,6 +162,12 @@ export class Item implements IItem {
         delegate.onCollect(actor, field, this, amount)
         break
       }
+      case "letter":
+        collectLetter(actor, field, this)
+        break
+      case "shard":
+        collectShard(actor, field, this, amount)
+        break
     }
   }
 
@@ -270,7 +277,8 @@ export function collectAll(
     else kinds.set(item.def.collect, [item])
   }
   for (const [collect, kind] of kinds) {
-    if (collect === "fish") {
+    if (collect === "fish" || collect === "letter") {
+      // one by one: fish each follow, letters must come in order
       for (const item of kind) item.onCollect(actor, field)
       continue
     }

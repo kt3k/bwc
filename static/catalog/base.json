@@ -218,6 +218,15 @@
       "canEnter": false,
       "src": "../cell/wall_canopy.png",
       "casts": true
+    },
+    "P": {
+      "canEnter": true,
+      "src": "../cell/paste.png"
+    },
+    "S": {
+      "canEnter": true,
+      "src": "../cell/spiral.png",
+      "flip": "h"
     }
   },
   "actors": {
@@ -436,6 +445,103 @@
       "idle": "villager",
       "pushed": "villager",
       "src": "../actor/townswoman/"
+    },
+    "spore": {
+      "idle": "spore",
+      "pushed": "spore",
+      "src": "../actor/spore/"
+    },
+    "piggy": {
+      "idle": "flee",
+      "pushed": "piggy",
+      "src": "../actor/piggy/"
+    },
+    "fin": {
+      "idle": "fin",
+      "pushed": "fin",
+      "src": "../actor/fin/"
+    },
+    "cloud": {
+      "idle": "cloud",
+      "pushed": "cloud",
+      "src": "../actor/cloud/"
+    },
+    "pebble-leader": {
+      "idle": "conga-leader",
+      "pushed": "conga-leader",
+      "src": "../actor/pebble-leader/"
+    },
+    "pebble": {
+      "idle": "conga-follower",
+      "pushed": "conga-follower",
+      "src": "../actor/pebble/"
+    },
+    "shadow": {
+      "idle": "shadow",
+      "pushed": "shadow",
+      "src": "../actor/shadow/"
+    },
+    "book": {
+      "idle": "book",
+      "pushed": "book",
+      "src": "../actor/book/"
+    },
+    "egg-s": {
+      "pushed": "egg",
+      "src": "../actor/egg-s/"
+    },
+    "egg-m": {
+      "pushed": "egg",
+      "src": "../actor/egg-m/"
+    },
+    "egg-l": {
+      "pushed": "egg",
+      "src": "../actor/egg-l/"
+    },
+    "bird": {
+      "idle": "bird",
+      "pushed": "bird",
+      "src": "../actor/bird/"
+    },
+    "fluff": {
+      "idle": "fluff",
+      "pushed": "fluff",
+      "src": "../actor/fluff/"
+    },
+    "slipper": {
+      "idle": "slipper",
+      "pushed": "slipper",
+      "src": "../actor/slipper/"
+    },
+    "slipper-r": {
+      "idle": "slipper",
+      "pushed": "slipper",
+      "src": "../actor/slipper-r/"
+    },
+    "snail": {
+      "idle": "snail",
+      "pushed": "snail",
+      "src": "../actor/snail/"
+    },
+    "slug": {
+      "idle": "snail",
+      "pushed": "snail",
+      "src": "../actor/slug/"
+    },
+    "block-fish": {
+      "idle": "block-fish",
+      "pushed": "block-fish",
+      "src": "../actor/block-fish/"
+    },
+    "echo": {
+      "idle": "echo",
+      "pushed": "echo",
+      "src": "../actor/echo/"
+    },
+    "chick": {
+      "idle": "flee",
+      "pushed": "startle",
+      "src": "../actor/chick/"
     }
   },
   "items": {
@@ -515,6 +621,113 @@
       "collect": "treasure",
       "value": 2,
       "src": "../item/bread.png"
+    },
+    "pebble": {
+      "collect": "treasure",
+      "value": 1,
+      "src": "../item/pebble.png"
+    },
+    "button": {
+      "collect": "treasure",
+      "value": 1,
+      "src": "../item/button.png"
+    },
+    "gear": {
+      "collect": "treasure",
+      "value": 1,
+      "src": "../item/gear.png"
+    },
+    "star": {
+      "collect": "treasure",
+      "value": 3,
+      "src": "../item/star.png"
+    },
+    "candy": {
+      "collect": "treasure",
+      "value": 1,
+      "src": "../item/candy.png"
+    },
+    "big-candy": {
+      "collect": "treasure",
+      "value": 10,
+      "src": "../item/big-candy.png"
+    },
+    "sock": {
+      "collect": "treasure",
+      "value": 1,
+      "src": "../item/sock.png"
+    },
+    "envelope": {
+      "collect": "treasure",
+      "value": 2,
+      "src": "../item/envelope.png"
+    },
+    "scale": {
+      "collect": "treasure",
+      "value": 1,
+      "src": "../item/scale.png"
+    },
+    "feather": {
+      "collect": "treasure",
+      "value": 3,
+      "src": "../item/feather.png"
+    },
+    "glim": {
+      "collect": "treasure",
+      "value": 1,
+      "src": "../item/glim.png"
+    },
+    "shard-sea": {
+      "collect": "shard",
+      "src": "../item/shard-sea.png"
+    },
+    "shard-snow": {
+      "collect": "shard",
+      "src": "../item/shard-snow.png"
+    },
+    "shard-town": {
+      "collect": "shard",
+      "src": "../item/shard-town.png"
+    },
+    "shard-sky": {
+      "collect": "shard",
+      "src": "../item/shard-sky.png"
+    },
+    "letter-k": {
+      "collect": "letter",
+      "src": "../item/letter-k.png"
+    },
+    "letter-e": {
+      "collect": "letter",
+      "src": "../item/letter-e.png"
+    },
+    "letter-y": {
+      "collect": "letter",
+      "src": "../item/letter-y.png"
+    },
+    "letter-g": {
+      "collect": "letter",
+      "src": "../item/letter-g.png"
+    },
+    "letter-m": {
+      "collect": "letter",
+      "src": "../item/letter-m.png"
+    },
+    "letter-c": {
+      "collect": "letter",
+      "src": "../item/letter-c.png"
+    },
+    "letter-o": {
+      "collect": "letter",
+      "src": "../item/letter-o.png"
+    },
+    "letter-i": {
+      "collect": "letter",
+      "src": "../item/letter-i.png"
+    },
+    "letter-n": {
+      "collect": "letter",
+      "src": "../item/letter-n.png"
     }
   },
   "props": {
@@ -1304,6 +1517,172 @@
     "bench": {
       "src": "../prop/bench.png",
       "canEnter": true
+    },
+    "nest-jar-0": {
+      "src": "../prop/nest_jar_0.png",
+      "canEnter": false,
+      "pushed": "nest-jar"
+    },
+    "nest-jar-1": {
+      "src": "../prop/nest_jar_1.png",
+      "canEnter": false,
+      "pushed": "nest-jar"
+    },
+    "nest-jar-2": {
+      "src": "../prop/nest_jar_2.png",
+      "canEnter": false,
+      "pushed": "nest-jar"
+    },
+    "nest-jar-3": {
+      "src": "../prop/nest_jar_3.png",
+      "canEnter": false,
+      "pushed": "nest-jar"
+    },
+    "nest-jar-4": {
+      "src": "../prop/nest_jar_4.png",
+      "canEnter": false,
+      "pushed": "nest-jar"
+    },
+    "packed-box": {
+      "src": "../prop/packed_box.png",
+      "canEnter": false,
+      "pushed": "packed-box"
+    },
+    "egg-wall": {
+      "src": "../prop/egg_wall.png",
+      "canEnter": false,
+      "pushed": "egg-wall"
+    },
+    "bell-stone": {
+      "src": "../prop/bell_stone.png",
+      "canEnter": false,
+      "pushed": "bell-stone",
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          },
+          "count": {
+            "type": "number"
+          },
+          "note": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "group",
+          "order",
+          "count",
+          "note"
+        ]
+      }
+    },
+    "balloon-rock": {
+      "src": "../prop/balloon_rock_0.png",
+      "canEnter": false,
+      "pushed": "balloon-rock",
+      "growth": {
+        "stages": [
+          "../prop/balloon_rock_0.png",
+          "../prop/balloon_rock_1.png",
+          "../prop/balloon_rock_2.png"
+        ],
+        "interval": 100000000
+      }
+    },
+    "drawer-tower": {
+      "src": "../prop/drawer_tower_0.png",
+      "canEnter": false,
+      "pushed": "drawer-tower",
+      "growth": {
+        "stages": [
+          "../prop/drawer_tower_0.png",
+          "../prop/drawer_tower_1.png",
+          "../prop/drawer_tower_2.png",
+          "../prop/drawer_tower_3.png"
+        ],
+        "interval": 100000000
+      }
+    },
+    "mini-drawers": {
+      "src": "../prop/mini_drawers.png",
+      "canEnter": false,
+      "pushed": "chest"
+    },
+    "moon-shell": {
+      "src": "../prop/moon_shell.png",
+      "canEnter": false,
+      "pushed": "moon-shell"
+    },
+    "lone-window": {
+      "src": "../prop/lone_window.png",
+      "canEnter": false,
+      "pushed": "lone-window"
+    },
+    "clock": {
+      "src": "../prop/clock.png",
+      "canEnter": false,
+      "pushed": "clock"
+    },
+    "pinata-tree": {
+      "src": "../prop/pinata_tree_0.png",
+      "canEnter": false,
+      "pushed": "pinata-tree",
+      "growth": {
+        "stages": [
+          "../prop/pinata_tree_0.png",
+          "../prop/pinata_tree_1.png",
+          "../prop/pinata_tree_2.png",
+          "../prop/pinata_tree_3.png"
+        ],
+        "interval": 100000000
+      }
+    },
+    "pinata": {
+      "src": "../prop/pinata.png",
+      "canEnter": false,
+      "pushed": "pinata"
+    },
+    "paste-tube": {
+      "src": "../prop/paste_tube_0.png",
+      "canEnter": false,
+      "pushed": "paste-tube",
+      "growth": {
+        "stages": [
+          "../prop/paste_tube_0.png",
+          "../prop/paste_tube_1.png"
+        ],
+        "interval": 100000000
+      }
+    },
+    "self-statue": {
+      "src": "../prop/self_statue.png",
+      "canEnter": false,
+      "pushed": "self-statue"
+    },
+    "snail-house": {
+      "src": "../prop/snail_house.png",
+      "canEnter": false,
+      "pushed": "snail-house"
+    },
+    "slipper-mat": {
+      "src": "../prop/slipper_mat.png",
+      "canEnter": true,
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "group"
+        ]
+      }
     }
   }
 }

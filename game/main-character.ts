@@ -11,6 +11,7 @@ import { linePattern0 } from "../model/effect.ts"
 import { collectAll, Item } from "../model/item.ts"
 import * as signal from "../util/signals.ts"
 import { Palette } from "../util/palette.ts"
+import { recordTrail } from "../model/oddities.ts"
 
 /**
  * Digs the diggable cell the actor stands on. Each spot yields its
@@ -208,6 +209,8 @@ export class IdleMainActor implements IdleDelegate {
 
 export class MoveEndMainActor implements MoveEndDelegate {
   onMoveEnd(actor: Actor, field: IField, move: Move): void {
+    // the trail the echo of the self statue walks
+    if (move.type === "move") recordTrail(actor.i, actor.j, field.time)
     // everything on the cell at once (a stack shows "xN")
     collectAll(actor, field, field.peekItems(actor.i, actor.j))
 

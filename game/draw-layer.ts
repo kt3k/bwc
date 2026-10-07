@@ -35,6 +35,7 @@ export class DrawLayer {
 
   drawIterableColorBox(iterable: Iterable<IColorBox>): void {
     for (const obj of iterable) {
+      if (obj.visible === false) continue
       if (this.#viewScope.overlaps(obj)) {
         this.#canvasWrapper.ctx.fillStyle = obj.color
         this.#canvasWrapper.ctx.fillRect(

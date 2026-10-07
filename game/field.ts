@@ -683,9 +683,16 @@ export class Field implements IField {
 
   // Spawns a new prop at the given grid coordinate.
   // The spawn is also added to the block's spawn map so that the prop
-  // re-appears after deactivation.
+  // re-appears after deactivation, unless it is transient (the things
+  // that came out of a broken thing are gone once out of the area).
   // If the prop type is unavailable in the given block, returns null
-  spawnProp(type: string, i: number, j: number): IProp | null {
+  spawnProp(
+    type: string,
+    i: number,
+    j: number,
+    data?: unknown,
+    { transient = false }: { transient?: boolean } = {},
+  ): IProp | null {
     const block = this.#getBlockOrNull(i, j)
     const def = block?.catalog.props[type]
 
@@ -694,8 +701,8 @@ export class Field implements IField {
       return null
     }
 
-    const spawn = new PropSpawn(i, j, def, undefined)
-    block.propSpawns.add(spawn)
+    const spawn = new PropSpawn(i, j, def, data)
+    if (!transient) block.propSpawns.add(spawn)
     const prop = Prop.fromSpawn(spawn)
     this.#props.add(prop)
     prop.loadAssets({ loadImage })

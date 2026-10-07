@@ -314,3 +314,144 @@ export function countPopup(
     ),
   ]
 }
+
+/**
+ * A chip of debris: a square of pixels thrown out of a broken thing,
+ * falling under gravity onto its "floor" (the row it started from plus
+ * a few pixels) and lying there a moment before it vanishes at once.
+ */
+export class EffectDebris implements IColorBox, IFinishable, IStepper {
+  #x: number
+  #y: number
+  #vx: number
+  #vy: number
+  #floor: number
+  #life: number
+  constructor(
+    x: number,
+    y: number,
+    vx: number,
+    vy: number,
+    readonly color: PaletteColor,
+    readonly w = 2,
+    readonly h = 2,
+    life = 40,
+  ) {
+    this.#x = x
+    this.#y = y
+    this.#vx = vx
+    this.#vy = vy
+    this.#floor = y + 6
+    this.#life = life
+  }
+  step(_field: IField): void {
+    this.#life--
+    if (this.#y >= this.#floor && this.#vy >= 0) {
+      // lying on the floor
+      return
+    }
+    this.#x += this.#vx
+    this.#y += this.#vy
+    this.#vy += 0.35
+    if (this.#y >= this.#floor && this.#vy > 0) {
+      this.#y = this.#floor
+      this.#vx = 0
+    }
+  }
+  get x(): number {
+    return Math.round(this.#x)
+  }
+  get y(): number {
+    return Math.round(this.#y)
+  }
+  get finished(): boolean {
+    return this.#life <= 0
+  }
+}
+
+/**
+ * A burst of debris out of the cell (i, j): `count` chips in the given
+ * colors, thrown up and out in all directions (or fanned toward `dir`).
+ * `rand` is a 0..1 random source, so tests can make it repeatable.
+ */
+export function debrisBurst(
+  i: number,
+  j: number,
+  colors: readonly PaletteColor[],
+  count = 10,
+  rand: () => number = Math.random,
+  dir?: Dir,
+): EffectDebris[] {
+  const cx = i * CELL_SIZE + CELL_SIZE / 2
+  const cy = j * CELL_SIZE + CELL_SIZE / 2
+  const [bx, by] = dir === "up"
+    ? [0, -1.2]
+    : dir === "down"
+    ? [0, 1.2]
+    : dir === "left"
+    ? [-1.2, 0]
+    : dir === "right"
+    ? [1.2, 0]
+    : [0, 0]
+  return Array.from({ length: count }, (_, n) => {
+    const a = (n / count) * Math.PI * 2 + rand() * 0.6
+    const speed = 0.8 + rand() * 1.4
+    const size = rand() < 0.3 ? 1 : 2
+    return new EffectDebris(
+      cx + Math.cos(a) * 3,
+      cy + Math.sin(a) * 3,
+      Math.cos(a) * speed + bx,
+      Math.sin(a) * speed - 2.2 + by,
+      colors[n % colors.length],
+      size,
+      size,
+      30 + Math.floor(rand() * 20),
+    )
+  })
+}
+
+/**
+ * A plain box of one color held for some frames, e.g. the white flash
+ * of a breaking thing. With `ground`, it is drawn under the props and
+ * the actors (a patch of night on the floor).
+ */
+export class EffectBox implements IColorBox, IFinishable, IStepper {
+  #life: number
+  #delay: number
+  constructor(
+    readonly x: number,
+    readonly y: number,
+    readonly w: number,
+    readonly h: number,
+    readonly color: PaletteColor,
+    life: number,
+    readonly ground = false,
+    delay = 0,
+  ) {
+    this.#life = life
+    this.#delay = delay
+  }
+  step(_field: IField): void {
+    if (this.#delay > 0) this.#delay--
+    else this.#life--
+  }
+  /** Not shown yet while delayed */
+  get visible(): boolean {
+    return this.#delay <= 0
+  }
+  get finished(): boolean {
+    return this.#life <= 0
+  }
+}
+
+/** The white flash over the cell (i, j), for 2 frames */
+export function flashCell(i: number, j: number): EffectBox {
+  return new EffectBox(
+    i * CELL_SIZE + 2,
+    j * CELL_SIZE + 2,
+    CELL_SIZE - 4,
+    CELL_SIZE - 4,
+    Palette.white,
+    2,
+  )
+}

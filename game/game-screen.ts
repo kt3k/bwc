@@ -9,6 +9,7 @@ import { RectScope } from "../util/rect-scope.ts"
 
 import { Field } from "./field.ts"
 import { Actor } from "../model/actor.ts"
+import { juice, shakeOffset } from "../util/juice.ts"
 import { restoreSave, savedPosition, savePosition } from "../util/save.ts"
 
 const parseGridPosition = (hash: string) => {
@@ -130,14 +131,26 @@ export function GameScreen({ el, query }: Context) {
     }
     signals.isGameLoading.update(false)
 
-    field.step()
-    signals.centerPixel.update({ x: field.me.centerX, y: field.me.centerY })
+    if (juice.freeze > 0) {
+      // the hit-stop: the world holds still a moment, still drawn
+      juice.freeze--
+    } else {
+      field.step()
+    }
+    if (juice.shake > 0) juice.shake--
+    const jitter = shakeOffset()
+    signals.centerPixel.update({
+      x: field.me.centerX + jitter.x,
+      y: field.me.centerY + jitter.y,
+    })
 
     entityLayer.clear()
+    const effects = [...field.effects.iter()]
+    entityLayer.drawIterableColorBox(effects.filter((e) => e.ground))
     entityLayer.drawIterableEntity(field.props.iter())
     entityLayer.drawIterableEntity(field.items.iter())
     entityLayer.drawIterableEntity(field.actors.iter())
-    entityLayer.drawIterableColorBox(field.effects.iter())
+    entityLayer.drawIterableColorBox(effects.filter((e) => !e.ground))
     entityLayer.drawWhiteNoise()
 
     const time = field.time

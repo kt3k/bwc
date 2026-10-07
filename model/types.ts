@@ -22,6 +22,10 @@ export type IBox = {
 
 export type IColorBox = IBox & {
   color: PaletteColor
+  /** Drawn under the props and the actors (e.g. a patch of night) */
+  readonly ground?: boolean
+  /** false while not shown yet (a delayed effect) */
+  readonly visible?: boolean
 }
 
 export type IEntity = IBox & ILoader & {
@@ -56,6 +60,8 @@ export type IProp =
     type: string
     /** true if the prop emits light (lit lanterns): ghosts avoid it */
     isLightSource: boolean
+    /** Falls into its cell from `height` pixels above (things dropping in) */
+    drop?(height: number, onLand?: () => void): void
   }
 
 export type IField = {
@@ -80,7 +86,18 @@ export type IField = {
   peekItems(i: number, j: number): IItem[]
   spawnActor(type: string, i: number, j: number, dir: Dir): IActor | null
   spawnItem(type: string, i: number, j: number, id?: string): IItem | null
-  spawnProp(type: string, i: number, j: number): IProp | null
+  /**
+   * transient: the prop is not written into the block's spawns, so it
+   * is gone once it leaves the active area (things that came out of a
+   * broken thing)
+   */
+  spawnProp(
+    type: string,
+    i: number,
+    j: number,
+    data?: unknown,
+    opts?: { transient?: boolean },
+  ): IProp | null
   collectItem(i: number, j: number, id: string): void
   actors: {
     iter(): Iterable<IActor>
@@ -246,4 +263,9 @@ export type Action =
   | {
     readonly type: "remove-buff"
     readonly buff: string
+  }
+  | {
+    /** Runs the function in the actor's turn (e.g. it pops) */
+    readonly type: "call"
+    readonly fn: (field: IField) => void
   }
