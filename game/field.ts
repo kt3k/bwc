@@ -436,7 +436,8 @@ class BlockMapLoader {
     const url = new URL(`block_${mapId}.json`, this.#url).href
     this.#loading.add(url)
     try {
-      const resp = await fetch(url)
+      // revalidated, so the map and its catalog are of the same version
+      const resp = await fetch(url, { cache: "no-cache" })
       const mapObj = await resp.json()
       const catalog = await loadCatalog(url, mapObj.catalogs)
       return new BlockMap(url, mapObj, catalog)

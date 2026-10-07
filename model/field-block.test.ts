@@ -109,3 +109,28 @@ Deno.test("FieldBlock names the room at a cell, smallest room first", () => {
   )
   assertEquals(unnamed.placeLabel(12, 240), "0.200 12,40")
 })
+
+Deno.test("BlockMap leaves out the spawns its catalog doesn't know", () => {
+  const catalog = new Catalog([])
+  catalog.props["crate"] = {
+    type: "crate",
+    canEnter: false,
+    src: "crate.png",
+    href: "crate.png",
+  }
+  const map = new BlockMap("block.json", {
+    i: 0,
+    j: 0,
+    catalogs: [],
+    actors: [{ i: 1, j: 1, type: "newer-actor" }],
+    items: [{ i: 2, j: 2, type: "newer-item" }],
+    props: [
+      { i: 3, j: 3, type: "crate" },
+      { i: 4, j: 4, type: "newer-prop" },
+    ],
+    field: ["0"],
+  } as never, catalog)
+  assertEquals(map.actors.length, 0)
+  assertEquals(map.items.length, 0)
+  assertEquals(map.props.map((p) => p.def.type), ["crate"])
+})

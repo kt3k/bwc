@@ -343,7 +343,18 @@ export class BlockMap {
     this.j = source.j
     this.name = source.name
     this.rooms = source.rooms ?? []
-    this.actors = (source.actors ?? []).map((spawn) =>
+    // A spawn of a type the catalog doesn't know (e.g. an outdated
+    // catalog) is left out, instead of losing the whole block
+    const known = <T extends { type: string }>(
+      list: readonly T[] | undefined,
+      defs: Record<string, unknown>,
+    ) =>
+      (list ?? []).filter((spawn) => {
+        if (defs[spawn.type]) return true
+        console.warn(`unknown spawn type "${spawn.type}" in ${url}`)
+        return false
+      })
+    this.actors = known(source.actors, catalog.actors).map((spawn) =>
       new ActorSpawn(
         spawn.i,
         spawn.j,
@@ -354,14 +365,14 @@ export class BlockMap {
         },
       )
     )
-    this.items = (source.items ?? []).map((item) =>
+    this.items = known(source.items, catalog.items).map((item) =>
       new ItemSpawn(
         item.i,
         item.j,
         catalog.items[item.type]!,
       )
     )
-    this.props = (source.props ?? []).map((prop) =>
+    this.props = known(source.props, catalog.props).map((prop) =>
       new PropSpawn(
         prop.i,
         prop.j,

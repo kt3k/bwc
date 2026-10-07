@@ -19,7 +19,9 @@ export const loadImage = memoizedLoading(loadImage_)
 /** Load JSON from a URL */
 // deno-lint-ignore no-explicit-any
 async function loadJson_(url: string): Promise<any> {
-  const res = await fetch(url)
+  // always revalidated: a catalog cached from an older version would not
+  // know the types that the (fresh) maps use
+  const res = await fetch(url, { cache: "no-cache" })
   if (!res.ok) {
     throw new Error(`Failed to load text from ${url}: ${res.statusText}`)
   }
