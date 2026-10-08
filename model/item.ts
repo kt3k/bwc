@@ -16,7 +16,7 @@ import * as signal from "../util/signals.ts"
 import { countPopup, linePattern0 } from "./effect.ts"
 import { ActionQueue, type ItemAction } from "./action-queue.ts"
 import { MoveGo } from "./move.ts"
-import { Palette } from "../util/palette.ts"
+import { Palette, type PaletteColor } from "../util/palette.ts"
 import { collectLetter, collectShard } from "./oddities.ts"
 
 const fallbackImage = await fetch(
@@ -255,6 +255,14 @@ export class Item implements IItem {
   }
 }
 
+/**
+ * The color of an item's pickup lines: the color used most in its sprite
+ * (the catalog's `color`, tools/item_colors.ts), or the given fallback
+ */
+export function fxColor(item: Item, fallback: PaletteColor): PaletteColor {
+  return item.def.color ?? fallback
+}
+
 interface CollectDelegate {
   onCollect(actor: IActor, field: IField, item: Item, amount: number): void
 }
@@ -319,7 +327,7 @@ export class CollectApple implements CollectDelegate {
         1,
         1,
         2,
-        Palette.pink4,
+        fxColor(item, Palette.pink4),
       )
     ) {
       field.effects.add(effect)
@@ -348,7 +356,7 @@ export class CollectGreenApple implements CollectDelegate {
         1,
         0.7,
         3,
-        Palette.green4,
+        fxColor(item, Palette.green4),
       )
     ) {
       field.effects.add(effect)
@@ -377,7 +385,7 @@ export class CollectCoin implements CollectDelegate {
         1,
         0.7,
         3,
-        Palette.brown3,
+        fxColor(item, Palette.brown3),
       )
     ) {
       field.effects.add(effect)
@@ -416,7 +424,7 @@ export class CollectTreasure implements CollectDelegate {
         1,
         0.7,
         3,
-        Palette.brown2,
+        fxColor(item, Palette.brown2),
       )
     ) {
       field.effects.add(effect)
@@ -443,7 +451,7 @@ export class CollectSeed implements CollectDelegate {
         1,
         0.7,
         3,
-        Palette.brown4,
+        fxColor(item, Palette.brown4),
       )
     ) {
       field.effects.add(effect)
@@ -475,7 +483,7 @@ export class CollectKey implements CollectDelegate {
         1,
         0.7,
         3,
-        Palette.brown3,
+        fxColor(item, Palette.brown3),
       )
     ) {
       field.effects.add(effect)
@@ -495,6 +503,19 @@ export class CollectMushroom implements CollectDelegate {
     _amount: number,
   ): void {
     field.collectItem(actor.i, actor.j, item.id)
+    for (
+      const effect of linePattern0(
+        DIRS,
+        actor.i,
+        actor.j,
+        1,
+        0.7,
+        3,
+        fxColor(item, Palette.orange3),
+      )
+    ) {
+      field.effects.add(effect)
+    }
     signal.playSound("powerUp")
     actor.clearActionQueue()
     actor.enqueueActions(
@@ -560,7 +581,7 @@ export class CollectPurpleMushroom implements CollectDelegate {
         baseSpeed: 1.3,
         p0: 0.4,
         dist: 3,
-        color: Palette.magenta4,
+        color: fxColor(item, Palette.magenta4),
         offsetI,
         offsetJ,
       }, {
@@ -599,7 +620,7 @@ export class CollectFish implements CollectDelegate {
         1,
         0.7,
         3,
-        Palette.cyan3,
+        fxColor(item, Palette.cyan3),
       )
     ) {
       field.effects.add(effect)

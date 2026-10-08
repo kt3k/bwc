@@ -37,7 +37,12 @@ export type IEntity = IBox & ILoader & {
 export type IItem = IEntity & IStepper & IFollower & {
   id: string
   /** The item definition (the collect type tells what the item is) */
-  readonly def: { readonly type: string; readonly collect: string }
+  readonly def: {
+    readonly type: string
+    readonly collect: string
+    /** The color used most in its sprite: its pickup lines */
+    readonly color?: PaletteColor
+  }
   isFollowing: boolean
   /** Starts following the actor who set this item as its follower */
   startFollowing(): void

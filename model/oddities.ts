@@ -15,7 +15,13 @@ import { hitStop, shake } from "../util/juice.ts"
 import { Palette, type PaletteColor } from "../util/palette.ts"
 import { CELL_SIZE } from "../util/constants.ts"
 import { seed } from "../util/random.ts"
-import { debrisBurst, EffectBox, EffectDebris, flashCell } from "./effect.ts"
+import {
+  debrisBurst,
+  EffectBox,
+  EffectDebris,
+  flashCell,
+  linePattern0,
+} from "./effect.ts"
 import { dirsToward, manhattan, stepAway } from "./steering.ts"
 import type {
   Dir,
@@ -1438,6 +1444,7 @@ export function collectLetter(actor: IActor, field: IField, item: IItem) {
   }
   field.collectItem(item.i, item.j, item.id)
   spelling.next++
+  pickupLines(field, actor, item, Palette.brown1)
   signal.playSound("bell", [0, 4, 7, 12][(spelling.next - 1) % 4])
   burst(field, actor.i, actor.j, [Palette.white, Palette.gray2], 5)
   if (spelling.next < word.length) {
@@ -1457,6 +1464,26 @@ export function collectLetter(actor: IActor, field: IField, item: IItem) {
   })
 }
 
+/** The lines that burst out of a picked up item, in its main color */
+function pickupLines(
+  field: IField,
+  actor: IActor,
+  item: IItem,
+  fallback: PaletteColor,
+) {
+  for (
+    const e of linePattern0(
+      DIRS,
+      actor.i,
+      actor.j,
+      1,
+      0.7,
+      3,
+      item.def.color ?? fallback,
+    )
+  ) field.effects.add(e)
+}
+
 /** Picks up a window shard: a glimpse of somewhere else */
 export function collectShard(
   actor: IActor,
@@ -1465,6 +1492,7 @@ export function collectShard(
   amount: number,
 ) {
   field.collectItem(item.i, item.j, item.id)
+  pickupLines(field, actor, item, Palette.blue1)
   signal.message.update({
     text: SHARDS[item.def.type] ?? "A PIECE OF SOMEWHERE",
   })

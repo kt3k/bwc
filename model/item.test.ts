@@ -70,3 +70,15 @@ Deno.test("collectAll", async (t) => {
     assert(!effects.some((e) => e instanceof EffectPopupPixel))
   })
 })
+
+Deno.test("the pickup lines are in the item's main color", () => {
+  const me = new Actor(0, 0, { type: "main", src: "", href: "" }, "main")
+  const effects: unknown[] = []
+  const field = makeField(me, [], effects)
+  const gold = { ...coinDef, color: "#d49d29" as const }
+  new Item(null, 0, 0, gold).onCollect(me, field)
+  assert(effects.length > 0)
+  for (const e of effects) {
+    assertEquals((e as { color: string }).color, "#d49d29")
+  }
+})

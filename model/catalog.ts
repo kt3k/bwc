@@ -1,3 +1,4 @@
+import { isPaletteColor, type PaletteColor } from "../util/palette.ts"
 import { loadJson } from "../util/load.ts"
 import type { JSONSchema } from "../util/json-schema.ts"
 
@@ -24,6 +25,8 @@ interface CatalogSource {
     readonly collect: string
     /** "treasure": how many coins it is worth */
     readonly value?: number
+    /** The color used most in its sprite: its pickup lines (tools/item_colors.ts) */
+    readonly color?: string
   }>
   readonly actors: Record<string, {
     readonly moveEnd?: string
@@ -74,6 +77,8 @@ export interface ItemDefinition {
   readonly collect: string
   /** "treasure": how many coins it is worth */
   readonly value?: number
+  /** The color used most in its sprite: its pickup lines (tools/item_colors.ts) */
+  readonly color?: PaletteColor
   readonly src: string
   readonly href: string
 }
@@ -148,6 +153,9 @@ export class Catalog {
           type: type,
           collect: data.collect,
           value: data.value,
+          color: data.color && isPaletteColor(data.color)
+            ? data.color
+            : undefined,
           src: data.src,
           href: new URL(data.src, url).href,
         }
@@ -216,6 +224,7 @@ export class Catalog {
         src: def.src,
         collect: def.collect,
         value: def.value,
+        color: def.color,
       }
     }
 

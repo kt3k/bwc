@@ -64,6 +64,24 @@ for (const [name, cell] of Object.entries(catalog.cells)) {
   }
 }
 
+// The items' pickup line colors are the colors used most in their
+// sprites (tools/item_colors.ts writes them into the catalog)
+{
+  const { itemColors } = await import("./item_colors.ts")
+  const items = JSON.parse(
+    await Deno.readTextFile("static/catalog/base.json"),
+  ).items as Record<string, { color?: string }>
+  for (const [type, color] of Object.entries(await itemColors())) {
+    if (items[type]?.color !== color) {
+      offenders.push(
+        `static/catalog/base.json item "${type}" color ${
+          items[type]?.color ?? "(none)"
+        } is not its main color ${color}: run deno -A tools/item_colors.ts`,
+      )
+    }
+  }
+}
+
 // Hex colors written in the pages (inline styles, filters, classes)
 for (
   const page of [

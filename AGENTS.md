@@ -16,6 +16,9 @@
   `Palette.gray2` just outside their outline, like the apple, and the outline is
   black only. Fix both with `deno task item-ring <png>`; `check-palette`
   enforces it. See "アイテムの外周 ピクセル" in docs/art-guide.md.
+- An item's pickup lines use its main color (the color used most in its sprite).
+  After changing an item sprite, run `deno -A tools/item_colors.ts`;
+  `check-palette` checks the catalog colors are up to date.
 
 ## Git operations
 
