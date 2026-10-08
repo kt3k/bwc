@@ -5,6 +5,18 @@ import { clearInput, Input, inputQueue } from "./input.ts"
 
 const TOUCH_SENSITIVITY_THRESHOLD = 25
 
+/**
+ * true if the touch was on a control of the page (the speed buttons, the
+ * exit button, the minimap): a tap there isn't a tap on the game, so it
+ * mustn't make the player jump
+ */
+export function isUiTarget(target: EventTarget | null): boolean {
+  return typeof (target as Element | null)?.closest === "function" &&
+    !!(target as Element).closest(
+      "button, a, .js-speed-buttons, .js-exit-button, .js-minimap",
+    )
+}
+
 export function SwipeHandler({ on }: Context) {
   let prevTouch: Touch | undefined
   on("touchstart", (e) => {
@@ -25,7 +37,11 @@ export function SwipeHandler({ on }: Context) {
     }
     prevTouch = touch
   })
-  on("touchend", () => {
+  on("touchend", (e) => {
+    if (isUiTarget(e.target)) {
+      prevTouch = undefined
+      return
+    }
     if (Input.up || Input.down || Input.left || Input.right) {
       clearInput()
     } else {
