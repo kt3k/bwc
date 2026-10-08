@@ -38,14 +38,17 @@ export function SwipeHandler({ on }: Context) {
     prevTouch = touch
   })
   on("touchend", (e) => {
-    if (isUiTarget(e.target)) {
-      prevTouch = undefined
-      return
-    }
+    prevTouch = undefined
     if (Input.up || Input.down || Input.left || Input.right) {
+      // A swipe ended: stops walking, wherever the finger was lifted (on
+      // the speed or tool buttons too)
       clearInput()
-    } else {
+    } else if (!isUiTarget(e.target)) {
       inputQueue.push("touchendempty")
     }
+  })
+  on("touchcancel", () => {
+    prevTouch = undefined
+    clearInput()
   })
 }
