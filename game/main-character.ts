@@ -12,6 +12,7 @@ import { collectAll, Item } from "../model/item.ts"
 import * as signal from "../util/signals.ts"
 import { Palette } from "../util/palette.ts"
 import { recordTrail } from "../model/oddities.ts"
+import { putTool, tryPlantSeed } from "../model/tool.ts"
 
 /**
  * Digs the diggable cell the actor stands on. Each spot yields its
@@ -55,40 +56,6 @@ function tryDig(actor: Actor, field: IField): boolean {
       item.enqueueActions({ type: "go", dir: dirs[n % dirs.length] })
     }
   })
-  return true
-}
-
-/**
- * Plants a sapling at the front cell if the player has seeds and the
- * cell is a free ground. Returns true if planted.
- */
-function tryPlantSeed(actor: Actor, field: IField): boolean {
-  if (signal.seedCount.get() <= 0) {
-    return false
-  }
-  const [fi, fj] = actor.frontGrid()
-  if (!field.canEnter(fi, fj) || field.peekItem(fi, fj)) {
-    return false
-  }
-  const prop = field.spawnProp("sapling", fi, fj)
-  if (!prop) {
-    return false
-  }
-  signal.seedCount.update(signal.seedCount.get() - 1)
-  signal.playSound("powerUp")
-  for (
-    const effect of linePattern0(
-      [actor.dir],
-      fi,
-      fj,
-      1,
-      0.7,
-      2,
-      Palette.yellow3,
-    )
-  ) {
-    field.effects.add(effect)
-  }
   return true
 }
 
@@ -157,6 +124,10 @@ export class IdleMainActor implements IdleDelegate {
     ) {
       inputQueue.shift()
       if (tryDig(actor, field)) {
+        return
+      }
+      // the chosen tool goes down in front (docs/item-tools.md)
+      if (putTool(actor, field)) {
         return
       }
       if (tryPlantSeed(actor, field)) {

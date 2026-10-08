@@ -29,6 +29,7 @@ import { ActorSpawn } from "./field-block.ts"
 import { linePattern0 } from "./effect.ts"
 import { MoveBounce, MoveGo, MoveJump } from "./move.ts"
 import { dirsToward, stepAway } from "./steering.ts"
+import { eatBait, findBait, stepToBait } from "./bait.ts"
 import {
   CatDelegate,
   KeeperDelegate,
@@ -963,7 +964,8 @@ export class IdleDelegateWander implements IdleDelegate {
 /**
  * Chases the main character when it comes within the given range
  * (manhattan distance). On contact, it steals an apple from the player
- * with a cooldown.
+ * with a cooldown. An apple lying in range draws it away from the
+ * player: it eats it and sits there, full, for a while (the bait).
  */
 export class IdleDelegateChase implements IdleDelegate {
   /** The chase range in manhattan distance */
@@ -971,13 +973,34 @@ export class IdleDelegateChase implements IdleDelegate {
   /** The steal cooldown in frames */
   #cooldown: number
   #stealDisabledUntil = 0
+  /** Sits still, full, until this time after eating an apple */
+  #fullUntil = 0
 
   constructor(range = 6, cooldown = 180) {
     this.#range = range
     this.#cooldown = cooldown
   }
 
+  /** How long it sits after eating an apple (frames) */
+  static readonly FULL = 360
+
   onIdle(actor: Actor, field: IField): void {
+    if (field.time < this.#fullUntil) {
+      return
+    }
+    // An apple on the ground beats the player's apples: goes and eats it
+    // (smelt from a little farther than the player is seen)
+    const bait = findBait(field, actor.i, actor.j, "apple", this.#range + 2)
+    if (bait) {
+      if (bait.i === actor.i && bait.j === actor.j) {
+        eatBait(actor, field, bait, "MUNCH!")
+        this.#fullUntil = field.time + IdleDelegateChase.FULL
+        return
+      }
+      if (stepToBait(actor, field, bait)) {
+        return
+      }
+    }
     const me = field.me
     if (!me || me.id === actor.id) {
       return

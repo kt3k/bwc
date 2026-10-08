@@ -1,5 +1,7 @@
 import type { Context } from "@kt3k/cell"
 import { Input, inputQueue } from "./input.ts"
+import * as signal from "../../util/signals.ts"
+import { chooseTool, nextTool } from "../../model/tool.ts"
 
 const KEY_UP = new Set(["ArrowUp", "w", "k"])
 const KEY_DOWN = new Set(["ArrowDown", "s", "j"])
@@ -30,6 +32,9 @@ export function KeyMonitor({ on }: Context) {
     } else if (KEY_RIGHT.has(key)) {
       e.preventDefault()
       Input.right = true
+    } else if (key === "x" && !e.repeat) {
+      // the next tool: what space puts down
+      chooseTool(nextTool(signal.tool.get()))
     } else if (key === " ") {
       e.preventDefault()
       if (!spaceQueued) {

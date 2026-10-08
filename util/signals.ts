@@ -22,6 +22,10 @@ export const coinCount = new Signal(0)
 export const seedCount = new Signal(0)
 // The current count of keys
 export const keyCount = new Signal(0)
+/** What the player puts down with space: bait for the animals, or a seed */
+export type Tool = "apple" | "fish" | "seed"
+// The chosen tool, or null (space does the usual: dig, plant, fish, jump)
+export const tool = new Signal<Tool | null>(null)
 // The player's walking speed, chosen with the speed buttons (pixels per frame)
 export const playerSpeed = new Signal<1 | 2 | 4>(2)
 // The message to show in the toast ui. Wrapped in an object so that

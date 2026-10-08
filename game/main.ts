@@ -19,6 +19,7 @@ import { Minimap } from "./ui/minimap.ts"
 import { PlaceLabel } from "./ui/place-label.ts"
 import { SoundPlayer } from "./ui/sound-player.ts"
 import { SpeedButtons } from "./ui/speed-buttons.ts"
+import { ToolButtons } from "./ui/tool-buttons.ts"
 
 globalThis.addEventListener("blur", clearInput)
 
@@ -39,3 +40,4 @@ register(SoundPlayer, "js-sound-player")
 register(Minimap, "js-minimap")
 register(PlaceLabel, "js-place-label")
 register(SpeedButtons, "js-speed-buttons")
+register(ToolButtons, "js-tool-buttons")

@@ -186,6 +186,36 @@
         <span class="pixel-text ink-mid">4X</span>
       </button>
     </div>
+    <!-- The tool buttons: what space puts down (docs/item-tools.md) -->
+    <div
+      class="js-tool-buttons flex items-center gap-2 mt-2 select-none"
+    >
+      <span class="pixel-text pixel-text-sm ink-mid">PUT</span>
+      <button
+        data-tool=""
+        class="px-1 py-0.5 border-2 border-[#6a6d6a] bg-black focus:outline-none"
+      >
+        <span class="pixel-text ink-mid">-</span>
+      </button>
+      <button
+        data-tool="apple"
+        class="px-1 py-0.5 border-2 border-[#6a6d6a] bg-black focus:outline-none"
+      >
+        <img class="block" src="./item/apple.png" />
+      </button>
+      <button
+        data-tool="fish"
+        class="px-1 py-0.5 border-2 border-[#6a6d6a] bg-black focus:outline-none"
+      >
+        <img class="block" src="./item/fish.png" />
+      </button>
+      <button
+        data-tool="seed"
+        class="px-1 py-0.5 border-2 border-[#6a6d6a] bg-black focus:outline-none"
+      >
+        <img class="block" src="./item/seed.png" />
+      </button>
+    </div>
     <div
       class="w-full text-center pixel-text ink-mid fixed bottom-5 sm:hidden select-none"
     >
@@ -195,6 +225,11 @@
       class="pixel-text ink-mid hidden sm:block mt-1 select-none"
     >
       USE ARROW KEYS TO MOVE
+    </div>
+    <div
+      class="pixel-text pixel-text-sm ink-mid hidden sm:block mt-1 select-none"
+    >
+      X: CHOOSE WHAT TO PUT. SPACE: PUT IT
     </div>
   </body>
   <script type="module" src="./main.js"></script>

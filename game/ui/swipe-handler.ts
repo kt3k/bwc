@@ -13,7 +13,7 @@ const TOUCH_SENSITIVITY_THRESHOLD = 25
 export function isUiTarget(target: EventTarget | null): boolean {
   return typeof (target as Element | null)?.closest === "function" &&
     !!(target as Element).closest(
-      "button, a, .js-speed-buttons, .js-exit-button, .js-minimap",
+      "button, a, .js-speed-buttons, .js-tool-buttons, .js-exit-button, .js-minimap",
     )
 }
 

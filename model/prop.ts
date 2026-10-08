@@ -791,13 +791,41 @@ class PushedDelegateAppleGate implements PushedDelegate {
 }
 
 class PushedDelegateTree implements PushedDelegate {
-  onPushed(event: PushedEvent, prop: Prop, _field: IField): void {
-    if (event.pusher?.id !== "main") {
+  onPushed(event: PushedEvent, prop: Prop, field: IField): void {
+    const pusher = event.pusher
+    if (pusher?.id !== "main") {
       return
     }
     const growth = prop.def.growth
     const state = prop.growthState
     if (!growth || !state) {
+      return
+    }
+    if (
+      state.stage === 0 && field.forgetProp &&
+      !field.isSlippery(pusher.i, pusher.j)
+    ) {
+      // A fresh sapling comes out: the seed goes back in the pocket (a
+      // seed put down at the wrong place costs nothing). Not when
+      // sliding into it on the ice: there it is the stopper
+      field.forgetProp(prop.i, prop.j)
+      growthStates.delete(`${prop.i}.${prop.j}`)
+      signal.seedCount.update(signal.seedCount.get() + 1)
+      signal.playSound("blipSelect")
+      signal.message.update({ text: "PULLED UP THE SAPLING" })
+      for (
+        const effect of linePattern0(
+          [event.dir],
+          prop.i,
+          prop.j,
+          1,
+          0.7,
+          2,
+          Palette.yellow3,
+        )
+      ) {
+        field.effects.add(effect)
+      }
       return
     }
     if (state.stage < growth.hrefs.length - 1) {

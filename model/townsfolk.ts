@@ -34,6 +34,7 @@ import * as signal from "../util/signals.ts"
 import type { Actor, ActorPushedDelegate, IdleDelegate } from "./actor.ts"
 import { linePattern0 } from "./effect.ts"
 import { face, findPath, manhattan, stepAway, stepToward } from "./steering.ts"
+import { eatBait, findBait, stepToBait } from "./bait.ts"
 import type { Dir, IActor, IField, IProp, PushedEvent } from "./types.ts"
 
 /** A small puff above the head: talking, counting, purring */
@@ -1077,7 +1078,8 @@ export class KidDelegate implements IdleDelegate, ActorPushedDelegate {
 /**
  * Naps, then strolls a few cells around its spot. Keeps clear of the
  * player (slowly). A bump is taken as a pat: the cat purrs and follows
- * the player for a while.
+ * the player for a while. A fish on the ground within 8 cells draws it
+ * over: it eats it and sleeps there for 20 seconds (the bait).
  */
 export class CatDelegate implements IdleDelegate, ActorPushedDelegate {
   #home: [number, number] | null = null
@@ -1085,6 +1087,11 @@ export class CatDelegate implements IdleDelegate, ActorPushedDelegate {
   #strollSteps = 0
   #nextStep = 0
   #followUntil = 0
+  /** Sleeps where it ate a fish until this time */
+  #feastUntil = 0
+
+  /** How long it sleeps after a fish (frames) */
+  static readonly FEAST = 1200
 
   get isFollowing(): boolean {
     return this.#followUntil > 0
@@ -1096,6 +1103,27 @@ export class CatDelegate implements IdleDelegate, ActorPushedDelegate {
     const { randomInt, choice } = rng(actor, field)
     if (field.time < this.#nextStep) {
       return
+    }
+    if (field.time < this.#feastUntil) {
+      // Sound asleep after the fish: nothing wakes it
+      return
+    }
+    if (field.time >= this.#followUntil) {
+      // A fish on the ground: goes for it, strangers or not
+      const fish = findBait(field, actor.i, actor.j, "fish", 8)
+      if (fish) {
+        if (fish.i === actor.i && fish.j === actor.j) {
+          eatBait(actor, field, fish, "THE CAT CURLED UP")
+          this.#feastUntil = field.time + CatDelegate.FEAST
+          this.#followUntil = 0
+          this.#home = [actor.i, actor.j]
+          return
+        }
+        if (stepToBait(actor, field, fish)) {
+          this.#nextStep = field.time + 12
+          return
+        }
+      }
     }
     if (me && me.id !== actor.id) {
       const d = manhattan(me.i, me.j, actor.i, actor.j)

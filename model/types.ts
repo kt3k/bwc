@@ -104,6 +104,8 @@ export type IField = {
     opts?: { transient?: boolean },
   ): IProp | null
   collectItem(i: number, j: number, id: string): void
+  /** Removes the prop for good: from the field and from its block's spawns */
+  forgetProp?(i: number, j: number): void
   actors: {
     iter(): Iterable<IActor>
     /** This method is slow */

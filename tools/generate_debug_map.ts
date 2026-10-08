@@ -143,7 +143,11 @@ const PLOT_H = 9
 const PLOT_COLS = 6
 /** Each plot: the walls, then the rows of plots 2 cells apart */
 const GARDEN_ROWS = 4
-const height = GARDEN_Y + 2 + GARDEN_ROWS * (PLOT_H + 2) + 1
+/** The bait rooms (docs/item-tools.md): try the tools, apple, fish, seed */
+const BAIT_Y = GARDEN_Y + 2 + GARDEN_ROWS * (PLOT_H + 2) + 1
+/** The top of the bait rooms (11 high, the way in at the bottom) */
+const BAIT_ROOM_Y = BAIT_Y + 4
+const height = BAIT_ROOM_Y + 13
 rect(1, 1, width, height, "0")
 
 // title + arrival
@@ -334,6 +338,96 @@ PLOTS.forEach(([text, fill], n) => {
   sign(px + 3, py + PLOT_H, text)
   fill({ x: px + 1, y: py + 1 })
 })
+
+// the bait rooms: choose a tool (X or the buttons below the screen) and
+// put it down with space. Each room's door opens while someone stands
+// on its plate, and the plate is too far from the door to hold it
+// yourself: the apple draws the chaser onto it, the fish the cat, the
+// seed stops the boulder on it
+letters(2, BAIT_Y, "BAIT")
+sign(7, BAIT_Y, "BAIT: X (OR THE BUTTONS) CHOOSES WHAT TO PUT. SPACE PUTS IT")
+prop(14, 4, "portal", { i: BI + 3, j: BJ + BAIT_Y + 2 })
+sign(15, 4, "PORTAL: TO THE BAIT ROOMS (THE TOOLS)")
+prop(2, BAIT_Y + 2, "portal", { i: BI + 13, j: BJ + 4 })
+sign(4, BAIT_Y + 2, "SUPPLIES. FISH MORE IN THE POND")
+for (let x = 6; x <= 11; x++) item(x, BAIT_Y + 2, "apple")
+for (let x = 13; x <= 16; x++) item(x, BAIT_Y + 2, "seed")
+item(18, BAIT_Y + 2, "fish")
+rect(20, BAIT_Y + 1, 23, BAIT_Y + 2, "w")
+{
+  /** A walled room, (x0, y0) its top left wall, open at the bottom */
+  const room = (x0: number, w: number, way: number, text: string) => {
+    const y0 = BAIT_ROOM_Y
+    rect(x0, y0, x0 + w - 1, y0 + 10, "1")
+    rect(x0 + 1, y0 + 1, x0 + w - 2, y0 + 9, "0")
+    rect(x0 + way - 1, y0 + 10, x0 + way + 1, y0 + 10, "0")
+    sign(x0 + way - 2, y0 + 11, text)
+    return { x: x0 + 1, y: y0 + 1 }
+  }
+  /** A wall across the room at column x, a door in it at row y */
+  const doorWall = (x: number, y: number, top: number, group: string) => {
+    rect(x, top, x, top + 8, "1")
+    rect(x, y, x, y, "0")
+    prop(x, y, "door", { group })
+  }
+
+  // A: the apple draws the chaser onto the plate. It sits there, full,
+  // for 6 seconds
+  {
+    const r = room(2, 15, 7, "APPLE: THE CHASER EATS IT, THEN SITS ON IT")
+    prop(r.x + 1, r.y + 1, "plate", { group: "bait-a" })
+    actor(r.x + 6, r.y + 4, "chaser")
+    doorWall(r.x + 10, r.y + 4, r.y, "bait-a")
+    item(r.x + 12, r.y + 4, "coin-bag")
+  }
+  // B: the fish draws the cat onto the plate. It sleeps there for 20
+  // seconds. A pond to fish in
+  {
+    const r = room(18, 19, 9, "FISH: THE CAT EATS IT, THEN SLEEPS ON IT")
+    prop(r.x + 2, r.y + 1, "plate", { group: "bait-b" })
+    actor(r.x + 5, r.y + 2, "cat")
+    rect(r.x + 1, r.y + 6, r.x + 3, r.y + 7, "w")
+    // a fish lying in the room would be eaten at once: it waits outside
+    item(r.x + 9, r.y + 11, "fish")
+    doorWall(r.x + 14, r.y + 4, r.y, "bait-b")
+    item(r.x + 16, r.y + 4, "gem")
+  }
+  // C: the boulder rolls past the plate to the wall. A sapling planted
+  // just past the plate stops it there, holding the door open for good
+  {
+    const r = room(38, 19, 4, "SEED: PLANT A STOPPER, ROLL THE BOULDER")
+    actor(r.x + 1, r.y + 2, "boulder")
+    prop(r.x + 8, r.y + 2, "plate", { group: "bait-c" })
+    item(r.x + 2, r.y + 6, "seed")
+    item(r.x + 3, r.y + 6, "seed")
+    // the treasure room, its door in the top wall
+    rect(r.x + 11, r.y + 5, r.x + 16, r.y + 5, "1")
+    rect(r.x + 11, r.y + 5, r.x + 11, r.y + 8, "1")
+    rect(r.x + 13, r.y + 5, r.x + 13, r.y + 5, "0")
+    prop(r.x + 13, r.y + 5, "door", { group: "bait-c" })
+    item(r.x + 14, r.y + 7, "coin-bag")
+    sign(r.x + 5, r.y + 7, "MISSED? WALK AWAY AND BACK: THE BOULDER RETURNS")
+  }
+  // D: two doors, two plates, both at once. The apple for the chaser,
+  // the fish for the cat, and the long sleeper first
+  {
+    const r = room(58, 23, 6, "BOTH PLATES AT ONCE: WHO GETS WHICH, AND FIRST?")
+    prop(r.x + 1, r.y + 1, "plate", { group: "bait-d1" })
+    prop(r.x + 1, r.y + 7, "plate", { group: "bait-d2" })
+    // the halves: the chaser above, the cat below
+    rect(r.x, r.y + 4, r.x + 11, r.y + 4, "1")
+    actor(r.x + 6, r.y + 1, "chaser")
+    actor(r.x + 4, r.y + 7, "cat")
+    // the bait waits outside, out of the animals' reach
+    item(r.x + 12, r.y + 11, "apple")
+    item(r.x + 13, r.y + 11, "apple")
+    item(r.x + 14, r.y + 11, "fish")
+    rect(r.x + 13, r.y, r.x + 15, r.y + 1, "w")
+    doorWall(r.x + 17, r.y + 4, r.y, "bait-d1")
+    doorWall(r.x + 19, r.y + 4, r.y, "bait-d2")
+    item(r.x + 20, r.y + 4, "big-candy")
+  }
+}
 
 // ---------------------------------------------------------------------
 // checks

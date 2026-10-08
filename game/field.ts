@@ -642,6 +642,11 @@ export class Field implements IField {
     this.#items.collect(i, j, id)
   }
 
+  forgetProp(i: number, j: number): void {
+    this.props.remove(i, j)
+    this.#getBlockOrNull(i, j)?.propSpawns.remove(i, j)
+  }
+
   // Spawns a new actor at the given grid coordinate
   // if the actor type is unavailable in the given block, returns null
   spawnActor(type: string, i: number, j: number, dir: Dir): IActor | null {
