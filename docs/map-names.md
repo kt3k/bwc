@@ -20,9 +20,11 @@ B1F-R3 40,105
 **ポータルは START と世界をつなぐためだけに使う** (START / DEBUG / ZOO
 は世界の外の島なので例外)。東の離れた場所にある WILDS (有機的な生成の試作の島)
 も START の「W」部屋から行く。島の南の山の北斜面にある CAVE MOUTH から
-山の中に入ると CAVERN (洞窟) で、洞窟は島の中に埋まっている。東の EAST PIER
-からは長い橋で海を渡って (START の「C」部屋のポータルからも直接) CITY (市街地)
-に入る。ダンジョンも世界の一部で、隣のブロックから 歩いて入る。
+山の中に入ると CAVERN (洞窟) で、洞窟は島の中に埋まっている。CITY (市街地) も
+島の西の海岸にあり、港は海に面し、島の道が街の門 (北・南・東) まで来ている
+(START
+の「C」部屋のポータルからは街の波止場に直接出る)。ダンジョンも世界の一部で、隣のブロックから
+歩いて入る。
 
 ```
  j\i    -400     -200     0        200      400      600
@@ -57,35 +59,35 @@ B1F-R3 40,105
 
 ## マップの名前
 
-| 名前     | ファイル                                                       | 生成スクリプト                                                        |
-| -------- | -------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `START`  | `block_-10000.-10000.json`                                     | (手作業、各スクリプトが一部を更新)                                    |
-| `B1F`    | `block_-400.400.json`                                          | `tools/generate_puzzle_dungeon.ts`                                    |
-| `B2F`    | `block_200.400.json`                                           | `tools/generate_puzzle_dungeon2.ts`                                   |
-| `B3F`    | `block_400.400.json`                                           | `tools/generate_puzzle_dungeon3.ts`                                   |
-| `B4F`    | `block_400.200.json`                                           | `tools/generate_puzzle_dungeon4.ts`                                   |
-| `B5F`    | `block_600.200.json`                                           | `tools/generate_puzzle_dungeon5.ts`                                   |
-| `ZOO`    | `block_10000.10000.json`                                       | `tools/generate_preview_zoo.ts`                                       |
-| `DEBUG`  | `block_10000.-10000.json`                                      | `tools/generate_debug_map.ts`                                         |
-| `WILDS`  | `block_2000.0.json` など 30 枚 (`i` 2000〜3000, `j` 0〜800)    | `tools/generate_wilds.ts` (有機的な生成の試作、ideas/organic-maps.md) |
-| `CAVERN` | WILDS のブロックの中 (山の中、部屋名 `WILDS-CAVERN-HALL` など) | `tools/generate_cavern.ts` (`generate-wilds` が山の中に押す)          |
-| `CITY`   | `block_3200.0.json` など 4 枚 (`i` 3200〜3400, `j` 0〜200)     | `tools/generate_city.ts` (住宅と商店の多い市街地)                     |
+| 名前     | ファイル                                                         | 生成スクリプト                                                        |
+| -------- | ---------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `START`  | `block_-10000.-10000.json`                                       | (手作業、各スクリプトが一部を更新)                                    |
+| `B1F`    | `block_-400.400.json`                                            | `tools/generate_puzzle_dungeon.ts`                                    |
+| `B2F`    | `block_200.400.json`                                             | `tools/generate_puzzle_dungeon2.ts`                                   |
+| `B3F`    | `block_400.400.json`                                             | `tools/generate_puzzle_dungeon3.ts`                                   |
+| `B4F`    | `block_400.200.json`                                             | `tools/generate_puzzle_dungeon4.ts`                                   |
+| `B5F`    | `block_600.200.json`                                             | `tools/generate_puzzle_dungeon5.ts`                                   |
+| `ZOO`    | `block_10000.10000.json`                                         | `tools/generate_preview_zoo.ts`                                       |
+| `DEBUG`  | `block_10000.-10000.json`                                        | `tools/generate_debug_map.ts`                                         |
+| `WILDS`  | `block_2000.0.json` など 40 枚 (`i` 2000〜3400, `j` 0〜800)      | `tools/generate_wilds.ts` (有機的な生成の試作、ideas/organic-maps.md) |
+| `CAVERN` | WILDS のブロックの中 (山の中、部屋名 `WILDS-CAVERN-HALL` など)   | `tools/generate_cavern.ts` (`generate-wilds` が山の中に押す)          |
+| `CITY`   | WILDS のブロックの中 (西の海岸、部屋名 `WILDS-CITY-HARBOR` など) | `tools/generate_city.ts` (`generate-wilds` が島に置く)                |
 
 地上のマップ (`block_0.0.json` など) には名前がなく、ブロック ID が出る。
 
 ## 部屋の名前
 
-| マップ   | 部屋                                                                                                                           |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `B1F`    | `PLAZA` `ANNEX` `R1`〜`R7` `R8` (`R8A`〜`R8G`) `VAULT`                                                                         |
-| `B2F`    | `PLAZA` `S1`〜`S6` `VAULT`                                                                                                     |
-| `B3F`    | `PLAZA` `T1`〜`T10`                                                                                                            |
-| `B4F`    | `PLAZA` `K1`〜`K5`                                                                                                             |
-| `B5F`    | `PLAZA` `M1`〜`M3`                                                                                                             |
-| `WILDS`  | `LANDING` `ASHFORD` `MILLBROOK` `STONEGATE` `HAYWARD` `LOOKOUT` `SHRINE` `RUINS` `EASTPIER` `CAMP1`〜`CAMP5`                   |
-| `CAVERN` | `HALL` `LAKE` `GROTTO` `DEEP` `NOOK1`〜 `TRIAL1`〜`TRIAL3` `VAULT`                                                             |
-| `CITY`   | `HARBOR` `NORTHSIDE` `MARKET` `SOUTHSIDE` `UPTOWN` `CASTLE` `PARKSIDE` `SQUARE` `BAZAAR` `FISHMARKET` `PARK` `GARDEN` `CHAPEL` |
-| `ZOO`    | `CELLS` `ITEMS` `PROPS` `GATES` `ACTORS` `COMBOS` `WALLS` `ANIMALS` `TOWN`                                                     |
+| マップ   | 部屋                                                                                                                                                                                                                  |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `B1F`    | `PLAZA` `ANNEX` `R1`〜`R7` `R8` (`R8A`〜`R8G`) `VAULT`                                                                                                                                                                |
+| `B2F`    | `PLAZA` `S1`〜`S6` `VAULT`                                                                                                                                                                                            |
+| `B3F`    | `PLAZA` `T1`〜`T10`                                                                                                                                                                                                   |
+| `B4F`    | `PLAZA` `K1`〜`K5`                                                                                                                                                                                                    |
+| `B5F`    | `PLAZA` `M1`〜`M3`                                                                                                                                                                                                    |
+| `WILDS`  | `LANDING` `ASHFORD` `MILLBROOK` `STONEGATE` `HAYWARD` `LOOKOUT` `SHRINE` `RUINS` `BONEVALLEY` `CAVEMOUTH` `CITYEASTGATE1` など `CAMP1`〜`CAMP9`、山の中の `CAVERN` `CAVERN-HALL` など、街の `CITY` `CITY-HARBOR` など |
+| `CAVERN` | (WILDS の中、`CAVERN-` を付けて) `HALL` `LAKE` `GROTTO` `DEEP` `NOOK1`〜 `TRIAL1`〜`TRIAL3` `VAULT`                                                                                                                   |
+| `CITY`   | (WILDS の中) `CITY-HARBOR` `CITY-NORTHSIDE` `CITY-MARKET` `CITY-SOUTHSIDE` `CITY-UPTOWN` `CITY-CASTLE` `CITY-PARKSIDE` `CITY-SQUARE` `CITY-BAZAAR` `CITY-FISHMARKET` `CITY-PARK` `CITY-GARDEN` `CITY-CHAPEL`          |
+| `ZOO`    | `CELLS` `ITEMS` `PROPS` `GATES` `ACTORS` `COMBOS` `WALLS` `ANIMALS` `TOWN`                                                                                                                                            |
 
 各部屋の中身は、それぞれの生成スクリプトの先頭のコメントに一覧がある。
 

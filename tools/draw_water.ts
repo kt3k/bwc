@@ -1,7 +1,8 @@
 // Draws the water cell (static/cell/water.png) and its lily variant. Water
 // is the one terrain cell drawn in color (docs/art-guide.md): a deep blue
 // with lighter wave crests, darker troughs under them and a glint here
-// and there, all palette blues. The lily pad stays in the grays.
+// and there, all palette blues. The lily pad on it is green (palette
+// greens), with a white flower.
 //
 // Usage: deno -A tools/draw_water.ts
 import { Palette, type PaletteColor } from "../util/palette.ts"
@@ -12,9 +13,9 @@ const MAP: Record<string, PaletteColor> = {
   "~": Palette.blue2, // a wave crest
   _: Palette.blue4, // the trough under a crest
   "*": Palette.blue1, // a glint
-  L: Palette.gray3, // the lily pad
-  l: Palette.gray2, // its light side
-  K: Palette.black, // its notch and outline
+  L: Palette.green3, // the lily pad
+  l: Palette.green2, // its light side
+  K: Palette.green4, // its notch and rim
   w: Palette.white, // the flower
 }
 

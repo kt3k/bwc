@@ -4,18 +4,32 @@
   "name": "WILDS",
   "rooms": [
     {
-      "id": "MILLBROOK",
-      "i": 2934,
-      "j": 574,
-      "w": 53,
-      "h": 26
-    },
-    {
-      "id": "CAMP2",
-      "i": 2869,
-      "j": 492,
+      "id": "CAVEMOUTH",
+      "i": 2890,
+      "j": 475,
       "w": 13,
       "h": 13
+    },
+    {
+      "id": "CAVERN",
+      "i": 2800,
+      "j": 500,
+      "w": 200,
+      "h": 100
+    },
+    {
+      "id": "CAVERN-HALL",
+      "i": 2856,
+      "j": 535,
+      "w": 81,
+      "h": 65
+    },
+    {
+      "id": "CAVERN-NOOK7",
+      "i": 2800,
+      "j": 545,
+      "w": 6,
+      "h": 37
     }
   ],
   "catalogs": [
@@ -26,976 +40,393 @@
   },
   "actors": [
     {
-      "i": 2963,
-      "j": 590,
-      "type": "keeper"
-    },
-    {
-      "i": 2961,
-      "j": 594,
-      "type": "nun"
-    },
-    {
-      "i": 2966,
-      "j": 596,
-      "type": "kid"
-    },
-    {
-      "i": 2970,
-      "j": 596,
-      "type": "kid"
-    },
-    {
-      "i": 2968,
-      "j": 598,
-      "type": "child"
-    },
-    {
-      "i": 2975,
-      "j": 592,
-      "type": "villager"
-    },
-    {
-      "i": 2945,
-      "j": 592,
-      "type": "villager2"
-    },
-    {
-      "i": 2968,
-      "j": 585,
-      "type": "inventor"
-    },
-    {
-      "i": 2952,
-      "j": 585,
-      "type": "villager"
-    },
-    {
-      "i": 2876,
-      "j": 497,
-      "type": "thief"
-    },
-    {
-      "i": 2873,
-      "j": 498,
-      "type": "fox"
-    },
-    {
-      "i": 2988,
-      "j": 590,
-      "type": "sheep"
-    },
-    {
-      "i": 2990,
-      "j": 591,
-      "type": "sheep"
-    },
-    {
-      "i": 2987,
-      "j": 592,
-      "type": "sheep"
-    },
-    {
-      "i": 2857,
-      "j": 474,
-      "type": "chaser"
-    },
-    {
-      "i": 2902,
-      "j": 485,
-      "type": "random"
-    },
-    {
-      "i": 2924,
+      "i": 2906,
       "j": 593,
-      "type": "random"
-    },
-    {
-      "i": 2910,
-      "j": 515,
-      "type": "block-fish"
-    },
-    {
-      "i": 2913,
-      "j": 516,
-      "type": "block-fish"
-    },
-    {
-      "i": 2916,
-      "j": 515,
-      "type": "block-fish"
-    },
-    {
-      "i": 2911,
-      "j": 520,
-      "type": "block-fish"
-    },
-    {
-      "i": 2915,
-      "j": 521,
-      "type": "block-fish"
+      "type": "chaser"
     }
   ],
   "items": [
     {
-      "i": 2877,
-      "j": 498,
-      "type": "potion"
-    },
-    {
-      "i": 2988,
-      "j": 470,
+      "i": 2932,
+      "j": 403,
       "type": "coin"
     },
     {
-      "i": 2925,
-      "j": 466,
-      "type": "coin"
-    },
-    {
-      "i": 2955,
-      "j": 420,
-      "type": "coin"
-    },
-    {
-      "i": 2866,
-      "j": 588,
-      "type": "coin"
-    },
-    {
-      "i": 2948,
-      "j": 467,
-      "type": "coin"
-    },
-    {
-      "i": 2826,
-      "j": 417,
-      "type": "coin"
-    },
-    {
-      "i": 2937,
-      "j": 523,
-      "type": "coin"
-    },
-    {
-      "i": 2884,
-      "j": 574,
-      "type": "coin"
-    },
-    {
-      "i": 2935,
-      "j": 427,
-      "type": "coin"
-    },
-    {
-      "i": 2848,
-      "j": 443,
-      "type": "coin"
-    },
-    {
-      "i": 2848,
-      "j": 560,
-      "type": "coin"
-    },
-    {
-      "i": 2862,
-      "j": 472,
-      "type": "coin"
-    },
-    {
-      "i": 2904,
-      "j": 558,
-      "type": "coin"
-    },
-    {
-      "i": 2889,
-      "j": 486,
-      "type": "coin"
-    },
-    {
-      "i": 2952,
-      "j": 514,
-      "type": "coin"
-    },
-    {
-      "i": 2985,
-      "j": 530,
-      "type": "coin"
-    },
-    {
-      "i": 2860,
-      "j": 548,
-      "type": "coin"
-    },
-    {
-      "i": 2852,
-      "j": 411,
-      "type": "coin"
-    },
-    {
-      "i": 2974,
-      "j": 556,
+      "i": 2811,
+      "j": 445,
       "type": "coin"
     },
     {
       "i": 2945,
-      "j": 404,
-      "type": "coin"
-    },
-    {
-      "i": 2950,
-      "j": 442,
-      "type": "coin"
-    },
-    {
-      "i": 2932,
-      "j": 453,
-      "type": "coin"
-    },
-    {
-      "i": 2834,
-      "j": 431,
-      "type": "coin"
-    },
-    {
-      "i": 2808,
-      "j": 423,
-      "type": "coin"
-    },
-    {
-      "i": 2958,
-      "j": 535,
-      "type": "coin"
-    },
-    {
-      "i": 2851,
-      "j": 576,
-      "type": "coin"
-    },
-    {
-      "i": 2983,
-      "j": 485,
-      "type": "coin"
-    },
-    {
-      "i": 2930,
-      "j": 406,
-      "type": "coin"
-    },
-    {
-      "i": 2870,
-      "j": 531,
-      "type": "coin"
-    },
-    {
-      "i": 2802,
-      "j": 447,
-      "type": "coin"
-    },
-    {
-      "i": 2937,
-      "j": 560,
-      "type": "coin"
-    },
-    {
-      "i": 2840,
-      "j": 461,
-      "type": "coin"
-    },
-    {
-      "i": 2919,
-      "j": 512,
-      "type": "coin"
-    },
-    {
-      "i": 2874,
-      "j": 453,
-      "type": "coin"
-    },
-    {
-      "i": 2989,
-      "j": 418,
-      "type": "coin"
-    },
-    {
-      "i": 2959,
-      "j": 492,
-      "type": "coin"
-    },
-    {
-      "i": 2973,
-      "j": 516,
-      "type": "coin"
-    },
-    {
-      "i": 2931,
-      "j": 487,
-      "type": "coin"
-    },
-    {
-      "i": 2940,
-      "j": 579,
+      "j": 424,
       "type": "coin"
     },
     {
       "i": 2825,
-      "j": 403,
+      "j": 444,
       "type": "coin"
     },
     {
-      "i": 2945,
-      "j": 492,
-      "type": "coin"
-    },
-    {
-      "i": 2999,
-      "j": 588,
-      "type": "coin"
-    },
-    {
-      "i": 2889,
+      "i": 2923,
       "j": 434,
       "type": "coin"
     },
     {
-      "i": 2863,
-      "j": 440,
+      "i": 2827,
+      "j": 400,
       "type": "coin"
     },
     {
-      "i": 2944,
-      "j": 545,
+      "i": 2983,
+      "j": 416,
       "type": "coin"
     },
     {
-      "i": 2977,
-      "j": 403,
-      "type": "coin"
-    },
-    {
-      "i": 2887,
-      "j": 419,
-      "type": "coin"
-    },
-    {
-      "i": 2963,
-      "j": 448,
-      "type": "coin"
-    },
-    {
-      "i": 2981,
-      "j": 578,
-      "type": "coin"
-    },
-    {
-      "i": 2877,
-      "j": 549,
-      "type": "coin"
-    },
-    {
-      "i": 2870,
-      "j": 407,
-      "type": "coin"
-    },
-    {
-      "i": 2973,
-      "j": 540,
-      "type": "coin"
-    },
-    {
-      "i": 2892,
-      "j": 591,
-      "type": "coin"
-    },
-    {
-      "i": 2821,
-      "j": 437,
+      "i": 2873,
+      "j": 409,
       "type": "coin"
     },
     {
       "i": 2880,
-      "j": 468,
+      "j": 433,
       "type": "coin"
     },
     {
-      "i": 2855,
-      "j": 510,
+      "i": 2891,
+      "j": 408,
       "type": "coin"
     },
     {
-      "i": 2975,
-      "j": 423,
+      "i": 2841,
+      "j": 415,
       "type": "coin"
     },
     {
-      "i": 2991,
-      "j": 449,
+      "i": 2812,
+      "j": 405,
       "type": "coin"
     },
     {
-      "i": 2866,
-      "j": 486,
+      "i": 2857,
+      "j": 416,
       "type": "coin"
     },
     {
-      "i": 2921,
-      "j": 528,
+      "i": 2845,
+      "j": 442,
       "type": "coin"
     },
     {
-      "i": 2929,
-      "j": 543,
+      "i": 2865,
+      "j": 456,
       "type": "coin"
     },
     {
-      "i": 2977,
-      "j": 502,
+      "i": 2854,
+      "j": 430,
       "type": "coin"
     },
     {
-      "i": 2894,
-      "j": 547,
+      "i": 2995,
+      "j": 402,
       "type": "coin"
     },
     {
       "i": 2970,
-      "j": 477,
+      "j": 409,
       "type": "coin"
     },
     {
-      "i": 2998,
-      "j": 495,
+      "i": 2819,
+      "j": 420,
       "type": "coin"
     },
     {
-      "i": 2869,
-      "j": 571,
+      "i": 2806,
+      "j": 429,
       "type": "coin"
     },
     {
-      "i": 2855,
-      "j": 527,
+      "i": 2941,
+      "j": 438,
       "type": "coin"
     },
     {
-      "i": 2907,
-      "j": 579,
-      "type": "coin"
+      "i": 2847,
+      "j": 438,
+      "type": "apple"
     },
     {
-      "i": 2953,
-      "j": 557,
-      "type": "coin"
-    },
-    {
-      "i": 2863,
-      "j": 423,
-      "type": "coin"
-    },
-    {
-      "i": 2883,
-      "j": 514,
-      "type": "coin"
-    },
-    {
-      "i": 2826,
-      "j": 455,
-      "type": "coin"
-    },
-    {
-      "i": 2850,
-      "j": 592,
-      "type": "coin"
-    },
-    {
-      "i": 2849,
-      "j": 428,
-      "type": "coin"
-    },
-    {
-      "i": 2851,
-      "j": 494,
-      "type": "coin"
-    },
-    {
-      "i": 2870,
-      "j": 477,
+      "i": 2950,
+      "j": 407,
       "type": "mushroom"
     },
     {
-      "i": 2884,
-      "j": 467,
+      "i": 2899,
+      "j": 439,
       "type": "apple"
     },
     {
-      "i": 2889,
-      "j": 481,
-      "type": "apple"
-    },
-    {
-      "i": 2856,
-      "j": 470,
-      "type": "apple"
-    },
-    {
-      "i": 2867,
-      "j": 505,
-      "type": "apple"
-    },
-    {
-      "i": 2878,
-      "j": 508,
-      "type": "apple"
-    },
-    {
-      "i": 2894,
-      "j": 463,
-      "type": "apple"
-    },
-    {
-      "i": 2917,
-      "j": 599,
-      "type": "apple"
-    },
-    {
-      "i": 2891,
-      "j": 522,
-      "type": "apple"
-    },
-    {
-      "i": 2854,
-      "j": 496,
-      "type": "apple"
-    },
-    {
-      "i": 2876,
-      "j": 446,
-      "type": "apple"
-    },
-    {
-      "i": 2866,
-      "j": 437,
-      "type": "apple"
-    },
-    {
-      "i": 2858,
-      "j": 443,
-      "type": "mushroom"
-    },
-    {
-      "i": 2855,
-      "j": 523,
-      "type": "apple"
-    },
-    {
-      "i": 2841,
-      "j": 449,
-      "type": "mushroom"
-    },
-    {
-      "i": 2863,
-      "j": 536,
+      "i": 2885,
+      "j": 402,
       "type": "seed"
     },
     {
-      "i": 2896,
-      "j": 502,
+      "i": 2829,
+      "j": 439,
       "type": "seed"
     },
     {
-      "i": 2887,
-      "j": 585,
+      "i": 2929,
+      "j": 401,
       "type": "seed"
     },
     {
-      "i": 2945,
-      "j": 530,
+      "i": 2800,
+      "j": 410,
       "type": "seed"
     },
     {
-      "i": 2930,
-      "j": 575,
-      "type": "seed"
+      "i": 2973,
+      "j": 568,
+      "type": "coin"
     },
     {
-      "i": 2876,
-      "j": 405,
-      "type": "seed"
+      "i": 2974,
+      "j": 568,
+      "type": "coin"
     },
     {
-      "i": 2827,
-      "j": 446,
-      "type": "seed"
+      "i": 2973,
+      "j": 569,
+      "type": "coin"
     }
   ],
   "props": [
     {
-      "i": 2960,
-      "j": 593,
-      "type": "bench"
-    },
-    {
-      "i": 2965,
-      "j": 595,
-      "type": "flower-pot"
-    },
-    {
-      "i": 2955,
-      "j": 595,
-      "type": "flower-pot"
-    },
-    {
-      "i": 2963,
-      "j": 591,
-      "type": "shop",
-      "data": {
-        "sells": "bread",
-        "price": 3
-      }
-    },
-    {
-      "i": 2957,
-      "j": 591,
-      "type": "notice-board",
-      "data": {
-        "text": "MILLBROOK: MIND THE POND"
-      }
-    },
-    {
-      "i": 2950,
-      "j": 596,
-      "type": "lamp-post"
-    },
-    {
-      "i": 2956,
-      "j": 590,
-      "type": "lamp-post"
-    },
-    {
-      "i": 2964,
-      "j": 590,
-      "type": "lamp-post"
-    },
-    {
-      "i": 2976,
-      "j": 591,
-      "type": "table"
-    },
-    {
-      "i": 2977,
-      "j": 591,
-      "type": "stool"
-    },
-    {
-      "i": 2979,
-      "j": 590,
-      "type": "barrel"
-    },
-    {
-      "i": 2942,
-      "j": 591,
-      "type": "table"
-    },
-    {
-      "i": 2943,
-      "j": 591,
-      "type": "stool"
-    },
-    {
-      "i": 2945,
-      "j": 590,
-      "type": "barrel"
-    },
-    {
-      "i": 2967,
-      "j": 582,
-      "type": "table"
-    },
-    {
-      "i": 2968,
-      "j": 582,
-      "type": "stool"
-    },
-    {
-      "i": 2970,
-      "j": 581,
-      "type": "jar"
-    },
-    {
-      "i": 2951,
-      "j": 583,
-      "type": "table"
-    },
-    {
-      "i": 2952,
-      "j": 583,
-      "type": "stool"
-    },
-    {
-      "i": 2954,
-      "j": 582,
-      "type": "jar"
-    },
-    {
-      "i": 2875,
-      "j": 497,
+      "i": 2893,
+      "j": 484,
       "type": "lantern"
     },
     {
-      "i": 2876,
-      "j": 499,
-      "type": "chest",
+      "i": 2899,
+      "j": 484,
+      "type": "lantern"
+    },
+    {
+      "i": 2899,
+      "j": 481,
+      "type": "sign",
       "data": {
-        "drops": "bread",
-        "count": 3
+        "text": "CAVE MOUTH: INTO THE MOUNTAIN. THREE TRIALS, ONE HOARD"
       }
     },
     {
-      "i": 2874,
-      "j": 499,
-      "type": "stool"
-    },
-    {
-      "i": 2875,
-      "j": 498,
-      "type": "campfire"
-    },
-    {
-      "i": 2874,
-      "j": 497,
-      "type": "tent"
-    },
-    {
-      "i": 2854,
-      "j": 579,
-      "type": "nest-jar-4"
-    },
-    {
-      "i": 2802,
-      "j": 425,
-      "type": "drawer-tower"
-    },
-    {
-      "i": 2886,
-      "j": 546,
-      "type": "balloon-rock"
-    },
-    {
-      "i": 2886,
-      "j": 545,
-      "type": "crate"
-    },
-    {
-      "i": 2885,
-      "j": 546,
-      "type": "nest-jar-2"
-    },
-    {
-      "i": 2887,
-      "j": 546,
-      "type": "egg-wall"
+      "i": 2896,
+      "j": 575,
+      "type": "lantern"
     }
   ],
   "field": [
-    "666666666666666666666666666666666666666666666666666666666666666666666666666666666666JJ6666666666666666666666633366666666666666666666666666666fffffffffffffffffffffJJfffffJJfffJJfffffJJffffffffffJJfJfff",
-    "666666666666666666666666J66666666666666666666JJ66666666666666666J6666666666666666666666666666666666666666666633366666666666666666666666666666ffffJfffffffJJfffJfffJJffJJfJJffffffffJfffffffffffffJJfffff",
-    "666666666666666666666666J66666666666666666666666666666666666666666666666J66666666666666666666666666666666666633366666666666666666666666666666ffffffffffffJJfffJfffffffffffffffffffffffffJffffJJffffJJfJf",
-    "66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666663336666666666666666666666666666fffffffffJfffffppfffffffffffffffffffffffffffJffffJJfffffffJf",
-    "66666666666666666666666666666666666666666666666666666666666666666666666666666666J66666666666666666666666666663336666666666666666666666666666ffffffffffffffppppfffffffJffffffJfffffffJffffffJffffJJffffff",
-    "66666666666666666666666666666666666666666666666666666666666666666666666666666666J6666666666666666666666666666333666666666666666666666666666ffJJffffffffJfppppppfJfffffffffffJfffJfffJppppppJffffJJfJffff",
-    "66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666663336666666666666666666666666ffffJJffffffffJfp1pppppJppfffffffJfffffJfpppppppppppfJffffffppp",
-    "666666666666666666666666666666666666666666666666J666666666666666666666666666666666666666666666666666666666666333666666666666666666666666ffffffffJJffffffpppppppp1pppppppppJpppp1ppppppppppppppJppppppppp",
-    "666666666666666666666666666666666666666666666666J6666666J66666666666666666666666666666666666666J666666666666633366666666666666666666666fJfffffffJJfffJJfppppppppppppppppppppppppppppp1pppppppppppppppppp",
-    "66666666666666666666666666JJ6666666666666666666666666666J66666666666666666666666666666666666666J66666666666663336666666666666666666666ffffffJJfffffffffppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "66J66666666666666666666666JJ6666666666666666666666J666J6666666666666666666666666666666666666666666666666666663336666666666666666666666ffffffJJffffffffppppppppppppppppppp1ppppppppppppppppppp1pppppppppp",
-    "66J666666666666666666666666666666666666666666666666666J6666666666666666666666666666666666666666666666666666663336666666666666666666JJ6ffffffffffffffffpppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666333666666666JJ6J666666JJ66JffffffffffJJfppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666J66333666666666JJ666666666666J6ffffJfffffffppppppppppppppppppppppppppp1ppppppppppppppppppppppp",
-    "666666666666666666666666J66666666666666666666666666666666JJ66666666666666666666666666666666666666666666666J6633366666666666666J666J666666666fJffJffffppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "666666666666666666666666J666666666666666666666666666666666666666666666666666666J6666666666666666666666J6666663336666666666666666666666666666666fJffffppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "666666666666666J6666666666JJ66666666666666666666666666666666666666666666666666666666666666666666666666J66666633366666666666666666666666666666666fffJfppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "666666666666666J6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666663336666666666666666666666666666666666fJfppppppppppppppppppppp1ppppppppppppppppppppppppppppp",
-    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666333666666666666666666666666666666666666pppppppppp1ppppp1pppppppppppppppppppppppppppp1pppppp",
-    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666333666666666666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666JJ6666666333666666666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppp111",
-    "JJ6666666666666666J666666666666666666666666666666666666666666JJ6666666666666666666666666666666666666JJ6666666333666666666666666666666666666666666666ppppppppppppppppppppppppppppp1pppppppppppppppppp1111",
-    "JJ6666666JJ6666666J666666666666666666666666666666666666666666JJ6666666666666666666666666666666666666666666666333666666666666666666666666666666666666p1pppppppppppppppppppppppppppppppppppppppppppppp1111",
-    "66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666JJ6666666666666666663336666666666666JJ6666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppp11111",
-    "666666666666666666666666666666666666666666666666666666J666666666666666666666666666666666666666666666666666666333666666666J666JJ6666666666666666666666ppppppppppppppppppppppppppp11ppppppppppppppppp11111",
-    "66666666666666666666666666666666666666666666666666666666666666666666J6666666666666666666666666666666666666666333666666666J66666666666666J6666666666666pppppppppppppp111111ppp1111111111ppppppppppp111111",
-    "6666666666666666666666666666666666666666666666666666666666JJ6666666666666666666666666666666666666666666666666333666666J666666666J6666666J6666666666666ppppppppppppp1111111111111111111111111111111111111",
-    "666666666666J666666666JJ6666666666666666666666666666666666JJ6666666666666666666666666666666666666666666666666333666666J666666666J66666666666666666666ppppppp1pppppp1111111111111111111111111111111111111",
-    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666333666666666666J666666666666666666666666pp1pppppppppp11111111111111111111111111111111111111",
-    "66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666663336666JJ666666J666666666666JJ6666666666ppppppppppppp11111111111111111111111111111111111111",
-    "66666666666666666666666666666666666J66666666666666666666666666666666666666666666666666666666666666666666666663336666JJ6666666666666666666JJ6666666666ppppppppppppp11111111111111111111111111111111111111",
-    "66666666666666666666666666666666666J66666666666666666666666666666666666666666666666666666666666666666666666663336666666666666666666666666666666666666pppppppppp1p111111111111111111111111111111111111111",
-    "66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666663336666666666666666666666666666666666666ppppppppppp111pp11111111111111111111111111111111111",
-    "66666666666666666666666666666666666666666666666666ffffffJ666666666666666666666666666666666666JJ6666666666666663366666J666666666666666666666666666666pppp1pppppp111pppppp1111111111111111111111111111111p",
-    "6666666666666666666666666666666666666666666666666fffffffJfff6666666666666666666666666666666666666666666666666633666666666666666666666666666666666666ppppppppppp111ppppppppppp1111111111111111111111111pp",
-    "666666666J6666666666666666JJ66666666666666666666JfffffJJfffffJf6666666666666666666666666666666666666666666666633666666666666666666666666666666666666pppppppppppppppppppppppppp11111111111111111111111ppp",
-    "666666666J6666666666666666JJ6666666666666666666fJffJJffffffffJfffJ66666666666666666666666666J6666666666666666633666666666666666666666666666666666666ppppppppppppppppppppppppppp11111111111111111111ppppp",
-    "6666666666666666666666666666666666666666666666fffffJJffffffJJffffJffffffffffffJJffff66666666J66ffff6666666666633666666666666666666666666666666666666ppppppppppppppppppppppppppp111111111111111111ppppppp",
-    "666666666666666666666666666666666666666666666ffffffffffffffJJffffffffffJffJfffJJfffJJf66666666fffJJf66666666663366666666666666666666666666666666666ppppppppppppppppppppppppppppp111111111111111ppppppppp",
-    "666666666666666666666666666666JJ666666666666fJJffffJJffffJJfffffffffffffffJffffffffJJff66666ffffffff66666666663366666JJ6666666666666666666666666666ppppppppppppppp1ppppppppppppp111111111111pppp1ppppppp",
-    "666666666666666666666666666666JJ66666666666ffJJffffffffffffffffffJJffffffffffffffffffJffJJ6fffJfffffJJ6666666633666666666666666666666666666666666666pppppppppppppppppppppppppppp111111111ppppppppppppppp",
-    "66666666666666666666666666666666ff66J66666fffffffffffffffffffffffffffffJffJJfffffffffJfffffffffffffff66666666633666666666666666666666666666666666666ppppp1ppppppppppppppppppppppp111111ppppppppppppppppp",
-    "6666666666666666666666666666666fffff66666fJfffffJfffffJffffffJJfffffJffJffffffffJfffffffffffJfffffff6666666666336666666666666666666666666666666666666pppppppppppppppppppppppppppppp11ppppppppppppppppppp",
-    "p666666666666666666666666666666JJffffffffffffffffffffffffffffJJfffffJfffffffffffffffffJJffffJffJffff6666666666336666666666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "ppppp6666666666666666JJ66666666ffffJJffJJffffffffffffffffJJfffffJJfffffffffffffffffJfffffffffffJffff6666666666336666666666666666666666666666666666JJ66ppppppppppppppppppppp1pppppppppppppppppppppppppppp",
-    "ppppp1pp66666666666666666J66666ffffJJfffffffffffJJffJfffffffffffJJffJffffffffffffffffffffffffffffff6666666666633666666JJ66666666666666666666666666JJ666ppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "pppppppppppp666666666666666666fffJffffffffffJJffJJffJffJffffffffffffffffffJJfffffffffffffffJJfJJfff6666666666633666666JJ6666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppp1p",
-    "ppppppppppppppp666666666666666fffJfffffJJfffJJffffffffffffffffJJfffffffffffffffffffffffJffffffJJff666666666666336666666666666666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppp",
-    "pppppppppppppppppp666666666666JJfffffffffffffffffffffffffffJfffffffffffffffffJJfffffffffffffffffff666666666666336666666666666666666666666666666666666666p1ppppppppppppppppppppp1pppppppppppppppppppppppp",
-    "pppppppppppppppppppppppp666666ffffffffffffffJfffffJJfffffffJffffJJffJJffffJJffffffffffffffJJfffffff6666ff6666633666666666666666666666666666JJ66666666666pppppppppppppppppppppppppppppppppppppppppppppppp",
-    "pppppppppppppppppppppppppp6666fffffJJffffJffffffffJJfJfffJJffJJfJJffffffffJJfffJJffffJJfffffffffffffffffff666633666666666666666666666666666JJ66666666666pppppppppppppppppppppppppppppppppppppppppppppppp",
-    "11pppppppppppppppppppppppppp6ffffffffffffJffffffJffffJfffffffffffffffffffffffffJJfffffffffffffJJfffffffffff666336666666666666666666666666666666666666666pppppppppp1ppppppppppppppppppppppppppppppppppppp",
-    "1111111ppppppppppppppppppppppfffffffffffffffffffJffJfffffffffffffffffJfffffffJJfffffffffffffffffffffffffJfff663366666666666JJ6666666666J6666666666666666pppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111ppp1pppppppppppffffffffffffffffffffffffJJffJJfffffJJffJfffffffffffffJJfffffffffffJfffJfffffff663366666666666666666666666J666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111pppppppppppppffffJffffJJffffffffffffffffJJfffffJJffffffJffffffffffffJfffJfffffJfffJfffffJJ663366JJ66666666666666666666666666666666666pppppppppppppppppppppppppppp1pppppppppppppppppppp",
-    "111111111111111111111ppppppppppppffffffffffJJffffJJfJJffffffffJJffffffJfffffffffJfffffJfffffffffffffffffffJJf63366JJ66666666666666666666666666J66666666pppppppppppppppp1ppppppppppppppppppppppppp1pppppp",
-    "111111111111111111111111pppppppppppppffffffffffffJJfJJffffffffffffffffJffffJffffJfffffffffffffJJfffJfffffffff633666666666666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "11111111111111111111111111pp1ppppppppppppffffffffffffffffffffffffffffffffffJfffffffffJJffffffffffffJfffJfffJf63366666666666666666J666666666666666666666p1ppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111pppppppppppppppppfffffffffJffffffffffffffffJffJJfffJffffffJJfffffJffffffffffJfffff63366666666666666666J666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111ppppppppppppppppppfffffffJfffffffffffJJfffJffJJfffJffJffffffffffJffffffffffffffff633666666666666666666666666666666666666666ppppppppp1ppppppppp1ppppppppppppppppppppppppppppp",
-    "11111111111111111111111111111ppppppppppppppppppJffJfffffffffffJffJJffffffffffffffffffffJfffffffffffffffffffJf63366666666666666666666666666666666666666ppppppppppppppppppppppppp1pppppppppppppppppppppppp",
-    "1111111111111111111111111111111ppppppppppppppppJffffffffJJffffJfffffffffffffJJfffffffffJfffffffffffJfffffffff6336666666666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111pppppp1pppppppffffffffffffffffffffffffffffJJfJffffffffffffffffJJffffffffff663366666666666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppp1pppppppppp",
-    "111111111111111111111111111111111111pppppppppppppffffJfffffffffffffffJJfJJfffffJffffffffffffJJffJJfffffJfff33333666666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "11111111111111111111111111111111111111ppppppppppppffffffffJJffffJJfffJJfffffffffffJfffffJfffffffffffffffff33333366666J6666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111ppppppppppffffffffffffffJJfJffffffffffffffJffJJfJfffffffffffffff3333336666666J666666666666JJ6666666666ppppppppppp1ppppppppppppppppp1pppppppppppppppppppppppppppp",
-    "11111111111111111111111111111111111111111ppppppppppfffffffffJffffffJfffffJJffJfffffffJJffffffJJffffffff3333666666666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111ppppppppppfffffffffffffffffffffffffJfffffffffffffffJJffJJfff3336666666666666666666666666666666666pppp1pppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111pppppppppfJffJffffffJfffffffffffffffffffJJfffJJffffffffffff33366666666666666666666666666666666pppppppppppppppppppppp1pppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111ppppppppfffJffffffffffffffffffffffffffJJffffffffJfffffff6333666666666666666666666666666666pp1pppppppppppppppppppppppppppppppppppppppp1ppppppppppppppppppppp",
-    "11111111111111111111111111111111111111111111111ppppppffffffffJJffJJfJffffffffffffffffffffffffffffffJf63336666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111pppppJfffffffJJffffffffffffffJfffJfffffffJfffffffffJ6633366666666666666666666666666pppppppppppppppppppppppppppppppppp1pppppppppppppppppppppppp1ppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppJffffJffffffffffffffffffJfffffffffffJffffffffff663336666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111pppppfffffffffJffffJffffJfffffffffffffJJffffJfffffff66333666666666666666666666666pppppppppppppppp1pppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111pppppfffffffffJffffJffffJffJffJfffffffffffffffffffJJ6633366666666666666666p16666pppppppppppppppppppppppppppppppppppppppppppp1ppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111pppp1fffffJffffffffffffffffJffffffffJfffffffffffffJJ663336666666666666666ppppppppppppppp1ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111pppppfJJffJfffffffffJJfJffffffffJJffffffJffffffJJff6663336666666666666666ppppppp1ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111pppppfffffffffffJJffJJfJffffffffJJffffffJffffffJJf66663336666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111pppppfffffffffffJJfffffffffffffffffffJffffffffffff66663336666666666666666ppppppppppppppppppp1pppppppppppppppp1pppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111pppppffffJJfffJJffffffJfffffffffffffffffffJfffffff66663336666666666666666pppppppppppppppppppppppppp1ppppppppppppppppppppppppppppp1pppppppppppp1ppppppppp",
-    "111111111111111111111111111111111111111111111111pppppffffffffffffffffffffffffJfffffffffffffffJJff6666633366666666666666661pppppppppppp1ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppppfffffffffffJfffffffffffJffffffJJfffffffffff666663336666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111pppppfffJJffffffJfffffffffJffffffffffffJJfffffJ6666663336666666666666666pppppppppppppppppppppppppp11ppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111pppppfffJJffffffffffffffffJfffffffffffffffJJfff6666663336666666666666666ppppppppppppppppppppppppp11111ppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111pppppfJJffJJfffffffJfffffffffJfffffJJfffffffff66666663336666666666666666pppppppppppppppppppppppp1111111ppppppppppp1pppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111pppppffffffffJffffffffffffJfffffffffffffffffff6666666333666666666666666ppppppppppppppppppppppppp11111111ppppp1ppppppppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111pppppffffffffffffffffJJfffJfffffffffffffffffJJ6666666333666666666666666ppppppppppppppppppppppppp11111111pppppppppppppppppppppppppp1pppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111pppppfJffJJffffffffffffffffffffJJfffffJfffffJJ666666633366666666666666ppppppppppppppppppppp1pppp111111111pppppppppppppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111pppppffffJJffffJfffffffffffffffJJffffffffffff6666666633366666666666666pppppppppppppppppppppppppp1111111111ppppppppppppppppppppppppppppppppppppppppp1ppp",
-    "1111111111111111111111111111111111111111111111111pppppffffffffffJfffffffffffffffffffJJffffJJfJJ666666633366666666J66666ppppppppppp1ppppppppppppppp1111111111pppppppppppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppJfffffJJfffffffffffffffffffffffJJffffJJff666666663336666666666666pppp1ppppppppppppppppppppppp11111111111ppppppppppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppffffffJJfffffffJffffffJJfJJfJJfffffffffff666666663336666666666666ppppppppppppppppp1pppppppppp111111111111p1ppppppppppppppppppp1pppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppffffffffffffJJfffffffffffJJffffffJffffJff666666663336666666666666pppppppppppppppppppppppppppp1111111111111ppppppppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppffffffJffJffJJfffffJfffffffffffffJffffJff666666633366666666666666pppppppppppppppppppppppppppp11111111111111pppppppppppp1ppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppJJffffJfffffffffffffffffJJfJJffffffJJffff666666333666666666666666ppppppppppppppppppppppppppppp111111111111111pppppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppfffffffffffffffffffffffffffJJffJJfffffJJf6666663336666666666666666pppppppppppppppppppppppppppp11111111111111111pppppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppffffffJfffffffffJJfffpppfffffffffffffffff6666663336666666666666666pppppppppp1ppppp1ppppppppppp1111111111111111111pppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppJJffffJffJffffffJJffpppppffffffffffffffff666666333666666666666666661ppppppppppppppppppppppppppp1111111111111111111ppppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppffffJffffffffJffffffppppp33333333333333333333333336666666666666666JJppppppppppppppppppppp1pppppppp11111111111111111pppppppppppppppppppp1ppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppffffJffffffffJffffffppppp33333333333333333333333336666666666666666JJ6ppppppppppppppppppppppppp1pppp11111111111111111ppppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppffffffffffffffffffJJfpppffffffffffffffffff6666633366666666666666666666pppppppppppppppppppppppppppppp11111111111111111pppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppfffffJJffffffJffffJJfffJJfffffffffffffffff6666633366666666666666666666ppppppppppppppppppppppppppppppp1111111111111111pppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppffJffJJffffffJfffffffffffffffJJffJJfJfffff66666333666666666666666666666pppppppppppppppppppppppppppppp11111111111111111ppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111pppppffffffffffffffffffffJffffffffffffJJfJffJff66666333666666666666666666666ppppppppppppppppppppppppppp1ppp1111111111111111ppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111pppppfffffffffJfffJffJJfffffffffffffffffffffJfff6666333666666666666666666666ppppppppppppppppppppp1ppppppppp111111111111111pppppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111111ppppfffJJffffJfffJfffffffffffffJJfffffffffffffJJ666333666666J666666666666666p1ppppppppppppppppppppppppppppp111111pppppppppppppppppppppppp1ppppppppppppp",
-    "111111111111111111111111111111111111111111111111pppppfffffffffffffffffffJJffffffJJfffffffffffffJJ666333666J66J666666666666666pppppp1pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppffffffJffffffffffffffffffffffffffffffJffffff6666333666J666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppJJffffJffffJJffffffffffffffJfffffffffffffffff66633366666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppJJfffffffffJJfJJfffffffffffJfffffffffffffffff666333666666J666666666JJ666J66ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppfffffffffJffffJJfffffffffffffffffffffffffJfff666333666666J66666666666666J66ppppppppppppppppppppppppppppp1ppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppfffJfffffffffffffffffffffffffJJfffJJfffffJffff6633366J6666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppp1ppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppJJffffffffffffffffffffffJJfffJJfffffffJJfffJJf6633366666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppfffffffffffffffffffJffffffffffffffffffJJfffffff63336666666666666666666666666666ppppp1ppppppppppppppppppppppppppppp1pppppppppppppppppppp1pppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppffffffffffffffffffffffJffffffJfffffJfffffffffff6333666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp1ppppp",
-    "111111111111111111111111111111111111111111111111ppppfffJffJfffJffffffffffffffJJffffffffJffJJfffffJf633366666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppffffffJfffffffffffffffffffffffffffffffJJfffffJff333666666666666666666666666666J66666pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111pppppffffffffffffffJJfffffJJffffffffJfffffffffffffff333666666666666666666666666666J666666pppppppppppppppppppppppp1pppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111pppppfffffffffffffffffffffJJffJJfffffffffffffJJfffff3336666666666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp1pp",
-    "111111111111111111111111111111111111111111111111pppppfffffffffffJfffffffffffffJJffffffJJfffffJJfJfff33366666666666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppffffffJffffffffff6666JffJJfffffJJfffffffffffffff333666666666666666666666666666666666666pppppppppppppppppppppppppppppppp1pppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppfffJffJfffJffff66666666fJJffffffffffffffJJfffff6333666666666666666666666666666666666666ppppppppppppppppppppppppppppppppppppp1ppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppffffffffffJffJ66666666666ffffffffJJfffffJJfJfff63336666666666666666666666666666666666666ppppppppp1pppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppfffffffffffff6666666666666ffJffffJJffJJffffffff63336666666666666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppfffJfffffJff666666666666666ffffffffffffffffffff63336666666666666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppfffJffffffff666666666666666fffJJfffffffJJffffff633366666666666666666666666666666666666666pppp1pppppppppppppppppppppppppppppppppppppppppppppppppp1ppp",
-    "111111111111111111111111111111111111111111111111ppppJJfffffffff6666666666666666fffJJffffffffffJJfff6333666666666666666666666J666666666666666666pppppppppppppppp1pppppppppppppppppppppppppp1ppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppJJfffJJfff666666666666666666fffffJfffffffffffff6333666666666666666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppfffffJJfff666666666666666666fJJffJfffffffffffff6333666666666666666666666666666666666666666666666666JJ6666666pppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppfffffffff6666666666666666666ffffffffffJJfffffff633366666666666666666666666666666666666666666666666666666666666pppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppffffffff66666666666J666666666ffffffJffJJffffJJff333666666666666666666666666666666666666666666666666666666666666pppppppppppppppppppp66pppppp1pppppppp",
-    "111111111111111111111111111111111111111111111111ppppffJJfJJf66666666666J666666666ffffffJfffffJJfffff3336666666666666666666666666666666666666666666666666666666666666ppppppppppppppppp66666pppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppfffffff66666666666666666666666ffffffffJJffffffff333666666666666JJ666666666666666666666666666666666666666666666666pppppppppppppp666666666pppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppffffff666666666666666666666666ffffffffffffffffff333366666666666JJ6666666666666666666666666666666666666666666666666ppppppppppp666666666666666J66ppppp",
-    "111111111111111111111111111111111111111111111111ppppffffff6666666666666666666666666ffffffffffJfffffff333366666666666666666666666666666666666666666666666666666666666666ppp6JJ6666666666666666666J6666666",
-    "111111111111111111111111111111111111111111111111ppppffJff666666666666666666666666666ffffJffffffffffJff333366666666666666666666666666666666666666666666666666666666666666666JJ666666666666666666666666666",
-    "111111111111111111111111111111111111111111111111pppppfJf6666666666666666666666666666fffffffffffffffffff3333666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666",
-    "111111111111111111111111111111111111111111111111pppppff666666666666666666666666JJ6666fJJffffffffffffffff333333666666666666666666666666666666666666666666666666666666666666666666JJ6666666666666666666666",
-    "1111111111111111111111111111111111111111111111111ppppJf666666666666666666666666JJ66666ffffffffJffffffffff33333336666666666666666666666666666666666666666666666666666666666666666JJ6666666666666666666666",
-    "1111111111111111111111111111111111111111111111111p1ppf666666666666666666666666666666666fJfffffJffJJfffffff3333333666666666666666666666666666666JJ666666666666666666666666666666666666666JJ66666666666666",
-    "1111111111111111111111111111111111111111111111111pppp66666666666666666666666666666666666JffJJffffffffffffffff3333366666666J66666666666666666666JJ666666666666666666666666666666666666666JJ66666666666666",
-    "1111111111111111111111111111111111111111111111111pppp66666666666666666666666666666666666666ffffffffffffffffffff33336666666666JJ6666666666666666666666666666666666666666666666666666666666666666666666666",
-    "1111111111111111111111111111111111111111111111111pppp666666666666666JJ6666666666666666666666ffffffffffffffffffff3333666666666666666666666666666666666666666666666666666666666666666666666666666666666666",
-    "111111111111111111111111111111111111111111111111ppppp666666666666666JJ6666666666666666666666ffffffJJffffffffJJfff3333666666666666666666666666666666666666666666J6666666666666666666666666666666666666666",
-    "111111111111111111111111111111111111111111111111ppppp6666666666666666666666666666666666666666ffJffJJffffJfffffffff3336666666666666666666666666666666666666JJ666J666666666666666666666666666J666666666666",
-    "111111111111111111111111111111111111111111111111ppppp6666666JJ6666666666666666666666666666666ffJfffffJffJffffffffff333666666666666666666666666666666666666JJ666666666666666666666666J666666J666666666666",
-    "11111111111111111111111111111111111111111111111pppppp66666666666666666666666666666666666666666fffffffffffffffffffff33366666666666666666666666666666666666666666666666666666666666666J6666666666JJ6666666",
-    "11111111111111111111111111111111111111111111111pppppp66666666666666666666666666666666666666666ffJfffffffffJfffffffff336666666666666666666666666666666666666666666666666666666666666666666666666666666666",
-    "11111111111111111111111111111111111111111111111pppppp66666J666666666666666666666666666666666666fJfffffJfffJffffJJfff333666666666666666666666666666666666666666666666666666666666666666666666666666666666",
-    "11111111111111111111111111111111111111111111111pppppp66666J6666666666666JJ666666666666666666666fffffffJfffffffffffff333666666666666JJ66666666666666666666666666666666666666JJ666666666666666666666666666",
-    "11111111111111111111111111111111111111111111111pppppp6666666666666666J66666666666666666666666666ffffffffffJffJffffJff3366666666J666JJ6666666666666666666666JJ66666666J6666666666666666666666JJ6666666666",
-    "11111111111111111111111111111111111111111111111pppppp6666666666666666J6666666666666666666666666JffJJfJJfffffffffffJff33366666666666666666666666666666666JJ6JJ6666666666666666666666666666666666666666666",
-    "11111111111111111111111111111111111111111111111pppppp6666666666666666666JJ666666666666666666666J6ffffffffffffffffffff33366666666666666666666666666666666666666666666666666666666666666666666666666666666",
-    "111111111111111111111111111111111111111111111111pppp66666666666666666666JJ66666666666666666666666fffffffffffffJffffJff3336666666666666666666666666666666666666666666666666666666666666666666666666666666",
-    "111111111111111111111111111111111111111111111111pppp6666666666666666666666666666666666666666666666fJJffffffffffffffJff33336666666666666666666666666666666666666666666666666666666666666666ppp66666666666",
-    "111111111111111111111111111111111111111111111111pppp66666666666666666666666666666666JJ666666666666ffffJJfffffffffffffff33333366666666666666666666666666666JJ666pp666666666666666666666666p1pppp666666666",
-    "111111111111111111111111111111111111111111111111ppppp6666666666666666666666666666666JJ6666666666666fffJJffJffffJffffffff3333336666666666666666666666666666JJ6ppppppppppppppp666666JJ666ppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppp6JJ66666666666666666666666666666666666666666666ffffffJffffJffffffJfff6333666666666666666666666666666666ppppppppppppppppp66666JJ6ppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111p1ppp6JJ66666666666666666666666666666666666666666666fffJffffJJffffffffJJfff333666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppp1pp",
-    "111111111111111111111111111111111111111111111111ppppp666666666666666666666666666666666666666666J66666ffJffffJJffffJffffffff333666666666666666JJ66J6666666666pppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppp666666666666666666666J66666666666666666666J66666fffffJfffJJfffffJfffff333666666666666666JJ666666666666ppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppp6666666666666666666666666666666666666666666666666fffffffffffffffJffffff336666666666666JJ66666666666666ppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppp6666666666666666666666666666666666666666666666666fffffffffffffJffffffff336666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppp666666666666666666666JJ666666666666666666666666666ffffffffJJfffffffffff336666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppp6666666666666JJ666666JJ6666666666666666666666666666ffffffffffffffffJfff33666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppp6666666666666JJ6666666666666666666666666666666666666fJffffffffJffffJfff336666JJ66666666666666JJ66666pppppppppppppppppppppppppppppppppppppppppp1pppp",
-    "111111111111111111111111111111111111111111111111ppppp66666666666666666666666666666666666666666666666666666fffffffffJffJfffff33666666666666666666666666661ppppppppppppppppppppppppppppppppppppppppppppppp",
-    "111111111111111111111111111111111111111111111111ppppp666666666666666666666666666666666666666666666666666666ffffffff66666ffff3366666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppp",
-    "11111111111111111111111111111111111111111111111pppppp66666666666666666666666666666666666666666666666666666666ffff66666666fff3366666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppp",
-    "11111111111111111111111111111111111111111111111pppppp666666666666666666666666666666666666666666666666666666666666666666666663366666666666666666666666666ppppppppp1ppppppppppppppppppppppppppp1pppppppppp",
-    "11111111111111111111111111111111111111111111111pppppp666666666666666666666666666666666666666666666666666666666666666666666663366666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppp1pp",
-    "11111111111111111111111111111111111111111111111pppppp666666666666666666666666666666666666666666666666666666666666666JJ666666336666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "11111111111111111111111111111111111111111111111pppppp66666666666666666666666666666666666666666666666666666666666666666666666336666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "11111111111111111111111111111111111111111111111pppppp66666666666666666666666666666666666666666666666666666666666666666666666336666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "11111111111111111111111111111111111111111111111pppppp666666666666666666666666666666666666666666666666666666666666666666666663366666666666666JJ66666666pppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "11111111111111111111111111111111111111111111111ppppp666666666666666666666666666666666666666666666666666666666666666666666666336666666666JJ6666666JJ66ppppppppppppppppppppppp1ppppp1ppppppppppppppppppppp",
-    "11111111111111111111111111111111111111111111111ppppp66666666666666666666666666666666666666666666666666666666666666JJ66666666336666666666JJ6666666666pp666666666633666666666ppppppppppppppppp1pppppp1pppp",
-    "11111111111111111111111111111111111111111111111ppppp666666666666666666666666666666666666666666666666666666666666ffff6666666633666666666666666666666p6666666666663366666666666ppppppppppppppppppppppppppp",
-    "1111111111111111111111111111111111111111111111pppppp66666666666666666666666666666666666666666666666666666666666JJffff6666J663366666666666666666666p666666666666633666666666666ppppppppppppppppppppppppp6",
-    "1111111111111111111111111111111111111111111111pppppp6666666666666666666666666666666666666666666666666666666666fJJfffff6666663366666666666666666666666666666666663366666666666666ppppppppppppppppppppp666",
-    "1111111111111111111111111111111111111111111111p1pppp6666666666666666666666666666666666666666666666666666666JJffffJJfff6666663366666666fff6666666666666666666666633666VVVVVVV66666pppppppppppppppppp66666",
-    "1111111111111111111111111111111111111111111111pppppp66666666666666666666666666666666666666666666666666666666fffffJJffJJ666663366666fffffff66666666666VVVVVVV666633666VdddddV666666p1ppppppppppppp6666666",
-    "1111111111111111111111111111111111111111111111pppppp666666666666666666666666JJ66666666666666666666666666666ffJfffffffJJf6666336666fJJffffJJ6666666666VdddddV666633666VdddddV6666666pppppppppppp666666666",
-    "1111111111111111111111111111111111111111111111pppppp666666666666666666666666JJ66666666666666666666666666666fffffffJJfffff6663366fffffffffJJf666666666VdddddV666633666VdddddV66666666pppp1pp6666J66666666",
-    "1111111111111111111111111111111111111111111111ppppppJ66666666666666666666666666666666666666666666666666666fffffffffffffffff633ffJJfffJfffffJ666666666VdddddV666633666VdddddV666666666pp66666666666666666",
-    "1111111111111111111111111111111111111111111111ppppppff66JJ66666666666666666666666666666666666666666J666666JJffffffffffJJffff33fffffffJfffff6666666666VdddddV666633666VdddddV6666666666666666666666666666",
-    "1111111111111111111111111111111111111111111111ppppppff66JJ66666666666666666666666666666666666666JJ6J666666JJfJJfJfffffJJffff33ffffffffffJff6666666666VVVdVVV666633666VVVdVVV666666666666666J666666666666",
-    "1111111111111111111111111111111111111111111111ppppppfff66666666666666666666666666666666666666666JJ66666666fffffffffffffffJff33ffffffffffff66666666666666366666333336666636666666666666666666666666666666",
-    "11111111111111111111111111111111111111111111111pppppffff66666666666666666666666666J66666666666666666666666JfffffffJfffffffff33ffJJffJJfff666666666666666366333333333336636666666666666666666666666666666",
-    "11111111111111111111111111111111111111111111111pppppJJff66666666666666666666666666J66666666666666666666666Jfffffffffffffffff33ffffffJJfff666VVVVVVV666663333333363333333366666VVVVVVV6666666666666666666",
-    "11111111111111111111111111111111111111111111111pppppffff66666666666666666666666666666666666666666666666666ffffffffffffffffff33ffffffffff6666VdddddV666663333666666666333366666VdddddV6666666666666666666",
-    "11111111111111111111111111111111111111111111111pppppffff6666666666666666666666666666666666666666666666666ffJJffJJfffffJJffff33fffffJffff6666VdddddV666633366666666666663336666VdddddV666666666666666666J",
-    "11111111111111111111111111111111111111111111111pppppfffff666666666666666666666666666666666666666666666666ffJJfffffffffJJffff33fffffJffff6666Vdddddd333333666666666666666333333ddddddV666666666666666666J",
-    "111111111111111111111111111111111111111111111111pppppJfff66666666666666666666666666666666666666666666666fffffffffffJJfffffff33ffffffffff6666VdddddV663336666666666666666633366VdddddV6666666666666666666",
-    "111111111111111111111111111111111111111111111111pppppJff666666666666666666666666666666666666666666666666fffffffffffJJfffffff33fffffJJfff6666VVVVVVV663366666666666666666663366VdddddV6666666666666666666",
-    "111111111111111111111111111111111111111111111111pppppfff66666666666666666666666666666666666666666666666fffJJfffffJJfffffffff333ffffJJfJJ66666666666633366666666666666666663336VVVVVVV6666666666666666666",
-    "111111111111111111111111111111111111111111111111pppppJf666666666666666666666666666666666666666666666666fffJJfffffJJfffffffff333ffffffff666666666666633666666666www66666666633666666666666666666666666666",
-    "111111111111111111111111111111111111111111111111pppppp6666666666666666666666666666666666666666666666666fffffffffffffffffJJfff333ffffff666666666666663366666666wwwww6666666633666666666666666666666666666",
-    "1111111111111111111111111111111111111111111111111ppppp666666666666666666666666666666666666666666666666ffffffffffffJJfJJfJJfff33333333336666666666663336666666wwwwwww666666633366666666666666666666666666",
-    "111111111111111111111111111111111111111111111111pppppp6666666666666666666666666666666666666666666J6666ffffffffffffJJffffffffff333333333666666666666333666666wwwwwwwww66666633366666666666666666666666666"
+    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666JJ666666666666666666666333666666666666666666666666666666ffffffffJJfJffJfffffJfffffffJJfffffffffffffffffffJJffJffppp",
+    "6666666666666666666666666666666666666666666666666666666666666666666J666666666J666666666666666666666666666663336666666666666666666666666666666ffffffffffffffffffffJfffffffJJfffffJfffJJffffffffJJfffppppp",
+    "66666666666666J6666666666666666666666666666666666666666666666666666J666666666666666666666666666666666666666333666666666666666666666J666666666fJJfffffffffffppfffffffffJfffffffffffffffffffffJppppppppppp",
+    "6666666666666666666666666666J6666666JJ6666666666666666666666666666666666666666666666666666666666666666666663336666666666666666J6666666666666fffffJJfJJffffppppJfffffffffffffffJfffffffpppppppppppppppppp",
+    "6666666666666666666666666666J6666666JJ6666666666666666666666666666666666666666666666666666666666666666666663336666666666666666J6666666666666fffffJJfJJffffppppfffJJffffffffJffffffffpppppppppppppppppppp",
+    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666633366666666666666666666666666666ffJJfffffffJJfppppppffffffffJfffJffpppppppppppppppppppppppppp",
+    "6666JJ66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666333666666666666666666666666666ffffJJfffffffJJfppppppppppppffffppppppppppppppppppppppppppppppp",
+    "6666JJ6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666633366666666666666666666666666fffJJfffffffffffpppppppppppppppppppp1pppppppppppppppppppppp1pppp",
+    "666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666663336666666666666666666666666fJJfffffJfffJfffJJpppppppppppppppppppppppppppppppppp1pppppppppppp",
+    "666666666666666666666666666666666666666666666666666666666JJ666666666666666666666666666666666666666666666666333666666666666666666666666fffffffffffffJfffJJpppppppppppppppppppppppppppp1pppppppppppppppppp",
+    "66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666333666666666666666666666666ffffJJfffffJJfffpppppppppppppppppppppppppppppppppppppppppppppppppp",
+    "666666666666666666666666666666666666666666666666666666JJ6666666666666666666666666666666666666J6666666666666333666666666666666666666666ffffffffJJfJJfJfpppppppppp1ppppppppppppppppppppppppppppppppppppppp",
+    "666666666666666666666666666666666666666666JJ6666666666666666666666666666666666666666666666666666666666666663336666666666666666666666666fffffffffffffJppppppppppppppppppppppppppppppppppppppppppppppppppp",
+    "666666666666666666666666666666666666666666666JJ666666666666666666666666666666666666666666666666666J66666666333666666666666666666666666666ffffffffffffppppppppppppppppppppppppppppppppppppppppppppppppppp",
+    "666666666666666666666666666666666666666666666JJ6666666666666666666666666666666JJ666666666666666666666633333336666666666666666666666666666666fJfffffffppppppppppppppppppppppppppppppppppppppppppppppppppp",
+    "666666666666666666666666666666666666666666666666666666666666666666666666666666JJ6666666666666666666666333333666666666666666JJ666666666666666666fffJJfppppppppppppppppppppppppppppppppppppppppppppppppp11",
+    "666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666336666666666666666666JJ6666666666666666666fffffppppppppppppppppppppppppppppppppppppppppppppppp1111",
+    "66666666666666666666666666666666666666666666666666666666666666666666666666666666666JJ6666666666666666633666666666666666666666666666666666666666666ffppppppppppppppppppppppppppppppppppp1pppppp1ppp111111",
+    "66666666666JJ66666666666666666666666666666666666666JJ666666666666666666666666666666JJ6666666666666666633666666666666666666666666666666666666666JJ666pppppppppppppppppppppppppppppppppppppppppppp11111111",
+    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666663366666666666666666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppp111111111",
+    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666J66666666J6666336666666666666666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppp111111111111",
+    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666J66666666J6666336666666666666666666666666666666666666666666pppppppppppppppp1pppppppppppp111111111111111111111111",
+    "6666666666666666666666666666666666666666666666666666666J666666666666666666666666666666666666666666666633666666666666666666666666666666666666666666ppppppppp1ppppppppp111pppppp11111111111111111111111111",
+    "6666666666666666666666666666666666666666666666666666666J6666666666666666666666666666666666666666666633336666666666666666666666666666666666666666JJppppppppppppppp111111111111111111111111111111111111111",
+    "666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666633366666666666666666666666666666666666666666ppppp1pppppppppp1111111111111111111111111111111111111111",
+    "66666666666666666666666666666666666666666666666666666666666666666JJ66666666666666666666666666666666633666666666666666666666666666666666666666JJpppppppppppppppp11111111111111111111111111111111111111111",
+    "66666666666666666666666666666666666666666666666666666666666666666JJ66666666666666666666666666666666633666666666666666666666666666666666666666JJpppppppppppppp1111111111111111111111111111111111111111111",
+    "666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666633666J666666666666666666666666666666666pppppppppppppppp111111111111111111111111111111111111111111111",
+    "6666666666666666666666JJ66666666666J666666666666666666666666666666666666666666666666666666666666666633666J666666666J6666666666666666666666pppppppppppppppp1111111111111111111111111111111111111111111111",
+    "6666666666666666666666JJ6666666666666666666666666666666666666666666666666666666666666666666666666666336666666666666J666666666666666666666ppppppppppppp1pp11111111111111111111111111111111111111111111111",
+    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666J66666666336666666666666666666666666666666666ppppppppppppppppp11111111111111111111111111111111111111111111111",
+    "666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666333666666666666666666666666666666666ppppppppppppppppp111111111111111111111111111111111111111111111111",
+    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666J6666666666666663336666666666666666666J6666666666666ppppppppppppppppp1111111111111111111111111111111111111111111111111",
+    "66666666666666666666666666666666666666666666666666fffffff6666666666666666666666666J66666666666663333666666666666666666666666666666666pppppppppppppppp111111111111111111111111111111111111111111111111111",
+    "6666666666666666666666666666666666666666666666666JJfJJfJJfff666666666666666666666666666666666633333666666666666666666666666666666666pppppppppppppppp1111111111111111111111111111111111111111111111111111",
+    "666666666666666666666666666666666666666666666666fJJfJJfJJffffff6666666666666666666666666666666333666666666666666666666666666666666pppppppppppppppp111111111111111111111111111111111111111111111111111111",
+    "66666666666666666666666666666666666666666666666fffffffffffffffffff6666666666666666666666666663336666666666666666J666666666666666ppppppppppppppp1p1111111111111111111111111111111111111111111111111111111",
+    "6666666666666666666666666666666666666666666666ffffffJffffffffffffffffffJJffJJffffffJJ66666663333fff6666666666666666666666666pppppppppppppppppppp11111111111111111111111111111111111111111111111111111111",
+    "666666666666666666666666666666666666666666666fffffffJfffJJfffffffffffffJJffJJffffffJJf666666333fffff6666666666666666666pppppppppppppppppppppppp111111111111111111111111111111111111111111111111111111111",
+    "66666666666666666666JJ66666666666J6666666666ffJJffffffffJJffffJffJfffffffffffffffffffff66666333fffff66666666666666pppppppppppppppppppppppppppp1111111111111111111111111111111111111111111111111111111111",
+    "6666666666666666666666666666666666666666666fffJJffffffffffffffJfffffffJJffJffffffffffJff666f333ffffJJ6666666666ppppppppppppppppppppppppppppp111111111111111111111111111111111111111111111111111111111111",
+    "66666666666666666666666666666666ff66666666fffffffJJfffffffffffffffffffJJfffffffJJffffJffffff333ffffJJ66666666pppppppppppppppppppppppppp11111111111111111111111111111111111111111111111111111111111111111",
+    "666JJ66666666666666666666666666fffJJ66666ffffffffffffffJJfffffffffJfffffffffffffffJffffffJff333fffff666666ppppppppppppppp11111111p1111111111111111111111111111111111111111111111111111111111111111111111",
+    "p66JJ66666666666666666666666666fffJJffffJJffffffffffffffffffffffffffffffffffffffffJffffffJff333fffff6666pppppppppp1pppp111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "ppppp666666666666J6666666666666fffffffffJJffffffffffppppppppp1JffffffffJffffffffffffffffffff333ffffJJ6ppppppppppppppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "pppppppp66666666666666666666666fJffffffffffffJffpppppppppppppppfffJffffJffffffJffJffffJfffff333ffffpppppppppppppppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "pppppppppppp666666666JJ6666666ffJffffffffJfffJppppppppppppppppppffffffffffffffJffJfffffffJff333pppppppppppppppppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "ppppppp1ppppppp666666666666666fffffffffffJfpppppppppppppppppppppppffffJJffffJffffffffffffffp333pp1ppppp1pppppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1ppppppppppppppppppppppppp6666ffffJJfJffppppppppppppppppppppppppppppppJJpppfJpppfJffpppppppp333pppppppppppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "ppppppppppppppppppppppppppppppfJfffffJpppppppppppppppppppppppppppppppppppppppppppJpppppppppp333pppppppppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "pppppppppppppppppppppppppppppppJppppppppppppppppppppppppp1pppppppppppppppppppppppppppppppppp333pppppppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp333pppppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111pppppppppppppppppp1pppppppppppppppppppppp11111pppppppppppppppppppppppppp1pppppppppppp3333p1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111pppppppppppppppppppppppppppppp111111111111111pppppppppppppppppppppppppppppppp333311111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111pppppppppppppppppppppp11111111111111111111pppppp1ppppppppppppppp11111111113311111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111ppppppppppppp111111111111111111111111pppppppppppppppp1111111111111113311111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111pppppp111111111111111111111111111111pppppppppppp111111111111111113311111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113311111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113311111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113311111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113311111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111113331111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111mmmmm11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111mmmmmmm1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111mmmmmmmmm111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111mmmmmmmmm111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111mmmmmmmmm111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111mmmpppmmm111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111mmmpppmmm111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111mmpppmm1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111mpppm11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111yyy111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111yyy111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111666111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111666111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111666111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111p666111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111116p666111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111166p666111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111666p666111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111116661666111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111166661111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111166611111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111pyy11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111pyy11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111yyy11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111yyy11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111yyy11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111yyy11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111yyy11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppppppppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppppppppppppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppppppppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppppp6ppppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppppp66666pp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppp1666661pp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppppp66666ppyyy111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppppppp6666pppyyyyyy11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppppppppppp66pppyyyyyyy1111111111yyy111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111p1111111111ppppppppppppppppppppppyyyyyyy11111yppyyyyp11111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111pppp11111pppppppppppppppppppppppppppyyyyyyyyyyppppppppp11111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111pppp111ppppppppppppppppp1ppppppppppppppyyyyyyyppppppppp11111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111111111pppppppyyypppppppppppppppppppppppppppyyyyyypppppppppp11111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111ppppyyyyyyppppppppppppppppppppppppyyyyyyyyyppppppppp11111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111yyyyyyyyyyyypppppppppppppp6ppppppyypyyyyyyypppppppp611111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111yyyyyyyy1yyyypppppppppp66666ppppyyypppyyyyypppppppp666666661111111111111111111111111111111111111111111111111111111111111111111111",
+    "p1111111111111111111111111111111111111111111111111111111111111111111111yyyyyyyyyyyyyyppppppppp66666pppyyyyppppyyyypp11ppppp666666pp111111111111111111111111111111111111111111111111111111111111111111111",
+    "y111111111111111111111111111111111111111111111111111111111111111111111yyyyyyyyyyyyyyyppppppppp66666ppppyyyypppyyyypppppppp16666666p111111111111111111111111111111111111111111111111111111111111111111111",
+    "yy11111111111111111111111111111111111111111111111111111111111111111111yyyyyyyyyyyyyyypppppppppp666pppppyyyyyyyyyyyppppppppp66666666p11111111111111111111111111111111111111111111111111111111111111111111",
+    "yy1111111111111111111111111111111111111111111111111111111111111111111pyyypyyyyyyyyyyppppp1ppppp666pppppyyyyyyyypyypppppppppp6ppp66666pp66pppppyyyyyyyyyyppppypp11111111111111111111111111111111111111111",
+    "yy1111111111111111111111111111111111111111111111111111111111111111111ppppyyyyypppppppppppppppppp6ppppppppyyyyyyppppppppppppppppppp66666666pppppyyyyyyyyyypppyypp1111111111111111111111111111111111111111",
+    "yy1111111111111111111111111111111111111111111111111111111111111111111ppppyyyyppppppppppppppppp116pppp1pppyyyyyyyppppppppppppppyypp66666666pppppyyyyyyyyyyypyyyppp111111111166611111111111111111111111111",
+    "yy1111111111111111111111111111111111111111111111111111111111111111111ppppppppppppppppppppppppppp6ppppyyyyyyyyyyypppppppppppppyyypp66666666pppppyyyyyyyyyyyyyyypppp11111111166111111111111111111111111111",
+    "y1111111111111111111111111111111111111111111111111111111111111111111yyyppppppppppppppyyyppppppp666pppyyyyyyyyyyyppppppppppppyyyypp666ppppppppppyyyyyyyyyyyyyyyppppppp11111166661111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111111yyyyyyyypppppppppppppyyyypppppp666ppyyyyyyyyyyppppppppppppppyyyyppp66pp11111111111111111111111yppypppyy111166661111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111pyyyyyyyyypppppypp11pppyyyyypppppp666ppyyyyyyyyyypppppp11ppppp1yyyypppppp1111111111111111111111111yyyyyyyyyy6666661111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111pyyyyyyyyyppppyyyppppppyyyyyppppp6666ppyyyyyyyyyyppppppppppppppyyyyppppp111111111111111111111111111yyyyyyyyyypppppy111111111111111111111111",
+    "1111111111111111111111111111111111111111111111111111111111111pyyyyyyyyypppppyyppppppyyyyypppp66666ppyyyyyyyyyyppppppppppppppyyyyppppp1111111111111111111111111111yyyyyyyypppppyyy11111111111111111111111",
+    "111111111111111111111111111111111111111111111111111111111111pppyyyyyyypppppppppppppyyyyyypppp66666ppyyyyyyyyypppppppppppppppyyyyyppp11111111111111111111111111111111pyyyppppppyypp1111111111111111111111",
+    "1111111111111111111111111111111111111111111111yyyyppppppppppppppyyyyypppppppppppppppyyy1ypppp6666ppppyyyyyy1yppppppppppppppyyyyyyyp11111111111111111111111111111111111ppppppppyypp1111111111111111111111",
+    "111111111111111111111111111111111111111ppppppyyypppppppppppppppppy1yppppppppppppppppppypppppp666661pppyyyyyypppppppppp6ppppyyyyyy111111111111111111111111111111111111111pppppppyyp1111111111111111111111",
+    "1111111111111111111111111111111111111ppppppppyypppyypppppppp66ppppppppppppppppp6ppppppypppppp66666pppppppyyppppppppppp6ppppyyyyyy11111111111111111111111111111111111111111111pppyp1111111111111111111111",
+    "111111111111111111111111111111111111ppppppppppppppyyypppppppppppppppppppppppppppppppppyyppppp66666pppppppppppppp66pppppppppyyyyy111111111111111111111111111111111111111111111pppppp111111111111111111111",
+    "11111111111111111111111111111111111pppppppppppppppyyppppppppppppppppppppppppppppppppyyyyyppp66666666666pppppp66666pppppppppyyyy11111111111111111111111111111111111111111111111ppppp111111111111111111111",
+    "11111111111111111111111111111111111ppppp111111pppppypppppppp11pppppppppppppppppppppyyyyyypp66666666666666666666666pppppppppyyyy11111111111111111111111111111111111111111111111666pp111111111111111111111",
+    "11111111111111111111111111111111111pppp11111111111111111111111ppp1ppppppppppppppppyyy1yyypp6666666666611666666666ppppppppppyyyy111111111111111111111111111111111111111111111116666p111111111111111111111",
+    "11111111111111111111111111111111111pppp11111111111111111111111p6ppppppppppppppppppyyyyyyypp6666666666666666666666ppppppppppyyyyy11111111111111111111111111111111111111111111116666p111111111111111111111",
+    "11111111111111111111111111111111111pppp11111111111111111111111ppppppppppppppppppppyyyyyyypp6666666666666666666666pppppppppyyyyyy11111111111111111111111111111111111111111111116666pppyyyyy11111111111111",
+    "11111111111111111111111111111111111pppp11111111111111111111111ppppppppppppppppppppyyyyyyypp6666666666666666666ppppppppp11yyyyypyy11111111111111111111111111111111111111111111166666pppyyyyp1111111111111",
+    "11111111111111111111111111111111111pppp111111111111111111111111ppppppppppppppppppppyyyyyypp666666666666pp666pppppppppppppyyyyypyyy11111111111111111111111111111111111111111111166666ppppypp1111111111111",
+    "11111111111111111111111111111111111pppp111111111111111111111111pppppppppppppppppppppyyyypp6666666666666pppppppppppppppppppyyyyyyyyy11111111111111111111111111111111111111111111166611111ppp1111111111111",
+    "11111111111111111111111111111111111pppp1111111111111111111111111ppppppppppppppppppp1pppppp666666666666ppppppppyyypppyppppppppyyyyyy11111111111111111111111111111111111111111111111111111ppp1111111111111",
+    "11111111111111111111111111111111111yppp1111111111111111111111111ppppppppppppppypppppppppp66666666666pppppppppppyyyyyyyppyyyyyyyyyyp11111111111111111111111111111111111111111111111111111ppp1111111111111",
+    "11111111111111111111111111111111111yyyy11111111111111111111111111ppppppppppppyyyppppppppp66666p66pppppppppppppppyyyyyyyyyyyyyyyyy1111111111111111111111111111111111111111111111111111111pp61111111111111",
+    "11111111111111111111111111111111111yyyy111111111111111111111111111pppyyyyyyyyyyypppppppp66666pppppppppppppppppp1pyyyyyyyyyyyyyyy11111111111111111111111111111111111111111111111111111111pp61111111111111",
+    "11111111111111111111111111111111111yyyy111111111111111111111111111yyyyyyyyyyyyyyyppppppp66666ppppppppppppppppppppyyyyyyyyyyy1yy111111111111111111111111111111111111111111111111111111111ppp1111111111111",
+    "11111111111111111111111111111111111yyyy111111111111111111111111111yyyyyyyyyyyyyyypppppppp6666p11pppppppppppppppppyyyyy111111111111111111111111111111111111111111111111111111111111111111ppp1111111111111",
+    "11111111111111111111111111111111111yyyy1111111111111111111111111111yyyyyyyyyyyyyppppppppp6666pppppppppppp1ppppppyyyyy1111111111111111111111111111111111111111111111111111111111111111111ppp1111111111111",
+    "11111111111111111111111111111111111yyyy111111111111111111111111111111yyyyyyyyyyypppppppp66666pppppppppppppppppppyyyy11111111111111111111111111111111111111111111111111111111111111111111ppp1111111111111",
+    "11111111111111111111111111111111111yyyy1111111111111111111111111111111ypyyypppppppppp66666666ppppppppppppyyyyyyyyyyp11111111111111111111111111111111111111111111111111111111111111111111pppp111111111111",
+    "11111111111111111111111111111111111yyyy11111111111111111111111111111111pppppppppppp666666666666ppppppppppyyyyyyyypp1111111111111111111111111111111111111111111111111111111111111111111111ppp111111111111",
+    "11111111111111111111111111111111111yyyy111111111111111111111111111111111ppppppppppp666666666666ppppppppppyyyyy11yp11111111111111111111111111111111111111111111111111111111111111111111111pppp11111111111",
+    "11111111111111111111111111111111111yyyy111111111111111111111111111111111pp11pppppp6666666666666ppppppppppyyyyyyyp1111111111111111111111111111111111111111111111111111111111111111111111111yyyp1111111111",
+    "11111111111111111111111111111111111yyyy1111111111111111111111111111111111111166666666666666666pppppp1ppppyyypppp111111111111111111111111111111111111111111111111111111111111111111111111111yyyy11yyp1111",
+    "11111111111111111111111111111111111yyyy1111111111111111111111111111111111111116666666666666666ppppppppppppyp11111111111111111111111111111111111111111111111111111111111111111111111111111111yyypppppp111",
+    "11111111111111111111111111111111111yyyy1111111111111111111111111111111111111116666666666666666ppppppppppppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111yyppppp6p11"
   ]
 }

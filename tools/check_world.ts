@@ -11,7 +11,13 @@
 import { loadCatalog } from "../model/catalog.ts"
 
 type Spawn = { i: number; j: number; type: string; data?: unknown }
-type BlockJson = { i: number; j: number; props: Spawn[]; field: string[] }
+type BlockJson = {
+  i: number
+  j: number
+  props: Spawn[]
+  field: string[]
+  rooms?: { id: string; i: number; j: number; w: number; h: number }[]
+}
 
 const catalog = await loadCatalog(
   new URL("../static/catalog/base.json", import.meta.url).href,
@@ -108,13 +114,19 @@ const CAVERN_IN: [number, number] = [
   plan.origin.i + Math.round(plan.cave.x * WILDS_W),
   plan.origin.j + Math.round(plan.cave.y * WILDS_H) + 75,
 ]
-/** The WILDS arrival: the START portal landing inside the WILDS */
-const WILDS_ARRIVAL = ARRIVALS.find(([i, j]) =>
-  i >= plan.origin.i && i < plan.origin.i + WILDS_W &&
-  j >= plan.origin.j && j < plan.origin.j + WILDS_H
-)!
-/** The CITY arrival: the START portal landing east of the WILDS */
-const CITY_ARRIVAL = ARRIVALS.find(([i]) => i >= plan.origin.i + WILDS_W)!
+/** The START portal that lands in the named room of the WILDS */
+const arrivalIn = (room: string) =>
+  ARRIVALS.find(([i, j]) =>
+    [...blocks.values()].some((b) =>
+      (b.rooms ?? []).some((r) =>
+        r.id === room && i >= r.i && i < r.i + r.w && j >= r.j &&
+        j < r.j + r.h
+      )
+    )
+  )!
+/** The WILDS arrival (the LANDING) and the CITY arrival (on its quay) */
+const WILDS_ARRIVAL = arrivalIn("LANDING")
+const CITY_ARRIVAL = arrivalIn("CITY")
 /** A plaza cell of every dungeon floor (world coordinates) */
 const FLOORS: [string, number, number][] = [
   ["B1F", -300, 422],
@@ -146,7 +158,7 @@ for (const [name, i, j] of FLOORS) {
   check(`${name} reached on foot`, open.has(`${i}.${j}`))
 }
 // from the WILDS arrival alone: the CAVERN inside the mountain (by the
-// cave mouth) and the CITY (over the long bridge from the east pier)
+// cave mouth) and the CITY on the west coast (by its gates)
 check("WILDS and CITY portals found", !!WILDS_ARRIVAL && !!CITY_ARRIVAL)
 const fromWilds = walk([WILDS_ARRIVAL], true)
 check(

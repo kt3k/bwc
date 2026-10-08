@@ -26,6 +26,10 @@
 //    animals where they belong
 // 8. every walkable cell is made reachable from the arrival, or filled
 //
+// The CITY (tools/generate_city.ts) stands on the west coast: its harbor
+// opens on the sea, the land around it rises a little, and the island's
+// roads come to the gates in its belt of trees.
+//
 // The CAVERN (tools/generate_cavern.ts) lies inside the island: the
 // height field rises into a mountain over it, the mountain is solid rock
 // around it, and its cave mouth opens on the north face, where a road
@@ -41,6 +45,7 @@ import { Palette } from "../util/palette.ts"
 import { encodePng } from "./png.ts"
 import { fbm, hash, smoothstep } from "./noise.ts"
 import { type Kind, MAKERS } from "./minipuzzles.ts"
+import { buildCity, CITY_H, CITY_W } from "./generate_city.ts"
 import {
   buildCavern,
   CAVERN_ENTRY_X,
@@ -67,8 +72,8 @@ type Plan = {
   camps: number
   /** The cavern: its entrance column (x) and top row (y), as fractions */
   cave: { x: number; y: number; name: string }
-  /** the pier of the bridge to the CITY (the row is fixed) */
-  east: { y: number; name: string }
+  /** The CITY on the west coast: its left column and top row, as fractions */
+  city: { x: number; y: number }
 }
 
 const plan: Plan = JSON.parse(
@@ -104,6 +109,19 @@ const distMassif = (x: number, y: number) => {
 }
 const cavern = await buildCavern(OI + CX0, OJ + CY0)
 
+// the city's place: on the west coast, its harbor on the sea
+const KX0 = Math.round(plan.city.x * W)
+const KY0 = Math.round(plan.city.y * H)
+const inCity = (x: number, y: number) =>
+  x >= KX0 && x < KX0 + CITY_W && y >= KY0 && y < KY0 + CITY_H
+/** The distance to the city's land (its east part, off the harbor) */
+const distCity = (x: number, y: number) => {
+  const dx = Math.max(KX0 + 90 - x, 0, x - (KX0 + CITY_W - 1))
+  const dy = Math.max(KY0 - y, 0, y - (KY0 + CITY_H - 1))
+  return Math.hypot(dx, dy)
+}
+const city = await buildCity(OI + KX0, OJ + KY0)
+
 // ---------------------------------------------------------------------
 // 1. height and moisture
 
@@ -137,6 +155,17 @@ for (let y = 0; y < H; y++) {
 const SEA = 0.32
 const HILL = 0.76
 const ROCK = 0.84
+// the land the city stands on: out of the sea, but low (meadows, not
+// hills) around it
+for (let y = 0; y < H; y++) {
+  for (let x = 0; x < W; x++) {
+    const near = 1 - smoothstep(0, 60, distCity(x, y))
+    if (near <= 0) continue
+    const p = idx(x, y)
+    const low = Math.min(Math.max(height[p], SEA + 0.1), HILL - 0.06)
+    height[p] = low * near + height[p] * (1 - near)
+  }
+}
 
 // ---------------------------------------------------------------------
 // terrain
@@ -164,6 +193,7 @@ enum T {
   TRIAL, // the floor of a mini puzzle room
   ICE, // the ice of a mini puzzle room
   BIO, // a biomechanical wall (BONE VALLEY); its kind is in bioChar
+  CITY, // the city's ground (stamped in at the end)
 }
 const CELL: Record<T, string> = {
   [T.SEA]: "w",
@@ -188,6 +218,7 @@ const CELL: Record<T, string> = {
   [T.TRIAL]: "4",
   [T.ICE]: "i",
   [T.BIO]: "A",
+  [T.CITY]: "b",
 }
 /** The biomechanical wall kind (A-F) of each T.BIO cell */
 const bioChar = new Map<number, string>()
@@ -418,6 +449,16 @@ for (let pass = 0; pass < 3; pass++) {
 for (let y = 0; y < H; y++) {
   for (let x = 0; x < W; x++) if (inMassif(x, y)) terrain[idx(x, y)] = T.ROCK
 }
+// the city's ground is set aside, and its harbor water runs out to the
+// open sea north and south of it
+for (let y = 0; y < H; y++) {
+  for (let x = 0; x < W; x++) {
+    if (inCity(x, y)) terrain[idx(x, y)] = T.CITY
+    else if (
+      x < KX0 + 80 && y >= KY0 - 40 && y < KY0 + CITY_H + 40
+    ) terrain[idx(x, y)] = T.SEA
+  }
+}
 
 // ---------------------------------------------------------------------
 // 4. anchors
@@ -500,21 +541,33 @@ nodes.push({
   name: plan.cave.name,
   kind: "cave",
 })
-// the east pier: on a fixed row (the city lines its bridge up with it),
-// at the easternmost land with room; a bridge runs from it over the sea
-// to the edge of the WILDS
-{
-  const y = Math.round(plan.east.y * H)
-  let x = W - 1
-  while (x > W / 2 && !fits(x, y, 3)) x--
-  nodes.push({ x, y, name: plan.east.name, kind: "east" })
-  for (let bx = x + 3; bx < W; bx++) {
-    for (const by of [y, y + 1]) {
-      const p = idx(bx, by)
-      terrain[p] = isWater(terrain[p] as T) ? T.BRIDGE : T.ROAD
-      keepClear[p] = 1
+// the city gates: the avenues come out of the city's belt of trees; a
+// short road leads out from each to an anchor on the island (the gates
+// that open onto the sea are left shut)
+for (const [n, g] of city.gates.entries()) {
+  const [ox, oy] = g.side === "east"
+    ? [1, 0]
+    : g.side === "north"
+    ? [0, -1]
+    : [0, 1]
+  const gx = KX0 + g.x, gy = KY0 + g.y
+  const nx = gx + ox * 5, ny = gy + oy * 5
+  const outside = [1, 2, 3, 4, 5].map((k) => idx(gx + ox * k, gy + oy * k))
+  if (!inside(nx, ny) || outside.some((p) => isWater(terrain[p] as T))) continue
+  for (const p of outside) {
+    for (const side of [-1, 0, 1, 2]) {
+      // the road 4 wide, as the avenue
+      const q = p + (ox === 0 ? side : side * W)
+      terrain[q] = T.ROAD
+      keepClear[q] = 1
     }
   }
+  nodes.push({
+    x: nx,
+    y: ny,
+    name: `CITY ${g.side.toUpperCase()} GATE ${n + 1}`,
+    kind: "citygate",
+  })
 }
 // camps: spaced out on the remaining land (Poisson disc against the rest)
 {
@@ -607,6 +660,7 @@ function stepCost(p: number, q: number): number {
     case T.RUIN:
     case T.RAMPART: // the town walls: the roads come in by the gates
     case T.BIO:
+    case T.CITY:
     case T.FLOOR:
       return Infinity
     case T.RIVER:
@@ -1221,12 +1275,11 @@ for (const n of nodes) {
     case "biomech":
       buildBoneValley(n)
       break
-    case "east":
-      put(props, n.x - 2, n.y - 2, "lantern")
-      put(props, n.x + 2, n.y - 1, "sign", {
-        text: "EAST PIER: THE LONG BRIDGE EAST TO THE CITY",
+    case "citygate":
+      put(props, n.x + 3, n.y - 3, "lantern")
+      put(props, n.x - 3, n.y + 3, "sign", {
+        text: "THE CITY: HARBOR WEST, CASTLE EAST, MARKET ALL AROUND",
       })
-      put(actors, n.x, n.y + 2, "sailor")
       break
     case "cave":
       put(props, n.x - 3, n.y + 3, "lantern")
@@ -1803,11 +1856,16 @@ if (previewAt >= 0) {
     [T.TRIAL]: Palette.white,
     [T.ICE]: Palette.cyan1,
     [T.BIO]: Palette.violet3,
+    [T.CITY]: Palette.pink3,
   }
   const rgba = new Uint8Array(W * H * 4)
   for (let p = 0; p < W * H; p++) {
     const x = p % W, y = (p / W) | 0
-    const hex = inCavern(x, y)
+    const hex = inCity(x, y)
+      ? (city.grid[(y - KY0) * CITY_W + (x - KX0)] === "w"
+        ? Palette.blue3
+        : Palette.orange1)
+      : inCavern(x, y)
       ? (cavern.grid[(y - CY0) * CAVERN_W + (x - CX0)] === "2"
         ? Palette.gray4
         : cavern.grid[(y - CY0) * CAVERN_W + (x - CX0)] === "w"
@@ -1839,6 +1897,7 @@ if (!ok) {
 
 /** The cell character at (x, y) */
 function cellAt(x: number, y: number): string {
+  if (inCity(x, y)) return city.grid[(y - KY0) * CITY_W + (x - KX0)]
   if (inCavern(x, y)) {
     // the cavern's rock is the mountain's rock, so no seam shows
     const c = cavern.grid[(y - CY0) * CAVERN_W + (x - CX0)]
@@ -1847,9 +1906,9 @@ function cellAt(x: number, y: number): string {
   const p = idx(x, y)
   return terrain[p] === T.BIO ? bioChar.get(p)! : CELL[terrain[p] as T]
 }
-const allActors = [...actorsOut, ...cavern.actors]
-const allItems = [...itemsOut, ...cavern.items]
-const allProps = [...propsOut, ...cavern.props]
+const allActors = [...actorsOut, ...cavern.actors, ...city.actors]
+const allItems = [...itemsOut, ...cavern.items, ...city.items]
+const allProps = [...propsOut, ...cavern.props, ...city.props]
 /** The named places: the anchors, and the cavern's caves and chambers */
 const places = [
   ...nodes.map((n) => {
@@ -1881,6 +1940,20 @@ const places = [
     y0: CY0 + r.y0,
     x1: CX0 + r.x1,
     y1: CY0 + r.y1,
+  })),
+  {
+    id: "CITY",
+    x0: KX0,
+    y0: KY0,
+    x1: KX0 + CITY_W - 1,
+    y1: KY0 + CITY_H - 1,
+  },
+  ...city.rooms.map((r) => ({
+    id: `CITY-${r.id}`,
+    x0: KX0 + r.x0,
+    y0: KY0 + r.y0,
+    x1: KX0 + r.x1,
+    y1: KY0 + r.y1,
   })),
 ]
 
@@ -1969,5 +2042,32 @@ for (
   if (k >= 0) start.props[k] = add
   else start.props.push(add)
 }
+// the "C" portal room beside it, for the CITY (its quay by the pier)
+carve(38, 42, 44, 43, "0") // the passage east from the W passage
+carve(41, 44, 47, 48, "3") // the room ring
+carve(42, 45, 46, 47, "6") // the room floor
+carve(44, 44, 44, 44, "0") // the door
+carve(43, 42, 43, 42, "r") // the red marker cell
+start.field = sgrid.map((row) => row.join(""))
+for (
+  const add of [
+    {
+      ...local(44, 46),
+      type: "portal",
+      data: { i: OI + KX0 + city.arrival[0], j: OJ + KY0 + city.arrival[1] },
+    },
+    { ...local(43, 42), type: "r_white" },
+    { ...local(42, 42), type: "c" },
+    {
+      ...local(45, 43),
+      type: "sign",
+      data: { text: "THE CITY: STREETS, SHOPS AND A CASTLE BY THE SEA" },
+    },
+  ]
+) {
+  const k = start.props.findIndex((p) => p.i === add.i && p.j === add.j)
+  if (k >= 0) start.props[k] = add
+  else start.props.push(add)
+}
 await Deno.writeTextFile(startPath, JSON.stringify(start, null, 2))
-console.log("linked the WILDS from the start island")
+console.log("linked the WILDS and the CITY from the start island")
