@@ -26,6 +26,10 @@
 //    animals where they belong
 // 8. every walkable cell is made reachable from the arrival, or filled
 //
+// The arrival hides one more thing: the landing trail, a walled one-way
+// tutorial course the W portal lands in. Its apple gate keeps the
+// island shut until the course is walked (see "the landing trail").
+//
 // The CITY (tools/generate_city.ts) stands on the west coast: its harbor
 // opens on the sea, the land around it rises a little, and the island's
 // roads come to the gates in its belt of trees.
@@ -1220,7 +1224,8 @@ for (const n of nodes) {
       break
     }
     case "arrival":
-      put(props, n.x, n.y, "portal-out")
+      // the portal lands at the head of the landing trail (below);
+      // this plaza is where the trail lets the player out
       put(props, n.x + 2, n.y - 1, "sign", {
         text: "THE WILDS: A LAND GROWN, NOT DRAWN. FOLLOW THE ROADS",
       })
@@ -1373,6 +1378,83 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
   console.log(
     `mini puzzles: ${puzzles.map((p) => `${p.kind} ${p.solution.length}`)}`,
   )
+}
+
+// ---------------------------------------------------------------------
+// the landing trail: a one-way tutorial course walled onto the coast
+// north of the arrival plaza. The W portal lands at its head, and the
+// island stays shut until the course is walked: coins, apples, crates,
+// ice and the spring, station by station, then the apple gate at its
+// foot (3 apples; every apple on the trail lies on the path, and the
+// saplings by the gate grow more, so no one is ever short for good)
+
+/** The trail (29 x 13). # wall, . floor, i ice, P the arrival pad,
+ * c coin, a apple, t sapling, C crate, S spring, G the apple gate,
+ * 1-6 the station signs (each in a dead-end niche off the path) */
+const TRAIL = [
+  "#############################",
+  "#.P.......c..c..c..c..c.....#",
+  "####1###################2##.#",
+  "#...........a...a...a.......#",
+  "#.##3###t###t################",
+  "#.............C.....C.......#",
+  "########################4##.#",
+  "#...iiiiiiiiiiiiiiiiiiiii...#",
+  "#.##5########################",
+  "#..S.............############",
+  "##############.#6############",
+  "##############G##############",
+  "##############.##############",
+]
+const TRAIL_SIGNS: Record<string, string> = {
+  "1": "WELCOME TO THE WILDS. HOLD A DIRECTION TO WALK. TAKE THE COINS",
+  "2": "APPLES AHEAD: WALK OVER THEM. THE LAST GATE ASKS FOR 3",
+  "3": "CRATES BREAK: WALK INTO THEM",
+  "4": "ICE: ONE STEP AND YOU SLIDE TO THE FAR SIDE",
+  "5": "A SPRING HURLS YOU THE WAY YOU FACE. STEP ON",
+  "6": "THE GATE OPENS FOR 3 APPLES. SHORT? PUSH A GROWN TREE FOR MORE",
+}
+/** The trail's top left: its exit column meets the arrival plaza */
+const TRAIL_X0 = nodes[0].x - 14
+const TRAIL_Y0 = nodes[0].y - 5 - (TRAIL.length - 1)
+/** Where the W portal lands (the trail's head) */
+const TRAIL_START = { x: TRAIL_X0 + 2, y: TRAIL_Y0 + 1 }
+{
+  const x1 = TRAIL_X0 + TRAIL[0].length, y1 = TRAIL_Y0 + TRAIL.length
+  // whatever stood on the ground here goes (the trail is built over it)
+  const inTrail = (s: Spawn) => {
+    const x = s.i - OI, y = s.j - OJ
+    return x >= TRAIL_X0 && x < x1 && y >= TRAIL_Y0 && y < y1
+  }
+  for (const list of [props, actors, items]) {
+    for (const s of list) {
+      if (inTrail(s)) taken.delete(idx(s.i - OI, s.j - OJ))
+    }
+    const kept = list.filter((s) => !inTrail(s))
+    list.length = 0
+    list.push(...kept)
+  }
+  TRAIL.forEach((row, dy) => {
+    ;[...row].forEach((ch, dx) => {
+      const x = TRAIL_X0 + dx, y = TRAIL_Y0 + dy
+      const p = idx(x, y)
+      terrain[p] = ch === "#" ? T.RUIN : ch === "i" ? T.ICE : T.TRIAL
+      keepClear[p] = 1
+      // left alone by the reachability fix, like the puzzle rooms: the
+      // gate seals the inside from the island on purpose
+      puzzleCells[p] = 1
+      if (ch === "P") put(props, x, y, "portal-out")
+      else if (ch === "c") put(items, x, y, "coin")
+      else if (ch === "a") put(items, x, y, "apple")
+      else if (ch === "t") put(props, x, y, "sapling")
+      else if (ch === "C") put(props, x, y, "crate")
+      else if (ch === "S") put(props, x, y, "spring")
+      else if (ch === "G") put(props, x, y, "apple-gate", { count: 3 })
+      else if (TRAIL_SIGNS[ch]) {
+        put(props, x, y, "sign", { text: TRAIL_SIGNS[ch] })
+      }
+    })
+  })
 }
 
 // ---------------------------------------------------------------------
@@ -1928,6 +2010,15 @@ const places = [
     }
   }),
   {
+    // the landing trail reads as the LANDING too (check_world finds
+    // the W portal's landing by this room id)
+    id: "LANDING",
+    x0: TRAIL_X0,
+    y0: TRAIL_Y0,
+    x1: TRAIL_X0 + TRAIL[0].length - 1,
+    y1: TRAIL_Y0 + TRAIL.length - 1,
+  },
+  {
     id: "CAVERN",
     x0: CX0,
     y0: CY0,
@@ -2065,8 +2156,8 @@ portalRoom(
   28,
   33,
   "w",
-  { i: OI + arrival.x, j: OJ + arrival.y },
-  "THE WILDS: AN ISLAND GROWN BY THE GENERATOR",
+  { i: OI + TRAIL_START.x, j: OJ + TRAIL_START.y },
+  "THE WILDS: THE LANDING TRAIL TEACHES THE MOVES, THEN THE ISLAND IS YOURS",
 )
 portalRoom(
   40,
