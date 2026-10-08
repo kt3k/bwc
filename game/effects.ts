@@ -383,8 +383,12 @@ function loadState(): State {
     const raw = decodeURIComponent(location.hash.slice(1))
     if (!raw) return structuredClone(DEFAULT)
     const s = JSON.parse(raw) as State
-    // patterns added since keep their defaults
+    // settings added since keep their defaults; patterns gone are dropped
     const base = recipe({})
+    s.recipe.rate ??= 1
+    for (const id of Object.keys(s.recipe.layers)) {
+      if (!(id in base.layers)) delete s.recipe.layers[id]
+    }
     for (const [id, layer] of Object.entries(base.layers)) {
       const saved = s.recipe.layers[id]
       s.recipe.layers[id] = saved
@@ -506,7 +510,7 @@ function globalPanel(): HTMLElement {
   const num = (
     label: string,
     spec: { min: number; max: number; step: number },
-    key: "stop" | "shake" | "shakeAmp" | "vanish",
+    key: "stop" | "shake" | "shakeAmp" | "vanish" | "rate",
   ) =>
     el(
       "div",
@@ -521,6 +525,11 @@ function globalPanel(): HTMLElement {
     "div",
     "panel",
     ink("全体", "ink-white"),
+    num(
+      "コマ落とし (何 frame に 1 回動かすか。1 = 60fps、2 = 30、4 = 15)",
+      { min: 1, max: 4, step: 1 },
+      "rate",
+    ),
     num("ヒットストップ (止まる frame)", { min: 0, max: 20, step: 1 }, "stop"),
     num("揺れ (frame)", { min: 0, max: 30, step: 1 }, "shake"),
     num("揺れ幅 (px)", { min: 1, max: 3, step: 1 }, "shakeAmp"),

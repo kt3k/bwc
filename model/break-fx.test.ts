@@ -119,8 +119,8 @@ Deno.test("the hit-stop holds every pattern still", () => {
     sprite: sprite(),
     rand: seeded(3),
   })
-  const free = new BreakRun(recipe({ debris: {} }), ctx())
-  const held = new BreakRun(recipe({ debris: {} }, { stop: 10 }), ctx())
+  const free = new BreakRun(recipe({ chips: {} }), ctx())
+  const held = new BreakRun(recipe({ chips: {} }, { stop: 10 }), ctx())
   assertEquals(play(held) - play(free), 10)
 })
 
@@ -128,4 +128,18 @@ Deno.test("invert keeps to the gray ramp", () => {
   assertEquals(invert(Palette.white), Palette.black)
   assertEquals(invert(Palette.gray2), Palette.gray3)
   for (const c of PALETTE) assert(isPaletteColor(invert(c)))
+})
+
+Deno.test("a lower frame rate stretches the effects", () => {
+  const ctx = (): FxContext => ({
+    x: 0,
+    y: 0,
+    dir: "up",
+    sprite: sprite(),
+    rand: seeded(5),
+  })
+  const at60 = play(new BreakRun(recipe({ poof: {} }), ctx()))
+  const at15 = play(new BreakRun(recipe({ poof: {} }, { rate: 4 }), ctx()))
+  assert(at60 > 0)
+  assert(at15 >= at60 * 4 - 3 && at15 <= at60 * 4)
 })

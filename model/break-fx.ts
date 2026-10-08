@@ -120,15 +120,6 @@ function delayed(delay: number, inner: FxInstance): FxInstance {
   }
 }
 
-/** The opaque pixels of the sprite */
-function pixelsOf(s: SpriteData): { x: number; y: number; c: PaletteColor }[] {
-  const out: { x: number; y: number; c: PaletteColor }[] = []
-  s.px.forEach((c, k) => {
-    if (c) out.push({ x: k % s.w, y: Math.floor(k / s.w), c })
-  })
-  return out
-}
-
 /** The sprite's pixels within a box, drawn at an offset */
 function drawSpritePart(
   p: Painter,
@@ -173,9 +164,6 @@ export function invert(c: PaletteColor): PaletteColor {
   const k = RAMP.indexOf(c)
   return k < 0 ? Palette.white : RAMP[RAMP.length - 1 - k]
 }
-
-/** The 4x4 Bayer matrix (0..15) */
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 
 // ---------------------------------------------------------------------
 // the patterns
@@ -386,412 +374,297 @@ const wipe: Pattern = {
   },
 }
 
-/** The game's linePattern0: streaks shooting from the cell edges */
-const streaks: Pattern = {
-  id: "streaks",
-  name: "流れ線 (現行のバネ・滑り)",
-  note:
-    "セルの縁から細い線が飛ぶ。真ん中の線ほど速い (p0)。押した向き・逆・四方を選べる。",
-  params: [
-    DELAY,
-    {
-      key: "lines",
-      label: "1 辺の線の数",
-      type: "num",
-      min: 1,
-      max: 8,
-      step: 1,
-      value: 5,
-    },
-    {
-      key: "base",
-      label: "基本の速さ",
-      type: "num",
-      min: 0.5,
-      max: 4,
-      step: 0.1,
-      value: 1,
-    },
-    {
-      key: "p0",
-      label: "中央の加速 (p0)",
-      type: "num",
-      min: 0,
-      max: 2,
-      step: 0.1,
-      value: 0.7,
-    },
-    {
-      key: "dist",
-      label: "飛ぶ距離 (セル)",
-      type: "num",
-      min: 1,
-      max: 6,
-      step: 1,
-      value: 3,
-    },
-    {
-      key: "len",
-      label: "線の長さ (px)",
-      type: "num",
-      min: 2,
-      max: 16,
-      step: 1,
-      value: 16,
-    },
-    { key: "color", label: "色", type: "color", value: "white" },
-    {
-      key: "dirs",
-      label: "向き",
-      type: "select",
-      options: ["push", "back", "sides", "all"],
-      value: "all",
-    },
-  ],
-  create(p, ctx) {
-    const all: Dir[] = ["up", "down", "left", "right"]
-    const back = {
-      up: "down",
-      down: "up",
-      left: "right",
-      right: "left",
-    } as const
-    const dirs: Dir[] = p.dirs === "push"
-      ? [ctx.dir]
-      : p.dirs === "back"
-      ? [back[ctx.dir]]
-      : p.dirs === "sides"
-      ? (ctx.dir === "up" || ctx.dir === "down"
-        ? ["left", "right"]
-        : ["up", "down"])
-      : all
-    const lines = num(p, "lines"), base = num(p, "base"), p0 = num(p, "p0")
-    const dist = num(p, "dist") * CELL, len = num(p, "len")
-    const c = color(p, "color")
-    type Line = {
-      x: number
-      y: number
-      vx: number
-      vy: number
-      d: number
-      speed: number
+// ---------------------------------------------------------------------
+// NES-like patterns: a few small sprites (8x8, 3 colors each), animated
+// in 2 to 4 frames held for several frames, moving by whole pixels.
+// When more than 8 sprites are out, they may flicker (half of them on
+// even frames, half on odd), as the NES shows them
+
+/** A bitmap: "1" "2" "3" are the sprite's three colors, "." is clear */
+type Bitmap = readonly string[]
+
+/** Draws a bitmap at (x, y), mirrored if asked (the NES flips, never rotates) */
+function drawBitmap(
+  p: Painter,
+  rows: Bitmap,
+  x: number,
+  y: number,
+  colors: readonly PaletteColor[],
+  flipH = false,
+  flipV = false,
+) {
+  const h = rows.length, w = rows[0].length
+  for (let dy = 0; dy < h; dy++) {
+    const row = rows[flipV ? h - 1 - dy : dy]
+    for (let dx = 0; dx < w; dx++) {
+      const ch = row[flipH ? w - 1 - dx : dx]
+      if (ch === ".") continue
+      p.rect(x + dx, y + dy, 1, 1, colors[Number(ch) - 1])
     }
-    const list: Line[] = []
-    for (const dir of dirs) {
-      const [vx, vy] = dirVec(dir)
-      for (let k = 0; k < lines; k++) {
-        const across = lines === 1
-          ? CELL / 2
-          : Math.round((k * (CELL - 1)) / (lines - 1))
-        const mid = (lines - 1) / 2
-        const speed = base + (mid - Math.abs(k - mid)) * p0
-        const x = ctx.x + (vx === 0 ? across : vx > 0 ? CELL : 0)
-        const y = ctx.y + (vy === 0 ? across : vy > 0 ? CELL : 0)
-        list.push({ x, y, vx, vy, d: 0, speed })
-      }
-    }
-    return delayed(num(p, "delay"), {
-      step() {
-        for (const l of list) l.d = Math.min(dist, l.d + l.speed)
-      },
-      draw(painter) {
-        for (const l of list) {
-          if (l.d >= dist) continue
-          const head = Math.round(l.d)
-          const tail = Math.max(0, head - len)
-          for (let k = tail; k < head; k++) {
-            painter.rect(
-              l.x + l.vx * k - (l.vx < 0 ? 1 : 0),
-              l.y + l.vy * k - (l.vy < 0 ? 1 : 0),
-              1,
-              1,
-              c,
-            )
-          }
-        }
-      },
-      get done() {
-        return list.every((l) => l.d >= dist)
-      },
-    })
-  },
+  }
 }
 
-/** Chips thrown up and out, falling under gravity */
-const debris: Pattern = {
-  id: "debris",
-  name: "破片",
-  note:
-    "小さな四角が飛び上がって重力で落ち、床で止まって少し残り、一度に消える。色は絵の色を拾うか、3 色を指定する。",
-  params: [
-    DELAY,
-    {
-      key: "count",
-      label: "数",
-      type: "num",
-      min: 1,
-      max: 60,
-      step: 1,
-      value: 12,
-    },
-    {
-      key: "speed",
-      label: "初速",
-      type: "num",
-      min: 0.2,
-      max: 4,
-      step: 0.1,
-      value: 1.5,
-    },
-    {
-      key: "up",
-      label: "上向きの勢い",
-      type: "num",
-      min: 0,
-      max: 5,
-      step: 0.1,
-      value: 2.2,
-    },
-    {
-      key: "bias",
-      label: "押した向きへの偏り",
-      type: "num",
-      min: 0,
-      max: 3,
-      step: 0.1,
-      value: 0,
-    },
-    {
-      key: "gravity",
-      label: "重力",
-      type: "num",
-      min: 0,
-      max: 1,
-      step: 0.05,
-      value: 0.35,
-    },
-    {
-      key: "size",
-      label: "大きさ (px)",
-      type: "num",
-      min: 1,
-      max: 4,
-      step: 1,
-      value: 2,
-    },
-    {
-      key: "floor",
-      label: "床までの落差 (px)",
-      type: "num",
-      min: 0,
-      max: 16,
-      step: 1,
-      value: 6,
-    },
-    {
-      key: "bounce",
-      label: "跳ね返り回数",
-      type: "num",
-      min: 0,
-      max: 3,
-      step: 1,
-      value: 0,
-    },
-    {
-      key: "life",
-      label: "寿命 (frame)",
-      type: "num",
-      min: 10,
-      max: 120,
-      step: 1,
-      value: 40,
-    },
-    {
-      key: "end",
-      label: "消え方",
-      type: "select",
-      options: ["at-once", "blink", "shrink"],
-      value: "at-once",
-    },
-    {
-      key: "colors",
-      label: "色の取り方",
-      type: "select",
-      options: ["sprite", "pick"],
-      value: "sprite",
-    },
-    { key: "c1", label: "色 1", type: "color", value: "white" },
-    { key: "c2", label: "色 2", type: "color", value: "gray2" },
-    { key: "c3", label: "色 3", type: "color", value: "gray3" },
-  ],
-  create(p, ctx) {
-    const cx = ctx.x + CELL / 2, cy = ctx.y + CELL / 2
-    const [bx, by] = dirVec(ctx.dir)
-    const bias = num(p, "bias"), g = num(p, "gravity")
-    const size = num(p, "size"), life = num(p, "life")
-    const spriteColors = pixelsOf(ctx.sprite).map((q) => q.c)
-    const picks = [color(p, "c1"), color(p, "c2"), color(p, "c3")]
-    const count = num(p, "count")
-    const chips = Array.from({ length: count }, (_, n) => {
-      const a = (n / count) * Math.PI * 2 + ctx.rand() * 0.6
-      const speed = num(p, "speed") * (0.5 + ctx.rand())
-      return {
-        x: cx + Math.cos(a) * 3,
-        y: cy + Math.sin(a) * 3,
-        vx: Math.cos(a) * speed + bx * bias,
-        vy: Math.sin(a) * speed - num(p, "up") + by * bias,
-        floor: cy + num(p, "floor") + Math.floor(ctx.rand() * 3),
-        bounces: num(p, "bounce"),
-        c: p.colors === "sprite" && spriteColors.length > 0
-          ? spriteColors[Math.floor(ctx.rand() * spriteColors.length)]
-          : picks[n % 3],
-        life: Math.floor(life * (0.7 + ctx.rand() * 0.3)),
-        age: 0,
-      }
-    })
-    return delayed(num(p, "delay"), {
-      step() {
-        for (const ch of chips) {
-          ch.age++
-          if (ch.y >= ch.floor && ch.vy === 0) continue
-          ch.x += ch.vx
-          ch.y += ch.vy
-          ch.vy += g
-          if (ch.y >= ch.floor && ch.vy > 0) {
-            ch.y = ch.floor
-            if (ch.bounces > 0) {
-              ch.bounces--
-              ch.vy = -ch.vy * 0.45
-              ch.vx *= 0.6
-            } else {
-              ch.vy = 0
-              ch.vx = 0
-            }
-          }
-        }
-      },
-      draw(painter) {
-        for (const ch of chips) {
-          if (ch.age >= ch.life) continue
-          const left = ch.life - ch.age
-          if (p.end === "blink" && left < 16 && left % 4 < 2) continue
-          const s = p.end === "shrink" && left < 12
-            ? Math.max(1, size - 1)
-            : size
-          painter.rect(Math.round(ch.x), Math.round(ch.y), s, s, ch.c)
-        }
-      },
-      get done() {
-        return chips.every((ch) => ch.age >= ch.life)
-      },
-    })
-  },
+/** The three colors of a pattern (params c1 c2 c3) */
+const colors3 = (p: Params): PaletteColor[] => [
+  color(p, "c1"),
+  color(p, "c2"),
+  color(p, "c3"),
+]
+const COLORS = (
+  c1: PaletteName,
+  c2: PaletteName,
+  c3: PaletteName,
+): ParamSpec[] => [
+  { key: "c1", label: "色 1 (明)", type: "color", value: c1 },
+  { key: "c2", label: "色 2 (中)", type: "color", value: c2 },
+  { key: "c3", label: "色 3 (暗・縁)", type: "color", value: c3 },
+]
+const FLICKER: ParamSpec = {
+  key: "flicker",
+  label: "8 個を超えたらちらつく",
+  type: "select",
+  options: ["on", "off"],
+  value: "on",
 }
+/** With flicker on and more than 8 sprites, half of them each frame */
+const shown = (p: Params, k: number, count: number, t: number) =>
+  p.flicker !== "on" || count <= 8 || (k + t) % 2 === 0
 
-/** The sprite cut into tiles that fly apart (no rotation) */
-const shatter: Pattern = {
-  id: "shatter",
-  name: "割れ飛ぶ (絵を分割)",
+const PUFF: Bitmap[] = [
+  [
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "......3333......",
+    ".....311113.....",
+    "....31111123....",
+    "....31111223....",
+    "....31112223....",
+    ".....322223.....",
+    "......3333......",
+    "................",
+    "................",
+    "................",
+    "................",
+  ],
+  [
+    "................",
+    ".....333..333...",
+    "....31113311113.",
+    "...311111111123.",
+    "..3111111111223.",
+    "..31111112222233",
+    "...311112222223.",
+    "..31111122222223",
+    ".311111222222223",
+    ".311112222222223",
+    ".31122222222223.",
+    "..322223322223..",
+    "...3333..3333...",
+    "................",
+    "................",
+    "................",
+  ],
+  [
+    "..333......333..",
+    ".31113....31123.",
+    ".31123....31223.",
+    "..333......333..",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "..333......333..",
+    ".31113....31123.",
+    ".31223....32223.",
+    "..333......333..",
+    "................",
+  ],
+]
+const ORB: Bitmap[] = [
+  [
+    "..3333..",
+    ".311113.",
+    "31111213",
+    "31111213",
+    "31112213",
+    "31122213",
+    ".322223.",
+    "..3333..",
+  ],
+  [
+    "........",
+    "...33...",
+    "..3113..",
+    ".311213.",
+    ".312213.",
+    "..3223..",
+    "...33...",
+    "........",
+  ],
+]
+const STAR: Bitmap[] = [
+  [
+    "...1....",
+    "...2....",
+    "...2....",
+    "1223221.",
+    "...2....",
+    "...2....",
+    "...1....",
+    "........",
+  ],
+  [
+    "1.....1.",
+    ".2...2..",
+    "..2.2...",
+    "...3....",
+    "..2.2...",
+    ".2...2..",
+    "1.....1.",
+    "........",
+  ],
+]
+const CHIP: Bitmap = [".33.", "3123", "3223", ".33."]
+const BRICK: Bitmap = [
+  "33333333",
+  "21112111",
+  "21112111",
+  "33333333",
+  "11211121",
+  "11211121",
+  "33333333",
+  "21112111",
+]
+const DUST: Bitmap[] = [
+  [
+    "........",
+    "........",
+    "........",
+    "...11...",
+    "..1221..",
+    ".122221.",
+    ".122221.",
+    "..3333..",
+  ],
+  [
+    "........",
+    "........",
+    "..1..1..",
+    ".1.11.1.",
+    "..1221..",
+    ".1.22.1.",
+    "..1..1..",
+    "........",
+  ],
+]
+
+/** The brick (Super Mario): four pieces of the thing fly off in arcs */
+const brick: Pattern = {
+  id: "brick",
+  name: "レンガ割り (4 つの破片)",
   note:
-    "絵をマス目に切って、それぞれが外へ飛んで落ちる。回転はしない (ドットが崩れるため)。分割数と重力で「陶器」「ガラス」「岩」になる。",
+    "マリオのレンガ。絵を 4 つに割った破片が、上の 2 つは高く、下の 2 つは低く、左右に放物線で飛ぶ。破片は数フレームごとに左右反転して回って見える。",
   ownsSprite: true,
   params: [
     DELAY,
     {
-      key: "grid",
-      label: "分割 (N×N)",
-      type: "num",
-      min: 2,
-      max: 8,
-      step: 1,
-      value: 4,
-    },
-    {
-      key: "speed",
-      label: "初速",
-      type: "num",
-      min: 0,
-      max: 4,
-      step: 0.1,
-      value: 1.2,
-    },
-    {
-      key: "up",
-      label: "上向きの勢い",
-      type: "num",
-      min: 0,
-      max: 5,
-      step: 0.1,
-      value: 1.8,
-    },
-    {
-      key: "bias",
-      label: "押した向きへの偏り",
+      key: "vx",
+      label: "横の速さ (px/frame)",
       type: "num",
       min: 0,
       max: 3,
-      step: 0.1,
-      value: 0.8,
+      step: 0.5,
+      value: 1,
+    },
+    {
+      key: "vyTop",
+      label: "上の破片の跳ね (px/frame)",
+      type: "num",
+      min: 1,
+      max: 8,
+      step: 0.5,
+      value: 5,
+    },
+    {
+      key: "vyLow",
+      label: "下の破片の跳ね (px/frame)",
+      type: "num",
+      min: 0,
+      max: 8,
+      step: 0.5,
+      value: 3,
     },
     {
       key: "gravity",
-      label: "重力",
+      label: "重力 (px/frame²)",
+      type: "num",
+      min: 0.125,
+      max: 1,
+      step: 0.125,
+      value: 0.375,
+    },
+    {
+      key: "bias",
+      label: "押した向きへの偏り (px/frame)",
       type: "num",
       min: 0,
-      max: 1,
-      step: 0.05,
-      value: 0.3,
+      max: 2,
+      step: 0.5,
+      value: 0,
+    },
+    {
+      key: "spin",
+      label: "反転して回す (frame ごと、0 で回さない)",
+      type: "num",
+      min: 0,
+      max: 8,
+      step: 1,
+      value: 4,
     },
     {
       key: "life",
       label: "寿命 (frame)",
       type: "num",
       min: 8,
-      max: 90,
+      max: 60,
       step: 1,
-      value: 30,
+      value: 32,
     },
     {
-      key: "end",
-      label: "消え方",
+      key: "look",
+      label: "破片の絵",
       type: "select",
-      options: ["at-once", "blink", "fall-off"],
-      value: "blink",
+      options: ["sprite", "brick"],
+      value: "sprite",
     },
+    ...COLORS("gray2", "gray3", "black"),
   ],
   create(p, ctx) {
     const s = ctx.sprite
-    const n = num(p, "grid")
-    const tw = Math.ceil(s.w / n), th = Math.ceil(s.h / n)
     const [ox, oy] = spriteOrigin(ctx)
-    const [bx, by] = dirVec(ctx.dir)
-    const pieces: {
-      sx: number
-      sy: number
-      x: number
-      y: number
-      vx: number
-      vy: number
-    }[] = []
-    for (let gy = 0; gy < n; gy++) {
-      for (let gx = 0; gx < n; gx++) {
-        const sx = gx * tw, sy = gy * th
-        // outward from the middle
-        const dx = sx + tw / 2 - s.w / 2, dy = sy + th / 2 - s.h / 2
-        const d = Math.hypot(dx, dy) || 1
-        const v = num(p, "speed") * (0.6 + ctx.rand() * 0.8)
-        pieces.push({
-          sx,
-          sy,
-          x: ox + sx,
-          y: oy + sy,
-          vx: (dx / d) * v + bx * num(p, "bias"),
-          vy: (dy / d) * v - num(p, "up") * (0.5 + ctx.rand()) +
-            by * num(p, "bias"),
-        })
+    const hw = Math.ceil(s.w / 2), hh = Math.ceil(s.h / 2)
+    const [bx] = dirVec(ctx.dir)
+    const bias = num(p, "bias") * bx
+    const pieces = [0, 1, 2, 3].map((k) => {
+      const right = k % 2 === 1, low = k >= 2
+      return {
+        sx: right ? hw : 0,
+        sy: low ? hh : 0,
+        x: ox + (right ? hw : 0),
+        y: oy + (low ? hh : 0),
+        vx: (right ? 1 : -1) * num(p, "vx") + bias,
+        vy: -num(p, low ? "vyLow" : "vyTop"),
+        right,
       }
-    }
-    const life = num(p, "life"), g = num(p, "gravity")
+    })
+    const g = num(p, "gravity"), life = num(p, "life"), spin = num(p, "spin")
+    const cs = colors3(p)
     let t = 0
     return delayed(num(p, "delay"), {
       step() {
@@ -804,20 +677,28 @@ const shatter: Pattern = {
       },
       draw(painter) {
         if (t >= life) return
-        const left = life - t
-        if (p.end === "blink" && left < 12 && left % 4 < 2) return
+        const flip = spin > 0 && Math.floor(t / spin) % 2 === 1
         for (const q of pieces) {
-          if (p.end === "fall-off" && q.y > oy + s.h + 8) continue
-          drawSpritePart(
-            painter,
-            s,
-            q.sx,
-            q.sy,
-            tw,
-            th,
-            Math.round(q.x),
-            Math.round(q.y),
-          )
+          const x = Math.round(q.x), y = Math.round(q.y)
+          if (p.look === "brick") {
+            drawBitmap(painter, BRICK, x, y, cs, flip !== q.right)
+          } else if (flip) {
+            // the piece mirrored: drawn column by column, right to left
+            for (let dx = 0; dx < hw; dx++) {
+              drawSpritePart(
+                painter,
+                s,
+                q.sx + hw - 1 - dx,
+                q.sy,
+                1,
+                hh,
+                x + dx,
+                y,
+              )
+            }
+          } else {
+            drawSpritePart(painter, s, q.sx, q.sy, hw, hh, x, y)
+          }
         }
       },
       get done() {
@@ -827,368 +708,223 @@ const shatter: Pattern = {
   },
 }
 
-/** Every pixel of the sprite flies off on its own */
-const pixels: Pattern = {
-  id: "pixels",
-  name: "ドット崩壊",
+/** The puff (Zelda): the thing goes up in a 3-frame cloud */
+const poof: Pattern = {
+  id: "poof",
+  name: "煙でポン (3 コマ)",
   note:
-    "絵の 1 ドットずつがばらばらに飛び散る。全部同時か、押した側から順に崩すかを選べる。",
-  ownsSprite: true,
+    "ゼルダで敵が消える時の煙。小さな煙 → 大きな煙 → 散った煙の 3 コマを、それぞれ数フレームずつ止めて見せる。コマを止める長さで重さが変わる。",
+  params: [
+    DELAY,
+    {
+      key: "hold",
+      label: "1 コマの長さ (frame)",
+      type: "num",
+      min: 1,
+      max: 12,
+      step: 1,
+      value: 6,
+    },
+    {
+      key: "frames",
+      label: "コマ数",
+      type: "num",
+      min: 1,
+      max: 3,
+      step: 1,
+      value: 3,
+    },
+    ...COLORS("white", "gray2", "gray4"),
+  ],
+  create(p, ctx) {
+    const hold = num(p, "hold"), frames = num(p, "frames")
+    const cs = colors3(p)
+    let t = 0
+    return delayed(num(p, "delay"), {
+      step() {
+        t++
+      },
+      draw(painter) {
+        const k = Math.floor(t / hold)
+        if (k >= frames) return
+        // with fewer frames, the later ones are skipped
+        const frame = frames === 1 ? 1 : frames === 2 ? [0, 2][k] : k
+        drawBitmap(painter, PUFF[frame], ctx.x, ctx.y, cs)
+      },
+      get done() {
+        return t >= hold * frames
+      },
+    })
+  },
+}
+
+/** The explosion (Mega Man): orbs flying out in 8 directions, pulsing */
+const orbs: Pattern = {
+  id: "orbs",
+  name: "玉が八方に (爆発)",
+  note:
+    "ロックマンがやられた時のように、8x8 の玉が 8 方向へ一定の速さで飛ぶ。玉は 2 コマで脈打つ。内側にもう一周 (半分の速さ) 足すと 16 個になり、ちらつく。",
   params: [
     DELAY,
     {
       key: "speed",
-      label: "初速",
+      label: "速さ (px/frame)",
       type: "num",
-      min: 0,
+      min: 0.5,
       max: 3,
-      step: 0.1,
-      value: 0.8,
+      step: 0.5,
+      value: 1.5,
     },
     {
-      key: "up",
-      label: "上向きの勢い",
-      type: "num",
-      min: 0,
-      max: 4,
-      step: 0.1,
-      value: 1.2,
+      key: "rings",
+      label: "周の数",
+      type: "select",
+      options: ["1", "2"],
+      value: "1",
     },
     {
-      key: "gravity",
-      label: "重力",
+      key: "pulse",
+      label: "脈打つ間隔 (frame)",
       type: "num",
-      min: 0,
-      max: 0.6,
-      step: 0.02,
-      value: 0.12,
-    },
-    {
-      key: "stagger",
-      label: "押した側からの時間差 (frame/行)",
-      type: "num",
-      min: 0,
-      max: 3,
-      step: 0.25,
-      value: 0,
+      min: 1,
+      max: 8,
+      step: 1,
+      value: 4,
     },
     {
       key: "life",
       label: "寿命 (frame)",
       type: "num",
       min: 8,
-      max: 90,
-      step: 1,
-      value: 36,
-    },
-    {
-      key: "thin",
-      label: "間引き (1/N を残す)",
-      type: "num",
-      min: 1,
-      max: 4,
-      step: 1,
-      value: 1,
-    },
-  ],
-  create(p, ctx) {
-    const [ox, oy] = spriteOrigin(ctx)
-    const s = ctx.sprite
-    const [bx, by] = dirVec(ctx.dir)
-    const thin = num(p, "thin")
-    const list = pixelsOf(s).filter((_, k) => k % thin === 0).map((q) => {
-      const dx = q.x - s.w / 2, dy = q.y - s.h / 2
-      const d = Math.hypot(dx, dy) || 1
-      const v = num(p, "speed") * (0.4 + ctx.rand())
-      // rows from the side the push comes from
-      const fromNear = bx > 0
-        ? q.x
-        : bx < 0
-        ? s.w - 1 - q.x
-        : by > 0
-        ? q.y
-        : s.h - 1 - q.y
-      return {
-        x: ox + q.x,
-        y: oy + q.y,
-        vx: (dx / d) * v,
-        vy: (dy / d) * v - num(p, "up") * ctx.rand(),
-        c: q.c,
-        start: Math.floor(fromNear * num(p, "stagger")),
-      }
-    })
-    const g = num(p, "gravity"), life = num(p, "life")
-    let t = 0
-    return delayed(num(p, "delay"), {
-      step() {
-        t++
-        for (const q of list) {
-          if (t < q.start) continue
-          q.x += q.vx
-          q.y += q.vy
-          q.vy += g
-        }
-      },
-      draw(painter) {
-        for (const q of list) {
-          if (t - q.start >= life) continue
-          painter.rect(Math.round(q.x), Math.round(q.y), 1, 1, q.c)
-        }
-      },
-      get done() {
-        return list.every((q) => t - q.start >= life)
-      },
-    })
-  },
-}
-
-/** Rings growing out of the cell: square, diamond or circle */
-const ring: Pattern = {
-  id: "ring",
-  name: "衝撃の輪",
-  note:
-    "セルの中心から輪が広がる。四角・ひし形・円 (ドットで描いた円)。破線にすると軽く、太くすると重くなる。",
-  params: [
-    DELAY,
-    {
-      key: "shape",
-      label: "形",
-      type: "select",
-      options: ["square", "diamond", "circle"],
-      value: "circle",
-    },
-    {
-      key: "count",
-      label: "輪の数",
-      type: "num",
-      min: 1,
-      max: 4,
-      step: 1,
-      value: 1,
-    },
-    {
-      key: "gap",
-      label: "輪の間隔 (frame)",
-      type: "num",
-      min: 1,
-      max: 12,
-      step: 1,
-      value: 4,
-    },
-    {
-      key: "speed",
-      label: "広がる速さ (px/frame)",
-      type: "num",
-      min: 0.5,
-      max: 4,
-      step: 0.5,
-      value: 1.5,
-    },
-    {
-      key: "start",
-      label: "初めの半径 (px)",
-      type: "num",
-      min: 0,
-      max: 12,
-      step: 1,
-      value: 4,
-    },
-    {
-      key: "max",
-      label: "最大の半径 (px)",
-      type: "num",
-      min: 6,
-      max: 40,
-      step: 1,
-      value: 20,
-    },
-    {
-      key: "thick",
-      label: "太さ (px)",
-      type: "num",
-      min: 1,
-      max: 3,
-      step: 1,
-      value: 1,
-    },
-    {
-      key: "dash",
-      label: "破線",
-      type: "select",
-      options: ["solid", "dashed", "dotted"],
-      value: "solid",
-    },
-    { key: "color", label: "色", type: "color", value: "white" },
-  ],
-  create(p, ctx) {
-    const cx = ctx.x + CELL / 2, cy = ctx.y + CELL / 2
-    const count = num(p, "count"), gap = num(p, "gap")
-    const speed = num(p, "speed"), r0 = num(p, "start"), rmax = num(p, "max")
-    const thick = num(p, "thick"), c = color(p, "color")
-    const dash = String(p.dash)
-    let t = 0
-    const radius = (n: number) => r0 + (t - n * gap) * speed
-    const keep = (k: number) =>
-      dash === "solid" || (dash === "dashed" ? k % 4 < 2 : k % 2 === 0)
-    return delayed(num(p, "delay"), {
-      step() {
-        t++
-      },
-      draw(painter) {
-        for (let n = 0; n < count; n++) {
-          if (t < n * gap) continue
-          const r = Math.round(radius(n))
-          if (r > rmax) continue
-          for (let w = 0; w < thick; w++) {
-            const rr = r - w
-            if (rr < 0) continue
-            const pts: [number, number][] = []
-            if (p.shape === "square") {
-              for (let k = -rr; k <= rr; k++) {
-                pts.push([k, -rr], [k, rr], [-rr, k], [rr, k])
-              }
-            } else if (p.shape === "diamond") {
-              for (let k = 0; k <= rr; k++) {
-                pts.push([k, rr - k], [-k, rr - k], [k, k - rr], [-k, k - rr])
-              }
-            } else {
-              // midpoint circle
-              let x = rr, y = 0, err = 1 - rr
-              while (x >= y) {
-                pts.push([x, y], [y, x], [-y, x], [-x, y], [-x, -y], [-y, -x], [
-                  y,
-                  -x,
-                ], [x, -y])
-                y++
-                if (err < 0) err += 2 * y + 1
-                else {
-                  x--
-                  err += 2 * (y - x) + 1
-                }
-              }
-            }
-            pts.forEach(([dx, dy], k) => {
-              if (keep(k)) painter.rect(cx + dx, cy + dy, 1, 1, c)
-            })
-          }
-        }
-      },
-      get done() {
-        return radius(count - 1) > rmax
-      },
-    })
-  },
-}
-
-/** The sprite dissolves through an ordered dither (no alpha) */
-const dissolve: Pattern = {
-  id: "dissolve",
-  name: "ディザで消える",
-  note:
-    "半透明を使わずに「薄れる」を表す。4x4 の Bayer 行列の順にドットが抜けていく。ノイズ順・縞順も試せる。",
-  ownsSprite: true,
-  params: [
-    DELAY,
-    {
-      key: "frames",
-      label: "消えるまで (frame)",
-      type: "num",
-      min: 4,
       max: 60,
       step: 1,
-      value: 16,
+      value: 30,
     },
-    {
-      key: "order",
-      label: "抜ける順",
-      type: "select",
-      options: ["bayer", "noise", "rows", "checker"],
-      value: "bayer",
-    },
-    {
-      key: "hold",
-      label: "消える前の静止 (frame)",
-      type: "num",
-      min: 0,
-      max: 30,
-      step: 1,
-      value: 0,
-    },
+    FLICKER,
+    ...COLORS("white", "gray2", "gray4"),
   ],
   create(p, ctx) {
-    const s = ctx.sprite
-    const [ox, oy] = spriteOrigin(ctx)
-    const frames = num(p, "frames"), hold = num(p, "hold")
-    const noise = s.px.map(() => Math.floor(ctx.rand() * 16))
-    const rank = (x: number, y: number) => {
-      switch (p.order) {
-        case "noise":
-          return noise[y * s.w + x]
-        case "rows":
-          return ((y % 4) * 4 + (x % 4) % 1) % 16
-        case "checker":
-          return (x + y) % 2 === 0 ? 4 : 12
-        default:
-          return BAYER[(y % 4) * 4 + (x % 4)]
+    const cx = ctx.x + CELL / 2 - 4, cy = ctx.y + CELL / 2 - 4
+    const list: { vx: number; vy: number }[] = []
+    const speed = num(p, "speed")
+    for (let ring = 0; ring < Number(p.rings); ring++) {
+      for (let k = 0; k < 8; k++) {
+        const a = (k / 8) * Math.PI * 2
+        // 8 directions at the same speed on each axis (as on the NES)
+        const v = speed / (ring + 1)
+        list.push({
+          vx: Math.round(Math.cos(a)) * v,
+          vy: Math.round(Math.sin(a)) * v,
+        })
       }
     }
+    const life = num(p, "life"), pulse = num(p, "pulse")
+    const cs = colors3(p)
     let t = 0
     return delayed(num(p, "delay"), {
       step() {
         t++
       },
       draw(painter) {
-        const level = Math.floor(((t - hold) / frames) * 16)
-        drawSpritePart(
-          painter,
-          s,
-          0,
-          0,
-          s.w,
-          s.h,
-          ox,
-          oy,
-          (c, x, y) => rank(x, y) < level ? null : c,
-        )
+        if (t >= life) return
+        const frame = Math.floor(t / pulse) % 2
+        list.forEach((o, k) => {
+          if (!shown(p, k, list.length, t)) return
+          drawBitmap(
+            painter,
+            ORB[frame],
+            cx + Math.round(o.vx * t),
+            cy + Math.round(o.vy * t),
+            cs,
+          )
+        })
       },
       get done() {
-        return t >= hold + frames
+        return t >= life
       },
     })
   },
 }
 
-/** The sprite's shape flashes in one color (or inverted), then goes */
-const flash: Pattern = {
-  id: "flash",
-  name: "フラッシュ",
+/** The hit spark: one star where the blow landed, switching shape */
+const star: Pattern = {
+  id: "star",
+  name: "当たりの星",
   note:
-    "当たった瞬間に絵の形を 1 色で塗る・グレーを反転する。点滅回数を増やすと NES の被弾表現になる。",
+    "当たった所 (押した側の縁) に 8x8 の星を 1 つ。十字と × を交互に出す。小さいが「当たった」が一番伝わる。",
+  params: [
+    DELAY,
+    {
+      key: "swap",
+      label: "形を替える間隔 (frame)",
+      type: "num",
+      min: 1,
+      max: 6,
+      step: 1,
+      value: 2,
+    },
+    {
+      key: "life",
+      label: "寿命 (frame)",
+      type: "num",
+      min: 2,
+      max: 24,
+      step: 1,
+      value: 8,
+    },
+    {
+      key: "at",
+      label: "出る所",
+      type: "select",
+      options: ["edge", "center"],
+      value: "edge",
+    },
+    ...COLORS("white", "gray2", "gray4"),
+  ],
+  create(p, ctx) {
+    const [vx, vy] = dirVec(ctx.dir)
+    // the edge the blow came from, at the cell's middle
+    const x = ctx.x + 4 + (p.at === "edge" ? -vx * 8 : 0)
+    const y = ctx.y + 4 + (p.at === "edge" ? -vy * 8 : 0)
+    const swap = num(p, "swap"), life = num(p, "life")
+    const cs = colors3(p)
+    let t = 0
+    return delayed(num(p, "delay"), {
+      step() {
+        t++
+      },
+      draw(painter) {
+        if (t >= life) return
+        drawBitmap(painter, STAR[Math.floor(t / swap) % 2], x, y, cs)
+      },
+      get done() {
+        return t >= life
+      },
+    })
+  },
+}
+
+/** The palette swap: the thing redrawn in other colors, a few times */
+const palette: Pattern = {
+  id: "palette",
+  name: "パレット点滅",
+  note:
+    "NES は色を差し替えて光らせる。白で塗る・グレーを反転する・白と反転を交互にする。差し替えの間隔と回数で、軽い当たりから大きな被弾まで。",
   ownsSprite: true,
   params: [
     DELAY,
     {
       key: "mode",
-      label: "塗り方",
+      label: "差し替え方",
       type: "select",
-      options: ["fill", "invert", "outline"],
-      value: "fill",
+      options: ["white", "invert", "white-invert", "black"],
+      value: "white",
     },
-    { key: "color", label: "色", type: "color", value: "white" },
     {
-      key: "on",
-      label: "点灯 (frame)",
+      key: "period",
+      label: "差し替える長さ (frame)",
       type: "num",
       min: 1,
-      max: 8,
-      step: 1,
-      value: 2,
-    },
-    {
-      key: "off",
-      label: "元の絵 (frame)",
-      type: "num",
-      min: 0,
       max: 8,
       step: 1,
       value: 2,
@@ -1198,9 +934,9 @@ const flash: Pattern = {
       label: "回数",
       type: "num",
       min: 1,
-      max: 6,
+      max: 8,
       step: 1,
-      value: 1,
+      value: 2,
     },
     {
       key: "after",
@@ -1213,12 +949,11 @@ const flash: Pattern = {
   create(p, ctx) {
     const s = ctx.sprite
     const [ox, oy] = spriteOrigin(ctx)
-    const on = num(p, "on"), off = num(p, "off"), times = num(p, "times")
-    const period = on + off
-    const total = period * times
-    const c = color(p, "color")
-    const opaque = (x: number, y: number) =>
-      x >= 0 && y >= 0 && x < s.w && y < s.h && !!s.px[y * s.w + x]
+    const period = num(p, "period"), times = num(p, "times")
+    const total = period * 2 * times
+    const white = (c: PaletteColor) => c === Palette.black ? c : Palette.white
+    const black = (c: PaletteColor) =>
+      c === Palette.black ? Palette.gray4 : Palette.black
     let t = 0
     return delayed(num(p, "delay"), {
       step() {
@@ -1231,33 +966,19 @@ const flash: Pattern = {
           }
           return
         }
-        const lit = t % period < on
-        if (!lit) {
+        const k = Math.floor(t / period)
+        if (k % 2 === 1) {
           drawSpritePart(painter, s, 0, 0, s.w, s.h, ox, oy)
           return
         }
-        if (p.mode === "invert") {
-          drawSpritePart(painter, s, 0, 0, s.w, s.h, ox, oy, invert)
-        } else if (p.mode === "outline") {
-          drawSpritePart(
-            painter,
-            s,
-            0,
-            0,
-            s.w,
-            s.h,
-            ox,
-            oy,
-            (orig, x, y) =>
-              [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) =>
-                  !opaque(x + dx, y + dy)
-                )
-                ? c
-                : orig,
-          )
-        } else {
-          drawSpritePart(painter, s, 0, 0, s.w, s.h, ox, oy, () => c)
-        }
+        const map = p.mode === "invert"
+          ? invert
+          : p.mode === "black"
+          ? black
+          : p.mode === "white-invert" && (k / 2) % 2 === 1
+          ? invert
+          : white
+        drawSpritePart(painter, s, 0, 0, s.w, s.h, ox, oy, map)
       },
       get done() {
         return t >= total
@@ -1266,222 +987,177 @@ const flash: Pattern = {
   },
 }
 
-/** Little crosses twinkling around the cell */
-const sparks: Pattern = {
-  id: "sparks",
-  name: "きらめき",
-  note: "十字や × の小さな光がまわりに出て、点滅して消える。",
+/** Blinking out: drawn on some frames only, then gone */
+const blink: Pattern = {
+  id: "blink",
+  name: "点滅して消える",
+  note:
+    "絵を数フレームおきに出したり消したりして、最後に消す。消える物の定番。",
+  ownsSprite: true,
   params: [
     DELAY,
     {
-      key: "count",
-      label: "数",
+      key: "on",
+      label: "見える (frame)",
       type: "num",
       min: 1,
-      max: 16,
-      step: 1,
-      value: 5,
-    },
-    {
-      key: "radius",
-      label: "出る距離 (px)",
-      type: "num",
-      min: 2,
-      max: 24,
-      step: 1,
-      value: 12,
-    },
-    {
-      key: "shape",
-      label: "形",
-      type: "select",
-      options: ["plus", "cross", "dot", "star"],
-      value: "plus",
-    },
-    {
-      key: "size",
-      label: "腕の長さ (px)",
-      type: "num",
-      min: 1,
-      max: 4,
+      max: 8,
       step: 1,
       value: 2,
     },
     {
-      key: "life",
-      label: "寿命 (frame)",
+      key: "off",
+      label: "消える (frame)",
       type: "num",
-      min: 4,
-      max: 60,
+      min: 1,
+      max: 8,
       step: 1,
-      value: 20,
+      value: 2,
     },
     {
-      key: "spread",
-      label: "出る時間のばらつき (frame)",
+      key: "frames",
+      label: "点滅の長さ (frame)",
       type: "num",
-      min: 0,
-      max: 30,
-      step: 1,
-      value: 8,
+      min: 4,
+      max: 90,
+      step: 2,
+      value: 32,
     },
-    { key: "color", label: "色", type: "color", value: "white" },
-    { key: "core", label: "芯の色", type: "color", value: "yellow1" },
+    {
+      key: "speedup",
+      label: "最後に速くなる",
+      type: "select",
+      options: ["no", "yes"],
+      value: "no",
+    },
   ],
   create(p, ctx) {
-    const cx = ctx.x + CELL / 2, cy = ctx.y + CELL / 2
-    const list = Array.from({ length: num(p, "count") }, () => {
-      const a = ctx.rand() * Math.PI * 2
-      const r = num(p, "radius") * (0.4 + ctx.rand() * 0.6)
-      return {
-        x: Math.round(cx + Math.cos(a) * r),
-        y: Math.round(cy + Math.sin(a) * r),
-        start: Math.floor(ctx.rand() * (num(p, "spread") + 1)),
-      }
-    })
-    const life = num(p, "life"), size = num(p, "size")
-    const c = color(p, "color"), core = color(p, "core")
+    const s = ctx.sprite
+    const [ox, oy] = spriteOrigin(ctx)
+    const frames = num(p, "frames")
     let t = 0
     return delayed(num(p, "delay"), {
       step() {
         t++
       },
       draw(painter) {
-        for (const sp of list) {
-          const age = t - sp.start
-          if (age < 0 || age >= life) continue
-          // grows, then shrinks
-          const arm = Math.max(0, Math.min(size, Math.min(age, life - 1 - age)))
-          painter.rect(sp.x, sp.y, 1, 1, core)
-          for (let k = 1; k <= arm; k++) {
-            const plus = [[k, 0], [-k, 0], [0, k], [0, -k]]
-            const cross = [[k, k], [-k, k], [k, -k], [-k, -k]]
-            const arms = p.shape === "plus"
-              ? plus
-              : p.shape === "cross"
-              ? cross
-              : p.shape === "star"
-              ? (k === 1 ? [...plus, ...cross] : plus)
-              : []
-            for (const [dx, dy] of arms) {
-              painter.rect(sp.x + dx, sp.y + dy, 1, 1, c)
-            }
-          }
+        if (t >= frames) return
+        const fast = p.speedup === "yes" && t > frames / 2
+        const on = fast ? 1 : num(p, "on"), off = fast ? 1 : num(p, "off")
+        if (t % (on + off) < on) {
+          drawSpritePart(painter, s, 0, 0, s.w, s.h, ox, oy)
         }
       },
       get done() {
-        return list.every((sp) => t - sp.start >= life)
+        return t >= frames
       },
     })
   },
 }
 
-/** Puffs of dust rising and thinning out by dithering */
-const dust: Pattern = {
-  id: "dust",
-  name: "土ぼこり",
+/** Chips: a handful of small pieces bouncing once, then blinking out */
+const chips: Pattern = {
+  id: "chips",
+  name: "かけら (はねて点滅)",
   note:
-    "床の近くから小さな煙が上がり、ふくらみながらディザで薄れて消える。重い物の着地や崩れ落ちに。",
+    "4x4 のかけらが決まった向きに飛び、床で 1 回はねて、点滅して消える。数は 8 個まで。向きは左右対称で、乱数は使わない (NES 風)。",
   params: [
     DELAY,
     {
       key: "count",
       label: "数",
-      type: "num",
-      min: 1,
-      max: 12,
-      step: 1,
-      value: 4,
+      type: "select",
+      options: ["2", "4", "6", "8"],
+      value: "4",
     },
     {
-      key: "size",
-      label: "初めの大きさ (px)",
+      key: "vx",
+      label: "横の速さ (px/frame)",
+      type: "num",
+      min: 0.5,
+      max: 3,
+      step: 0.5,
+      value: 1,
+    },
+    {
+      key: "vy",
+      label: "跳ね (px/frame)",
       type: "num",
       min: 1,
       max: 6,
-      step: 1,
-      value: 2,
-    },
-    {
-      key: "grow",
-      label: "ふくらみ (px)",
-      type: "num",
-      min: 0,
-      max: 6,
-      step: 1,
+      step: 0.5,
       value: 3,
     },
     {
-      key: "rise",
-      label: "上る速さ",
+      key: "gravity",
+      label: "重力 (px/frame²)",
       type: "num",
-      min: 0,
-      max: 1.5,
-      step: 0.05,
-      value: 0.3,
+      min: 0.125,
+      max: 1,
+      step: 0.125,
+      value: 0.375,
     },
     {
-      key: "drift",
-      label: "横に流れる",
-      type: "num",
-      min: 0,
-      max: 1.5,
-      step: 0.05,
-      value: 0.4,
+      key: "bounce",
+      label: "床ではねる",
+      type: "select",
+      options: ["yes", "no"],
+      value: "yes",
     },
     {
       key: "life",
       label: "寿命 (frame)",
       type: "num",
       min: 8,
-      max: 80,
+      max: 60,
       step: 1,
-      value: 30,
+      value: 36,
     },
-    { key: "color", label: "色", type: "color", value: "gray1" },
+    ...COLORS("gray2", "gray3", "black"),
   ],
   create(p, ctx) {
-    const count = num(p, "count")
-    const list = Array.from({ length: count }, (_, n) => {
-      const side = n % 2 === 0 ? -1 : 1
+    const n = Number(p.count)
+    const floor = ctx.y + CELL - 4
+    const list = Array.from({ length: n }, (_, k) => {
+      const side = k % 2 === 0 ? -1 : 1
+      const tier = Math.floor(k / 2)
       return {
-        x: ctx.x + CELL / 2 + side * (2 + ctx.rand() * 6),
-        y: ctx.y + CELL - 3 - ctx.rand() * 3,
-        vx: side * num(p, "drift") * (0.5 + ctx.rand()),
-        seed: Math.floor(ctx.rand() * 16),
+        x: ctx.x + 6 + side * 2,
+        y: ctx.y + 6,
+        vx: side * num(p, "vx") * (1 + tier * 0.5),
+        vy: -num(p, "vy") + tier * 0.5,
+        bounced: false,
       }
     })
-    const life = num(p, "life"), c = color(p, "color")
-    const size = num(p, "size"), grow = num(p, "grow"), rise = num(p, "rise")
+    const g = num(p, "gravity"), life = num(p, "life")
+    const cs = colors3(p)
     let t = 0
     return delayed(num(p, "delay"), {
       step() {
         t++
-        for (const d of list) {
-          d.x += d.vx
-          d.y -= rise
-          d.vx *= 0.94
+        for (const c of list) {
+          if (c.vy === 0 && c.y >= floor) continue
+          c.x += c.vx
+          c.y += c.vy
+          c.vy += g
+          if (c.y >= floor && c.vy > 0) {
+            c.y = floor
+            if (p.bounce === "yes" && !c.bounced) {
+              c.bounced = true
+              c.vy = -Math.max(1, Math.floor(c.vy * 0.5))
+            } else {
+              c.vx = 0
+              c.vy = 0
+            }
+          }
         }
       },
       draw(painter) {
         if (t >= life) return
-        const r = size + Math.floor((t / life) * grow)
-        // thinner as it ages: the Bayer level rises
-        const level = Math.floor((t / life) * 16)
-        for (const d of list) {
-          const x0 = Math.round(d.x) - Math.floor(r / 2)
-          const y0 = Math.round(d.y) - Math.floor(r / 2)
-          for (let y = 0; y < r; y++) {
-            for (let x = 0; x < r; x++) {
-              // round puffs: corners off
-              if (
-                r > 2 && (x === 0 || x === r - 1) && (y === 0 || y === r - 1)
-              ) continue
-              const gx = x0 + x, gy = y0 + y
-              if (BAYER[((gy + d.seed) & 3) * 4 + (gx & 3)] < level) continue
-              painter.rect(gx, gy, 1, 1, c)
-            }
-          }
+        // the last quarter: blinking
+        if (t > life * 0.75 && t % 4 < 2) return
+        for (const c of list) {
+          drawBitmap(painter, CHIP, Math.round(c.x), Math.round(c.y), cs)
         }
       },
       get done() {
@@ -1491,107 +1167,145 @@ const dust: Pattern = {
   },
 }
 
-/** Cracks run over the sprite before it goes */
-const cracks: Pattern = {
-  id: "cracks",
-  name: "ひび",
+/** Landing dust: two little puffs running along the ground */
+const dustPuffs: Pattern = {
+  id: "dust",
+  name: "土ぼこり (左右へ)",
   note:
-    "当たった側からひびが伸びて、伸びきったら絵が消える (後に続く効果は「開始の遅れ」で合わせる)。ためと解放の「ため」。",
-  ownsSprite: true,
+    "重い物が落ちた・崩れた時に、床の高さで左右に小さな煙が 2 つ走る。2 コマで形が変わる。",
   params: [
     DELAY,
     {
-      key: "count",
-      label: "ひびの本数",
-      type: "num",
-      min: 1,
-      max: 6,
-      step: 1,
-      value: 3,
-    },
-    {
       key: "speed",
-      label: "伸びる速さ (px/frame)",
+      label: "速さ (px/frame)",
       type: "num",
-      min: 0.25,
-      max: 4,
-      step: 0.25,
+      min: 0.5,
+      max: 2,
+      step: 0.5,
       value: 1,
     },
     {
-      key: "length",
-      label: "長さ (px)",
-      type: "num",
-      min: 4,
-      max: 24,
-      step: 1,
-      value: 12,
-    },
-    {
-      key: "wiggle",
-      label: "くねり",
-      type: "num",
-      min: 0,
-      max: 1,
-      step: 0.05,
-      value: 0.4,
-    },
-    {
       key: "hold",
-      label: "伸びきって止まる (frame)",
+      label: "1 コマの長さ (frame)",
       type: "num",
-      min: 0,
-      max: 30,
+      min: 2,
+      max: 12,
       step: 1,
-      value: 4,
+      value: 6,
     },
-    { key: "color", label: "色", type: "color", value: "black" },
+    ...COLORS("gray1", "gray2", "gray3"),
   ],
   create(p, ctx) {
-    const s = ctx.sprite
-    const [ox, oy] = spriteOrigin(ctx)
-    const [vx, vy] = dirVec(ctx.dir)
-    const length = num(p, "length")
-    // each crack is a path of pixels from the hit side, into the push
-    const paths: [number, number][][] = []
-    for (let n = 0; n < num(p, "count"); n++) {
-      let x = vx === 0 ? Math.floor(ctx.rand() * s.w) : vx > 0 ? 0 : s.w - 1
-      let y = vy === 0 ? Math.floor(ctx.rand() * s.h) : vy > 0 ? 0 : s.h - 1
-      const path: [number, number][] = []
-      for (let k = 0; k < length; k++) {
-        path.push([x, y])
-        if (ctx.rand() < num(p, "wiggle")) {
-          // a step aside
-          if (vx === 0) x += ctx.rand() < 0.5 ? -1 : 1
-          else y += ctx.rand() < 0.5 ? -1 : 1
-        } else {
-          x += vx
-          y += vy
-        }
-        if (x < 0 || y < 0 || x >= s.w || y >= s.h) break
-      }
-      paths.push(path)
-    }
-    const c = color(p, "color"), speed = num(p, "speed")
-    const longest = Math.max(...paths.map((q) => q.length))
-    const total = Math.ceil(longest / speed) + num(p, "hold")
+    const speed = num(p, "speed"), hold = num(p, "hold")
+    const cs = colors3(p)
     let t = 0
     return delayed(num(p, "delay"), {
       step() {
         t++
       },
       draw(painter) {
-        if (t >= total) return
-        drawSpritePart(painter, s, 0, 0, s.w, s.h, ox, oy)
-        const shown = Math.floor(t * speed)
-        for (const path of paths) {
-          for (const [x, y] of path.slice(0, shown)) {
-            if (s.px[y * s.w + x]) painter.rect(ox + x, oy + y, 1, 1, c)
+        const k = Math.floor(t / hold)
+        if (k >= 2) return
+        const d = Math.round(t * speed)
+        drawBitmap(painter, DUST[k], ctx.x - 4 - d, ctx.y + 8, cs)
+        drawBitmap(painter, DUST[k], ctx.x + 12 + d, ctx.y + 8, cs, true)
+      },
+      get done() {
+        return t >= hold * 2
+      },
+    })
+  },
+}
+
+/** What was inside: a coin pops up spinning, then sparkles away */
+const coin: Pattern = {
+  id: "coin",
+  name: "中身が飛び出す (コイン)",
+  note:
+    "マリオの ? ブロックのコイン。回りながら上がって、少し落ちた所で星になって消える。回転は幅の違う 4 コマ。",
+  params: [
+    DELAY,
+    {
+      key: "vy",
+      label: "飛び出す速さ (px/frame)",
+      type: "num",
+      min: 2,
+      max: 8,
+      step: 0.5,
+      value: 5,
+    },
+    {
+      key: "gravity",
+      label: "重力 (px/frame²)",
+      type: "num",
+      min: 0.125,
+      max: 1,
+      step: 0.125,
+      value: 0.375,
+    },
+    {
+      key: "spin",
+      label: "1 コマの長さ (frame)",
+      type: "num",
+      min: 1,
+      max: 8,
+      step: 1,
+      value: 3,
+    },
+    ...COLORS("yellow1", "yellow2", "black"),
+  ],
+  create(p, ctx) {
+    const x0 = ctx.x + 4, y0 = ctx.y + 1
+    const g = num(p, "gravity"), spin = num(p, "spin")
+    const cs = colors3(p)
+    let y = 0, vy = -num(p, "vy"), t = 0, sparkle = -1
+    return delayed(num(p, "delay"), {
+      step() {
+        t++
+        if (sparkle >= 0) {
+          sparkle++
+          return
+        }
+        y += vy
+        vy += g
+        // back down a little: it turns into a sparkle
+        if (vy > 0 && y > -12) sparkle = 0
+      },
+      draw(painter) {
+        const top = y0 + Math.round(y)
+        if (sparkle >= 0) {
+          if (sparkle < 8) {
+            drawBitmap(
+              painter,
+              STAR[Math.floor(sparkle / 2) % 2],
+              x0,
+              top + 3,
+              [Palette.white, cs[0], cs[1]],
+            )
+          }
+          return
+        }
+        // the coin: an upright oval, its width by the spin frame
+        const half = [3.5, 2.5, 0.5, 2.5][Math.floor(t / spin) % 4]
+        for (let dy = 0; dy < 14; dy++) {
+          const ey = (dy + 0.5 - 7) / 7
+          const w = Math.round(half * Math.sqrt(Math.max(0, 1 - ey * ey)) * 2)
+          if (w <= 0) continue
+          const left = x0 + 4 - Math.ceil(w / 2)
+          for (let dx = 0; dx < w; dx++) {
+            const edge = dx === 0 || dx === w - 1 || dy === 0 || dy === 13
+            painter.rect(
+              left + dx,
+              top + dy,
+              1,
+              1,
+              edge ? cs[2] : dx === 1 ? cs[0] : cs[1],
+            )
           }
         }
       },
       get done() {
-        return t >= total
+        return sparkle >= 8
       },
     })
   },
@@ -1599,18 +1313,17 @@ const cracks: Pattern = {
 
 /** All the patterns, in the order they are drawn (later on top) */
 export const PATTERNS: Pattern[] = [
-  dust,
-  ring,
-  cracks,
-  flash,
+  dustPuffs,
+  palette,
+  blink,
   wipe,
-  dissolve,
-  shatter,
-  pixels,
+  brick,
   sweep,
-  streaks,
-  debris,
-  sparks,
+  poof,
+  chips,
+  orbs,
+  coin,
+  star,
 ]
 
 /** The settings of the whole break: each pattern's switch and params */
@@ -1622,6 +1335,8 @@ export type Recipe = {
   shakeAmp: number
   /** With no pattern owning the sprite: the frame the sprite vanishes */
   vanish: number
+  /** The effects move every this many frames (1: 60 fps, 4: 15 fps) */
+  rate: number
   layers: Record<string, { on: boolean; params: Params }>
 }
 
@@ -1640,6 +1355,7 @@ export function recipe(
     shake: 0,
     shakeAmp: 1,
     vanish: 0,
+    rate: 1,
     ...global,
     layers: Object.fromEntries(
       PATTERNS.map((pt) => [pt.id, {
@@ -1650,137 +1366,79 @@ export function recipe(
   }
 }
 
-/** Starting points to compare */
+/** Starting points to compare: the game's current one, and NES-like ones */
 export const PRESETS: { name: string; note: string; recipe: Recipe }[] = [
   {
     name: "現行: 木箱",
-    note: "いまのゲームの木箱・壺: スイープ線 + ワイプ",
-    recipe: recipe({ sweep: {}, wipe: {} }, { stop: 0 }),
+    note: "いまのゲームの木箱・壺: スイープ線 + ワイプ (比べる用)",
+    recipe: recipe({ sweep: {}, wipe: {} }),
   },
   {
-    name: "現行: ODDITIES",
-    note:
-      "壊れる物 (ODDITIES) の crunch: 線 + ワイプ + 破片 + 白い閃き + ヒットストップ + 揺れ",
-    recipe: recipe(
-      { sweep: {}, wipe: {}, debris: {} },
-      { stop: 3, shake: 6 },
-    ),
+    name: "レンガ割り",
+    note: "マリオ: 当たりの星と、4 つに割れて放物線で飛ぶ破片",
+    recipe: recipe({ star: { life: 4 }, brick: {} }, { stop: 2 }),
   },
   {
-    name: "陶器",
-    note: "4x4 に割れて飛び、破片と土ぼこり",
-    recipe: recipe(
-      {
-        flash: { on: 2, off: 0, times: 1 },
-        shatter: { delay: 2, grid: 4, end: "blink" },
-        debris: { delay: 2, count: 8 },
-        dust: { delay: 6 },
-      },
-      { stop: 4, shake: 6 },
-    ),
-  },
-  {
-    name: "ガラス",
-    note: "細かく割れて、きらめきが残る",
-    recipe: recipe(
-      {
-        shatter: { grid: 8, speed: 1.6, up: 1.2, gravity: 0.4, life: 24 },
-        sparks: { count: 6, delay: 2, shape: "star", core: "cyan1" },
-        ring: {
-          shape: "diamond",
-          speed: 2,
-          max: 14,
-          dash: "dotted",
-          color: "cyan1",
-        },
-      },
-      { stop: 2, shake: 2 },
-    ),
-  },
-  {
-    name: "ひび → 割れる",
-    note: "ひびが伸びるため → 一気に崩れる",
-    recipe: recipe(
-      {
-        cracks: { speed: 0.75, hold: 6 },
-        shatter: { delay: 22, grid: 3, speed: 1.8 },
-        debris: { delay: 22, count: 16 },
-      },
-      { stop: 0, shake: 0 },
-    ),
+    name: "煙でポン",
+    note: "ゼルダ: 白く光ってから、3 コマの煙で消える",
+    recipe: recipe({
+      palette: { mode: "white", period: 2, times: 1 },
+      poof: { delay: 4 },
+    }),
   },
   {
     name: "爆発",
-    note: "白く光って輪が広がり、破片が四方に",
+    note: "ロックマン: 白黒反転して、8 方向に玉が飛ぶ (16 個でちらつく)",
     recipe: recipe(
       {
-        flash: { on: 2, off: 2, times: 2, mode: "fill" },
-        ring: { delay: 4, count: 2, speed: 2, max: 24, thick: 2 },
-        pixels: { delay: 4, speed: 2, up: 1.5, gravity: 0.15 },
-        debris: {
-          delay: 4,
-          count: 20,
-          speed: 2.5,
-          colors: "pick",
-          c1: "white",
-          c2: "yellow1",
-          c3: "orange2",
-        },
+        palette: { mode: "white-invert", period: 2, times: 2 },
+        orbs: { delay: 8, rings: "2" },
+      },
+      { stop: 4, shake: 8 },
+    ),
+  },
+  {
+    name: "壺が割れる",
+    note: "星 → 煙 → かけらが左右にはねて点滅して消える",
+    recipe: recipe({
+      star: { life: 6 },
+      poof: { hold: 4, frames: 2 },
+      chips: { delay: 2, count: "4" },
+    }, { stop: 2 }),
+  },
+  {
+    name: "中身が出る",
+    note: "煙の中からコインが回りながら飛び出す",
+    recipe: recipe({ poof: { hold: 5 }, coin: { delay: 3 } }),
+  },
+  {
+    name: "点滅して消える",
+    note: "当たると点滅し、最後は速くなって消える",
+    recipe: recipe({ blink: { frames: 40, speedup: "yes" } }),
+  },
+  {
+    name: "被弾",
+    note: "反転を 3 回、当たった所に星",
+    recipe: recipe({
+      palette: { mode: "invert", period: 3, times: 3, after: "yes" },
+      star: {},
+    }, { stop: 3 }),
+  },
+  {
+    name: "重い物が崩れる",
+    note: "長めの止めと揺れ、破片は重く低く、床に土ぼこり",
+    recipe: recipe(
+      {
+        brick: { vyTop: 3, vyLow: 1.5, gravity: 0.5, vx: 0.5 },
+        dust: { delay: 2 },
       },
       { stop: 6, shake: 12, shakeAmp: 2 },
     ),
   },
   {
-    name: "砂になる",
-    note: "押した側から 1 ドットずつ崩れ落ちる",
-    recipe: recipe(
-      {
-        pixels: { speed: 0.2, up: 0.3, gravity: 0.2, stagger: 1.5, life: 40 },
-        dust: { delay: 10, count: 3 },
-      },
-    ),
-  },
-  {
-    name: "消える (ディザ)",
-    note: "半透明なしで薄れて消える + 煙",
-    recipe: recipe({ dissolve: { frames: 20 }, dust: { count: 5, grow: 4 } }),
-  },
-  {
-    name: "NES の被弾",
-    note: "反転して点滅、四方に線",
-    recipe: recipe(
-      {
-        flash: { mode: "invert", on: 2, off: 2, times: 3 },
-        streaks: { delay: 12, dirs: "all", len: 6, dist: 2 },
-      },
-      { stop: 2 },
-    ),
-  },
-  {
-    name: "重い岩",
-    note: "大きめに割れ、跳ねて止まる破片、長い揺れ",
-    recipe: recipe(
-      {
-        shatter: {
-          grid: 2,
-          speed: 0.8,
-          up: 1.2,
-          gravity: 0.35,
-          life: 36,
-          end: "fall-off",
-        },
-        debris: {
-          count: 10,
-          size: 3,
-          bounce: 2,
-          floor: 8,
-          life: 60,
-          end: "blink",
-        },
-        dust: { count: 6, grow: 4, life: 40 },
-      },
-      { stop: 8, shake: 16, shakeAmp: 2 },
-    ),
+    name: "15 fps のレンガ",
+    note: "同じレンガ割りを 4 フレームに 1 回だけ動かす (カクカク感)",
+    recipe: recipe({ star: { life: 4 }, brick: {} }, { stop: 2, rate: 4 }),
   },
 ]
 
@@ -1795,6 +1453,7 @@ export class BreakRun {
   frame = 0
   #stop: number
   #shake: number
+  #tick = 0
   #recipe: Recipe
   constructor(r: Recipe, ctx: FxContext) {
     this.#recipe = r
@@ -1812,6 +1471,8 @@ export class BreakRun {
       this.#stop--
       return
     }
+    // a lower frame rate: the effects move every `rate` frames only
+    if (this.#tick++ % Math.max(1, this.#recipe.rate ?? 1) !== 0) return
     for (const l of this.layers) l.step()
   }
   draw(p: Painter) {
