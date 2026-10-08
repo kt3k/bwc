@@ -26,9 +26,10 @@
 //    animals where they belong
 // 8. every walkable cell is made reachable from the arrival, or filled
 //
-// The arrival hides one more thing: the landing trail, a walled one-way
-// tutorial course the W portal lands in. Its apple gate keeps the
-// island shut until the course is walked (see "the landing trail").
+// The arrival hides one more thing: the castaway cove, a stretch of
+// coast the land itself seals, where the W portal lands. The cove is
+// the tutorial told by the terrain, and the hermit's toll bridge keeps
+// the island shut until it is walked (see "the castaway cove").
 //
 // The CITY (tools/generate_city.ts) stands on the west coast: its harbor
 // opens on the sea, the land around it rises a little, and the island's
@@ -1309,6 +1310,18 @@ for (const n of nodes) {
 }
 
 // ---------------------------------------------------------------------
+// the castaway cove (sculpted after the mini puzzles): its rect, so
+// the mini puzzles keep out of it
+
+/** The cove rect (the LANDING room): its east edge meets the plaza */
+const COVE_W = 76
+const COVE_H = 50
+const COVE_X0 = nodes[0].x - 78
+const COVE_Y0 = nodes[0].y - 37
+/** Where the W portal lands: the sand beside the wreck */
+const COVE_START = { x: COVE_X0 + 10, y: COVE_Y0 + 9 }
+
+// ---------------------------------------------------------------------
 // mini puzzles (tools/minipuzzles.ts): small walled rooms with a treasure
 // at the goal, scattered over the open land away from the anchors
 
@@ -1338,6 +1351,11 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
       }
     }
     if (!fits) continue
+    // not in the castaway cove: it is sculpted over this land later
+    if (
+      x0 + 13 > COVE_X0 - 2 && x0 - 2 < COVE_X0 + COVE_W + 2 &&
+      y0 + 14 > COVE_Y0 - 2 && y0 - 2 < COVE_Y0 + COVE_H + 2
+    ) continue
     if (
       [...nodes, ...puzzles].some((o) =>
         Math.hypot(o.x - x0, o.y - y0) < (nodes.includes(o as Node) ? 45 : 70)
@@ -1381,80 +1399,467 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
 }
 
 // ---------------------------------------------------------------------
-// the landing trail: a one-way tutorial course walled onto the coast
-// north of the arrival plaza. The W portal lands at its head, and the
-// island stays shut until the course is walked: coins, apples, crates,
-// ice and the spring, station by station, then the apple gate at its
-// foot (3 apples; every apple on the trail lies on the path, and the
-// saplings by the gate grow more, so no one is ever short for good)
-
-/** The trail (29 x 13). # wall, . floor, i ice, P the arrival pad,
- * c coin, a apple, t sapling, C crate, S spring, G the apple gate,
- * 1-6 the station signs (each in a dead-end niche off the path) */
-const TRAIL = [
-  "#############################",
-  "#.P.......c..c..c..c..c.....#",
-  "####1###################2##.#",
-  "#...........a...a...a.......#",
-  "#.##3###t###t################",
-  "#.............C.....C.......#",
-  "########################4##.#",
-  "#...iiiiiiiiiiiiiiiiiiiii...#",
-  "#.##5########################",
-  "#..S.............############",
-  "##############.#6############",
-  "##############G##############",
-  "##############.##############",
-]
-const TRAIL_SIGNS: Record<string, string> = {
-  "1": "WELCOME TO THE WILDS. HOLD A DIRECTION TO WALK. TAKE THE COINS",
-  "2": "APPLES AHEAD: WALK OVER THEM. THE LAST GATE ASKS FOR 3",
-  "3": "CRATES BREAK: WALK INTO THEM",
-  "4": "ICE: ONE STEP AND YOU SLIDE TO THE FAR SIDE",
-  "5": "A SPRING HURLS YOU THE WAY YOU FACE. STEP ON",
-  "6": "THE GATE OPENS FOR 3 APPLES. SHORT? PUSH A GROWN TREE FOR MORE",
-}
-/** The trail's top left: its exit column meets the arrival plaza */
-const TRAIL_X0 = nodes[0].x - 14
-const TRAIL_Y0 = nodes[0].y - 5 - (TRAIL.length - 1)
-/** Where the W portal lands (the trail's head) */
-const TRAIL_START = { x: TRAIL_X0 + 2, y: TRAIL_Y0 + 1 }
+// the castaway cove: the tutorial, told by the terrain. The W portal
+// lands a castaway on the wreck beach of a cove the land itself seals:
+// the lagoon to the north, cliffs to the west, a solid thicket to the
+// south and a river to the east, crossed only by the hermit's toll
+// bridge (an apple gate). On the way out the cove happens to teach
+// everything: the wreck's crates block the one notch in the groyne, a
+// launch board hurls the player along the spit, a gone-wild orchard
+// drops the apples the toll asks for, the frozen tarn carries them
+// across on the ice, and the warden's passage opens by its switches.
+// Off the path, the wave chimes ring out the key to the hermit's crypt
+// and something glints mid-tarn. The seal, every station, the slide
+// paths over the ice (strandings included) and the one-way-ness of
+// each mandatory gimmick are all verified below, and the build fails
+// loudly if any of it regresses.
 {
-  const x1 = TRAIL_X0 + TRAIL[0].length, y1 = TRAIL_Y0 + TRAIL.length
-  // whatever stood on the ground here goes (the trail is built over it)
-  const inTrail = (s: Spawn) => {
-    const x = s.i - OI, y = s.j - OJ
-    return x >= TRAIL_X0 && x < x1 && y >= TRAIL_Y0 && y < y1
-  }
+  const n0 = nodes[0]
+  const inCove = (x: number, y: number) =>
+    x >= COVE_X0 && x < COVE_X0 + COVE_W && y >= COVE_Y0 &&
+    y < COVE_Y0 + COVE_H
+  // whatever stood on this land before goes: the cove is sculpted over
   for (const list of [props, actors, items]) {
     for (const s of list) {
-      if (inTrail(s)) taken.delete(idx(s.i - OI, s.j - OJ))
+      if (inCove(s.i - OI, s.j - OJ)) taken.delete(idx(s.i - OI, s.j - OJ))
     }
-    const kept = list.filter((s) => !inTrail(s))
+    const kept = list.filter((s) => !inCove(s.i - OI, s.j - OJ))
     list.length = 0
     list.push(...kept)
   }
-  TRAIL.forEach((row, dy) => {
-    ;[...row].forEach((ch, dx) => {
-      const x = TRAIL_X0 + dx, y = TRAIL_Y0 + dy
-      const p = idx(x, y)
-      terrain[p] = ch === "#" ? T.RUIN : ch === "i" ? T.ICE : T.TRIAL
-      keepClear[p] = 1
-      // left alone by the reachability fix, like the puzzle rooms: the
-      // gate seals the inside from the island on purpose
-      puzzleCells[p] = 1
-      if (ch === "P") put(props, x, y, "portal-out")
-      else if (ch === "c") put(items, x, y, "coin")
-      else if (ch === "a") put(items, x, y, "apple")
-      else if (ch === "t") put(props, x, y, "sapling")
-      else if (ch === "C") put(props, x, y, "crate")
-      else if (ch === "S") put(props, x, y, "spring")
-      else if (ch === "G") put(props, x, y, "apple-gate", { count: 3 })
-      else if (TRAIL_SIGNS[ch]) {
-        put(props, x, y, "sign", { text: TRAIL_SIGNS[ch] })
+
+  // --- the land: bands of lagoon, sand, cliff, thicket and river,
+  // every edge wobbled by noise so nothing reads as a drawn wall
+  const set = (u: number, v: number, t: T) => {
+    const p = idx(COVE_X0 + u, COVE_Y0 + v)
+    terrain[p] = t
+    keepClear[p] = 1
+    // left alone by the reachability fix, like the puzzle rooms: the
+    // toll gate seals the cove from the island on purpose
+    puzzleCells[p] = 1
+  }
+  const tAt = (u: number, v: number) =>
+    terrain[idx(COVE_X0 + u, COVE_Y0 + v)] as T
+  /** The lagoon's edge, the beach below it, the west cliffs, the south
+   * thicket's brink and the river's column, all drawn by noise */
+  const coast = (u: number) => 6 + Math.round(4 * fbm(u * 0.09, 0.31, 7001))
+  const shore = (u: number) =>
+    coast(u) + 3 + Math.round(2 * fbm(u * 0.15, 1.7, 7005))
+  const cliff = (v: number) => 4 + Math.round(3 * fbm(0.2, v * 0.11, 7002))
+  const brink = (u: number) => 45 - Math.round(3 * fbm(u * 0.07, 0.8, 7003))
+  const riverBase = (v: number) => 69 + Math.round(2 * fbm(0.5, v * 0.13, 7004))
+  // straight where the bridge crosses, so the toll gate is flanked by
+  // water on both sides
+  const riverU = (v: number) => riverBase(v >= 33 && v <= 41 ? 37 : v)
+  for (let v = 0; v < COVE_H; v++) {
+    for (let u = 0; u < COVE_W; u++) {
+      let t: T = T.TREE // the default: solid thicket, carved out below
+      if (v <= coast(u)) t = T.SEA
+      else if (v <= shore(u)) t = T.SAND
+      if (t !== T.SEA && u < cliff(v)) t = T.ROCK
+      if (t !== T.SEA && v >= brink(u)) t = T.TREE
+      const ur = riverU(v)
+      if (Math.abs(u - ur) <= 1) t = v <= coast(u) ? T.SEA : T.RIVER
+      else if (u > ur + 1 && v > coast(u)) t = T.TREE
+      set(u, v, t)
+    }
+  }
+  // the groyne: a rock arm penning the wreck beach, but for one notch
+  for (let v = 0; v <= 15; v++) {
+    for (let u = 16; u <= 18; u++) {
+      if (tAt(u, v) !== T.SEA) set(u, v, v === 12 ? T.SAND : T.ROCK)
+    }
+  }
+  // firm sand on both sides of the notch, whatever the shore noise says
+  for (const [cu, cv] of [[14, 11], [15, 11], [14, 12], [15, 12]]) {
+    if (tAt(cu, cv) !== T.SEA) set(cu, cv, T.SAND)
+  }
+  for (const [cu, cv] of [[19, 11], [20, 11], [19, 12], [20, 12]]) {
+    if (tAt(cu, cv) !== T.SEA) set(cu, cv, T.SAND)
+  }
+  // the wreck beach itself: a sand pocket bitten out of the lagoon
+  for (let v = 5; v <= 13; v++) {
+    for (let u = 5; u <= 16; u++) {
+      const d = ((u - 11) / 5.5) ** 2 + ((v - 9) / 4) ** 2
+      if (d <= 1) set(u, v, T.SAND)
+    }
+  }
+  /** Carves a wobbling trail of the terrain t between two points */
+  const carve = (
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    t: T = T.FOREST,
+  ) => {
+    const steps = Math.ceil(Math.hypot(x1 - x0, y1 - y0)) * 2
+    for (let s = 0; s <= steps; s++) {
+      const cx = x0 + ((x1 - x0) * s) / steps +
+        (fbm(s * 0.23, 9.1, 7007) - 0.5) * 2
+      const cy = y0 + ((y1 - y0) * s) / steps +
+        (fbm(9.7, s * 0.23, 7008) - 0.5) * 2
+      for (let dv = -1; dv <= 1; dv++) {
+        for (let du = -1; du <= 1; du++) {
+          const u = Math.round(cx + du), v = Math.round(cy + dv)
+          if (
+            u >= 1 && u < COVE_W - 1 && v >= 1 && v < COVE_H - 1 &&
+            Math.hypot(Math.round(cx) + du - cx, Math.round(cy) + dv - cy) <=
+              1.4 &&
+            tAt(u, v) !== T.SEA && tAt(u, v) !== T.RIVER
+          ) set(u, v, t)
+        }
       }
+    }
+  }
+  /** The beach row the stations stand on */
+  const sv = (u: number) => coast(u) + 2
+  // the forest trail from the spit's end down to the orchard
+  carve(40, sv(40), 42, 14)
+  carve(42, 14, 44, 18)
+  // the orchard: a clearing gone wild in the thicket
+  for (let v = 16; v <= 28; v++) {
+    for (let u = 36; u <= 52; u++) {
+      const d = ((u - 44) / 6.5) ** 2 + ((v - 22) / 4.8) ** 2 +
+        (fbm(u * 0.3, v * 0.3, 7009) - 0.5) * 0.3
+      if (d <= 1 && tAt(u, v) === T.TREE) set(u, v, T.FOREST)
+    }
+  }
+  // down from the orchard to the tarn's north ledge
+  carve(44, 26, 41, 29)
+  // the tarn: a frozen pond in a rock basin, stones caught in the ice
+  const td = (u: number, v: number) =>
+    Math.hypot((u - 42) / 10, (v - 36) / 5.5) +
+    (fbm(u * 0.21, v * 0.21, 7010) - 0.5) * 0.14
+  for (let v = 27; v <= 45; v++) {
+    for (let u = 28; u <= 56; u++) {
+      const d = td(u, v)
+      if (d <= 1) set(u, v, T.ICE)
+      else if (d <= 1.32 && tAt(u, v) !== T.SEA) set(u, v, T.ROCK)
+    }
+  }
+  for (const [iu, iv] of [[38, 33], [47, 33], [37, 38], [46, 39]]) {
+    if (tAt(iu, iv) === T.ICE) set(iu, iv, T.ROCK)
+  }
+  // slabs of some older floor, caught in the ice: a slide can rest on
+  // them, so no run of bad slides ever strands anyone
+  for (const [su, sv2] of [[44, 40], [36, 35], [41, 41]]) {
+    if (tAt(su, sv2) === T.ICE) set(su, sv2, T.STONE)
+  }
+  set(42, 36, T.STONE) // the glint mid-tarn: a stone that stops the slide
+  // the ledges: sand lips onto the ice, north (in) and east (out)
+  for (let v = 29; v <= 30; v++) {
+    for (let u = 40; u <= 42; u++) set(u, v, T.SAND)
+  }
+  for (let v = 35; v <= 37; v++) {
+    for (let u = 51; u <= 53; u++) set(u, v, T.SAND)
+  }
+  // the warden's passage: a ruin corridor right off the east ledge
+  for (let v = 33; v <= 40; v++) {
+    for (let u = 52; u <= 64; u++) set(u, v, T.RUIN)
+  }
+  for (let v = 36; v <= 37; v++) {
+    for (let u = 52; u <= 64; u++) set(u, v, T.STONE)
+  }
+  for (const [nu, nv] of [[54, 35], [57, 38], [60, 35]]) set(nu, nv, T.STONE)
+  // the hermit's rest between the passage and the river
+  for (let v = 33; v <= 41; v++) {
+    for (let u = 65; u <= riverU(v) - 2; u++) set(u, v, T.MEADOW)
+  }
+  // the crypt above it, and the step down to its door
+  for (let v = 28; v <= 31; v++) {
+    for (let u = 64; u <= 68; u++) set(u, v, T.RUIN)
+  }
+  for (let v = 29; v <= 30; v++) {
+    for (let u = 65; u <= 67; u++) set(u, v, T.STONE)
+  }
+  set(66, 31, T.STONE)
+  set(66, 32, T.MEADOW)
+  set(67, 32, T.MEADOW)
+  // the toll bridge, and the road off it to the plaza
+  const rb = riverU(37)
+  for (let u = rb - 1; u <= rb + 1; u++) set(u, 37, T.BRIDGE)
+  for (let v = 36; v <= 38; v++) {
+    for (let u = rb + 2; u < COVE_W; u++) {
+      if (tAt(u, v) !== T.RIVER && tAt(u, v) !== T.SEA) set(u, v, T.MEADOW)
+    }
+  }
+
+  // --- what stands in the cove (zprop remembers it for the checks)
+  const zprop = new Map<number, string>()
+  const sp = (
+    list: Spawn[],
+    u: number,
+    v: number,
+    type: string,
+    data?: unknown,
+  ) => {
+    if (!put(list, COVE_X0 + u, COVE_Y0 + v, type, data)) {
+      throw new Error(`castaway cove: the cell for ${type} is taken`)
+    }
+    if (list === props) zprop.set(idx(COVE_X0 + u, COVE_Y0 + v), type)
+  }
+  // the wreck: what the tide left of the ship, and the way out
+  sp(props, 10, 9, "portal-out")
+  sp(props, 12, 7, "sign", {
+    text: "THE SHIP IS KINDLING NOW. CRATES BREAK IF YOU WALK AT THEM",
+  })
+  sp(props, 9, 8, "chest", { drops: "coin", count: 4 })
+  for (const [cu, cv] of [[13, 8], [14, 10], [12, 11], [8, 10]]) {
+    sp(props, cu, cv, "crate")
+  }
+  sp(props, 16, 12, "crate")
+  sp(props, 18, 12, "crate")
+  sp(actors, 14, 7, "snail")
+  // the spit: the launch board, loose coins, and the wave chimes
+  sp(props, 21, sv(21), "spring")
+  sp(props, 20, sv(20) + 1, "sign", {
+    text: "A LAUNCH BOARD OFF THE WRECK. FACE EAST AND STEP ON",
+  })
+  for (const cu of [25, 28, 31]) sp(items, cu, sv(21), "coin")
+  const CHIME_NOTES = [0, 2, 4, 7, 9]
+  CHIME_NOTES.forEach((note, k) => {
+    const bu = 24 + k * 2
+    set(bu, sv(bu) + 1, T.SAND)
+    sp(props, bu, sv(bu) + 1, "bell-stone", {
+      group: "wave-chimes",
+      order: k + 1,
+      count: CHIME_NOTES.length,
+      note,
     })
   })
+  set(22, sv(22) + 1, T.SAND)
+  sp(props, 22, sv(22) + 1, "sign", {
+    text: "WAVE CHIMES. THE SEA RINGS THEM WEST TO EAST - IN ORDER, A GIFT",
+  })
+  for (const [cu, cv] of [[48, sv(48)], [55, sv(55)]]) sp(items, cu, cv, "coin")
+  // the orchard: apples on the ground, trees that grow more, an old camp
+  sp(props, 43, 17, "sign", {
+    text: "AN ORCHARD GONE WILD. THE TOLL GATE ASKS FIVE APPLES - TAKE PLENTY",
+  })
+  for (const [au, av] of [[40, 20], [47, 19], [41, 25], [48, 24]]) {
+    sp(props, au, av, "sapling")
+  }
+  for (
+    const [au, av] of [[42, 21], [45, 23], [43, 26], [49, 21], [39, 22], [
+      46,
+      25,
+    ]]
+  ) sp(items, au, av, "apple")
+  sp(props, 48, 22, "campfire")
+  sp(props, 49, 20, "tent")
+  sp(props, 47, 23, "stool")
+  sp(actors, 44, 20, "fox")
+  // the tarn's signs: the warning on the way in, the glint on the way out
+  set(39, 29, T.SAND)
+  sp(props, 39, 29, "sign", {
+    text: "THE TARN FROZE SMOOTH. ONE STEP AND IT CARRIES YOU",
+  })
+  sp(props, 51, 35, "sign", {
+    text:
+      "SOMETHING GLINTS MID-ICE. THE SLIDE ONLY STOPS WHERE SOMETHING STANDS",
+  })
+  sp(props, 42, 36, "chest", { drops: "gem", count: 3 })
+  // the warden's passage: blue stands while its switch sleeps, red
+  // while it wakes; the switches sit in niches between the walls
+  sp(props, 51, 37, "sign", {
+    text:
+      "THE WARDENS PASSAGE: BLUE STANDS WHILE THE SWITCH SLEEPS, RED WHILE IT WAKES",
+  })
+  const WARDEN = { group: "cove-warden" }
+  for (const v of [36, 37]) {
+    sp(props, 56, v, "blue-wall", WARDEN)
+    sp(props, 59, v, "red-wall", WARDEN)
+    sp(props, 62, v, "blue-wall", WARDEN)
+  }
+  sp(props, 54, 35, "switch", WARDEN)
+  sp(props, 57, 38, "switch", WARDEN)
+  sp(props, 60, 35, "switch", WARDEN)
+  // the hermit's rest: the keeper, his dead, his crypt and his toll
+  sp(actors, 66, 36, "sage")
+  sp(props, 65, 34, "lantern")
+  sp(props, 65, 40, "lantern")
+  sp(props, 67, 39, "gravestone")
+  sp(props, 67, 34, "gravestone")
+  sp(props, 66, 38, "sign", {
+    text: "THE HERMIT KEEPS THE BRIDGE. FIVE APPLES PAYS THE TOLL",
+  })
+  sp(props, 67, 32, "sign", {
+    text: "THE HERMITS CRYPT. THE WAVE CHIMES KEPT ITS KEY",
+  })
+  sp(props, 66, 31, "key-gate")
+  sp(props, 66, 29, "chest", { drops: "gem", count: 3 })
+  sp(props, rb - 1, 37, "apple-gate", { count: 5 })
+
+  // --- the checks: the cove must hold, teach and let go exactly as
+  // designed. Every flood is in world cells over the painted terrain.
+  const must = (cond: boolean, msg: string) => {
+    if (!cond) throw new Error(`castaway cove: ${msg}`)
+  }
+  type Opts = {
+    gate?: boolean
+    walls?: boolean
+    crates?: boolean
+    ice?: boolean
+  }
+  const BREAKS = new Set(["crate", "chest", "bell-stone"])
+  const pass = (x: number, y: number, o: Opts) => {
+    const t = terrain[idx(x, y)] as T
+    if (!catalog.cells[CELL[t]]?.canEnter) return false
+    if (t === T.ICE && o.ice === false) return false
+    const pt = zprop.get(idx(x, y))
+    if (!pt) return true
+    if (catalog.props[pt]?.canEnter) return true
+    if (pt === "apple-gate") return o.gate === true
+    if (pt === "key-gate") return false
+    if (pt === "crate") return o.crates !== false
+    if (pt === "blue-wall" || pt === "red-wall") return o.walls !== false
+    return BREAKS.has(pt)
+  }
+  const flood = (o: Opts) => {
+    const seen = new Set<number>()
+    const start = idx(COVE_START.x, COVE_START.y)
+    seen.add(start)
+    const queue = [start]
+    for (let q = 0; q < queue.length; q++) {
+      const p = queue[q]
+      const x = p % W, y = (p / W) | 0
+      for (const [dx, dy] of D4) {
+        const np = idx(x + dx, y + dy)
+        if (!seen.has(np) && pass(x + dx, y + dy, o)) {
+          seen.add(np)
+          queue.push(np)
+        }
+      }
+    }
+    return seen
+  }
+  const cell = (u: number, v: number) => idx(COVE_X0 + u, COVE_Y0 + v)
+  const f1 = flood({})
+  must(
+    [...f1].every((p) => inCove(p % W, (p / W) | 0)),
+    "the cove leaks past its own land",
+  )
+  const SPOTS: [string, number, number][] = [
+    ["the notch's far side", 20, sv(20)],
+    ["the launch board", 21, sv(21)],
+    ["the first wave chime", 24, sv(24) + 1],
+    ["the orchard", 44, 22],
+    ["the tarn's north ledge", 41, 30],
+    ["the tarn's east ledge", 51, 36],
+    ["the warden's passage", 58, 36],
+    ["the hermit's rest", 66, 36],
+    ["the crypt's door", 66, 32],
+    ["the toll gate's step", rb - 2, 37],
+  ]
+  for (const [name, u, v] of SPOTS) {
+    must(f1.has(cell(u, v)), `${name} cannot be reached`)
+  }
+  must(
+    !flood({ crates: false }).has(cell(20, sv(20))),
+    "the notch crates can be walked around",
+  )
+  must(
+    !flood({ walls: false }).has(cell(66, 36)),
+    "the warden's walls can be walked around",
+  )
+  must(
+    !flood({ ice: false }).has(cell(58, 36)),
+    "the tarn can be walked around",
+  )
+  must(
+    flood({ gate: true }).has(idx(n0.x, n0.y)),
+    "the toll bridge does not let out onto the plaza",
+  )
+  // the ice, as it actually plays: a slide ends on the first cell that
+  // is not ice, or against whatever blocks the way. Every stop the
+  // slides can reach must also lead back to a ledge (no strandings),
+  // and one of them must stop beside the glint.
+  {
+    const starts = [cell(41, 30), cell(51, 36)]
+    const edges = new Map<number, number[]>()
+    const seen = new Set(starts)
+    const queue = [...starts]
+    for (let q = 0; q < queue.length; q++) {
+      const p = queue[q]
+      const x = p % W, y = (p / W) | 0
+      for (const [dx, dy] of D4) {
+        let cx = x + dx, cy = y + dy
+        if (!pass(cx, cy, {})) continue
+        while (
+          terrain[idx(cx, cy)] === T.ICE && pass(cx + dx, cy + dy, {})
+        ) {
+          cx += dx
+          cy += dy
+        }
+        const np = idx(cx, cy)
+        edges.set(p, [...(edges.get(p) ?? []), np])
+        if (!seen.has(np)) {
+          seen.add(np)
+          queue.push(np)
+        }
+      }
+    }
+    const glint = [
+      cell(42, 36), // in the sim the slide lands on the stone itself:
+      cell(41, 36), // in play the chest on it stops the slide one short
+      cell(43, 36),
+      cell(42, 35),
+      cell(42, 37),
+    ]
+    must(
+      glint.some((p) => seen.has(p)),
+      "no slide stops beside the glint mid-tarn",
+    )
+    // back-edges: from every reached stop, a ledge must be reachable
+    const rev = new Map<number, number[]>()
+    for (const [a, bs] of edges) {
+      for (const b of bs) rev.set(b, [...(rev.get(b) ?? []), a])
+    }
+    const back = new Set(starts)
+    const bq = [...starts]
+    for (let q = 0; q < bq.length; q++) {
+      for (const a of rev.get(bq[q]) ?? []) {
+        if (!back.has(a)) {
+          back.add(a)
+          bq.push(a)
+        }
+      }
+    }
+    for (const p of seen) {
+      if (!back.has(p)) {
+        // debug dump before failing: the tarn and the edges of the spot
+        const u0 = p % W - COVE_X0, v0 = ((p / W) | 0) - COVE_Y0
+        console.log(`strand at ${u0},${v0}; edges out:`, edges.get(p))
+        for (let v = 27; v <= 45; v++) {
+          let row = ""
+          for (let u = 28; u <= 56; u++) {
+            const t = tAt(u, v)
+            row += u === u0 && v === v0
+              ? "@"
+              : t === T.ICE
+              ? "."
+              : t === T.STONE
+              ? "o"
+              : t === T.SAND
+              ? "_"
+              : t === T.ROCK
+              ? "#"
+              : t === T.RUIN
+              ? "R"
+              : " "
+          }
+          console.log(row)
+        }
+      }
+      must(
+        back.has(p),
+        `a slide strands the player at ${p % W - COVE_X0},${
+          ((p / W) | 0) - COVE_Y0
+        }`,
+      )
+    }
+  }
+  console.log("castaway cove: sealed, every station reached, the ice is fair")
 }
 
 // ---------------------------------------------------------------------
@@ -2010,14 +2415,29 @@ const places = [
     }
   }),
   {
-    // the landing trail reads as the LANDING too (check_world finds
-    // the W portal's landing by this room id)
+    // the whole cove reads as the LANDING (check_world finds the W
+    // portal's landing by this room id) ...
     id: "LANDING",
-    x0: TRAIL_X0,
-    y0: TRAIL_Y0,
-    x1: TRAIL_X0 + TRAIL[0].length - 1,
-    y1: TRAIL_Y0 + TRAIL.length - 1,
+    x0: COVE_X0,
+    y0: COVE_Y0,
+    x1: COVE_X0 + COVE_W - 1,
+    y1: COVE_Y0 + COVE_H - 1,
   },
+  // ... and its places name themselves (the smallest room wins)
+  ...[
+    { id: "THE-WRECK", r: [4, 3, 18, 14] },
+    { id: "THE-SPIT", r: [19, 4, 35, 15] },
+    { id: "WILD-ORCHARD", r: [36, 15, 52, 28] },
+    { id: "FROZEN-TARN", r: [28, 27, 51, 45] },
+    { id: "WARDENS-PASSAGE", r: [52, 32, 64, 41] },
+    { id: "HERMITS-REST", r: [64, 27, 75, 42] },
+  ].map(({ id, r }) => ({
+    id,
+    x0: COVE_X0 + r[0],
+    y0: COVE_Y0 + r[1],
+    x1: COVE_X0 + r[2],
+    y1: COVE_Y0 + r[3],
+  })),
   {
     id: "CAVERN",
     x0: CX0,
@@ -2156,8 +2576,8 @@ portalRoom(
   28,
   33,
   "w",
-  { i: OI + TRAIL_START.x, j: OJ + TRAIL_START.y },
-  "THE WILDS: THE LANDING TRAIL TEACHES THE MOVES, THEN THE ISLAND IS YOURS",
+  { i: OI + COVE_START.x, j: OJ + COVE_START.y },
+  "THE WILDS: YOU WASH ASHORE IN A COVE. PAST THE HERMITS BRIDGE, THE ISLAND",
 )
 portalRoom(
   40,
