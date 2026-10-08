@@ -2004,70 +2004,131 @@ console.log(
 )
 
 // ---------------------------------------------------------------------
-// the "W" portal room on the START island, below the start corridor
+// the "W" and "C" portal rooms on the START island, right beside the
+// start room (W to the left, C to the right), and the island tidied:
+// whatever can't be walked to from the start is black
 
-type BlockJson = { i: number; j: number; props: Spawn[]; field: string[] }
+type StartJson = {
+  i: number
+  j: number
+  props: Spawn[]
+  actors?: Spawn[]
+  items?: Spawn[]
+  field: string[]
+}
 const startPath = new URL(
   "../static/map/block_-10000.-10000.json",
   import.meta.url,
 )
-const start = JSON.parse(await Deno.readTextFile(startPath)) as BlockJson
+const start = JSON.parse(await Deno.readTextFile(startPath)) as StartJson
 const sgrid = start.field.map((row) => [...row])
 const carve = (x0: number, y0: number, x1: number, y1: number, c: string) => {
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) sgrid[y][x] = c
 }
-carve(35, 41, 37, 43, "0") // the passage down from the corridor's end
-carve(33, 44, 39, 48, "3") // the room ring
-carve(34, 45, 38, 47, "6") // the room floor
-carve(36, 42, 36, 42, "r") // the red marker cell
-start.field = sgrid.map((row) => row.join(""))
 const local = (x: number, y: number) => ({ i: start.i + x, j: start.j + y })
-for (
-  const add of [
-    {
-      ...local(36, 46),
-      type: "portal",
-      data: { i: OI + arrival.x, j: OJ + arrival.y },
-    },
-    { ...local(36, 42), type: "r_white" },
-    { ...local(35, 42), type: "w" },
-    {
-      ...local(37, 41),
-      type: "sign",
-      data: { text: "THE WILDS: AN ISLAND GROWN BY THE GENERATOR" },
-    },
-  ]
-) {
-  const k = start.props.findIndex((p) => p.i === add.i && p.j === add.j)
-  if (k >= 0) start.props[k] = add
-  else start.props.push(add)
+/** The spawn lists of the start block, without those in the box */
+const dropIn = (x0: number, y0: number, x1: number, y1: number) => {
+  const out = (s: Spawn) => {
+    const x = s.i - start.i, y = s.j - start.j
+    return x < x0 || x > x1 || y < y0 || y > y1
+  }
+  start.props = start.props.filter(out)
+  start.actors = (start.actors ?? []).filter(out)
+  start.items = (start.items ?? []).filter(out)
 }
-// the "C" portal room beside it, for the CITY (its quay by the pier)
-carve(38, 42, 44, 43, "0") // the passage east from the W passage
-carve(41, 44, 47, 48, "3") // the room ring
-carve(42, 45, 46, 47, "6") // the room floor
-carve(44, 44, 44, 44, "0") // the door
-carve(43, 42, 43, 42, "r") // the red marker cell
+// the old rooms at the corridor's far end are gone
+carve(33, 41, 48, 48, "b")
+dropIn(33, 41, 48, 48)
+/** The start room (where the game starts): its ring is x 34-38, y 17-21 */
+const portalRoom = (
+  x0: number,
+  door: number,
+  letter: string,
+  to: { i: number; j: number },
+  text: string,
+) => {
+  carve(x0, 17, x0 + 4, 21, "3") // the room ring
+  carve(x0 + 1, 18, x0 + 3, 20, "6") // the room floor
+  carve(door, 19, door, 19, "0") // the door from the start room
+  dropIn(x0, 16, x0 + 4, 21)
+  start.props.push(
+    { ...local(x0 + 2, 19), type: "portal", data: to },
+    { ...local(x0 + 2, 16), type: letter },
+    {
+      ...local(x0 + (letter === "w" ? 1 : 3), 18),
+      type: "sign",
+      data: { text },
+    },
+  )
+}
+portalRoom(
+  28,
+  33,
+  "w",
+  { i: OI + arrival.x, j: OJ + arrival.y },
+  "THE WILDS: AN ISLAND GROWN BY THE GENERATOR",
+)
+portalRoom(
+  40,
+  39,
+  "c",
+  { i: OI + KX0 + city.arrival[0], j: OJ + KY0 + city.arrival[1] },
+  "THE CITY: STREETS, SHOPS AND A CASTLE BY THE SEA",
+)
+// tidy: the cells that can't be walked to from the start (props count
+// as passable: gates open) turn black, and what stood there goes. The
+// spawns right by the walkable cells stay (the letters over the rooms)
+{
+  const START_AT: [number, number] = [36, 19]
+  const N = sgrid.length
+  const reached = new Uint8Array(N * N)
+  const queue: [number, number][] = [START_AT]
+  reached[START_AT[1] * N + START_AT[0]] = 1
+  while (queue.length > 0) {
+    const [x, y] = queue.pop()!
+    for (const [dx, dy] of D4) {
+      const nx = x + dx, ny = y + dy
+      if (nx < 0 || ny < 0 || nx >= N || ny >= N || reached[ny * N + nx]) {
+        continue
+      }
+      if (!catalog.cells[sgrid[ny][nx]]?.canEnter) continue
+      reached[ny * N + nx] = 1
+      queue.push([nx, ny])
+    }
+  }
+  const near = (x: number, y: number) => {
+    for (let dy = -2; dy <= 2; dy++) {
+      for (let dx = -2; dx <= 2; dx++) {
+        const nx = x + dx, ny = y + dy
+        if (nx >= 0 && ny >= 0 && nx < N && ny < N && reached[ny * N + nx]) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+  let blacked = 0
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      if (!reached[y * N + x] && sgrid[y][x] !== "b") {
+        sgrid[y][x] = "b"
+        blacked++
+      }
+    }
+  }
+  const keep = (s: Spawn) => near(s.i - start.i, s.j - start.j)
+  const before = start.props.length + (start.actors?.length ?? 0) +
+    (start.items?.length ?? 0)
+  start.props = start.props.filter(keep)
+  start.actors = (start.actors ?? []).filter(keep)
+  start.items = (start.items ?? []).filter(keep)
+  const after = start.props.length + start.actors.length + start.items.length
+  console.log(
+    `tidied the start island: ${blacked} cells blacked, ${
+      before - after
+    } spawns dropped`,
+  )
+}
 start.field = sgrid.map((row) => row.join(""))
-for (
-  const add of [
-    {
-      ...local(44, 46),
-      type: "portal",
-      data: { i: OI + KX0 + city.arrival[0], j: OJ + KY0 + city.arrival[1] },
-    },
-    { ...local(43, 42), type: "r_white" },
-    { ...local(42, 42), type: "c" },
-    {
-      ...local(45, 43),
-      type: "sign",
-      data: { text: "THE CITY: STREETS, SHOPS AND A CASTLE BY THE SEA" },
-    },
-  ]
-) {
-  const k = start.props.findIndex((p) => p.i === add.i && p.j === add.j)
-  if (k >= 0) start.props[k] = add
-  else start.props.push(add)
-}
 await Deno.writeTextFile(startPath, JSON.stringify(start, null, 2))
 console.log("linked the WILDS and the CITY from the start island")
