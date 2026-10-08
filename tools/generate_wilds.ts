@@ -26,6 +26,11 @@
 //    animals where they belong
 // 8. every walkable cell is made reachable from the arrival, or filled
 //
+// The CAVERN (tools/generate_cavern.ts) lies inside the island: the
+// height field rises into a mountain over it, the mountain is solid rock
+// around it, and its cave mouth opens on the north face, where a road
+// leads. The cavern is built on its own and stamped in at the end.
+//
 // It also adds the "W" portal room to the START island.
 //
 // Usage: deno -A tools/generate_wilds.ts
@@ -36,6 +41,12 @@ import { Palette } from "../util/palette.ts"
 import { encodePng } from "./png.ts"
 import { fbm, hash, smoothstep } from "./noise.ts"
 import { type Kind, MAKERS } from "./minipuzzles.ts"
+import {
+  buildCavern,
+  CAVERN_ENTRY_X,
+  CAVERN_H,
+  CAVERN_W,
+} from "./generate_cavern.ts"
 
 type Spawn = { i: number; j: number; type: string; data?: unknown }
 type Anchor = { x: number; y: number; name: string }
@@ -54,6 +65,7 @@ type Plan = {
   }[]
   landmarks: { x: number; y: number; name: string; kind: string }[]
   camps: number
+  /** The cavern: its entrance column (x) and top row (y), as fractions */
   cave: { x: number; y: number; name: string }
   /** the pier of the bridge to the CITY (the row is fixed) */
   east: { y: number; name: string }
@@ -73,6 +85,24 @@ const catalog = await loadCatalog(
   new URL("../static/catalog/base.json", import.meta.url).href,
   ["base.json"],
 )
+
+// the cavern's place: a rectangle inside the island, under a mountain
+const CX0 = Math.round(plan.cave.x * W) - CAVERN_ENTRY_X
+const CY0 = Math.round(plan.cave.y * H)
+/** The solid rock around the cavern (cells) */
+const MARGIN = 14
+const inCavern = (x: number, y: number) =>
+  x >= CX0 && x < CX0 + CAVERN_W && y >= CY0 && y < CY0 + CAVERN_H
+const inMassif = (x: number, y: number) =>
+  x >= CX0 - MARGIN && x < CX0 + CAVERN_W + MARGIN &&
+  y >= CY0 - MARGIN && y < CY0 + CAVERN_H + MARGIN
+/** The distance from the cell to the mountain's rock (0 inside) */
+const distMassif = (x: number, y: number) => {
+  const dx = Math.max(CX0 - MARGIN - x, 0, x - (CX0 + CAVERN_W + MARGIN - 1))
+  const dy = Math.max(CY0 - MARGIN - y, 0, y - (CY0 + CAVERN_H + MARGIN - 1))
+  return Math.hypot(dx, dy)
+}
+const cavern = await buildCavern(OI + CX0, OJ + CY0)
 
 // ---------------------------------------------------------------------
 // 1. height and moisture
@@ -94,9 +124,13 @@ for (let y = 0; y < H; y++) {
     const d = Math.sqrt(dx * dx + dy * dy) +
       (fbm(x / 70, y / 70, S + 5, 3) - 0.5) * 0.35
     const island = 1 - smoothstep(0.62, 1.02, d)
-    height[idx(x, y)] = e * 0.7 + island * 0.6 - 0.25
+    // the mountain over the cavern: the land rises toward it, so it
+    // stands in foothills and the rivers run down from it
+    const mountain = 0.5 * (1 - smoothstep(0, 70, distMassif(x, y)))
+    height[idx(x, y)] = e * 0.7 + island * 0.6 - 0.25 + mountain
     // a smoother copy (fewer hollows) for the rivers to run down
-    flow[idx(x, y)] = fbm(wx / 110, wy / 110, S + 1, 2) * 0.7 + island * 0.6
+    flow[idx(x, y)] = fbm(wx / 110, wy / 110, S + 1, 2) * 0.7 + island * 0.6 +
+      mountain
     moist[idx(x, y)] = fbm(wx / 80, wy / 80, S + 7, 4)
   }
 }
@@ -129,6 +163,7 @@ enum T {
   RUIN, // the broken walls of the ruins
   TRIAL, // the floor of a mini puzzle room
   ICE, // the ice of a mini puzzle room
+  BIO, // a biomechanical wall (BONE VALLEY); its kind is in bioChar
 }
 const CELL: Record<T, string> = {
   [T.SEA]: "w",
@@ -152,7 +187,10 @@ const CELL: Record<T, string> = {
   [T.RUIN]: "Z", // wall_sandstone
   [T.TRIAL]: "4",
   [T.ICE]: "i",
+  [T.BIO]: "A",
 }
+/** The biomechanical wall kind (A-F) of each T.BIO cell */
+const bioChar = new Map<number, string>()
 const terrain = new Uint8Array(W * H)
 const isWater = (t: T) => t === T.SEA || t === T.RIVER || t === T.LAKE
 const isWild = (t: T) =>
@@ -376,6 +414,11 @@ for (let pass = 0; pass < 3; pass++) {
   terrain.set(next)
 }
 
+// the mountain is solid rock (the cavern is stamped into it at the end)
+for (let y = 0; y < H; y++) {
+  for (let x = 0; x < W; x++) if (inMassif(x, y)) terrain[idx(x, y)] = T.ROCK
+}
+
 // ---------------------------------------------------------------------
 // 4. anchors
 
@@ -449,20 +492,14 @@ for (const l of plan.landmarks) {
   const [x, y] = snap(l.x, l.y, 6)
   nodes.push({ x, y, name: l.name, kind: l.kind })
 }
-// the cave mouth: on a fixed column (the cavern below lines up with it),
-// at the nearest spot along it with room
-{
-  const x = Math.round(plan.cave.x * W)
-  const y0 = Math.round(plan.cave.y * H)
-  let found = -1
-  for (let d = 0; d < H && found < 0; d++) {
-    for (const y of [y0 - d, y0 + d]) {
-      if (found < 0 && fits(x, y, 4)) found = y
-    }
-  }
-  if (found < 0) throw new Error("no room for the cave mouth")
-  nodes.push({ x, y: found, name: plan.cave.name, kind: "cave" })
-}
+// the cave mouth: on the mountain's north face, over the cavern's
+// entrance
+nodes.push({
+  x: CX0 + CAVERN_ENTRY_X,
+  y: CY0 - MARGIN - 5,
+  name: plan.cave.name,
+  kind: "cave",
+})
 // the east pier: on a fixed row (the city lines its bridge up with it),
 // at the easternmost land with room; a bridge runs from it over the sea
 // to the edge of the WILDS
@@ -512,15 +549,14 @@ for (const n of nodes) {
   )
 }
 
-// the old tunnel: from the cave mouth straight south across the border,
-// walled on both sides (it crosses the shore and the sea)
+// the passage from the cave mouth through the mountain's rock into the
+// cavern (3 wide, the rock on both sides)
 {
   const cave = nodes.find((n) => n.kind === "cave")!
-  for (let y = cave.y + 4; y < H; y++) {
-    for (let dx = -2; dx <= 2; dx++) {
-      const p = idx(cave.x + dx, y)
-      terrain[p] = Math.abs(dx) === 2 ? T.ROCK : T.CAMP
-      keepClear[p] = 1
+  for (let y = cave.y + 1; y < CY0; y++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      terrain[idx(cave.x + dx, y)] = T.CAMP
+      keepClear[idx(cave.x + dx, y)] = 1
     }
   }
 }
@@ -570,6 +606,7 @@ function stepCost(p: number, q: number): number {
     case T.WALL:
     case T.RUIN:
     case T.RAMPART: // the town walls: the roads come in by the gates
+    case T.BIO:
     case T.FLOOR:
       return Infinity
     case T.RIVER:
@@ -1070,6 +1107,51 @@ function buildMarket(n: Node, count: number) {
   for (let t = -24; t <= 24; t += 8) lampPost(cx + t, cy + 2)
 }
 
+/**
+ * BONE VALLEY: a biomechanical ossuary in the spirit of H. R. Giger. A
+ * round shell of bone walls (each stretch its own kind: ribs, vertebrae,
+ * hoses, skulls, hive, sinew) with four ways in, ribs reaching in from
+ * it toward the middle, and something waiting there.
+ */
+function buildBoneValley(n: Node) {
+  const R = 16
+  const KINDS = ["A", "B", "C", "D", "E", "F"]
+  for (let dy = -R - 1; dy <= R + 1; dy++) {
+    for (let dx = -R - 1; dx <= R + 1; dx++) {
+      const x = n.x + dx, y = n.y + dy
+      if (!inside(x, y) || taken.has(idx(x, y))) continue
+      const p = idx(x, y)
+      const d = Math.hypot(dx, dy)
+      if (d > R + 0.5) continue
+      const a = Math.atan2(dy, dx)
+      // the kind by the direction from the middle, in stretches
+      const kind = KINDS[Math.floor(((a + Math.PI) / (Math.PI * 2)) * 6) % 6]
+      const gate = Math.abs(dx) <= 1 || Math.abs(dy) <= 1
+      const shell = d >= R - 2 && !gate
+      // ribs: eight spokes from the shell toward the middle
+      const spoke = d >= 7 && d < R - 2 && !gate &&
+        Math.abs(((a / (Math.PI / 4)) % 1 + 1) % 1 - 0.5) < 0.09
+      if (shell || spoke) {
+        terrain[p] = T.BIO
+        bioChar.set(p, kind)
+      } else {
+        terrain[p] = T.CAMP
+      }
+      keepClear[p] = 1
+    }
+  }
+  // what waits in the middle
+  put(props, n.x, n.y - 1, "self-statue")
+  put(props, n.x, n.y + 1, "chest", { drops: "gem", count: 3 })
+  put(props, n.x - 2, n.y, "moon-shell")
+  put(props, n.x + 2, n.y, "clock")
+  put(actors, n.x - 4, n.y + 4, "shadow")
+  put(actors, n.x + 4, n.y - 4, "shadow")
+  put(props, n.x + 2, n.y + R + 1, "sign", {
+    text: "BONE VALLEY: THE WALLS HERE GREW. THEY ARE STILL GROWING",
+  })
+}
+
 for (const n of nodes) {
   switch (n.kind) {
     case "village": {
@@ -1136,6 +1218,9 @@ for (const n of nodes) {
       put(items, n.x - 1, n.y + 4, "scroll")
       break
     }
+    case "biomech":
+      buildBoneValley(n)
+      break
     case "east":
       put(props, n.x - 2, n.y - 2, "lantern")
       put(props, n.x + 2, n.y - 1, "sign", {
@@ -1147,7 +1232,7 @@ for (const n of nodes) {
       put(props, n.x - 3, n.y + 3, "lantern")
       put(props, n.x + 3, n.y + 3, "lantern")
       put(props, n.x + 3, n.y, "sign", {
-        text: "THE OLD TUNNEL: SOUTH TO THE CAVERN. THREE TRIALS, ONE HOARD",
+        text: "CAVE MOUTH: INTO THE MOUNTAIN. THREE TRIALS, ONE HOARD",
       })
       break
     case "camp": {
@@ -1384,6 +1469,135 @@ scatter(
 )
 
 // ---------------------------------------------------------------------
+// the oddities (ideas/breakables.md): things that break and let
+// something out, and creatures that aren't people, scattered over the
+// open land away from the roads and the towns
+
+/** Open land around (x, y) within r: free, wild, not by an anchor */
+function openLand(x: number, y: number, r: number): boolean {
+  for (let dy = -r; dy <= r; dy++) {
+    for (let dx = -r; dx <= r; dx++) {
+      if (!free(x + dx, y + dy)) return false
+      const t = terrain[idx(x + dx, y + dy)] as T
+      if (!(t === T.MEADOW || t === T.FOREST || t === T.SAND)) return false
+    }
+  }
+  return nodes.every((n) => Math.hypot(n.x - x, n.y - y) > 40)
+}
+const oddities = new Map<string, number>()
+/** Places `count` of a setup, each where `fits` holds, spread apart */
+function oddity(
+  name: string,
+  count: number,
+  r: number,
+  setup: (x: number, y: number) => void,
+  fits: (x: number, y: number) => boolean = (x, y) => openLand(x, y, r),
+) {
+  let placed = 0
+  scatter(120, W * H / 40, (x, y) => placed < count && fits(x, y), (x, y) => {
+    setup(x, y)
+    // the setup and its margin stay clear of trees
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (inside(x + dx, y + dy)) keepClear[idx(x + dx, y + dy)] = 1
+      }
+    }
+    placed++
+  })
+  oddities.set(name, placed)
+}
+// props, standing alone with room to push them from every side
+for (
+  const type of [
+    "nest-jar-4",
+    "packed-box",
+    "drawer-tower",
+    "moon-shell",
+    "lone-window",
+    "clock",
+    "pinata-tree",
+    "self-statue",
+  ]
+) oddity(type, 3, 2, (x, y) => put(props, x, y, type))
+// a balloon rock among things that break when it bursts
+oddity("balloon-rock", 3, 2, (x, y) => {
+  put(props, x, y, "balloon-rock")
+  put(props, x, y - 1, "crate")
+  put(props, x - 1, y, "nest-jar-2")
+  put(props, x + 1, y, "egg-wall")
+})
+// a short eggshell wall
+oddity("egg-wall", 3, 3, (x, y) => {
+  for (let dy = 0; dy < 2; dy++) {
+    for (let dx = -2; dx <= 2; dx++) put(props, x + dx, y + dy, "egg-wall")
+  }
+})
+// bell stones: five in a row, a tune from left to right
+{
+  let set = 0
+  oddity("bell-stone", 3, 5, (x, y) => {
+    set++
+    const notes = [0, 2, 4, 7, 9]
+    notes.forEach((note, k) =>
+      put(props, x - 4 + k * 2, y, "bell-stone", {
+        group: `wilds-bell-${set}`,
+        order: k + 1,
+        count: notes.length,
+        note,
+      })
+    )
+    put(props, x - 5, y + 2, "sign", { text: "BELL STONES: LEFT TO RIGHT" })
+  })
+}
+// toothpaste rocks on the shore, facing the water
+oddity("paste-tube", 4, 1, (x, y) => put(props, x, y, "paste-tube"), (x, y) => {
+  if (!openLand(x, y, 1) && !(free(x, y) && isWild(terrain[idx(x, y)] as T))) {
+    return false
+  }
+  // water on one side, open land on the other (to push from)
+  return D4.some(([dx, dy]) =>
+    isWater(terrain[idx(x + dx, y + dy)] as T) &&
+    isWater(terrain[idx(x + dx * 3, y + dy * 3)] as T) &&
+    free(x - dx, y - dy) && walkableCell(idx(x - dx, y - dy))
+  ) && nodes.every((n) => Math.hypot(n.x - x, n.y - y) > 40)
+})
+// the creatures
+for (
+  const type of ["spore", "piggy", "fin", "cloud", "shadow", "book", "egg-s"]
+) oddity(type, 3, 2, (x, y) => put(actors, x, y, type))
+oddity("pebble-leader", 3, 4, (x, y) => put(actors, x, y, "pebble-leader"))
+oddity("fluff", 3, 3, (x, y) => {
+  put(actors, x, y, "fluff")
+  put(actors, x + 2, y + 1, "fluff")
+  put(actors, x - 1, y + 2, "fluff")
+})
+oddity("slipper", 3, 3, (x, y) => {
+  put(actors, x - 2, y + 2, "slipper")
+  put(props, x + 1, y - 1, "slipper-mat", { group: `wilds-mat-${x}.${y}` })
+  put(props, x + 2, y - 1, "slipper-mat", { group: `wilds-mat-${x}.${y}` })
+})
+oddity("block-fish", 3, 4, (x, y) => {
+  for (const [dx, dy] of [[-3, -3], [0, -2], [3, -3], [-2, 2], [2, 3]]) {
+    put(actors, x + dx, y + dy, "block-fish")
+  }
+})
+// snails by the water: the shell unrolls into a path across it
+oddity(
+  "snail",
+  3,
+  1,
+  (x, y) => put(actors, x, y, "snail"),
+  (x, y) =>
+    free(x, y) && isWild(terrain[idx(x, y)] as T) &&
+    distWater[idx(x, y)] === 2 &&
+    nodes.every((n) => Math.hypot(n.x - x, n.y - y) > 40),
+)
+console.log(
+  "oddities:",
+  [...oddities].map(([k, n]) => `${k} ${n}`).join(", "),
+)
+
+// ---------------------------------------------------------------------
 // 8. every walkable cell reachable from the arrival (or filled)
 
 const blockingProp = new Set<number>()
@@ -1468,6 +1682,13 @@ for (let round = 0; round < 50; round++) {
           queue2.push(np)
         }
       }
+    }
+    if (hit < 0) {
+      // an islet the sea cuts off: it sinks
+      for (const c of cells) {
+        if (!blockingProp.has(c)) terrain[c] = T.SEA
+      }
+      continue
     }
     for (let c = hit; c >= 0 && from[c] !== -1; c = from[c]) {
       if (terrain[c] === T.TREE) terrain[c] = T.FOREST
@@ -1579,10 +1800,20 @@ if (previewAt >= 0) {
     [T.STONE]: Palette.violet2,
     [T.CAMP]: Palette.orange3,
     [T.FIELD]: Palette.brown3,
+    [T.TRIAL]: Palette.white,
+    [T.ICE]: Palette.cyan1,
+    [T.BIO]: Palette.violet3,
   }
   const rgba = new Uint8Array(W * H * 4)
   for (let p = 0; p < W * H; p++) {
-    const hex = COLORS[terrain[p] as T]
+    const x = p % W, y = (p / W) | 0
+    const hex = inCavern(x, y)
+      ? (cavern.grid[(y - CY0) * CAVERN_W + (x - CX0)] === "2"
+        ? Palette.gray4
+        : cavern.grid[(y - CY0) * CAVERN_W + (x - CX0)] === "w"
+        ? Palette.blue3
+        : Palette.yellow2)
+      : COLORS[terrain[p] as T]
     rgba.set([1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16)), p * 4)
     rgba[p * 4 + 3] = 255
   }
@@ -1604,7 +1835,54 @@ if (!ok) {
 }
 
 // ---------------------------------------------------------------------
-// output: one json per block
+// output: one json per block, the cavern stamped into the mountain
+
+/** The cell character at (x, y) */
+function cellAt(x: number, y: number): string {
+  if (inCavern(x, y)) {
+    // the cavern's rock is the mountain's rock, so no seam shows
+    const c = cavern.grid[(y - CY0) * CAVERN_W + (x - CX0)]
+    return c === "2" ? CELL[T.ROCK] : c
+  }
+  const p = idx(x, y)
+  return terrain[p] === T.BIO ? bioChar.get(p)! : CELL[terrain[p] as T]
+}
+const allActors = [...actorsOut, ...cavern.actors]
+const allItems = [...itemsOut, ...cavern.items]
+const allProps = [...propsOut, ...cavern.props]
+/** The named places: the anchors, and the cavern's caves and chambers */
+const places = [
+  ...nodes.map((n) => {
+    const r = n.kind === "village"
+      ? townR(n) + 2
+      : n.kind === "ruins"
+      ? 9
+      : n.kind === "biomech"
+      ? 17
+      : 6
+    return {
+      id: n.name.replace(/ /g, ""),
+      x0: n.x - r,
+      y0: n.y - r,
+      x1: n.x + r,
+      y1: n.y + r,
+    }
+  }),
+  {
+    id: "CAVERN",
+    x0: CX0,
+    y0: CY0,
+    x1: CX0 + CAVERN_W - 1,
+    y1: CY0 + CAVERN_H - 1,
+  },
+  ...cavern.rooms.map((r) => ({
+    id: `CAVERN-${r.id}`,
+    x0: CX0 + r.x0,
+    y0: CY0 + r.y0,
+    x1: CX0 + r.x1,
+    y1: CY0 + r.y1,
+  })),
+]
 
 for (let by = 0; by < plan.blocks.h; by++) {
   for (let bx = 0; bx < plan.blocks.w; bx++) {
@@ -1615,19 +1893,18 @@ for (let by = 0; by < plan.blocks.h; by++) {
     for (let y = 0; y < BLOCK; y++) {
       let row = ""
       for (let x = 0; x < BLOCK; x++) {
-        row += CELL[terrain[idx(bx * BLOCK + x, by * BLOCK + y)] as T]
+        row += cellAt(bx * BLOCK + x, by * BLOCK + y)
       }
       field.push(row)
     }
     // rooms: the named places, clipped to the block
     const { rooms, room } = createRooms(bi, bj)
-    for (const n of nodes) {
-      const r = n.kind === "village" ? townR(n) + 2 : n.kind === "ruins" ? 9 : 6
-      const x0 = Math.max(0, n.x - r - bx * BLOCK)
-      const y0 = Math.max(0, n.y - r - by * BLOCK)
-      const x1 = Math.min(BLOCK - 1, n.x + r - bx * BLOCK)
-      const y1 = Math.min(BLOCK - 1, n.y + r - by * BLOCK)
-      if (x0 <= x1 && y0 <= y1) room(n.name.replace(/ /g, ""), x0, y0, x1, y1)
+    for (const r of places) {
+      const x0 = Math.max(0, r.x0 - bx * BLOCK)
+      const y0 = Math.max(0, r.y0 - by * BLOCK)
+      const x1 = Math.min(BLOCK - 1, r.x1 - bx * BLOCK)
+      const y1 = Math.min(BLOCK - 1, r.y1 - by * BLOCK)
+      if (x0 <= x1 && y0 <= y1) room(r.id, x0, y0, x1, y1)
     }
     const json = {
       i: bi,
@@ -1636,9 +1913,9 @@ for (let by = 0; by < plan.blocks.h; by++) {
       rooms,
       catalogs: ["../catalog/base.json"],
       config: { showsExitButton: true },
-      actors: actorsOut.filter(inBlock),
-      items: itemsOut.filter(inBlock),
-      props: propsOut.filter(inBlock),
+      actors: allActors.filter(inBlock),
+      items: allItems.filter(inBlock),
+      props: allProps.filter(inBlock),
       field,
     }
     await Deno.writeTextFile(

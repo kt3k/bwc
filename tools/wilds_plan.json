@@ -1,39 +1,40 @@
 {
   "comment": "The hand-made anchors of the WILDS (tools/generate_wilds.ts). Positions are fractions of the region (0..1); the generator snaps each to the nearest fitting land and grows the rest around them.",
-  "seed": "wilds-1",
+  "seed": "wilds-2",
   "origin": { "i": 2000, "j": 0 },
-  "blocks": { "w": 4, "h": 3 },
-  "arrival": { "x": 0.16, "y": 0.52, "name": "LANDING" },
+  "blocks": { "w": 6, "h": 5 },
+  "arrival": { "x": 0.14, "y": 0.5, "name": "LANDING" },
   "villages": [
     {
-      "x": 0.33,
-      "y": 0.42,
+      "x": 0.3,
+      "y": 0.36,
       "name": "ASHFORD",
       "houses": 10,
       "layout": "crossroads"
     },
     {
-      "x": 0.70,
-      "y": 0.62,
+      "x": 0.8,
+      "y": 0.6,
       "name": "MILLBROOK",
       "houses": 9,
       "layout": "ring"
     },
     {
-      "x": 0.55,
-      "y": 0.47,
+      "x": 0.62,
+      "y": 0.3,
       "name": "STONEGATE",
       "houses": 12,
       "layout": "walled"
     },
-    { "x": 0.27, "y": 0.72, "name": "HAYWARD", "houses": 8, "layout": "market" }
+    { "x": 0.2, "y": 0.68, "name": "HAYWARD", "houses": 8, "layout": "market" }
   ],
   "landmarks": [
-    { "x": 0.55, "y": 0.22, "name": "LOOKOUT", "kind": "lookout" },
-    { "x": 0.84, "y": 0.30, "name": "SHRINE", "kind": "shrine" },
-    { "x": 0.48, "y": 0.80, "name": "RUINS", "kind": "ruins" }
+    { "x": 0.46, "y": 0.16, "name": "LOOKOUT", "kind": "lookout" },
+    { "x": 0.84, "y": 0.3, "name": "SHRINE", "kind": "shrine" },
+    { "x": 0.24, "y": 0.84, "name": "RUINS", "kind": "ruins" },
+    { "x": 0.8, "y": 0.82, "name": "BONE VALLEY", "kind": "biomech" }
   ],
-  "camps": 5,
+  "camps": 8,
   "east": {
     "y": 0.17,
     "name": "EAST PIER",
@@ -41,8 +42,8 @@
   },
   "cave": {
     "x": 0.5,
-    "y": 0.82,
+    "y": 0.5,
     "name": "CAVE MOUTH",
-    "comment": "the column is fixed (x * width): the WILDS CAVERN (tools/generate_cavern.ts) lines its entrance up with it"
+    "comment": "the CAVERN (tools/generate_cavern.ts, 400x400) lies inside a mountain of the island: its entrance column is x * width, its top row y * height. The mountain is solid rock around it, and the cave mouth opens on its north face"
   }
 }

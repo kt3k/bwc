@@ -82,12 +82,39 @@ function walk(starts: [number, number][], keyGatesOpen: boolean) {
 }
 
 /** Where the START portals land in the world (tutorial, free roam, WILDS, CITY) */
-const ARRIVALS: [number, number][] = [
-  [-131, 183],
-  [-82, -65],
-  [2128, 312],
-  [2855, 103],
+const startBlock = JSON.parse(
+  await Deno.readTextFile(
+    new URL("../static/map/block_-10000.-10000.json", import.meta.url),
+  ),
+) as BlockJson
+const ARRIVALS: [number, number][] = startBlock.props
+  .filter((p) => p.type === "portal")
+  .map((p) => p.data as { i: number; j: number })
+  .filter((d) => Math.abs(d.i) < 10000 && Math.abs(d.j) < 10000)
+  .map((d) => [d.i, d.j])
+
+// the WILDS, its CAVERN and the CITY, where their generators put them
+const plan = JSON.parse(
+  await Deno.readTextFile(new URL("./wilds_plan.json", import.meta.url)),
+) as {
+  origin: { i: number; j: number }
+  blocks: { w: number; h: number }
+  cave: { x: number; y: number }
+}
+const WILDS_W = plan.blocks.w * 200
+const WILDS_H = plan.blocks.h * 200
+/** The middle of the cavern's great hall (75 cells in from its entrance) */
+const CAVERN_IN: [number, number] = [
+  plan.origin.i + Math.round(plan.cave.x * WILDS_W),
+  plan.origin.j + Math.round(plan.cave.y * WILDS_H) + 75,
 ]
+/** The WILDS arrival: the START portal landing inside the WILDS */
+const WILDS_ARRIVAL = ARRIVALS.find(([i, j]) =>
+  i >= plan.origin.i && i < plan.origin.i + WILDS_W &&
+  j >= plan.origin.j && j < plan.origin.j + WILDS_H
+)!
+/** The CITY arrival: the START portal landing east of the WILDS */
+const CITY_ARRIVAL = ARRIVALS.find(([i]) => i >= plan.origin.i + WILDS_W)!
 /** A plaza cell of every dungeon floor (world coordinates) */
 const FLOORS: [string, number, number][] = [
   ["B1F", -300, 422],
@@ -118,10 +145,23 @@ const open = walk(ARRIVALS, true)
 for (const [name, i, j] of FLOORS) {
   check(`${name} reached on foot`, open.has(`${i}.${j}`))
 }
-// the WILDS CAVERN, down the old tunnel from the cave mouth
-check("CAVERN reached on foot", open.has("2400.611"))
-// the CITY, over the long bridge from the WILDS' east pier
-check("CITY reached on foot", open.has("2950.102"))
+// from the WILDS arrival alone: the CAVERN inside the mountain (by the
+// cave mouth) and the CITY (over the long bridge from the east pier)
+check("WILDS and CITY portals found", !!WILDS_ARRIVAL && !!CITY_ARRIVAL)
+const fromWilds = walk([WILDS_ARRIVAL], true)
+check(
+  "CAVERN reached on foot from the WILDS",
+  // (the middle itself may hold a stalagmite)
+  [...Array(49).keys()].some((k) =>
+    fromWilds.has(
+      `${CAVERN_IN[0] + (k % 7) - 3}.${CAVERN_IN[1] + Math.floor(k / 7) - 3}`,
+    )
+  ),
+)
+check(
+  "CITY reached on foot from the WILDS",
+  fromWilds.has(CITY_ARRIVAL.join(".")),
+)
 const sealed = walk(ARRIVALS, false)
 check("B1F reached without keys", sealed.has(`${FLOORS[0][1]}.${FLOORS[0][2]}`))
 for (const [name, i, j] of FLOORS.slice(1)) {

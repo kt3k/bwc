@@ -19,9 +19,9 @@ B1F-R3 40,105
 ブロック (200x200) は座標どおりに並び、境目は歩いてそのまま越えられる。
 **ポータルは START と世界をつなぐためだけに使う** (START / DEBUG / ZOO
 は世界の外の島なので例外)。東の離れた場所にある WILDS (有機的な生成の試作の島)
-も START の「W」部屋から行く。その南の CAVE MOUTH から古いトンネルを歩いて
-下ると CAVERN (洞窟) に入る。東の EAST PIER からは長い橋で海を渡って (START
-の「C」部屋のポータルからも直接) CITY (市街地)
+も START の「W」部屋から行く。島の南の山の北斜面にある CAVE MOUTH から
+山の中に入ると CAVERN (洞窟) で、洞窟は島の中に埋まっている。東の EAST PIER
+からは長い橋で海を渡って (START の「C」部屋のポータルからも直接) CITY (市街地)
 に入る。ダンジョンも世界の一部で、隣のブロックから 歩いて入る。
 
 ```
@@ -57,19 +57,19 @@ B1F-R3 40,105
 
 ## マップの名前
 
-| 名前     | ファイル                                                       | 生成スクリプト                                                         |
-| -------- | -------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `START`  | `block_-10000.-10000.json`                                     | (手作業、各スクリプトが一部を更新)                                     |
-| `B1F`    | `block_-400.400.json`                                          | `tools/generate_puzzle_dungeon.ts`                                     |
-| `B2F`    | `block_200.400.json`                                           | `tools/generate_puzzle_dungeon2.ts`                                    |
-| `B3F`    | `block_400.400.json`                                           | `tools/generate_puzzle_dungeon3.ts`                                    |
-| `B4F`    | `block_400.200.json`                                           | `tools/generate_puzzle_dungeon4.ts`                                    |
-| `B5F`    | `block_600.200.json`                                           | `tools/generate_puzzle_dungeon5.ts`                                    |
-| `ZOO`    | `block_10000.10000.json`                                       | `tools/generate_preview_zoo.ts`                                        |
-| `DEBUG`  | `block_10000.-10000.json`                                      | `tools/generate_debug_map.ts`                                          |
-| `WILDS`  | `block_2000.0.json` など 12 枚 (`i` 2000〜2600, `j` 0〜400)    | `tools/generate_wilds.ts` (有機的な生成の試作、ideas/organic-maps.md)  |
-| `CAVERN` | `block_2200.600.json` など 4 枚 (`i` 2200〜2400, `j` 600〜800) | `tools/generate_cavern.ts` (有機的な洞窟の試作、ideas/organic-maps.md) |
-| `CITY`   | `block_2800.0.json` など 4 枚 (`i` 2800〜3000, `j` 0〜200)     | `tools/generate_city.ts` (住宅と商店の多い市街地)                      |
+| 名前     | ファイル                                                       | 生成スクリプト                                                        |
+| -------- | -------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `START`  | `block_-10000.-10000.json`                                     | (手作業、各スクリプトが一部を更新)                                    |
+| `B1F`    | `block_-400.400.json`                                          | `tools/generate_puzzle_dungeon.ts`                                    |
+| `B2F`    | `block_200.400.json`                                           | `tools/generate_puzzle_dungeon2.ts`                                   |
+| `B3F`    | `block_400.400.json`                                           | `tools/generate_puzzle_dungeon3.ts`                                   |
+| `B4F`    | `block_400.200.json`                                           | `tools/generate_puzzle_dungeon4.ts`                                   |
+| `B5F`    | `block_600.200.json`                                           | `tools/generate_puzzle_dungeon5.ts`                                   |
+| `ZOO`    | `block_10000.10000.json`                                       | `tools/generate_preview_zoo.ts`                                       |
+| `DEBUG`  | `block_10000.-10000.json`                                      | `tools/generate_debug_map.ts`                                         |
+| `WILDS`  | `block_2000.0.json` など 30 枚 (`i` 2000〜3000, `j` 0〜800)    | `tools/generate_wilds.ts` (有機的な生成の試作、ideas/organic-maps.md) |
+| `CAVERN` | WILDS のブロックの中 (山の中、部屋名 `WILDS-CAVERN-HALL` など) | `tools/generate_cavern.ts` (`generate-wilds` が山の中に押す)          |
+| `CITY`   | `block_3200.0.json` など 4 枚 (`i` 3200〜3400, `j` 0〜200)     | `tools/generate_city.ts` (住宅と商店の多い市街地)                     |
 
 地上のマップ (`block_0.0.json` など) には名前がなく、ブロック ID が出る。
 
