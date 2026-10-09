@@ -7,8 +7,12 @@
 //
 // 1. the ground: the sea and a harbor quay on the west (with the old
 //    ferry pier), a canal winding north to south, and four avenues
-//    (4 wide) that cut the land into 9 districts; the avenues run out
-//    through the gates in the belt of trees around the city
+//    (4 wide) that cut the land into 9 districts. The city's outline is
+//    organic: flat along the harbor coast, rounded and ragged to the
+//    north, east and south (a wobbling D, bulging round the castle); the
+//    rest of the square (CITY_OUT) is left to the island. The avenues
+//    end square at the outline, in gates through the belt of trees
+//    along it
 // 2. each district is cut into lots by streets (2 wide), splitting the
 //    longer side again and again until the lots are small (a binary
 //    space partition), so the street plan is irregular, not a grid
@@ -36,6 +40,11 @@ type Spawn = { i: number; j: number; type: string; data?: unknown }
 /** The size of the city, in cells */
 export const CITY_W = 400
 export const CITY_H = 400
+/**
+ * The cells of the square left out of the city: its outline is organic,
+ * so these are the island's (tools/generate_wilds.ts grows them over)
+ */
+export const CITY_OUT = "_"
 /** The row of the ferry pier and the first avenue (local) */
 const ENTRY_Y = 170
 
@@ -114,8 +123,10 @@ export async function buildCity(
   const idx = (x: number, y: number) => y * W + x
   const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < W && y < H
   const at = (x: number, y: number) => (inside(x, y) ? grid[idx(x, y)] : "")
+  /** The cells outside the city's outline (they stay CITY_OUT) */
+  const outside = new Uint8Array(W * H)
   const set = (x: number, y: number, c: string) => {
-    if (inside(x, y)) grid[idx(x, y)] = c
+    if (inside(x, y) && !outside[idx(x, y)]) grid[idx(x, y)] = c
   }
   const D4: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]]
   const isWater = (c: string) => c === C.SEA
@@ -135,7 +146,7 @@ export async function buildCity(
   ) => {
     if (!inside(x, y)) return false
     const p = idx(x, y)
-    if (taken.has(p)) return false
+    if (taken.has(p) || outside[p]) return false
     taken.add(p)
     list.push({ i: OI + x, j: OJ + y, type, ...(data ? { data } : {}) })
     return true
@@ -190,34 +201,137 @@ export async function buildCity(
   for (let y = 0; y < H; y++) {
     for (let x = coast[y]; x < coast[y] + 3; x++) fixed[idx(x, y)] = 1
   }
-  // the edge of the city: a belt of trees whose inner line wanders, so
-  // the city ends raggedly instead of along a ruler (the island side
-  // of the same edge is grown over by tools/generate_wilds.ts)
+  // the outline of the city: flat along the harbor coast, rounded and
+  // ragged to the north, east and south (a D, its bow wobbling with the
+  // noise), so the city sits in the land like a grown town and not a
+  // stamped square. The castle district always stays in (it juts out)
   const B = 9301 + S - 4111
-  const beltE = (y: number) => 4 + Math.round(4 * fbm(0.3, y * 0.045, B))
-  const beltN = (x: number) => 3 + Math.round(4 * fbm(x * 0.045, 0.7, B + 1))
-  const beltS = (x: number) => 3 + Math.round(4 * fbm(x * 0.045, 1.3, B + 2))
+  /**
+   * The castle's east wall stands back from the square's edge, so the
+   * outline rounds off past it instead of running down the edge
+   */
+  const CASTLE_X1 = W - 30
+  const castleRect = { x0: X2 + 4, y0: Y1 + 4, x1: CASTLE_X1, y1: Y2 - 1 }
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
-      const edge = x >= W - beltE(y) || y < beltN(x) || y >= H - beltS(x)
-      if (edge && !isWater(at(x, y))) {
-        set(x, y, C.TREE)
-        fixed[idx(x, y)] = 1
+      const u = Math.max(0, x - 170) / 225
+      const v = Math.abs(y - H / 2) / (H / 2)
+      const rn = Math.pow(Math.pow(u, 2.4) + Math.pow(v, 2.4), 1 / 2.4)
+      const wobble = fbm(x / 70, y / 70, B + 7, 3)
+      const edge = 1.04 - 0.4 * wobble
+      // around the castle the land swells in a rounded bulge
+      const dx = Math.max(castleRect.x0 - x, 0, x - castleRect.x1)
+      const dy = Math.max(castleRect.y0 - y, 0, y - castleRect.y1)
+      const castle = Math.hypot(dx, dy) < 6 + 8 * wobble
+      if (rn >= edge && !castle) outside[idx(x, y)] = 1
+    }
+  }
+  // only the one piece of land around the middle is the city: specks
+  // the noise cut off from it are left to the island
+  {
+    const keep = new Uint8Array(W * H)
+    const start = idx(W >> 1, H >> 1)
+    keep[start] = 1
+    const queue = [start]
+    for (let q = 0; q < queue.length; q++) {
+      const x = queue[q] % W, y = (queue[q] / W) | 0
+      for (const [dx, dy] of D4) {
+        if (!inside(x + dx, y + dy)) continue
+        const np = idx(x + dx, y + dy)
+        if (!keep[np] && !outside[np]) {
+          keep[np] = 1
+          queue.push(np)
+        }
+      }
+    }
+    for (let p = 0; p < W * H; p++) if (!keep[p]) outside[p] = 1
+  }
+  // the avenues end square at the outline: where the first of their rows
+  // leaves the city, the rest are cut too, and that end is the gate
+  const gates: City["gates"] = []
+  for (const y of [Y1, Y2]) {
+    let gx = W - 1
+    for (let dy = 0; dy < 4; dy++) {
+      let x = X1
+      while (x + 1 < W && !outside[idx(x + 1, y + dy)]) x++
+      gx = Math.min(gx, x)
+    }
+    for (let dy = 0; dy < 4; dy++) {
+      for (let x = gx + 1; x < W; x++) outside[idx(x, y + dy)] = 1
+    }
+    gates.push({ x: gx, y: y + 1, side: "east" })
+  }
+  for (const x of [X1, X2]) {
+    let gn = 0, gs = H - 1
+    for (let dx = 0; dx < 4; dx++) {
+      let y = H >> 1
+      while (y > 0 && !outside[idx(x + dx, y - 1)]) y--
+      gn = Math.max(gn, y)
+      y = H >> 1
+      while (y + 1 < H && !outside[idx(x + dx, y + 1)]) y++
+      gs = Math.min(gs, y)
+    }
+    for (let dx = 0; dx < 4; dx++) {
+      for (let y = 0; y < gn; y++) outside[idx(x + dx, y)] = 1
+      for (let y = gs + 1; y < H; y++) outside[idx(x + dx, y)] = 1
+    }
+    gates.push({ x: x + 1, y: gn, side: "north" })
+    gates.push({ x: x + 1, y: gs, side: "south" })
+  }
+  for (let p = 0; p < W * H; p++) {
+    if (outside[p]) {
+      grid[p] = CITY_OUT
+      fixed[p] = 1
+    }
+  }
+  // the edge of the city: a belt of trees inside the outline whose inner
+  // line wanders (the island side of the same edge is grown over by
+  // tools/generate_wilds.ts)
+  {
+    const dist = new Uint8Array(W * H).fill(255)
+    const queue: number[] = []
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const p = idx(x, y)
+        if (outside[p]) {
+          dist[p] = 0
+          queue.push(p)
+        } else if (x === W - 1 || y === 0 || y === H - 1) {
+          dist[p] = 1
+          queue.push(p)
+        }
+      }
+    }
+    for (let q = 0; q < queue.length; q++) {
+      const p = queue[q]
+      if (dist[p] >= 10) continue
+      const x = p % W, y = (p / W) | 0
+      for (const [dx, dy] of D4) {
+        if (!inside(x + dx, y + dy)) continue
+        const np = idx(x + dx, y + dy)
+        if (dist[np] > dist[p] + 1) {
+          dist[np] = dist[p] + 1
+          queue.push(np)
+        }
+      }
+    }
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const p = idx(x, y)
+        if (outside[p] || isWater(at(x, y))) continue
+        const depth = 3 + Math.round(4 * fbm(x * 0.045, y * 0.045, B))
+        if (dist[p] <= depth) {
+          set(x, y, C.TREE)
+          fixed[p] = 1
+        }
       }
     }
   }
-  // the gates: the avenues run on out through the belt (as deep as the
-  // belt can wander), to the island
-  const gates: City["gates"] = []
-  for (const y of [Y1, Y2]) {
-    for (let x = W - 9; x < W; x++) avenue(x, y, x, y + 3)
-    gates.push({ x: W - 1, y: y + 1, side: "east" })
-  }
-  for (const x of [X1, X2]) {
-    avenue(x, 0, x + 3, 7)
-    avenue(x, H - 8, x + 3, H - 1)
-    gates.push({ x: x + 1, y: 0, side: "north" })
-    gates.push({ x: x + 1, y: H - 1, side: "south" })
+  // the gates: the avenues run on out through the belt, to the island
+  for (const g of gates) {
+    if (g.side === "east") avenue(g.x - 11, g.y - 1, g.x, g.y + 2)
+    else if (g.side === "north") avenue(g.x - 1, g.y, g.x + 2, g.y + 11)
+    else avenue(g.x - 1, g.y - 11, g.x + 2, g.y)
   }
 
   // ---------------------------------------------------------------------
@@ -293,8 +407,12 @@ export async function buildCity(
   COLS.forEach(([x0, x1], c) => {
     ROWS.forEach(([y0, y1], r) => {
       const district = DISTRICTS[c][r]
+      if (district === "CASTLE") {
+        districtRects.push({ x0, y0, x1: CASTLE_X1, y1, name: district })
+        return
+      }
       districtRects.push({ x0, y0, x1, y1, name: district })
-      if (district !== "CASTLE") subdivide({ x0, y0, x1, y1 }, district)
+      subdivide({ x0, y0, x1, y1 }, district)
     })
   })
 
@@ -922,6 +1040,8 @@ export async function buildCity(
   for (let y = 12; y < H - 12; y += 22) {
     if (Math.abs(y - ENTRY_Y) < 8) continue
     const x0 = coast[y]
+    // not where the quay is under the trees of the edge (or not the city's)
+    if (at(x0, y) !== C.AVENUE || at(x0, y + 1) !== C.AVENUE) continue
     for (let x = x0 - 1; x >= Math.max(2, x0 - 14); x--) {
       set(x, y, C.PIER)
       set(x, y + 1, C.PIER)
@@ -1002,9 +1122,21 @@ export async function buildCity(
   let reached = walk()
   // unreachable open ground becomes trees (the doors are checked below)
   let filled = 0
+  const inBuilding = new Uint8Array(W * H)
+  for (const b of buildings) {
+    for (let y = b.y0; y <= b.y1; y++) {
+      for (let x = b.x0; x <= b.x1; x++) inBuilding[idx(x, y)] = 1
+    }
+  }
   for (let p = 0; p < W * H; p++) {
     if (!reached[p] && walkable(p) && grid[p] !== C.FLOOR) {
       grid[p] = C.TREE
+      filled++
+    } else if (
+      !reached[p] && walkable(p) && grid[p] === C.PIER && !inBuilding[p]
+    ) {
+      // a bridge or a pier the edge cut off: back to the water
+      grid[p] = C.SEA
       filled++
     }
   }
@@ -1050,12 +1182,18 @@ export async function buildCity(
     unreachedDoors.length === 0,
   )
   let unreachedFloor = 0
+  let firstUnreached = ""
   for (let p = 0; p < W * H; p++) {
     if (!reached[p] && walkable(p)) {
-      unreachedFloor++
+      if (unreachedFloor++ === 0) {
+        firstUnreached = ` at ${p % W},${(p / W) | 0} ${grid[p]}`
+      }
     }
   }
-  check(`no unreachable floor (${unreachedFloor})`, unreachedFloor === 0)
+  check(
+    `no unreachable floor (${unreachedFloor}${firstUnreached})`,
+    unreachedFloor === 0,
+  )
   const count = (kind: Building["kind"]) =>
     buildings.filter((b) => b.kind === kind).length
   check(`houses (${count("house")}) >= 120`, count("house") >= 120)

@@ -52,7 +52,7 @@ import { Palette } from "../util/palette.ts"
 import { encodePng } from "./png.ts"
 import { fbm, hash, smoothstep } from "./noise.ts"
 import { type Kind, MAKERS } from "./minipuzzles.ts"
-import { buildCity, CITY_H, CITY_W } from "./generate_city.ts"
+import { buildCity, CITY_H, CITY_OUT, CITY_W } from "./generate_city.ts"
 import {
   buildCavern,
   CAVERN_ENTRY_X,
@@ -141,10 +141,17 @@ const cityAt = (x: number, y: number): PlacedCity | undefined =>
   cities.find((c) =>
     x >= c.x0 && x < c.x0 + CITY_W && y >= c.y0 && y < c.y0 + CITY_H
   )
-const inCity = (x: number, y: number) => cityAt(x, y) !== undefined
-/** The city's cell character at (x, y), in the city */
+/** The city's cell character at (x, y), in the city's square */
 const cityCell = (c: PlacedCity, x: number, y: number) =>
   c.city.grid[(y - c.y0) * CITY_W + (x - c.x0)]
+/**
+ * true on a city's ground: inside its organic outline (the rest of its
+ * square, CITY_OUT, is the island's)
+ */
+const inCity = (x: number, y: number) => {
+  const c = cityAt(x, y)
+  return c !== undefined && cityCell(c, x, y) !== CITY_OUT
+}
 /** The distance to the nearest city's land (its east part, off the harbor) */
 const distCity = (x: number, y: number) =>
   Math.min(...cities.map((c) => {
@@ -486,9 +493,14 @@ for (let y = 0; y < H; y++) {
   for (let x = 0; x < W; x++) {
     if (inCity(x, y)) terrain[idx(x, y)] = T.CITY
     else if (
-      cities.some((c) =>
-        x < c.x0 + 80 && y >= c.y0 - 40 && y < c.y0 + CITY_H + 40
-      )
+      cities.some((c) => {
+        // past the ends of the harbor the sea draws back in a curve, so
+        // the coast bends away instead of stopping in a straight line
+        const beyond = Math.max(c.y0 - y, 0, y - (c.y0 + CITY_H - 1))
+        const reach = 80 - beyond * beyond / 40 +
+          (fbm(x / 30, y / 30, S + 61, 2) - 0.5) * 30
+        return x < c.x0 + reach && beyond < 70
+      })
     ) terrain[idx(x, y)] = T.SEA
   }
 }
@@ -607,18 +619,16 @@ for (const { city, x0: KX0, y0: KY0, name } of cities) {
   }
 }
 // the city's belt of trees spills out onto the island: stray trees
-// thin out with the distance from its edge, so the straight stamp of
-// the city dissolves into the land (the gate roads above stay clear,
-// and the roads laid later punch through whatever falls here)
-for (const { x0: KX0, y0: KY0 } of cities) {
-  for (let y = KY0 - 10; y < KY0 + CITY_H + 10; y++) {
-    for (let x = KX0; x < KX0 + CITY_W + 10; x++) {
-      if (!inside(x, y) || inCity(x, y)) continue
-      const dx = Math.max(KX0 - x, 0, x - (KX0 + CITY_W - 1))
-      const dy = Math.max(KY0 - y, 0, y - (KY0 + CITY_H - 1))
-      const d = Math.hypot(dx, dy)
-      if (d > 9) continue
+// thin out with the distance from its outline, so the city dissolves
+// into the land (the gate roads above stay clear, and the roads laid
+// later punch through whatever falls here)
+{
+  const dCity = bfsDistance((p) => terrain[p] === T.CITY, 10)
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
       const p = idx(x, y)
+      const d = dCity[p]
+      if (d === 0 || d > 9) continue
       const t = terrain[p] as T
       if (keepClear[p] || taken.has(p)) continue
       if (!(t === T.MEADOW || t === T.FOREST || t === T.HILL)) continue
@@ -2420,9 +2430,9 @@ if (previewAt >= 0) {
   const rgba = new Uint8Array(W * H * 4)
   for (let p = 0; p < W * H; p++) {
     const x = p % W, y = (p / W) | 0
-    const inside = cityAt(x, y)
-    const hex = inside
-      ? (cityCell(inside, x, y) === "w" ? Palette.blue3 : Palette.orange1)
+    const c = cityAt(x, y)
+    const hex = c && inCity(x, y)
+      ? (cityCell(c, x, y) === "w" ? Palette.blue3 : Palette.orange1)
       : inCavern(x, y)
       ? (cavern.grid[(y - CY0) * CAVERN_W + (x - CX0)] === "2"
         ? Palette.gray4
@@ -2456,7 +2466,7 @@ if (!ok) {
 /** The cell character at (x, y) */
 function cellAt(x: number, y: number): string {
   const c = cityAt(x, y)
-  if (c) return cityCell(c, x, y)
+  if (c && inCity(x, y)) return cityCell(c, x, y)
   if (inCavern(x, y)) {
     // the cavern's rock is the mountain's rock, so no seam shows
     const c = cavern.grid[(y - CY0) * CAVERN_W + (x - CX0)]
