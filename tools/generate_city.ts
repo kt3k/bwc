@@ -24,7 +24,7 @@
 //    with trees), then the checks: every door is reached, the district
 //    has its buildings
 //
-// Usage: deno -A tools/generate_city.ts [--preview file.png]
+// Usage: deno -A tools/generate_city.ts [--preview file.png] [--seed city-2]
 import { seed } from "../util/random.ts"
 import { loadCatalog } from "../model/catalog.ts"
 import { Palette } from "../util/palette.ts"
@@ -67,12 +67,22 @@ export type City = {
 export async function buildCity(
   OI: number,
   OJ: number,
-  { preview }: { preview?: string } = {},
+  { preview, seed: cityName = "city-1", name = "THE CITY" }: {
+    preview?: string
+    /** Another seed builds another city (another plan of the same kind) */
+    seed?: string
+    /** The city's name on its signs */
+    name?: string
+  } = {},
 ): Promise<City> {
   const W = CITY_W
   const H = CITY_H
-  const { rng, randomInt, shuffle } = seed("city-1")
-  const S = 4111
+  const { rng, randomInt, shuffle } = seed(cityName)
+  // the noise seed: the first city keeps its own
+  const S = cityName === "city-1"
+    ? 4111
+    : 4111 + [...cityName].reduce((a, c) => a * 31 + c.charCodeAt(0), 7) %
+        5000
 
   const catalog = await loadCatalog(
     new URL("../static/catalog/base.json", import.meta.url).href,
@@ -183,9 +193,10 @@ export async function buildCity(
   // the edge of the city: a belt of trees whose inner line wanders, so
   // the city ends raggedly instead of along a ruler (the island side
   // of the same edge is grown over by tools/generate_wilds.ts)
-  const beltE = (y: number) => 4 + Math.round(4 * fbm(0.3, y * 0.045, 9301))
-  const beltN = (x: number) => 3 + Math.round(4 * fbm(x * 0.045, 0.7, 9302))
-  const beltS = (x: number) => 3 + Math.round(4 * fbm(x * 0.045, 1.3, 9303))
+  const B = 9301 + S - 4111
+  const beltE = (y: number) => 4 + Math.round(4 * fbm(0.3, y * 0.045, B))
+  const beltN = (x: number) => 3 + Math.round(4 * fbm(x * 0.045, 0.7, B + 1))
+  const beltS = (x: number) => 3 + Math.round(4 * fbm(x * 0.045, 1.3, B + 2))
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
       const edge = x >= W - beltE(y) || y < beltN(x) || y >= H - beltS(x)
@@ -687,7 +698,7 @@ export async function buildCity(
       put(actors, cx - 4, cy - 3, "bard")
       put(actors, lot.x0 + 1, lot.y1 - 1, "beggar")
       put(props, cx + 4, cy - 4, "notice-board", {
-        text: "THE CITY: HARBOR WEST, CASTLE EAST, MARKET ALL AROUND",
+        text: `${name}: HARBOR WEST, CASTLE EAST, MARKET ALL AROUND`,
       })
       for (const [dx, dy] of [[-5, -5], [5, -5], [-5, 5], [5, 5]]) {
         put(props, cx + dx, cy + dy, "lamp-post")
@@ -920,7 +931,7 @@ export async function buildCity(
     put(props, coast[y] + 2, y + 4, "barrel")
   }
   put(props, coast[ENTRY_Y] + 2, ENTRY_Y - 3, "sign", {
-    text: "THE CITY: WELCOME, TRAVELER. THE SQUARE IS EAST OF THE MARKET",
+    text: `${name}: WELCOME, TRAVELER. THE SQUARE IS EAST OF THE MARKET`,
   })
   put(actors, coast[ENTRY_Y] + 4, ENTRY_Y + 4, "guard")
   /** Where the portal from the START island lands: on the quay by the bridge */
@@ -1143,6 +1154,10 @@ export async function buildCity(
 
 if (import.meta.main) {
   const at = Deno.args.indexOf("--preview")
-  await buildCity(0, 0, { preview: at >= 0 ? Deno.args[at + 1] : undefined })
+  const seedAt = Deno.args.indexOf("--seed")
+  await buildCity(0, 0, {
+    preview: at >= 0 ? Deno.args[at + 1] : undefined,
+    seed: seedAt >= 0 ? Deno.args[seedAt + 1] : undefined,
+  })
   console.log("the city is verified (deno task generate-wilds writes it)")
 }

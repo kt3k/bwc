@@ -1,9 +1,19 @@
 {
   "comment": "The hand-made anchors of the WILDS (tools/generate_wilds.ts). Positions are fractions of the region (0..1); the generator snaps each to the nearest fitting land and grows the rest around them.",
   "seed": "wilds-2",
-  "origin": { "i": 2000, "j": 0 },
-  "blocks": { "w": 8, "h": 5 },
-  "arrival": { "x": 0.36, "y": 0.18, "name": "LANDING" },
+  "origin": {
+    "i": 2000,
+    "j": 0
+  },
+  "blocks": {
+    "w": 14,
+    "h": 9
+  },
+  "arrival": {
+    "x": 0.36,
+    "y": 0.18,
+    "name": "LANDING"
+  },
   "villages": [
     {
       "x": 0.4,
@@ -26,20 +36,116 @@
       "houses": 12,
       "layout": "walled"
     },
-    { "x": 0.32, "y": 0.8, "name": "HAYWARD", "houses": 8, "layout": "market" }
+    {
+      "x": 0.32,
+      "y": 0.8,
+      "name": "HAYWARD",
+      "houses": 8,
+      "layout": "market"
+    },
+    {
+      "x": 0.32,
+      "y": 0.5,
+      "name": "THORNBURY",
+      "houses": 9,
+      "layout": "crossroads"
+    },
+    {
+      "x": 0.74,
+      "y": 0.44,
+      "name": "OAKMERE",
+      "houses": 10,
+      "layout": "market"
+    },
+    {
+      "x": 0.92,
+      "y": 0.46,
+      "name": "FROSTREACH",
+      "houses": 8,
+      "layout": "ring"
+    },
+    {
+      "x": 0.46,
+      "y": 0.86,
+      "name": "BRAMBLEWICK",
+      "houses": 9,
+      "layout": "ring"
+    },
+    {
+      "x": 0.68,
+      "y": 0.9,
+      "name": "WILLOWEND",
+      "houses": 11,
+      "layout": "walled"
+    },
+    {
+      "x": 0.78,
+      "y": 0.12,
+      "name": "HIGHCROFT",
+      "houses": 8,
+      "layout": "crossroads"
+    }
   ],
   "landmarks": [
-    { "x": 0.52, "y": 0.13, "name": "LOOKOUT", "kind": "lookout" },
-    { "x": 0.86, "y": 0.3, "name": "SHRINE", "kind": "shrine" },
-    { "x": 0.38, "y": 0.62, "name": "RUINS", "kind": "ruins" },
-    { "x": 0.82, "y": 0.82, "name": "BONE VALLEY", "kind": "biomech" }
+    {
+      "x": 0.52,
+      "y": 0.13,
+      "name": "LOOKOUT",
+      "kind": "lookout"
+    },
+    {
+      "x": 0.86,
+      "y": 0.3,
+      "name": "SHRINE",
+      "kind": "shrine"
+    },
+    {
+      "x": 0.38,
+      "y": 0.62,
+      "name": "RUINS",
+      "kind": "ruins"
+    },
+    {
+      "x": 0.86,
+      "y": 0.76,
+      "name": "BONE VALLEY",
+      "kind": "biomech"
+    },
+    {
+      "x": 0.95,
+      "y": 0.66,
+      "name": "EAST CAPE",
+      "kind": "lookout"
+    },
+    {
+      "x": 0.74,
+      "y": 0.7,
+      "name": "MOON SHRINE",
+      "kind": "shrine"
+    },
+    {
+      "x": 0.8,
+      "y": 0.84,
+      "name": "SUNKEN RUINS",
+      "kind": "ruins"
+    }
   ],
-  "camps": 9,
-  "city": {
-    "x": 0.0025,
-    "y": 0.28,
-    "comment": "the CITY (tools/generate_city.ts, 400x400) on the west coast: its left column (x * width) and top row (y * height). Its harbor opens on the sea; its avenues run out through gates in its belt of trees to the island's roads"
-  },
+  "camps": 24,
+  "citiesComment": "the cities (tools/generate_city.ts, 400x400 each) on the west coast: each its left column (x * width) and top row (y * height), its name (room id) and plan seed. The first is THE CITY, where the C portal of the START island lands. Each harbor opens on the sea; the avenues run out through gates in the belt of trees to the island's roads",
+  "cities": [
+    {
+      "x": 0.1,
+      "y": 0.17,
+      "name": "CITY",
+      "seed": "city-1"
+    },
+    {
+      "x": 0.1,
+      "y": 0.57,
+      "name": "SOUTHPORT",
+      "seed": "city-2"
+    }
+  ],
   "cave": {
     "x": 0.56,
     "y": 0.5,

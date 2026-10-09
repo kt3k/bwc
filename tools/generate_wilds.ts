@@ -31,9 +31,11 @@
 // the tutorial told by the terrain, and the hermit's toll bridge keeps
 // the island shut until it is walked (see "the castaway cove").
 //
-// The CITY (tools/generate_city.ts) stands on the west coast: its harbor
-// opens on the sea, the land around it rises a little, and the island's
-// roads come to the gates in its belt of trees.
+// The cities (tools/generate_city.ts, the CITY and SOUTHPORT, each built
+// from its own seed) stand on the west coast: each harbor opens on the
+// sea, the land around rises a little, and the island's roads come to
+// the gates in the belt of trees. The island is 14x9 blocks; the counts
+// of puzzles, oddities, rivers and loops grow with its area (SCALE).
 //
 // The CAVERN (tools/generate_cavern.ts) lies inside the island: the
 // height field rises into a mountain over it, the mountain is solid rock
@@ -77,8 +79,11 @@ type Plan = {
   camps: number
   /** The cavern: its entrance column (x) and top row (y), as fractions */
   cave: { x: number; y: number; name: string }
-  /** The CITY on the west coast: its left column and top row, as fractions */
-  city: { x: number; y: number }
+  /**
+   * The cities on the west coast: each its left column and top row, as
+   * fractions, its name (the room id) and the seed of its plan
+   */
+  cities: { x: number; y: number; name: string; seed: string }[]
 }
 
 const plan: Plan = JSON.parse(
@@ -89,6 +94,8 @@ const W = plan.blocks.w * BLOCK
 const H = plan.blocks.h * BLOCK
 const OI = plan.origin.i
 const OJ = plan.origin.j
+/** How many times the first 8x5 island this is: the counts grow with it */
+const SCALE = Math.max(1, Math.round((W * H) / (1600 * 1000)))
 const { rng, randomInt, shuffle } = seed(plan.seed)
 
 const catalog = await loadCatalog(
@@ -114,18 +121,37 @@ const distMassif = (x: number, y: number) => {
 }
 const cavern = await buildCavern(OI + CX0, OJ + CY0)
 
-// the city's place: on the west coast, its harbor on the sea
-const KX0 = Math.round(plan.city.x * W)
-const KY0 = Math.round(plan.city.y * H)
-const inCity = (x: number, y: number) =>
-  x >= KX0 && x < KX0 + CITY_W && y >= KY0 && y < KY0 + CITY_H
-/** The distance to the city's land (its east part, off the harbor) */
-const distCity = (x: number, y: number) => {
-  const dx = Math.max(KX0 + 90 - x, 0, x - (KX0 + CITY_W - 1))
-  const dy = Math.max(KY0 - y, 0, y - (KY0 + CITY_H - 1))
-  return Math.hypot(dx, dy)
-}
-const city = await buildCity(OI + KX0, OJ + KY0)
+// the cities' places: on the west coast, each harbor on the sea. The
+// first is THE CITY (the C portal of the START island lands in it)
+const cities = await Promise.all(plan.cities.map(async (c, n) => {
+  const x0 = Math.round(c.x * W), y0 = Math.round(c.y * H)
+  return {
+    ...c,
+    x0,
+    y0,
+    city: await buildCity(OI + x0, OJ + y0, {
+      seed: c.seed,
+      name: n === 0 ? "THE CITY" : c.name,
+    }),
+  }
+}))
+type PlacedCity = (typeof cities)[number]
+/** The city the cell is in, if any */
+const cityAt = (x: number, y: number): PlacedCity | undefined =>
+  cities.find((c) =>
+    x >= c.x0 && x < c.x0 + CITY_W && y >= c.y0 && y < c.y0 + CITY_H
+  )
+const inCity = (x: number, y: number) => cityAt(x, y) !== undefined
+/** The city's cell character at (x, y), in the city */
+const cityCell = (c: PlacedCity, x: number, y: number) =>
+  c.city.grid[(y - c.y0) * CITY_W + (x - c.x0)]
+/** The distance to the nearest city's land (its east part, off the harbor) */
+const distCity = (x: number, y: number) =>
+  Math.min(...cities.map((c) => {
+    const dx = Math.max(c.x0 + 90 - x, 0, x - (c.x0 + CITY_W - 1))
+    const dy = Math.max(c.y0 - y, 0, y - (c.y0 + CITY_H - 1))
+    return Math.hypot(dx, dy)
+  }))
 
 // ---------------------------------------------------------------------
 // 1. height and moisture
@@ -260,7 +286,7 @@ const sources: [number, number][] = []
     if (sources.every(([sx, sy]) => Math.hypot(sx - x, sy - y) > 150)) {
       sources.push([x, y])
     }
-    if (sources.length >= 4) break
+    if (sources.length >= 3 * SCALE) break
   }
 }
 for (const [sx, sy] of sources) {
@@ -460,7 +486,9 @@ for (let y = 0; y < H; y++) {
   for (let x = 0; x < W; x++) {
     if (inCity(x, y)) terrain[idx(x, y)] = T.CITY
     else if (
-      x < KX0 + 80 && y >= KY0 - 40 && y < KY0 + CITY_H + 40
+      cities.some((c) =>
+        x < c.x0 + 80 && y >= c.y0 - 40 && y < c.y0 + CITY_H + 40
+      )
     ) terrain[idx(x, y)] = T.SEA
   }
 }
@@ -549,47 +577,53 @@ nodes.push({
 // the city gates: the avenues come out of the city's belt of trees; a
 // short road leads out from each to an anchor on the island (the gates
 // that open onto the sea are left shut)
-for (const [n, g] of city.gates.entries()) {
-  const [ox, oy] = g.side === "east"
-    ? [1, 0]
-    : g.side === "north"
-    ? [0, -1]
-    : [0, 1]
-  const gx = KX0 + g.x, gy = KY0 + g.y
-  const nx = gx + ox * 5, ny = gy + oy * 5
-  const outside = [1, 2, 3, 4, 5].map((k) => idx(gx + ox * k, gy + oy * k))
-  if (!inside(nx, ny) || outside.some((p) => isWater(terrain[p] as T))) continue
-  for (const p of outside) {
-    for (const side of [-1, 0, 1, 2]) {
-      // the road 4 wide, as the avenue
-      const q = p + (ox === 0 ? side : side * W)
-      terrain[q] = T.ROAD
-      keepClear[q] = 1
+for (const { city, x0: KX0, y0: KY0, name } of cities) {
+  for (const [n, g] of city.gates.entries()) {
+    const [ox, oy] = g.side === "east"
+      ? [1, 0]
+      : g.side === "north"
+      ? [0, -1]
+      : [0, 1]
+    const gx = KX0 + g.x, gy = KY0 + g.y
+    const nx = gx + ox * 5, ny = gy + oy * 5
+    const outside = [1, 2, 3, 4, 5].map((k) => idx(gx + ox * k, gy + oy * k))
+    if (!inside(nx, ny) || outside.some((p) => isWater(terrain[p] as T))) {
+      continue
     }
+    for (const p of outside) {
+      for (const side of [-1, 0, 1, 2]) {
+        // the road 4 wide, as the avenue
+        const q = p + (ox === 0 ? side : side * W)
+        terrain[q] = T.ROAD
+        keepClear[q] = 1
+      }
+    }
+    nodes.push({
+      x: nx,
+      y: ny,
+      name: `${name} ${g.side.toUpperCase()} GATE ${n + 1}`,
+      kind: "citygate",
+    })
   }
-  nodes.push({
-    x: nx,
-    y: ny,
-    name: `CITY ${g.side.toUpperCase()} GATE ${n + 1}`,
-    kind: "citygate",
-  })
 }
 // the city's belt of trees spills out onto the island: stray trees
 // thin out with the distance from its edge, so the straight stamp of
 // the city dissolves into the land (the gate roads above stay clear,
 // and the roads laid later punch through whatever falls here)
-for (let y = KY0 - 10; y < KY0 + CITY_H + 10; y++) {
-  for (let x = KX0; x < KX0 + CITY_W + 10; x++) {
-    if (!inside(x, y) || inCity(x, y)) continue
-    const dx = Math.max(KX0 - x, 0, x - (KX0 + CITY_W - 1))
-    const dy = Math.max(KY0 - y, 0, y - (KY0 + CITY_H - 1))
-    const d = Math.hypot(dx, dy)
-    if (d > 9) continue
-    const p = idx(x, y)
-    const t = terrain[p] as T
-    if (keepClear[p] || taken.has(p)) continue
-    if (!(t === T.MEADOW || t === T.FOREST || t === T.HILL)) continue
-    if (hash(x, y, 9304) < (1 - d / 9) * 0.55) terrain[p] = T.TREE
+for (const { x0: KX0, y0: KY0 } of cities) {
+  for (let y = KY0 - 10; y < KY0 + CITY_H + 10; y++) {
+    for (let x = KX0; x < KX0 + CITY_W + 10; x++) {
+      if (!inside(x, y) || inCity(x, y)) continue
+      const dx = Math.max(KX0 - x, 0, x - (KX0 + CITY_W - 1))
+      const dy = Math.max(KY0 - y, 0, y - (KY0 + CITY_H - 1))
+      const d = Math.hypot(dx, dy)
+      if (d > 9) continue
+      const p = idx(x, y)
+      const t = terrain[p] as T
+      if (keepClear[p] || taken.has(p)) continue
+      if (!(t === T.MEADOW || t === T.FOREST || t === T.HILL)) continue
+      if (hash(x, y, 9304) < (1 - d / 9) * 0.55) terrain[p] = T.TREE
+    }
   }
 }
 // camps: spaced out on the remaining land (Poisson disc against the rest)
@@ -657,7 +691,7 @@ const edges: [number, number][] = []
   }
   // loops: each village also reaches its nearest unlinked anchor
   let loops = 0
-  for (let a = 0; a < nodes.length && loops < 2; a++) {
+  for (let a = 0; a < nodes.length && loops < 2 * SCALE; a++) {
     if (nodes[a].kind !== "village") continue
     const others = nodes.map((
       n,
@@ -1314,12 +1348,16 @@ for (const n of nodes) {
     case "biomech":
       buildBoneValley(n)
       break
-    case "citygate":
+    case "citygate": {
       put(props, n.x + 3, n.y - 3, "lantern")
+      const town = n.name.startsWith("CITY ")
+        ? "THE CITY"
+        : n.name.split(" ")[0]
       put(props, n.x - 3, n.y + 3, "sign", {
-        text: "THE CITY: HARBOR WEST, CASTLE EAST, MARKET ALL AROUND",
+        text: `${town}: HARBOR WEST, CASTLE EAST, MARKET ALL AROUND`,
       })
       break
+    }
     case "cave":
       put(props, n.x - 3, n.y + 3, "lantern")
       put(props, n.x + 3, n.y + 3, "lantern")
@@ -1369,7 +1407,7 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
     boulder: "WEIGHT TRIAL: THE DOOR OPENS WHILE THE PLATE IS HELD",
     switch: "SWITCH TRIAL: BLUE STANDS WHILE OFF, RED WHILE ON",
   }
-  for (let n = 0; n < 6000 && puzzles.length < 9; n++) {
+  for (let n = 0; n < 6000 * SCALE && puzzles.length < 9 * SCALE; n++) {
     const kind = KINDS[puzzles.length % KINDS.length]
     const x0 = 20 + randomInt(W - 40), y0 = 20 + randomInt(H - 40)
     // the room (11x9) and a margin of 2, all open land, nothing built
@@ -2067,6 +2105,7 @@ function oddity(
   fits: (x: number, y: number) => boolean = (x, y) => openLand(x, y, r),
 ) {
   let placed = 0
+  count *= SCALE
   scatter(120, W * H / 40, (x, y) => placed < count && fits(x, y), (x, y) => {
     setup(x, y)
     // the setup and its margin stay clear of trees
@@ -2381,10 +2420,9 @@ if (previewAt >= 0) {
   const rgba = new Uint8Array(W * H * 4)
   for (let p = 0; p < W * H; p++) {
     const x = p % W, y = (p / W) | 0
-    const hex = inCity(x, y)
-      ? (city.grid[(y - KY0) * CITY_W + (x - KX0)] === "w"
-        ? Palette.blue3
-        : Palette.orange1)
+    const inside = cityAt(x, y)
+    const hex = inside
+      ? (cityCell(inside, x, y) === "w" ? Palette.blue3 : Palette.orange1)
       : inCavern(x, y)
       ? (cavern.grid[(y - CY0) * CAVERN_W + (x - CX0)] === "2"
         ? Palette.gray4
@@ -2417,7 +2455,8 @@ if (!ok) {
 
 /** The cell character at (x, y) */
 function cellAt(x: number, y: number): string {
-  if (inCity(x, y)) return city.grid[(y - KY0) * CITY_W + (x - KX0)]
+  const c = cityAt(x, y)
+  if (c) return cityCell(c, x, y)
   if (inCavern(x, y)) {
     // the cavern's rock is the mountain's rock, so no seam shows
     const c = cavern.grid[(y - CY0) * CAVERN_W + (x - CX0)]
@@ -2426,9 +2465,21 @@ function cellAt(x: number, y: number): string {
   const p = idx(x, y)
   return terrain[p] === T.BIO ? bioChar.get(p)! : CELL[terrain[p] as T]
 }
-const allActors = [...actorsOut, ...cavern.actors, ...city.actors]
-const allItems = [...itemsOut, ...cavern.items, ...city.items]
-const allProps = [...propsOut, ...cavern.props, ...city.props]
+const allActors = [
+  ...actorsOut,
+  ...cavern.actors,
+  ...cities.flatMap((c) => c.city.actors),
+]
+const allItems = [
+  ...itemsOut,
+  ...cavern.items,
+  ...cities.flatMap((c) => c.city.items),
+]
+const allProps = [
+  ...propsOut,
+  ...cavern.props,
+  ...cities.flatMap((c) => c.city.props),
+]
 /** The named places: the anchors, and the cavern's caves and chambers */
 const places = [
   ...nodes.map((n) => {
@@ -2485,20 +2536,22 @@ const places = [
     x1: CX0 + r.x1,
     y1: CY0 + r.y1,
   })),
-  {
-    id: "CITY",
-    x0: KX0,
-    y0: KY0,
-    x1: KX0 + CITY_W - 1,
-    y1: KY0 + CITY_H - 1,
-  },
-  ...city.rooms.map((r) => ({
-    id: `CITY-${r.id}`,
-    x0: KX0 + r.x0,
-    y0: KY0 + r.y0,
-    x1: KX0 + r.x1,
-    y1: KY0 + r.y1,
-  })),
+  ...cities.flatMap(({ name, x0: KX0, y0: KY0, city }) => [
+    {
+      id: name,
+      x0: KX0,
+      y0: KY0,
+      x1: KX0 + CITY_W - 1,
+      y1: KY0 + CITY_H - 1,
+    },
+    ...city.rooms.map((r) => ({
+      id: `${name}-${r.id}`,
+      x0: KX0 + r.x0,
+      y0: KY0 + r.y0,
+      x1: KX0 + r.x1,
+      y1: KY0 + r.y1,
+    })),
+  ]),
 ]
 
 for (let by = 0; by < plan.blocks.h; by++) {
@@ -2616,7 +2669,10 @@ portalRoom(
   40,
   39,
   "c",
-  { i: OI + KX0 + city.arrival[0], j: OJ + KY0 + city.arrival[1] },
+  {
+    i: OI + cities[0].x0 + cities[0].city.arrival[0],
+    j: OJ + cities[0].y0 + cities[0].city.arrival[1],
+  },
   "THE CITY: STREETS, SHOPS AND A CASTLE BY THE SEA",
 )
 // tidy: the cells that can't be walked to from the start (props count

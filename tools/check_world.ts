@@ -106,6 +106,7 @@ const plan = JSON.parse(
   origin: { i: number; j: number }
   blocks: { w: number; h: number }
   cave: { x: number; y: number }
+  cities: { name: string }[]
 }
 const WILDS_W = plan.blocks.w * 200
 const WILDS_H = plan.blocks.h * 200
@@ -174,6 +175,26 @@ check(
   "CITY reached on foot from the WILDS",
   fromWilds.has(CITY_ARRIVAL.join(".")),
 )
+// the other cities (the first is the CITY above): most of their streets
+// are walked to from the WILDS arrival
+for (const { name } of plan.cities.slice(1)) {
+  let cells = 0, reached = 0
+  for (const b of blocks.values()) {
+    for (const r of b.rooms ?? []) {
+      if (r.id !== name) continue
+      for (let j = r.j; j < r.j + r.h; j++) {
+        for (let i = r.i; i < r.i + r.w; i++) {
+          cells++
+          if (fromWilds.has(`${i}.${j}`)) reached++
+        }
+      }
+    }
+  }
+  check(
+    `${name} reached on foot from the WILDS (${reached} cells)`,
+    cells > 0 && reached > cells / 4,
+  )
+}
 const sealed = walk(ARRIVALS, false)
 check("B1F reached without keys", sealed.has(`${FLOORS[0][1]}.${FLOORS[0][2]}`))
 for (const [name, i, j] of FLOORS.slice(1)) {
