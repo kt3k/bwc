@@ -574,6 +574,24 @@ for (const [n, g] of city.gates.entries()) {
     kind: "citygate",
   })
 }
+// the city's belt of trees spills out onto the island: stray trees
+// thin out with the distance from its edge, so the straight stamp of
+// the city dissolves into the land (the gate roads above stay clear,
+// and the roads laid later punch through whatever falls here)
+for (let y = KY0 - 10; y < KY0 + CITY_H + 10; y++) {
+  for (let x = KX0; x < KX0 + CITY_W + 10; x++) {
+    if (!inside(x, y) || inCity(x, y)) continue
+    const dx = Math.max(KX0 - x, 0, x - (KX0 + CITY_W - 1))
+    const dy = Math.max(KY0 - y, 0, y - (KY0 + CITY_H - 1))
+    const d = Math.hypot(dx, dy)
+    if (d > 9) continue
+    const p = idx(x, y)
+    const t = terrain[p] as T
+    if (keepClear[p] || taken.has(p)) continue
+    if (!(t === T.MEADOW || t === T.FOREST || t === T.HILL)) continue
+    if (hash(x, y, 9304) < (1 - d / 9) * 0.55) terrain[p] = T.TREE
+  }
+}
 // camps: spaced out on the remaining land (Poisson disc against the rest)
 {
   const cands: [number, number][] = []
@@ -757,15 +775,30 @@ for (const n of nodes) {
   if (n.kind !== "village") continue
   const { x: cx, y: cy } = n
   const R = townR(n)
-  // the land of the town is cleared to meadow (the water stays)
-  for (let dy = -R; dy <= R; dy++) {
-    for (let dx = -R; dx <= R; dx++) {
-      if (!inside(cx + dx, cy + dy) || Math.hypot(dx, dy) > R + 2) continue
-      const p = idx(cx + dx, cy + dy)
+  // the land of the town: full meadow at heart, but the rim wanders
+  // with the noise and the clearing dies out cell by cell into the
+  // woods, so no drawn circle ever shows. The outer fringe is left to
+  // the scatter: lone trees and brush creep back in where it thins
+  const FRINGE = 9
+  for (let dy = -R - FRINGE; dy <= R + FRINGE; dy++) {
+    for (let dx = -R - FRINGE; dx <= R + FRINGE; dx++) {
+      const x = cx + dx, y = cy + dy
+      if (!inside(x, y)) continue
+      const p = idx(x, y)
       const t = terrain[p] as T
       if (isWater(t) || t === T.PLAZA) continue
-      terrain[p] = T.MEADOW
-      keepClear[p] = 1
+      const rim = R - 3 + 6 * fbm(x * 0.07, y * 0.07, 7102)
+      const d = Math.hypot(dx, dy)
+      if (d <= rim) {
+        terrain[p] = T.MEADOW
+        keepClear[p] = 1
+      } else if (d <= rim + FRINGE) {
+        // how far out into the fringe (0 at the rim, 1 at the woods):
+        // the ground and the right to stay clear both fade with it
+        const out = (d - rim) / FRINGE
+        if (hash(x, y, 7103) > out) terrain[p] = T.MEADOW
+        if (hash(x, y, 7104) > out * 1.6) keepClear[p] = 1
+      }
     }
   }
   switch (layoutOf(n)) {

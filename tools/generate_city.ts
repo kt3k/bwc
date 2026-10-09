@@ -180,25 +180,31 @@ export async function buildCity(
   for (let y = 0; y < H; y++) {
     for (let x = coast[y]; x < coast[y] + 3; x++) fixed[idx(x, y)] = 1
   }
-  // the edge of the city: a belt of trees
+  // the edge of the city: a belt of trees whose inner line wanders, so
+  // the city ends raggedly instead of along a ruler (the island side
+  // of the same edge is grown over by tools/generate_wilds.ts)
+  const beltE = (y: number) => 4 + Math.round(4 * fbm(0.3, y * 0.045, 9301))
+  const beltN = (x: number) => 3 + Math.round(4 * fbm(x * 0.045, 0.7, 9302))
+  const beltS = (x: number) => 3 + Math.round(4 * fbm(x * 0.045, 1.3, 9303))
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
-      const edge = x >= W - 4 || y < 3 || y >= H - 3
+      const edge = x >= W - beltE(y) || y < beltN(x) || y >= H - beltS(x)
       if (edge && !isWater(at(x, y))) {
         set(x, y, C.TREE)
         fixed[idx(x, y)] = 1
       }
     }
   }
-  // the gates: the avenues run on out through the belt, to the island
+  // the gates: the avenues run on out through the belt (as deep as the
+  // belt can wander), to the island
   const gates: City["gates"] = []
   for (const y of [Y1, Y2]) {
-    for (let x = W - 5; x < W; x++) avenue(x, y, x, y + 3)
+    for (let x = W - 9; x < W; x++) avenue(x, y, x, y + 3)
     gates.push({ x: W - 1, y: y + 1, side: "east" })
   }
   for (const x of [X1, X2]) {
-    avenue(x, 0, x + 3, 3)
-    avenue(x, H - 4, x + 3, H - 1)
+    avenue(x, 0, x + 3, 7)
+    avenue(x, H - 8, x + 3, H - 1)
     gates.push({ x: x + 1, y: 0, side: "north" })
     gates.push({ x: x + 1, y: H - 1, side: "south" })
   }
