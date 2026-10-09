@@ -1,6 +1,7 @@
 // The world map viewer (static/maps.html): every block at once, to see
-// how the whole world fits together. Drag to pan, wheel to zoom, hover
-// for the cell details, double click to play from that cell.
+// how the whole world fits together. Drag to pan, wheel or pinch to
+// zoom, hover for the cell details, double click to play from that
+// cell.
 //
 // Rendering the whole world at full size would be a canvas of tens of
 // thousands of pixels square, so it draws at two levels of detail:
@@ -552,12 +553,54 @@ function updateLabels(vis: Block[]) {
 // input
 
 let drag: { x: number; y: number; cx: number; cy: number } | null = null
+/** The fingers (or other pointers) currently down on the map */
+const pointers = new Map<number, { x: number; y: number }>()
+/** A two-finger pinch: the starting spread and scale, and the cell
+ * between the fingers, which stays under their midpoint */
+let pinch: { d0: number; s0: number; i: number; j: number } | null = null
+
+function pinchPoints() {
+  const [a, b] = [...pointers.values()]
+  return {
+    d: Math.hypot(a.x - b.x, a.y - b.y),
+    mx: (a.x + b.x) / 2 * dpr,
+    my: (a.y + b.y) / 2 * dpr,
+  }
+}
 
 canvas.addEventListener("pointerdown", (e) => {
-  canvas.setPointerCapture(e.pointerId)
-  drag = { x: e.clientX, y: e.clientY, cx: view.cx, cy: view.cy }
+  try {
+    canvas.setPointerCapture(e.pointerId)
+  } catch {
+    // a pointer that cannot be captured still pans and pinches
+  }
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+  if (pointers.size === 2) {
+    const { d, mx, my } = pinchPoints()
+    pinch = { d0: Math.max(1, d), s0: view.s, i: toCellI(mx), j: toCellJ(my) }
+    drag = null
+  } else if (pointers.size === 1) {
+    drag = { x: e.clientX, y: e.clientY, cx: view.cx, cy: view.cy }
+  } else {
+    drag = null
+  }
 })
 canvas.addEventListener("pointermove", (e) => {
+  const p = pointers.get(e.pointerId)
+  if (p) {
+    p.x = e.clientX
+    p.y = e.clientY
+  }
+  if (pinch && pointers.size === 2) {
+    const { d, mx, my } = pinchPoints()
+    const s = Math.min(64 * dpr, Math.max(0.1, pinch.s0 * (d / pinch.d0)))
+    view.s = s
+    // the cell the pinch began on follows the fingers' midpoint
+    view.cx = pinch.i - (mx - canvas.width / 2) / s
+    view.cy = pinch.j - (my - canvas.height / 2) / s
+    requestDraw()
+    return
+  }
   if (drag) {
     view.cx = drag.cx - (e.clientX - drag.x) * dpr / view.s
     view.cy = drag.cy - (e.clientY - drag.y) * dpr / view.s
@@ -565,9 +608,19 @@ canvas.addEventListener("pointermove", (e) => {
   }
   showInfo(e.clientX * dpr, e.clientY * dpr)
 })
-canvas.addEventListener("pointerup", () => {
-  drag = null
-})
+const liftPointer = (e: PointerEvent) => {
+  pointers.delete(e.pointerId)
+  if (pointers.size < 2) pinch = null
+  if (pointers.size === 1) {
+    // the finger that stays goes on panning from where it is
+    const [p] = pointers.values()
+    drag = { x: p.x, y: p.y, cx: view.cx, cy: view.cy }
+  } else {
+    drag = null
+  }
+}
+canvas.addEventListener("pointerup", liftPointer)
+canvas.addEventListener("pointercancel", liftPointer)
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault()
   const px = e.clientX * dpr, py = e.clientY * dpr
