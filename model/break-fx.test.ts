@@ -3,12 +3,14 @@ import {
   BreakRun,
   type FxContext,
   invert,
+  MotionMeter,
   type Painter,
   type Params,
   PATTERNS,
   PRESETS,
   recipe,
   seeded,
+  shade,
   type SpriteData,
 } from "./break-fx.ts"
 import { isPaletteColor, PALETTE, Palette } from "../util/palette.ts"
@@ -142,4 +144,47 @@ Deno.test("a lower frame rate stretches the effects", () => {
   const at15 = play(new BreakRun(recipe({ poof: {} }, { rate: 4 }), ctx()))
   assert(at60 > 0)
   assert(at15 >= at60 * 4 - 3 && at15 <= at60 * 4)
+})
+
+Deno.test("the calm presets bring nothing out of nothing", () => {
+  const calm = new Set(
+    PATTERNS.filter((pt) => pt.group === "calm").map((pt) => pt.id),
+  )
+  for (const preset of PRESETS) {
+    const on = Object.entries(preset.recipe.layers).filter(([, l]) => l.on)
+    if (!on.every(([id]) => calm.has(id) || id === "wipe")) {
+      continue
+    }
+    for (const dir of DIRS) {
+      const run = new BreakRun(preset.recipe, {
+        x: 48,
+        y: 32,
+        dir,
+        sprite: sprite(),
+        rand: seeded(9),
+      })
+      play(run)
+      assertEquals(run.motion.appeared, 0, `${preset.name} ${dir}`)
+    }
+  }
+})
+
+Deno.test("the motion meter counts what pops out and what moves", () => {
+  const frame = (...keys: string[]) =>
+    new Map(keys.map((k) => [k, Palette.white]))
+  const m = new MotionMeter(frame("0,0"))
+  m.add(frame("1,0"))
+  assertEquals([m.changed, m.appeared, m.vanished], [2, 0, 0])
+  m.add(frame("1,0", "5,5"))
+  assertEquals([m.appeared, m.maxChanged], [1, 2])
+  m.add(frame())
+  assertEquals(m.vanished, 2)
+})
+
+Deno.test("shade steps down (and up) a hue's own ramp", () => {
+  assertEquals(shade(Palette.cyan2, true), Palette.cyan3)
+  assertEquals(shade(Palette.cyan4, true), Palette.black)
+  assertEquals(shade(Palette.white, true), Palette.gray1)
+  assertEquals(shade(Palette.black, false), Palette.gray4)
+  assertEquals(shade(Palette.cyan1, false), Palette.white)
 })

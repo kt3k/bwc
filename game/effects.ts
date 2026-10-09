@@ -129,6 +129,7 @@ class Stage {
   readonly canvas = document.createElement("canvas")
   #g: CanvasRenderingContext2D
   #run: BreakRun | null = null
+  #lastMotion: BreakRun["motion"] | null = null
   #idle = 0
   #after = 0
   #tick = 0
@@ -161,6 +162,7 @@ class Stage {
     this.frame = 0
   }
   reset() {
+    this.#lastMotion = this.#run?.motion ?? this.#lastMotion
     this.#run = null
     this.#idle = 0
     this.frame = 0
@@ -227,6 +229,13 @@ class Stage {
   }
   get running(): boolean {
     return !!this.#run
+  }
+  /** How much moved in the last break, as one line */
+  get motion(): string {
+    const m = this.#run?.motion ?? this.#lastMotion
+    if (!m) return "動き: -"
+    return `変化 計 ${m.changed}px / 最大 ${m.maxChanged}px/frame` +
+      ` · 急に出た ${m.appeared}px · 急に消えた ${m.vanished}px`
   }
 }
 
@@ -435,13 +444,22 @@ function controlsPanel(): HTMLElement {
     if (!main.running) main.trigger()
     else main.advance()
   })
-  setInterval(() => frame.textContent = `FRAME ${main.frame}`, 50)
+  const motion = ink("", "ink-light")
+  setInterval(() => {
+    frame.textContent = `FRAME ${main.frame}`
+    motion.textContent = main.motion
+  }, 50)
   const row = (label: string, control: HTMLElement) =>
     el("div", "param", ink(label, "ink-mid"), control)
   return el(
     "div",
     "panel",
     el("div", "chips", play, pause, stepB, frame),
+    motion,
+    ink(
+      "急に出た / 消えた = 前 (次) の frame の 1px 以内に何もない画素。0 に近いほど「ない物が急に現れる・消える」が少ない",
+      "ink-mid",
+    ),
     row(
       "自動でくり返す",
       chips([true, false], (o) => o ? "ON" : "OFF", () => state.auto, (o) => {
@@ -613,6 +631,8 @@ function gallery(rebuild: () => void): HTMLElement {
       changed()
       main.trigger()
     })
+    const motion = ink("", "ink-mid")
+    setInterval(() => motion.textContent = stage.motion, 250)
     wrap.append(
       el(
         "div",
@@ -620,6 +640,7 @@ function gallery(rebuild: () => void): HTMLElement {
         stage.canvas,
         ink(preset.name),
         el("p", "note", ink(preset.note, "ink-light")),
+        el("p", "note", motion),
         use,
       ),
     )
@@ -630,7 +651,25 @@ function gallery(rebuild: () => void): HTMLElement {
 const stages: Stage[] = [main]
 
 function build() {
-  const layers = el("div", "layers", ...PATTERNS.map(layerCard))
+  const layers = el(
+    "div",
+    "layers",
+    ...PATTERNS.filter((pt) => pt.group !== "nes").map(layerCard),
+    el(
+      "details",
+      "older",
+      el(
+        "summary",
+        "",
+        ink("前の候補 (NES 風、動きが多い) を開く", "ink-mid"),
+      ),
+      el(
+        "div",
+        "layers",
+        ...PATTERNS.filter((pt) => pt.group === "nes").map(layerCard),
+      ),
+    ),
+  )
   const editor = document.getElementById("editor")!
   editor.replaceChildren(
     el(

@@ -115,6 +115,16 @@
       padding: 8px;
       border: 2px solid #b9bcb9;
     }
+    .older {
+      width: 100%;
+    }
+    .older summary {
+      cursor: pointer;
+      padding: 4px 0;
+    }
+    .older .layers {
+      padding-top: 8px;
+    }
     .card.off {
       border-color: #4a4d4a;
     }
@@ -238,9 +248,9 @@
     <header>
       <span class="pixel-text ink-white">BREAK FX LAB</span>
       <span class="t ink-light"
-      >物が壊れる瞬間の表現を研究するページ。NES らしさを優先: 8x8 の小さなスプライト、3 色、2〜4
-        コマのアニメ、ドット単位の動き、パレットの差し替え、点滅とちらつき。パレットの色だけ、ドット単位 (サブピクセルなし)
-        で描く。ステージをクリックすると割れる。</span>
+      >物が壊れる瞬間の表現を研究するページ。少ない動きで見せる: 新しい物を出さず、物の絵のピクセル (と押した時の線)
+        をずらす・切る・落とす・線に変えて、マスの床の線の外へ出して終わらせる。パレットの色だけ、ドット単位
+        (サブピクセルなし) で描く。ステージをクリックすると割れる。</span>
     </header>
     <h2><span class="t ink-white">プリセット (同時に再生。押す向き・物・床は下の設定と共通)</span></h2>
     <div id="gallery"></div>
