@@ -52,7 +52,13 @@ import { Palette } from "../util/palette.ts"
 import { encodePng } from "./png.ts"
 import { fbm, hash, smoothstep } from "./noise.ts"
 import { type Kind, MAKERS } from "./minipuzzles.ts"
-import { buildCity, CITY_H, CITY_OUT, CITY_W } from "./generate_city.ts"
+import {
+  buildCity,
+  CITY_H,
+  CITY_OUT,
+  CITY_W,
+  type CityStyle,
+} from "./generate_city.ts"
 import {
   buildCavern,
   CAVERN_ENTRY_X,
@@ -83,7 +89,13 @@ type Plan = {
    * The cities on the west coast: each its left column and top row, as
    * fractions, its name (the room id) and the seed of its plan
    */
-  cities: { x: number; y: number; name: string; seed: string }[]
+  cities: {
+    x: number
+    y: number
+    name: string
+    seed: string
+    style?: CityStyle
+  }[]
 }
 
 const plan: Plan = JSON.parse(
@@ -132,6 +144,7 @@ const cities = await Promise.all(plan.cities.map(async (c, n) => {
     city: await buildCity(OI + x0, OJ + y0, {
       seed: c.seed,
       name: n === 0 ? "THE CITY" : c.name,
+      style: c.style,
     }),
   }
 }))
@@ -1360,12 +1373,9 @@ for (const n of nodes) {
       break
     case "citygate": {
       put(props, n.x + 3, n.y - 3, "lantern")
-      const town = n.name.startsWith("CITY ")
-        ? "THE CITY"
-        : n.name.split(" ")[0]
-      put(props, n.x - 3, n.y + 3, "sign", {
-        text: `${town}: HARBOR WEST, CASTLE EAST, MARKET ALL AROUND`,
-      })
+      const c = cities.find((c) => n.name.startsWith(`${c.name} `))!
+      const town = c.name === "CITY" ? "THE CITY" : c.name
+      put(props, n.x - 3, n.y + 3, "sign", { text: `${town}: ${c.city.motto}` })
       break
     }
     case "cave":

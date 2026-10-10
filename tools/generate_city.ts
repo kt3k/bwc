@@ -29,6 +29,7 @@
 //    has its buildings
 //
 // Usage: deno -A tools/generate_city.ts [--preview file.png] [--seed city-2]
+//        [--canal]
 import { seed } from "../util/random.ts"
 import { loadCatalog } from "../model/catalog.ts"
 import { Palette } from "../util/palette.ts"
@@ -45,8 +46,127 @@ export const CITY_H = 400
  * so these are the island's (tools/generate_wilds.ts grows them over)
  */
 export const CITY_OUT = "_"
-/** The row of the ferry pier and the first avenue (local) */
-const ENTRY_Y = 170
+/**
+ * The character of a city: its plan, its stuff and its people. The CITY
+ * is the castle capital; SOUTHPORT is the canal town of the fishers
+ */
+export type CityStyle = "capital" | "canal"
+type Style = {
+  /** The avenues: two down at x1, x2; two across at y1 (the ferry's), y2 */
+  x1: number
+  x2: number
+  y1: number
+  y2: number
+  /** The canals running north to south (their middle x) */
+  canalsX: number[]
+  /** The canals running west to east (their middle y) */
+  canalsY: number[]
+  /** How far the canals wind, and how wide they are */
+  canalWind: number
+  canalWidth: number
+  /**
+   * The district of each column (west to east) and row (north to south),
+   * by its role (HARBOR, MARKET, CASTLE for the big place, the rest
+   * residential), and the names the roles go by in this city
+   */
+  districts: string[][]
+  names: Record<string, string>
+  /** The lots are cut down to this share of the usual size */
+  lotScale: number
+  /** The avenues' pavement */
+  avenue: "c" | "d"
+  /** The walls of the houses, the shops, the uptown houses */
+  walls: { house: string; shop: string; uptown: string }
+  /** A pier into the sea every so many rows */
+  pierEvery: number
+  /** The outline: how far east the bow reaches (cells), how much it wobbles */
+  outline: { reach: number; wobble: number; scale: number }
+  /** The big place east of the middle: the walled castle or the temple */
+  grand: "castle" | "temple"
+  /** What the signs say of the city */
+  motto: string
+  /** The street folk: [type, how many] */
+  folk: [string, number][]
+}
+const STYLES: Record<CityStyle, Style> = {
+  capital: {
+    x1: 140,
+    x2: 310,
+    y1: 169,
+    y2: 262,
+    canalsX: [226],
+    canalsY: [],
+    canalWind: 4,
+    canalWidth: 3,
+    districts: [
+      ["HARBOR", "HARBOR", "HARBOR"],
+      ["NORTHSIDE", "MARKET", "SOUTHSIDE"],
+      ["UPTOWN", "CASTLE", "PARKSIDE"],
+    ],
+    names: {},
+    lotScale: 1,
+    avenue: "c",
+    walls: { house: "M", shop: "1", uptown: "K" },
+    pierEvery: 22,
+    outline: { reach: 225, wobble: 0.4, scale: 70 },
+    grand: "castle",
+    motto: "HARBOR WEST, CASTLE EAST, MARKET ALL AROUND",
+    folk: [
+      ["lamplighter", 6],
+      ["commuter", 14],
+      ["shopper", 10],
+      ["apprentice", 5],
+      ["merchant", 4],
+      ["townsman", 10],
+      ["townswoman", 10],
+      ["beggar", 3],
+      ["guard", 3],
+      ["cat", 6],
+    ],
+  },
+  canal: {
+    x1: 112,
+    x2: 288,
+    y1: 129,
+    y2: 244,
+    canalsX: [170, 236],
+    canalsY: [80, 186, 312],
+    canalWind: 9,
+    canalWidth: 4,
+    districts: [
+      ["HARBOR", "HARBOR", "HARBOR"],
+      ["SOUTHSIDE", "MARKET", "NORTHSIDE"],
+      ["PARKSIDE", "CASTLE", "UPTOWN"],
+    ],
+    names: {
+      HARBOR: "WHARVES",
+      SOUTHSIDE: "NETMAKERS",
+      NORTHSIDE: "FISHERS",
+      PARKSIDE: "WATERGARDENS",
+      CASTLE: "TEMPLE",
+      UPTOWN: "BOATYARD",
+      MARKET: "FISHMARKET-ROW",
+    },
+    lotScale: 0.75,
+    avenue: "d",
+    walls: { house: "V", shop: "Z", uptown: "M" },
+    pierEvery: 11,
+    outline: { reach: 205, wobble: 0.55, scale: 45 },
+    grand: "temple",
+    motto: "CANALS EVERYWHERE, THE TEMPLE EAST, FISH ON EVERY TABLE",
+    folk: [
+      ["fishwife", 14],
+      ["sailor", 14],
+      ["lamplighter", 4],
+      ["shopper", 8],
+      ["townsman", 6],
+      ["townswoman", 6],
+      ["beggar", 4],
+      ["cat", 16],
+      ["kid", 6],
+    ],
+  },
+}
 
 /** A named place of the city, in local cells (inclusive) */
 export type CityRoom = {
@@ -67,6 +187,8 @@ export type City = {
   arrival: [number, number]
   /** The gates: the avenues' ends at the edge (local), and which edge */
   gates: { x: number; y: number; side: "north" | "south" | "east" }[]
+  /** What the signs say of the city */
+  motto: string
 }
 
 /**
@@ -76,8 +198,15 @@ export type City = {
 export async function buildCity(
   OI: number,
   OJ: number,
-  { preview, seed: cityName = "city-1", name = "THE CITY" }: {
+  {
+    preview,
+    seed: cityName = "city-1",
+    name = "THE CITY",
+    style: styleName = "capital",
+  }: {
     preview?: string
+    /** The character of the city (its plan, stuff and people) */
+    style?: CityStyle
     /** Another seed builds another city (another plan of the same kind) */
     seed?: string
     /** The city's name on its signs */
@@ -86,6 +215,9 @@ export async function buildCity(
 ): Promise<City> {
   const W = CITY_W
   const H = CITY_H
+  const style = STYLES[styleName]
+  /** The row of the ferry pier and the first avenue (local) */
+  const ENTRY_Y = style.y1 + 1
   const { rng, randomInt, shuffle } = seed(cityName)
   // the noise seed: the first city keeps its own
   const S = cityName === "city-1"
@@ -130,6 +262,8 @@ export async function buildCity(
   }
   const D4: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]]
   const isWater = (c: string) => c === C.SEA
+  /** The avenues' pavement (planks in the canal town: boardwalks) */
+  const AVENUE = style.avenue
   /** Cells a street or a building may not take */
   const fixed = new Uint8Array(W * H)
 
@@ -164,21 +298,36 @@ export async function buildCity(
     for (let x = coast[y]; x < coast[y] + 3; x++) set(x, y, C.AVENUE)
   }
   const QUAY_END = Math.max(...coast) + 3
-  /** The canal: 3 wide, winding gently from north to south */
-  const canalX = (y: number) => 226 + Math.round(Math.sin(y / 37) * 4)
-  for (let y = 0; y < H; y++) {
-    for (let dx = 0; dx < 3; dx++) set(canalX(y) + dx, y, C.SEA)
+  /** The canals, winding gently (north to south, west to east) */
+  const CW = style.canalWidth
+  /** The big place east of the middle stays dry (the castle, the temple) */
+  const grandGround = (x: number, y: number) =>
+    x >= style.x2 && y >= style.y1 && y <= style.y2 + 3
+  for (const [n, cx] of style.canalsX.entries()) {
+    for (let y = 0; y < H; y++) {
+      const x = cx + Math.round(Math.sin(y / 37 + n * 2) * style.canalWind)
+      for (let dx = 0; dx < CW; dx++) set(x + dx, y, C.SEA)
+    }
+  }
+  for (const [n, cy] of style.canalsY.entries()) {
+    // from the first avenue east: the harbor's warehouses stay whole
+    for (let x = style.x1 + 4; x < W; x++) {
+      const y = cy + Math.round(Math.sin(x / 41 + n * 3) * style.canalWind)
+      for (let dy = 0; dy < CW; dy++) {
+        if (!grandGround(x, y + dy)) set(x, y + dy, C.SEA)
+      }
+    }
   }
 
   // the avenues: two across, two down
-  const Y1 = ENTRY_Y - 1, Y2 = 262
-  const X1 = 140, X2 = 310
+  const Y1 = style.y1, Y2 = style.y2
+  const X1 = style.x1, X2 = style.x2
   function avenue(x0: number, y0: number, x1: number, y1: number) {
     for (let y = y0; y <= y1; y++) {
       for (let x = x0; x <= x1; x++) {
         if (!inside(x, y)) continue
         // over the canal: a bridge
-        set(x, y, isWater(at(x, y)) ? C.PIER : C.AVENUE)
+        set(x, y, isWater(at(x, y)) ? C.PIER : AVENUE)
         fixed[idx(x, y)] = 1
       }
     }
@@ -214,11 +363,13 @@ export async function buildCity(
   const castleRect = { x0: X2 + 4, y0: Y1 + 4, x1: CASTLE_X1, y1: Y2 - 1 }
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
-      const u = Math.max(0, x - 170) / 225
+      const u = Math.max(0, x - 170) / style.outline.reach
       const v = Math.abs(y - H / 2) / (H / 2)
       const rn = Math.pow(Math.pow(u, 2.4) + Math.pow(v, 2.4), 1 / 2.4)
-      const wobble = fbm(x / 70, y / 70, B + 7, 3)
-      const edge = 1.04 - 0.4 * wobble
+      const sc = style.outline.scale
+      const wobble = fbm(x / sc, y / sc, B + 7, 3)
+      const edge = 0.84 + style.outline.wobble / 2 - style.outline.wobble *
+          wobble
       // around the castle the land swells in a rounded bulge
       const dx = Math.max(castleRect.x0 - x, 0, x - castleRect.x1)
       const dy = Math.max(castleRect.y0 - y, 0, y - castleRect.y1)
@@ -354,11 +505,7 @@ export async function buildCity(
     Y2 + 4,
     H - 4,
   ]]
-  const DISTRICTS: District[][] = [
-    ["HARBOR", "HARBOR", "HARBOR"],
-    ["NORTHSIDE", "MARKET", "SOUTHSIDE"],
-    ["UPTOWN", "CASTLE", "PARKSIDE"],
-  ]
+  const DISTRICTS = style.districts as District[][]
   /** How big a lot may get before it's cut again */
   const MAX_LOT: Record<District, number> = {
     HARBOR: 30,
@@ -386,7 +533,7 @@ export async function buildCity(
 
   function subdivide(r: Rect, district: District) {
     const w = r.x1 - r.x0 + 1, h = r.y1 - r.y0 + 1
-    const max = MAX_LOT[district]
+    const max = Math.round(MAX_LOT[district] * style.lotScale)
     if (w <= max && h <= max) {
       lots.push({ ...r, district })
       return
@@ -491,11 +638,13 @@ export async function buildCity(
   /** The wall of a building, by what it is and where */
   function wallOf(kind: Building["kind"], district: District): string {
     if (kind === "chapel") return C.SANDSTONE
-    if (kind === "keep" || district === "CASTLE") return C.CASTLE
+    if (kind === "keep" || district === "CASTLE") {
+      return style.grand === "temple" ? C.SANDSTONE : C.CASTLE
+    }
     if (kind === "warehouse" || district === "HARBOR") return C.PLANKS
-    if (kind === "shop") return C.WALL
-    if (district === "UPTOWN") return C.CASTLE
-    return C.MASONRY
+    if (kind === "shop") return style.walls.shop
+    if (district === "UPTOWN") return style.walls.uptown
+    return style.walls.house
   }
 
   /** Walls round a floor, a door in the middle of the given side */
@@ -816,7 +965,7 @@ export async function buildCity(
       put(actors, cx - 4, cy - 3, "bard")
       put(actors, lot.x0 + 1, lot.y1 - 1, "beggar")
       put(props, cx + 4, cy - 4, "notice-board", {
-        text: `${name}: HARBOR WEST, CASTLE EAST, MARKET ALL AROUND`,
+        text: `${name}: ${style.motto}`,
       })
       for (const [dx, dy] of [[-5, -5], [5, -5], [-5, 5], [5, 5]]) {
         put(props, cx + dx, cy + dy, "lamp-post")
@@ -906,8 +1055,13 @@ export async function buildCity(
     put(actors, area.x0, area.y1, "sage")
   }
 
-  /** The castle: a wall round the district, gates, the keep, a garden */
+  /**
+   * The castle: a wall round the district, gates, the keep, a garden. In
+   * the canal town the same ground is the temple: a hedge for the wall,
+   * a sandstone hall with its sages and nuns, pools for the orchards
+   */
   function castle(r: Rect) {
+    const temple = style.grand === "temple"
     const wall = inset(r, 2)
     const cx = (wall.x0 + wall.x1) >> 1, cy = (wall.y0 + wall.y1) >> 1
     for (let y = wall.y0; y <= wall.y1; y++) {
@@ -917,7 +1071,7 @@ export async function buildCity(
         const gate = (Math.abs(y - cy) <= 1 && (x === wall.x0)) ||
           (Math.abs(x - cx) <= 1 && (y === wall.y0 || y === wall.y1))
         if (!inside(x, y) || isWater(at(x, y))) continue
-        set(x, y, edge && !gate ? C.RAMPART : C.GRAVEL)
+        set(x, y, edge && !gate ? (temple ? C.TREE : C.RAMPART) : C.GRAVEL)
         if (edge) fixed[idx(x, y)] = 1
       }
     }
@@ -938,7 +1092,9 @@ export async function buildCity(
         set(
           x,
           y,
-          edge ? (y === keep.y0 ? C.BOOKS : C.CASTLE) : C.SQUARE,
+          edge
+            ? (temple ? C.SANDSTONE : y === keep.y0 ? C.BOOKS : C.CASTLE)
+            : C.SQUARE,
         )
       }
     }
@@ -955,24 +1111,24 @@ export async function buildCity(
     put(props, cx + 6, cy, "table")
     put(props, cx + 6, cy - 2, "lantern")
     put(props, cx + 6, cy + 2, "lantern")
-    put(actors, cx + 4, cy, "chancellor")
-    put(actors, cx + 3, cy - 3, "guard")
-    put(actors, cx + 3, cy + 3, "guard")
+    put(actors, cx + 4, cy, temple ? "sage" : "chancellor")
+    put(actors, cx + 3, cy - 3, temple ? "nun" : "guard")
+    put(actors, cx + 3, cy + 3, temple ? "nun" : "guard")
     put(props, keep.x0 + 2, keep.y0 + 2, "barrel")
     put(props, keep.x1 - 2, keep.y0 + 2, "barrel")
     put(props, keep.x0 + 2, keep.y1 - 2, "lantern")
     put(props, keep.x1 - 2, keep.y1 - 2, "lantern")
     // guards at the gates, inside
-    put(actors, wall.x0 + 2, cy + 2, "lady-knight")
-    put(actors, cx + 2, wall.y0 + 2, "guard")
-    put(actors, cx + 2, wall.y1 - 2, "guard")
+    put(actors, wall.x0 + 2, cy + 2, temple ? "sage" : "lady-knight")
+    put(actors, cx + 2, wall.y0 + 2, temple ? "nun" : "guard")
+    put(actors, cx + 2, wall.y1 - 2, temple ? "nun" : "guard")
     // the garden round the keep
     for (const [dx, dy] of [[-14, -12], [14, -12], [-14, 12], [14, 12]]) {
       put(props, cx + dx, cy + dy, "flower-pot")
     }
     put(props, cx - 14, cy - 4, "bench")
     put(props, cx + 14, cy + 4, "bench")
-    put(actors, cx - 14, cy + 6, "princess")
+    put(actors, cx - 14, cy + 6, temple ? "dancer" : "princess")
     put(props, cx, cy - 13, "well")
     put(actors, cx + 6, cy + 12, "bard")
     for (const [dx, dy] of [[-16, 0], [16, 0], [0, -16], [0, 16]]) {
@@ -993,13 +1149,22 @@ export async function buildCity(
         if (!b) continue
         put(props, b.x0 + 2, b.y0 + 2, "table")
         put(props, b.x0 + 3, b.y0 + 2, "stool")
-        put(actors, ...b.inner, x0 < cx ? "guard" : "lady-knight")
+        put(
+          actors,
+          ...b.inner,
+          temple ? "nun" : x0 < cx ? "guard" : "lady-knight",
+        )
       }
     }
     for (const [ya, yb] of [[wall.y0 + 18, cy - 16], [cy + 16, wall.y1 - 18]]) {
       for (let y = ya; y <= yb; y += 4) {
         for (let x = wall.x0 + 4; x <= wall.x1 - 4; x += 4) {
-          if (Math.abs(x - cx) > 3) put(props, x, y, "sapling")
+          if (Math.abs(x - cx) <= 3) continue
+          // the temple's pools, the castle's orchards
+          if (temple) {
+            set(x, y, C.SEA)
+            set(x + 1, y, C.SEA)
+          } else put(props, x, y, "sapling")
         }
       }
     }
@@ -1028,16 +1193,16 @@ export async function buildCity(
   // lamp posts along the avenues (on their outer rows)
   for (const y of [Y1, Y2 + 3]) {
     for (let x = QUAY_END + 4; x < W - 6; x += 12) {
-      if (at(x, y) === C.AVENUE) put(props, x, y, "lamp-post")
+      if (at(x, y) === AVENUE) put(props, x, y, "lamp-post")
     }
   }
   for (const x of [X1, X2 + 3]) {
     for (let y = 8; y < H - 8; y += 12) {
-      if (at(x, y) === C.AVENUE) put(props, x, y, "lamp-post")
+      if (at(x, y) === AVENUE) put(props, x, y, "lamp-post")
     }
   }
   // the harbor: piers into the sea, fishers at their ends, goods on the quay
-  for (let y = 12; y < H - 12; y += 22) {
+  for (let y = 12; y < H - 12; y += style.pierEvery) {
     if (Math.abs(y - ENTRY_Y) < 8) continue
     const x0 = coast[y]
     // not where the quay is under the trees of the edge (or not the city's)
@@ -1046,7 +1211,16 @@ export async function buildCity(
       set(x, y, C.PIER)
       set(x, y + 1, C.PIER)
     }
-    put(actors, Math.max(2, x0 - 14), y, y % 44 < 22 ? "sailor" : "fishwife")
+    put(
+      actors,
+      Math.max(2, x0 - 14),
+      y,
+      (y / style.pierEvery | 0) % 2 ? "sailor" : "fishwife",
+    )
+    // the canal town lights the end of every pier
+    if (style.grand === "temple") {
+      put(props, Math.max(2, x0 - 14), y + 1, "lantern")
+    }
     put(props, coast[y] + 2, y + 3, "crate")
     put(props, coast[y] + 2, y + 4, "barrel")
   }
@@ -1062,23 +1236,12 @@ export async function buildCity(
     const streetCells: [number, number][] = []
     for (let y = 0; y < H; y++) {
       for (let x = 0; x < W; x++) {
-        if (at(x, y) === C.STREET || at(x, y) === C.AVENUE) {
+        if (at(x, y) === C.STREET || at(x, y) === AVENUE) {
           streetCells.push([x, y])
         }
       }
     }
-    const folk: [string, number][] = [
-      ["lamplighter", 6],
-      ["commuter", 14],
-      ["shopper", 10],
-      ["apprentice", 5],
-      ["merchant", 4],
-      ["townsman", 10],
-      ["townswoman", 10],
-      ["beggar", 3],
-      ["guard", 3],
-      ["cat", 6],
-    ]
+    const folk = style.folk
     const shuffled = shuffle(streetCells)
     let k = 0
     for (const [type, n] of folk) {
@@ -1169,6 +1332,37 @@ export async function buildCity(
       if (cut.has(idx(props[k].i - OI, props[k].j - OJ))) props.splice(k, 1)
     }
     reached = walk()
+  }
+
+  // a building the canals shut off (its door reached by no street) is
+  // pulled down: a copse grows where it stood
+  {
+    const lost = buildings.filter((b) => !reached[idx(...b.door)])
+    for (const b of lost) {
+      for (let y = b.y0; y <= b.y1; y++) {
+        for (let x = b.x0; x <= b.x1; x++) grid[idx(x, y)] = C.TREE
+      }
+      const within = (sp: Spawn) => {
+        const x = sp.i - OI, y = sp.j - OJ
+        return x >= b.x0 && x <= b.x1 && y >= b.y0 && y <= b.y1
+      }
+      for (const list of [props, actors, items]) {
+        for (let k = list.length - 1; k >= 0; k--) {
+          if (within(list[k])) list.splice(k, 1)
+        }
+      }
+      buildings.splice(buildings.indexOf(b), 1)
+    }
+    if (lost.length > 0) {
+      blockingProps.clear()
+      for (const sp of props) {
+        if (!catalog.props[sp.type]?.canEnter) {
+          blockingProps.add(idx(sp.i - OI, sp.j - OJ))
+        }
+      }
+      reached = walk()
+      console.log(`pulled down ${lost.length} shut off buildings`)
+    }
   }
 
   let ok = true
@@ -1282,11 +1476,15 @@ export async function buildCity(
     items: itemsOut,
     props: propsOut,
     rooms: [
-      ...districtRects.map((d) => ({ ...d, id: d.name })),
+      ...districtRects.map((d) => ({
+        ...d,
+        id: style.names[d.name] ?? d.name,
+      })),
       ...[...specials].map(([lot, what]) => ({ ...lot, id: what })),
     ].map(({ id, x0, y0, x1, y1 }) => ({ id, x0, y0, x1, y1 })),
     arrival: ARRIVAL,
     gates,
+    motto: style.motto,
   }
 }
 
@@ -1296,6 +1494,7 @@ if (import.meta.main) {
   await buildCity(0, 0, {
     preview: at >= 0 ? Deno.args[at + 1] : undefined,
     seed: seedAt >= 0 ? Deno.args[seedAt + 1] : undefined,
+    style: Deno.args.includes("--canal") ? "canal" : undefined,
   })
   console.log("the city is verified (deno task generate-wilds writes it)")
 }

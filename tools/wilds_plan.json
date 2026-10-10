@@ -131,19 +131,21 @@
     }
   ],
   "camps": 24,
-  "citiesComment": "the cities (tools/generate_city.ts, 400x400 each) on the west coast: each its left column (x * width) and top row (y * height), its name (room id) and plan seed. The first is THE CITY, where the C portal of the START island lands. Each harbor opens on the sea; the avenues run out through gates in the belt of trees to the island's roads",
+  "citiesComment": "the cities (tools/generate_city.ts, 400x400 each) on the west coast: each its left column (x * width) and top row (y * height), its name (room id), plan seed and style (capital: the castle capital; canal: the canal town of the fishers). The first is THE CITY, where the C portal of the START island lands. Each harbor opens on the sea; the avenues run out through gates in the belt of trees to the island's roads",
   "cities": [
     {
       "x": 0.1,
       "y": 0.17,
       "name": "CITY",
-      "seed": "city-1"
+      "seed": "city-1",
+      "style": "capital"
     },
     {
       "x": 0.1,
       "y": 0.57,
       "name": "SOUTHPORT",
-      "seed": "city-2"
+      "seed": "city-2",
+      "style": "canal"
     }
   ],
   "cave": {
