@@ -1,8 +1,8 @@
-// Draws the water cell (static/cell/water.png) and its lily variant. Water
-// is the one terrain cell drawn in color (docs/art-guide.md): a deep blue
-// with lighter wave crests, darker troughs under them and a glint here
-// and there, all palette blues. The lily pad on it is green (palette
-// greens), with a white flower.
+// Draws the water cell (static/cell/water.png). Water is the one
+// terrain cell drawn in color (docs/art-guide.md): a deep blue with
+// lighter wave crests, darker troughs under them and a glint here and
+// there, all palette blues. Its rare variants (a rock awash, a fish,
+// sun glitter, kelp) are drawn by tools/generate_water_variants.ts.
 //
 // Usage: deno -A tools/draw_water.ts
 import { Palette, type PaletteColor } from "../util/palette.ts"
@@ -13,10 +13,6 @@ const MAP: Record<string, PaletteColor> = {
   "~": Palette.blue2, // a wave crest
   _: Palette.blue4, // the trough under a crest
   "*": Palette.blue1, // a glint
-  L: Palette.green3, // the lily pad
-  l: Palette.green2, // its light side
-  K: Palette.green4, // its notch and rim
-  w: Palette.white, // the flower
 }
 
 // the waves never cross the edges, so the cells tile without seams
@@ -38,25 +34,6 @@ const WATER = [
   "......~..~__....",
   "..*.......__....",
 ]
-const LILY = [
-  "................",
-  "................",
-  "..~~......~~....",
-  ".~..~____~..~...",
-  "......____......",
-  "................",
-  "......~~........",
-  ".....~..~KKKK...",
-  "........KllllK..",
-  ".~~....KlLwLLLK.",
-  "~..~_..KLLLLLLK.",
-  "....__.KLLLKLLK.",
-  "........KLLKLK..",
-  ".......~~KKK....",
-  "......~..~__....",
-  "..*.......__....",
-]
-
 async function save(name: string, rows: string[]) {
   const rgba = new Uint8Array(16 * 16 * 4)
   rows.forEach((row, y) =>
@@ -75,5 +52,4 @@ async function save(name: string, rows: string[]) {
   )
 }
 await save("water", WATER)
-await save("water_lily", LILY)
 console.log("drew the water")

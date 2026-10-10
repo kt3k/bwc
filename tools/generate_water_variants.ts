@@ -15,7 +15,7 @@ const INK: Record<string, string> = {
   c: Palette.blue4, // a wave trough / a shadow in the water
   d: Palette.blue1, // foam and glints
   w: Palette.white,
-  e: Palette.green4, // dark leaf (as the lily pad)
+  e: Palette.green4, // dark leaf
   f: Palette.green3, // leaf
   g: Palette.green2, // light leaf
   G: Palette.gray3, // wet rock
