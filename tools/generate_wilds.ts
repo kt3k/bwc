@@ -1954,6 +1954,186 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
 }
 
 // ---------------------------------------------------------------------
+// the rivers, made whole: since they were first run, the mountain, the
+// cities, the towns, the roads, the cove and the puzzle rooms were laid
+// over the land, cutting some of them short. So each is run again, now
+// around all of that, from its source to the sea (or into a river that
+// already reaches it), and the old broken runs dry up. The cities' canals
+// run on out of the city the same way: wherever a canal meets the city's
+// edge, a river carries it on to the sea. Every river and canal then
+// flows from a source, a harbor or another river to the sea, never
+// stopping short in the land
+
+{
+  /** What a river may not run through */
+  const STRUCTURE = new Set<T>([
+    T.WALL,
+    T.FLOOR,
+    T.PLAZA,
+    T.RAMPART,
+    T.RUIN,
+    T.STONE,
+    T.CAMP,
+    T.FIELD,
+    T.TRIAL,
+    T.ICE,
+    T.BIO,
+    T.CITY,
+  ])
+  const inCove = (x: number, y: number) =>
+    x >= COVE_X0 && x < COVE_X0 + COVE_W && y >= COVE_Y0 &&
+    y < COVE_Y0 + COVE_H
+  const blocked = (p: number) => {
+    const x = p % W, y = (p / W) | 0
+    return STRUCTURE.has(terrain[p] as T) || puzzleCells[p] === 1 ||
+      inCove(x, y) || inMassif(x, y)
+  }
+  /** The waterways of the cities (canals, bridges, harbors) */
+  const cityWater = (p: number) => {
+    if (terrain[p] !== T.CITY) return false
+    const x = p % W, y = (p / W) | 0
+    const c = cityAt(x, y)!
+    return c.city.waterway[(y - c.y0) * CITY_W + (x - c.x0)] === 1
+  }
+  const isNet = (p: number) => {
+    const t = terrain[p] as T
+    return t === T.SEA || t === T.RIVER || t === T.LAKE || t === T.BRIDGE ||
+      cityWater(p)
+  }
+  // the old runs dry up (not the cove's river, nor the lakes)
+  let dried = 0
+  for (let p = 0; p < W * H; p++) {
+    const x = p % W, y = (p / W) | 0
+    if (inCove(x, y)) continue
+    if (terrain[p] === T.RIVER) {
+      terrain[p] = moist[p] > 0.5 ? T.FOREST : T.MEADOW
+      dried++
+    } else if (terrain[p] === T.BRIDGE) {
+      terrain[p] = T.ROAD
+    }
+  }
+  /** The water that reaches the sea (flooded from the open sea) */
+  const reaches = new Uint8Array(W * H)
+  const flood = (from: number[]) => {
+    const queue = from.filter((p) => !reaches[p])
+    for (const p of queue) reaches[p] = 1
+    for (let q = 0; q < queue.length; q++) {
+      const x = queue[q] % W, y = (queue[q] / W) | 0
+      for (const [dx, dy] of D4) {
+        if (!inside(x + dx, y + dy)) continue
+        const np = idx(x + dx, y + dy)
+        if (!reaches[np] && isNet(np)) {
+          reaches[np] = 1
+          queue.push(np)
+        }
+      }
+    }
+  }
+  flood([idx(0, 0)])
+  /** Runs a river from p to water that reaches the sea, out of the cities */
+  const run = (start: number) => {
+    const path = cheapestPath(
+      start,
+      (p) => reaches[p] === 1 && terrain[p] !== T.CITY,
+      (p, q) => {
+        if (blocked(q)) return Infinity
+        const t = terrain[q] as T
+        if (t === T.SEA || t === T.LAKE || t === T.RIVER) return 0.2
+        if (t === T.BRIDGE) return 0.5
+        if (t === T.ROAD) return 8 // a new bridge
+        const climb = Math.max(0, flow[q] - flow[p]) * 3000
+        const meander =
+          Math.pow(fbm((q % W) / 18, ((q / W) | 0) / 18, S + 41, 3), 2) * 4
+        return (t === T.ROCK ? 3 : 0.3) + meander + climb
+      },
+    )
+    if (path.length === 0 || !reaches[path[path.length - 1]]) return 0
+    const wet = (p: number) => {
+      const t = terrain[p] as T
+      if (t === T.SEA || t === T.LAKE || t === T.RIVER || t === T.BRIDGE) {
+        return
+      }
+      if (blocked(p)) return
+      terrain[p] = t === T.ROAD ? T.BRIDGE : T.RIVER
+      keepClear[p] = 1
+    }
+    for (let k = 0; k < path.length; k++) {
+      const p = path[k]
+      wet(p)
+      // two cells wide, beside the direction of flow
+      const q = path[Math.min(k + 1, path.length - 1)]
+      const x = p % W, y = (p / W) | 0
+      const side = Math.abs(q - p) === 1 ? idx(x, y + 1) : idx(x + 1, y)
+      if (inside(x + 1, y + 1)) wet(side)
+    }
+    flood(path)
+    return path.length
+  }
+  // the rivers, from their sources (the mountain's rock aside)
+  let runs = 0, cells = 0
+  for (const [sx, sy] of sources) {
+    const p = idx(sx, sy)
+    if (blocked(p)) continue
+    const n = run(p)
+    if (n > 0) runs++
+    cells += n
+  }
+  // the canals out of the cities: from each canal cell on the city's edge
+  let mouths = 0
+  for (let p = 0; p < W * H; p++) {
+    if (!cityWater(p)) continue
+    const x = p % W, y = (p / W) | 0
+    for (const [dx, dy] of D4) {
+      if (!inside(x + dx, y + dy)) continue
+      const np = idx(x + dx, y + dy)
+      if (terrain[np] === T.CITY || isNet(np) || blocked(np)) continue
+      const n = run(np)
+      if (n > 0) {
+        mouths++
+        cells += n
+        flood([p])
+      }
+    }
+  }
+  // water still cut off (the cove's river runs out of the cove at its
+  // south end): carried on to the sea from where it stops
+  let joined = 0
+  for (let p = 0; p < W * H; p++) {
+    const t = terrain[p] as T
+    if (reaches[p] || !(t === T.RIVER || cityWater(p))) continue
+    const x = p % W, y = (p / W) | 0
+    for (const [dx, dy] of D4) {
+      if (reaches[p] || !inside(x + dx, y + dy)) continue
+      const np = idx(x + dx, y + dy)
+      if (terrain[np] === T.CITY || isNet(np) || blocked(np)) continue
+      const n = run(np)
+      if (n > 0) {
+        joined++
+        cells += n
+        flood([p])
+      }
+    }
+  }
+  // every river and canal cell now reaches the sea
+  let cut = 0
+  for (let p = 0; p < W * H; p++) {
+    const t = terrain[p] as T
+    if ((t === T.RIVER || cityWater(p)) && !reaches[p]) {
+      if (cut++ < 5) {
+        console.log(`  cut off: ${p % W},${(p / W) | 0} ${T[t]}`)
+      }
+    }
+  }
+  console.log(
+    `rivers made whole: ${runs} rivers, ${mouths} canal mouths, ${joined} joined, ${cells} cells (${dried} old cells dried), ${cut} cut off`,
+  )
+  if (cut > 0) {
+    console.error("NG some rivers or canals don't reach the sea")
+    Deno.exit(1)
+  }
+}
+
+// ---------------------------------------------------------------------
 // 7. scatter by density and spacing
 
 /** Poisson disc: candidates in random order, kept if far enough apart */

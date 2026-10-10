@@ -189,6 +189,11 @@ export type City = {
   gates: { x: number; y: number; side: "north" | "south" | "east" }[]
   /** What the signs say of the city */
   motto: string
+  /**
+   * 1 on the waterways (local, row by row): the canals with their bridges
+   * and the harbor's sea. A canal touching the outline runs on outside
+   */
+  waterway: Uint8Array
 }
 
 /**
@@ -303,19 +308,50 @@ export async function buildCity(
   /** The big place east of the middle stays dry (the castle, the temple) */
   const grandGround = (x: number, y: number) =>
     x >= style.x2 && y >= style.y1 && y <= style.y2 + 3
+  /**
+   * The waterways: the canals (bridges over them included) and the
+   * harbor's sea. Every canal runs from water to water: from the harbor,
+   * into another canal, or out at the city's edge, where the island's
+   * rivers take it on to the sea (tools/generate_wilds.ts)
+   */
+  const waterway = new Uint8Array(W * H)
+  const canal = (x: number, y: number) => {
+    if (!inside(x, y)) return
+    set(x, y, C.SEA)
+    waterway[idx(x, y)] = 1
+  }
   for (const [n, cx] of style.canalsX.entries()) {
     for (let y = 0; y < H; y++) {
       const x = cx + Math.round(Math.sin(y / 37 + n * 2) * style.canalWind)
-      for (let dx = 0; dx < CW; dx++) set(x + dx, y, C.SEA)
+      for (let dx = 0; dx < CW; dx++) canal(x + dx, y)
     }
   }
+  /** Where the canals across stop short of the dry ground: in a canal down */
+  const lastDown = Math.max(
+    -1,
+    ...style.canalsX.filter((cx) => cx < style.x2).map((cx) =>
+      cx + style.canalWind + CW
+    ),
+  )
   for (const [n, cy] of style.canalsY.entries()) {
-    // from the first avenue east: the harbor's warehouses stay whole
-    for (let x = style.x1 + 4; x < W; x++) {
-      const y = cy + Math.round(Math.sin(x / 41 + n * 3) * style.canalWind)
+    const rowAt = (x: number) =>
+      cy + Math.round(Math.sin(x / 41 + n * 3) * style.canalWind)
+    let end = W
+    for (let x = 0; x < W; x++) {
       for (let dy = 0; dy < CW; dy++) {
-        if (!grandGround(x, y + dy)) set(x, y + dy, C.SEA)
+        if (grandGround(x, rowAt(x) + dy)) end = Math.min(end, lastDown + 1)
       }
+    }
+    // from the harbor's sea (under the quay, a bridge) eastward
+    for (let x = coast[Math.max(0, Math.min(H - 1, cy))] - 2; x < end; x++) {
+      for (let dy = 0; dy < CW; dy++) canal(x, rowAt(x) + dy)
+    }
+  }
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < coast[y]; x++) waterway[idx(x, y)] = 1
+    // the quay goes on over the canals' mouths
+    for (let x = coast[y]; x < coast[y] + 3; x++) {
+      if (isWater(at(x, y))) set(x, y, C.PIER)
     }
   }
 
@@ -1485,6 +1521,7 @@ export async function buildCity(
     arrival: ARRIVAL,
     gates,
     motto: style.motto,
+    waterway: waterway.map((w, p) => w && grid[p] !== CITY_OUT ? 1 : 0),
   }
 }
 
