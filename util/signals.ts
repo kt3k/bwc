@@ -31,6 +31,12 @@ export const playerSpeed = new Signal<1 | 2 | 4>(2)
 // The message to show in the toast ui. Wrapped in an object so that
 // the same text shown twice still triggers the subscribers.
 export const message = new Signal<{ text: string } | null>(null)
+// What a sign says and where it stands (world cell): shown as a speech
+// bubble over the sign. Wrapped in an object so that reading the same
+// sign twice still triggers the subscribers.
+export const speech = new Signal<
+  { i: number; j: number; text: string } | null
+>(null)
 
 /** The name of a jsfxr sound preset */
 export type SoundName =

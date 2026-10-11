@@ -1053,7 +1053,8 @@ class PushedDelegateSign implements PushedDelegate {
     const data = prop.data as { text?: unknown } | undefined
     const text = data?.text
     if (typeof text === "string" && text.length > 0) {
-      signal.message.update({ text })
+      // the words come out of the sign itself, as a speech bubble
+      signal.speech.update({ i: prop.i, j: prop.j, text })
     }
   }
 }

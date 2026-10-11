@@ -43,6 +43,34 @@
     .ink-mid {
       filter: url(#ink-mid);
     }
+    /* The speech bubble over a sign being read: black and white only
+       (palette colors), a stepped pixel tail pointing at the sign */
+    .js-speech-bubble {
+      transform: translate(-50%, -100%);
+      z-index: 1;
+    }
+    .speech-text {
+      background: #000000;
+      border: 2px solid #ffffff;
+      color: #ffffff;
+      padding: 5px 6px 4px;
+      width: max-content;
+      max-width: 150px;
+    }
+    .speech-tail-1,
+    .speech-tail-2 {
+      background: #000000;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #ffffff;
+      margin: -2px auto 0;
+      width: 12px;
+      height: 5px;
+    }
+    .speech-tail-2 {
+      width: 6px;
+      height: 4px;
+      margin-top: 0;
+    }
     </style>
   </head>
   <body
@@ -95,7 +123,16 @@
       class="js-game-screen js-item-get-effector relative h-[320px] w-[320px] overflow-hidden"
     >
       <!-- FieldBlocks loaded in this div -->
-      <div class="field absolute"></div>
+      <div class="field absolute">
+        <!-- The speech bubble: a read sign's words pop out of it -->
+        <div
+          class="js-speech-bubble hidden absolute pointer-events-none select-none"
+        >
+          <div class="speech-text pixel-text pixel-text-sm"></div>
+          <div class="speech-tail-1"></div>
+          <div class="speech-tail-2"></div>
+        </div>
+      </div>
       <canvas
         class="canvas-entity absolute crisp-edges"
         width="320"
