@@ -57,6 +57,11 @@
       transform: translate(-50%, 0);
       flex-direction: column-reverse;
     }
+    /* display: flex above outweighs the stylesheet's .hidden (same
+       specificity, later rule), so hide explicitly */
+    .js-speech-bubble.hidden {
+      display: none;
+    }
     .speech-text {
       border: 4px solid transparent;
       border-image: url(./ui/bubble_frame.png) 4 fill;
