@@ -44,31 +44,37 @@
       filter: url(#ink-mid);
     }
     /* The speech bubble over a sign being read: black and white only
-       (palette colors), a stepped pixel tail pointing at the sign */
+       (palette colors), a fine 1px line and a fine-stepped pixel tail
+       pointing at the sign */
     .js-speech-bubble {
       transform: translate(-50%, -100%);
     }
     .speech-text {
       background: #000000;
-      border: 2px solid #ffffff;
+      border: 1px solid #ffffff;
       color: #ffffff;
       padding: 6px 8px 5px;
       width: max-content;
       max-width: 244px;
     }
     .speech-tail-1,
-    .speech-tail-2 {
+    .speech-tail-2,
+    .speech-tail-3 {
       background: #000000;
-      border-left: 2px solid #ffffff;
-      border-right: 2px solid #ffffff;
-      margin: -2px auto 0;
-      width: 12px;
-      height: 5px;
+      border-left: 1px solid #ffffff;
+      border-right: 1px solid #ffffff;
+      margin: -1px auto 0;
+      width: 10px;
+      height: 3px;
     }
     .speech-tail-2 {
       width: 6px;
-      height: 4px;
       margin-top: 0;
+    }
+    .speech-tail-3 {
+      width: 3px;
+      margin-top: 0;
+      border-bottom: 1px solid #ffffff;
     }
     </style>
   </head>
@@ -136,6 +142,7 @@
         <div class="speech-text pixel-text"></div>
         <div class="speech-tail-1"></div>
         <div class="speech-tail-2"></div>
+        <div class="speech-tail-3"></div>
       </div>
       <!-- The ui panel -->
       <div
