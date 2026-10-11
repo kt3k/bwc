@@ -1968,6 +1968,17 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
 // only light. Touched, the stone wakes and its gate opens in the hall of
 // waystones on the START island
 
+/**
+ * The gates in the hall of waystones on the START island (local cells of
+ * the start block): x, the gate's row, the row of its standing stone. The
+ * aisle runs along rows 31 and 32, between the two rows of gates
+ */
+const HALL_SLOTS: [number, number, number][] = [15, 19, 23, 27].flatMap((
+  x,
+) => [[x, 30, 29], [x, 33, 34]] as [number, number, number][])
+/** The start block's top left (the hall is carved into it) */
+const START_BLOCK = { i: -10000, j: -10000 }
+
 type Waystone = {
   id: string
   name: string
@@ -2075,6 +2086,26 @@ const waystones: Waystone[] = []
     }
     const id = n.name.replace(/ /g, "")
     put(props, cx, cy, "waystone", { id, name: n.name })
+    // the gate home, beside the stone: open once the stone woke, it leads
+    // to the aisle before this stone's gate in the hall
+    const slot = HALL_SLOTS[waystones.length]
+    if (!slot) {
+      console.error("NG more waystones than gates in the hall")
+      Deno.exit(1)
+    }
+    put(
+      props,
+      cx + Math.round(Math.cos(toward + Math.PI / 2) * 2),
+      cy + Math.round(Math.sin(toward + Math.PI / 2) * 2),
+      "waygate",
+      {
+        id,
+        name: n.name,
+        home: true,
+        i: START_BLOCK.i + slot[0],
+        j: START_BLOCK.j + (slot[1] === 30 ? 31 : 32),
+      },
+    )
     const ax = cx + Math.round(Math.cos(toward) * 2)
     const ay = cy + Math.round(Math.sin(toward) * 2)
     waystones.push({ id, name: n.name, x: cx, y: cy, ax, ay })
@@ -3048,8 +3079,7 @@ portalRoom(
   carve(X0, Y0, X1, Y1, "R")
   carve(X0, 31, 33, 32, "m") // the aisle, and the way in from the corridor
   dropIn(X0, Y0 - 1, 33, Y1 + 1)
-  const slots: [number, number, number][] = [] // x, gate row, stone row
-  for (const x of [15, 19, 23, 27]) slots.push([x, 30, 29], [x, 33, 34])
+  const slots = HALL_SLOTS
   if (waystones.length > slots.length) {
     console.error(`NG ${waystones.length} waystones, ${slots.length} gates`)
     Deno.exit(1)

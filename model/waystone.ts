@@ -30,7 +30,14 @@ export function isAwake(id: string): boolean {
   return Item.isCollected(waystoneKey(id))
 }
 
-type WayData = { id?: string; name?: string; i?: number; j?: number }
+type WayData = {
+  id?: string
+  name?: string
+  i?: number
+  j?: number
+  /** A gate by the waystone itself, leading home to the hall */
+  home?: boolean
+}
 const dataOf = (prop: Prop) => (prop.data ?? {}) as WayData
 
 /**
@@ -152,19 +159,26 @@ export class WaystonePushed implements PushedDelegate {
       )
     }
     signal.message.update({
-      text: `THE WAYSTONE OF ${name} WAKES. ITS GATE OPENS IN THE HALL`,
+      text:
+        `THE WAYSTONE OF ${name} WAKES. ITS GATES OPEN, HERE AND IN THE HALL`,
     })
   }
 }
 
-/** Stepping on a waygate: through it if its waystone woke */
+/**
+ * Stepping on a waygate: through it if its waystone woke. The gates in the
+ * hall lead to their waystones; the gate by each waystone (home) leads
+ * back to the hall
+ */
 export function enterWaygate(prop: Prop, actor: IActor) {
   if (actor.id !== "main") return
-  const { id, name, i, j } = dataOf(prop)
+  const { id, name, i, j, home } = dataOf(prop)
   if (!id || !isAwake(id)) {
     signal.playSound("blipSelect")
     signal.message.update({
-      text: `THE GATE OF ${name} SLEEPS. ITS WAYSTONE IS OUT IN THE WILDS`,
+      text: home
+        ? `THE GATE SLEEPS. THE WAYSTONE OF ${name} WAKES IT`
+        : `THE GATE OF ${name} SLEEPS. ITS WAYSTONE IS OUT IN THE WILDS`,
     })
     return
   }
