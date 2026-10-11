@@ -47,7 +47,6 @@
        (palette colors), a stepped pixel tail pointing at the sign */
     .js-speech-bubble {
       transform: translate(-50%, -100%);
-      z-index: 1;
     }
     .speech-text {
       background: #000000;
@@ -123,21 +122,21 @@
       class="js-game-screen js-item-get-effector relative h-[320px] w-[320px] overflow-hidden"
     >
       <!-- FieldBlocks loaded in this div -->
-      <div class="field absolute">
-        <!-- The speech bubble: a read sign's words pop out of it -->
-        <div
-          class="js-speech-bubble hidden absolute pointer-events-none select-none"
-        >
-          <div class="speech-text pixel-text"></div>
-          <div class="speech-tail-1"></div>
-          <div class="speech-tail-2"></div>
-        </div>
-      </div>
+      <div class="field absolute"></div>
       <canvas
         class="canvas-entity absolute crisp-edges"
         width="320"
         height="320"
       ></canvas>
+      <!-- The speech bubble: a read sign's words pop out of it. It sits
+           over the entity canvas so nothing in the world covers it -->
+      <div
+        class="js-speech-bubble hidden absolute pointer-events-none select-none"
+      >
+        <div class="speech-text pixel-text"></div>
+        <div class="speech-tail-1"></div>
+        <div class="speech-tail-2"></div>
+      </div>
       <!-- The ui panel -->
       <div
         class="ui-panel js-apple-counter absolute px-0.5 bg-black right-[4px] top-[4px] h-[136px] w-[64px]"
