@@ -9,7 +9,8 @@ import { Palette } from "../util/palette.ts"
 import { encodePng } from "./png.ts"
 
 // 12x12, sliced 4px (corners 4x4, edges and the fill stretch).
-// K the line, w the paper, . clear (the world shows at the corners)
+// K the line, w the paper (light gray), . clear (the world shows
+// at the corners)
 const FRAME = [
   "..KKKKKKKK..",
   ".KwwwwwwwwK.",
@@ -27,7 +28,7 @@ const FRAME = [
 
 const INK: Record<string, string> = {
   K: Palette.black,
-  w: Palette.white,
+  w: Palette.gray1,
 }
 const rgba = new Uint8Array(12 * 12 * 4)
 FRAME.forEach((row, y) => {
