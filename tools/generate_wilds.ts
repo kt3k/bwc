@@ -1984,7 +1984,10 @@ type Waystone = {
   name: string
   x: number
   y: number
-  /** Where its gate in the hall lands: before the stone, facing the way in */
+  /**
+   * Its gate home, beside the stone. The two gates of a waystone lead to
+   * each other: going in by one, you come out on the other
+   */
   ax: number
   ay: number
 }
@@ -2087,27 +2090,21 @@ const waystones: Waystone[] = []
     const id = n.name.replace(/ /g, "")
     put(props, cx, cy, "waystone", { id, name: n.name })
     // the gate home, beside the stone: open once the stone woke, it leads
-    // to the aisle before this stone's gate in the hall
+    // onto this stone's gate in the hall (and that one onto this)
     const slot = HALL_SLOTS[waystones.length]
     if (!slot) {
       console.error("NG more waystones than gates in the hall")
       Deno.exit(1)
     }
-    put(
-      props,
-      cx + Math.round(Math.cos(toward + Math.PI / 2) * 2),
-      cy + Math.round(Math.sin(toward + Math.PI / 2) * 2),
-      "waygate",
-      {
-        id,
-        name: n.name,
-        home: true,
-        i: START_BLOCK.i + slot[0],
-        j: START_BLOCK.j + (slot[1] === 30 ? 31 : 32),
-      },
-    )
-    const ax = cx + Math.round(Math.cos(toward) * 2)
-    const ay = cy + Math.round(Math.sin(toward) * 2)
+    const ax = cx + Math.round(Math.cos(toward + Math.PI / 2) * 2)
+    const ay = cy + Math.round(Math.sin(toward + Math.PI / 2) * 2)
+    put(props, ax, ay, "waygate", {
+      id,
+      name: n.name,
+      home: true,
+      i: START_BLOCK.i + slot[0],
+      j: START_BLOCK.j + slot[1],
+    })
     waystones.push({ id, name: n.name, x: cx, y: cy, ax, ay })
   }
   console.log(
