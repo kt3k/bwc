@@ -33,9 +33,13 @@ export function SpeechBubble({ el, subscribe }: Context) {
       return
     }
     text.textContent = speech.text
+    // read from above, the bubble opens downward, away from the reader
+    el.classList.toggle("below", speech.below === true)
     at = {
       x: speech.i * CELL_SIZE + CELL_SIZE / 2,
-      y: speech.j * CELL_SIZE - 2,
+      y: speech.below
+        ? (speech.j + 1) * CELL_SIZE + 2
+        : speech.j * CELL_SIZE - 2,
     }
     place(signal.centerPixel.get())
     el.classList.remove("hidden")

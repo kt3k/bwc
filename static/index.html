@@ -45,9 +45,17 @@
     }
     /* The speech bubble over a sign being read: black and white only
        (palette colors), a fine 1px line and a fine-stepped pixel tail
-       pointing at the sign */
+       pointing at the sign. Read from above (.below), it hangs under
+       the sign instead, the tail pointing up */
     .js-speech-bubble {
       transform: translate(-50%, -100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .js-speech-bubble.below {
+      transform: translate(-50%, 0);
+      flex-direction: column-reverse;
     }
     .speech-text {
       background: #000000;
@@ -75,6 +83,13 @@
       width: 3px;
       margin-top: 0;
       border-bottom: 1px solid #ffffff;
+    }
+    .js-speech-bubble.below .speech-tail-1 {
+      margin: 0 auto -1px;
+    }
+    .js-speech-bubble.below .speech-tail-3 {
+      border-bottom: none;
+      border-top: 1px solid #ffffff;
     }
     </style>
   </head>

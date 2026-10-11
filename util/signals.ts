@@ -32,10 +32,12 @@ export const playerSpeed = new Signal<1 | 2 | 4>(2)
 // the same text shown twice still triggers the subscribers.
 export const message = new Signal<{ text: string } | null>(null)
 // What a sign says and where it stands (world cell): shown as a speech
-// bubble over the sign. Wrapped in an object so that reading the same
-// sign twice still triggers the subscribers.
+// bubble over the sign - or under it (below: true) when the reader
+// pushed it from above, so the bubble never covers them. Wrapped in an
+// object so that reading the same sign twice still triggers the
+// subscribers.
 export const speech = new Signal<
-  { i: number; j: number; text: string } | null
+  { i: number; j: number; text: string; below?: boolean } | null
 >(null)
 
 /** The name of a jsfxr sound preset */
