@@ -30,23 +30,42 @@ const INK: Record<string, string> = {
   K: Palette.black,
   w: Palette.gray1,
 }
-const rgba = new Uint8Array(12 * 12 * 4)
-FRAME.forEach((row, y) => {
-  ;[...row].forEach((ch, x) => {
-    const hex = INK[ch]
-    if (!hex) return // transparent
-    const p = (y * 12 + x) * 4
-    rgba[p] = parseInt(hex.slice(1, 3), 16)
-    rgba[p + 1] = parseInt(hex.slice(3, 5), 16)
-    rgba[p + 2] = parseInt(hex.slice(5, 7), 16)
-    rgba[p + 3] = 255
+// The tail: a symmetric pixel triangle, 1px thinner per row, drawn
+// down-pointing (the upward bubble); the downward bubble flips it
+// with scaleY(-1), which moves pixels without blending any
+const TAIL = [
+  "KwwwwwwwK",
+  ".KwwwwwK.",
+  "..KwwwK..",
+  "...KwK...",
+  "....K....",
+]
+
+function draw(rows: string[], w: number, h: number) {
+  const rgba = new Uint8Array(w * h * 4)
+  rows.forEach((row, y) => {
+    ;[...row].forEach((ch, x) => {
+      const hex = INK[ch]
+      if (!hex) return // transparent
+      const p = (y * w + x) * 4
+      rgba[p] = parseInt(hex.slice(1, 3), 16)
+      rgba[p + 1] = parseInt(hex.slice(3, 5), 16)
+      rgba[p + 2] = parseInt(hex.slice(5, 7), 16)
+      rgba[p + 3] = 255
+    })
   })
-})
+  return encodePng(w, h, rgba)
+}
+
 await Deno.mkdir(new URL("../static/ui/", import.meta.url), {
   recursive: true,
 })
 await Deno.writeFile(
   new URL("../static/ui/bubble_frame.png", import.meta.url),
-  await encodePng(12, 12, rgba),
+  await draw(FRAME, 12, 12),
 )
-console.log("drew the bubble frame")
+await Deno.writeFile(
+  new URL("../static/ui/bubble_tail.png", import.meta.url),
+  await draw(TAIL, 9, 5),
+)
+console.log("drew the bubble frame and tail")

@@ -71,31 +71,17 @@
       width: max-content;
       max-width: 244px;
     }
-    .speech-tail-1,
-    .speech-tail-2,
-    .speech-tail-3 {
-      background: #bec1be;
-      border-left: 1px solid #000000;
-      border-right: 1px solid #000000;
+    .speech-tail {
+      background: url(./ui/bubble_tail.png);
+      image-rendering: pixelated;
       margin: -1px auto 0;
-      width: 10px;
-      height: 3px;
+      width: 9px;
+      height: 5px;
     }
-    .speech-tail-2 {
-      width: 6px;
-      margin-top: 0;
-    }
-    .speech-tail-3 {
-      width: 3px;
-      margin-top: 0;
-      border-bottom: 1px solid #000000;
-    }
-    .js-speech-bubble.below .speech-tail-1 {
+    .js-speech-bubble.below .speech-tail {
+      /* flipped, it points up; a flip moves pixels, it blends none */
+      transform: scaleY(-1);
       margin: 0 auto -1px;
-    }
-    .js-speech-bubble.below .speech-tail-3 {
-      border-bottom: none;
-      border-top: 1px solid #000000;
     }
     </style>
   </head>
@@ -161,9 +147,7 @@
         class="js-speech-bubble hidden absolute pointer-events-none select-none"
       >
         <div class="speech-text pixel-text"></div>
-        <div class="speech-tail-1"></div>
-        <div class="speech-tail-2"></div>
-        <div class="speech-tail-3"></div>
+        <div class="speech-tail"></div>
       </div>
       <!-- The ui panel -->
       <div
