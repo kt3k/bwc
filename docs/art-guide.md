@@ -197,6 +197,7 @@
 | `t`       | tilled.png             | 耕した土 (畑)         | WILDS の HAYWARD                   |
 | `P`       | paste.png              | 歯磨き粉の白い道      | 歯磨き粉の山が押し出す (水の上も)  |
 | `S`       | spiral.png             | ほどけた殻の畝        | かたつむりの殻がほどけた道         |
+| `R`       | runes.png              | 輪と斜線の彫り (暗い) | 石碑の環と石碑の広間の床           |
 | `K`       | wall_castle.png        | 城の大きな石積み      | CITY の城・山の手                  |
 | `L`       | wall_battlement.png    | 胸壁 (狭間)           | 城壁・STONEGATE の町壁             |
 | `M`       | wall_masonry.png       | 切り石                | CITY の家                          |

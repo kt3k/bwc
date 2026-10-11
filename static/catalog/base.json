@@ -260,6 +260,10 @@
       "canEnter": false,
       "src": "../cell/wall_bio_sinew.png",
       "casts": true
+    },
+    "R": {
+      "canEnter": true,
+      "src": "../cell/runes.png"
     }
   },
   "actors": {
@@ -1755,6 +1759,72 @@
         },
         "required": [
           "group"
+        ]
+      }
+    },
+    "waystone": {
+      "src": "../prop/waystone.png",
+      "canEnter": false,
+      "pushed": "waystone",
+      "growth": {
+        "stages": [
+          "../prop/waystone.png",
+          "../prop/waystone_awake.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      }
+    },
+    "monolith": {
+      "src": "../prop/monolith.png",
+      "canEnter": false
+    },
+    "waygate": {
+      "src": "../prop/waygate.png",
+      "canEnter": true,
+      "onEnter": "waygate",
+      "growth": {
+        "stages": [
+          "../prop/waygate.png",
+          "../prop/waygate_awake.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "i": {
+            "type": "number"
+          },
+          "j": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "i",
+          "j"
         ]
       }
     }

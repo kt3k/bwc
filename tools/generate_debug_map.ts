@@ -78,6 +78,8 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "race-goal": { course: "debug", par: 600, reward: 3 },
   "apple-gate": { count: 1 },
   switch: { group: "debug-sw" },
+  waystone: { id: "DEBUG", name: "DEBUG" },
+  waygate: { id: "DEBUG", name: "DEBUG", i: BI + ARRIVAL.i, j: BJ + ARRIVAL.j },
   "blue-wall": { group: "debug-sw" },
   "red-wall": { group: "debug-sw" },
   "and-wall": { groups: ["debug-sw"] },

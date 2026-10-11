@@ -34,6 +34,7 @@ import type {
   PushedEvent,
 } from "./types.ts"
 import type { Prop, PushedDelegate } from "./prop.ts"
+import { stepWaygate, stepWaystone, WaystonePushed } from "./waystone.ts"
 import type { Actor } from "./actor.ts"
 
 // ---------------------------------------------------------------------
@@ -885,6 +886,7 @@ export const ODD_PROP_PUSHED: Record<string, () => PushedDelegate> = {
   "paste-tube": () => new PasteTube(),
   "self-statue": () => new SelfStatue(),
   "snail-house": () => new SnailHouse(),
+  waystone: () => new WaystonePushed(),
 }
 
 /** Per-frame behaviors of the oddity props, by type */
@@ -893,6 +895,8 @@ export const ODD_PROP_STEP: Record<
   (prop: Prop, field: IField) => void
 > = {
   "slipper-mat": stepSlipperMat,
+  waystone: stepWaystone,
+  waygate: stepWaygate,
 }
 
 /**

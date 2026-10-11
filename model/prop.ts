@@ -17,6 +17,7 @@ import { PropDefinition } from "./catalog.ts"
 import { ActionQueue, type PropAction } from "./action-queue.ts"
 import { Palette } from "../util/palette.ts"
 import { ODD_PROP_INIT, ODD_PROP_PUSHED, ODD_PROP_STEP } from "./oddities.ts"
+import { enterWaygate } from "./waystone.ts"
 
 /** How many cells a spring launches the player */
 export const SPRING_DISTANCE = 10
@@ -611,6 +612,8 @@ export class Prop implements IProp {
           location.replace(`#${i},${j}`)
         }, 10)
       }
+    } else if (this.def.onEnter === "waygate") {
+      enterWaygate(this, actor)
     } else if (this.def.onEnter === "spring") {
       const dir = actor.dir
       const [ni, nj] = nextGrid(this.i, this.j, dir)

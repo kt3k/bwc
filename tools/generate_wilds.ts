@@ -42,6 +42,10 @@
 // around it, and its cave mouth opens on the north face, where a road
 // leads. The cavern is built on its own and stamped in at the end.
 //
+// By each landmark stands a waystone in a circle of standing stones;
+// touched, it opens its gate in the hall of waystones on the START island
+// (model/waystone.ts).
+//
 // It also adds the "W" portal room to the START island.
 //
 // Usage: deno -A tools/generate_wilds.ts
@@ -245,6 +249,7 @@ enum T {
   ICE, // the ice of a mini puzzle room
   BIO, // a biomechanical wall (BONE VALLEY); its kind is in bioChar
   CITY, // the city's ground (stamped in at the end)
+  RUNE, // the carved floor of a waystone's circle
 }
 const CELL: Record<T, string> = {
   [T.SEA]: "w",
@@ -270,6 +275,7 @@ const CELL: Record<T, string> = {
   [T.ICE]: "i",
   [T.BIO]: "A",
   [T.CITY]: "b",
+  [T.RUNE]: "R",
 }
 /** The biomechanical wall kind (A-F) of each T.BIO cell */
 const bioChar = new Map<number, string>()
@@ -1954,6 +1960,131 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
 }
 
 // ---------------------------------------------------------------------
+// the waystones (model/waystone.ts, ideas/wilds-roaming-todo.md 6): by
+// each landmark, a little way off, a clearing in a ring of dark trees
+// with one way in. Inside, a fairy ring of flowers on the grass, a circle
+// of standing stones on a floor carved with runes, a crescent pool, and
+// in the middle the old waystone. The two lanterns at the way in are the
+// only light. Touched, the stone wakes and its gate opens in the hall of
+// waystones on the START island
+
+type Waystone = {
+  id: string
+  name: string
+  x: number
+  y: number
+  /** Where its gate in the hall lands: before the stone, facing the way in */
+  ax: number
+  ay: number
+}
+const waystones: Waystone[] = []
+{
+  const R = 10
+  const fitsCircle = (cx: number, cy: number) => {
+    for (let dy = -R - 1; dy <= R + 1; dy++) {
+      for (let dx = -R - 1; dx <= R + 1; dx++) {
+        if (dx * dx + dy * dy > (R + 1) * (R + 1)) continue
+        const x = cx + dx, y = cy + dy
+        if (!inside(x, y) || inMassif(x, y)) return false
+        const p = idx(x, y)
+        const t = terrain[p] as T
+        if (!(t === T.MEADOW || t === T.FOREST || t === T.HILL)) return false
+        if (keepClear[p] || taken.has(p) || puzzleCells[p]) return false
+      }
+    }
+    return true
+  }
+  const sites = nodes.filter((n) =>
+    ["lookout", "shrine", "ruins", "biomech", "cave"].includes(n.kind)
+  )
+  for (const n of sites) {
+    let spot: [number, number] | null = null
+    for (let d = 16; d <= 90 && !spot; d += 2) {
+      for (let k = 0; k < 48 && !spot; k++) {
+        const a = (k / 48) * Math.PI * 2
+        const cx = Math.round(n.x + Math.cos(a) * d)
+        const cy = Math.round(n.y + Math.sin(a) * d)
+        if (fitsCircle(cx, cy)) spot = [cx, cy]
+      }
+    }
+    if (!spot) {
+      console.error(`NG no room for the waystone of ${n.name}`)
+      Deno.exit(1)
+    }
+    const [cx, cy] = spot
+    // the way in faces the landmark
+    const toward = Math.atan2(n.y - cy, n.x - cx)
+    const angleOff = (dx: number, dy: number) => {
+      let d = Math.atan2(dy, dx) - toward
+      while (d > Math.PI) d -= Math.PI * 2
+      while (d < -Math.PI) d += Math.PI * 2
+      return Math.abs(d)
+    }
+    for (let dy = -R; dy <= R; dy++) {
+      for (let dx = -R; dx <= R; dx++) {
+        const r = Math.hypot(dx, dy)
+        if (r > R + 0.5) continue
+        const p = idx(cx + dx, cy + dy)
+        keepClear[p] = 1
+        const gap = angleOff(dx, dy) < 0.32
+        if (r > 8.5) terrain[p] = gap ? T.MEADOW : T.TREE
+        else if (r > 6.5) terrain[p] = T.MEADOW
+        else if (r > 5.2) terrain[p] = T.STONE
+        else terrain[p] = T.RUNE
+        // the path in: mosaic from the gap to the circle
+        if (gap && r > 5.2 && r <= 9.5 && angleOff(dx, dy) < 0.2) {
+          terrain[p] = T.STONE
+        }
+      }
+    }
+    // the crescent pool behind the stone
+    for (let dy = -4; dy <= 4; dy++) {
+      for (let dx = -4; dx <= 4; dx++) {
+        const r = Math.hypot(dx, dy)
+        if (r >= 2 && r <= 3.3 && angleOff(-dx, -dy) < 0.9) {
+          terrain[idx(cx + dx, cy + dy)] = T.LAKE
+        }
+      }
+    }
+    // the standing stones, the way in between two of them
+    for (let k = 0; k < 8; k++) {
+      const a = toward + (k + 0.5) * (Math.PI / 4)
+      put(
+        props,
+        cx + Math.round(Math.cos(a) * 5.6),
+        cy + Math.round(Math.sin(a) * 5.6),
+        "monolith",
+      )
+    }
+    // the fairy ring of flowers on the grass
+    for (let k = 0; k < 20; k++) {
+      const a = toward + (k + 0.5) * (Math.PI / 10)
+      const fx = cx + Math.round(Math.cos(a) * 7.5)
+      const fy = cy + Math.round(Math.sin(a) * 7.5)
+      if (terrain[idx(fx, fy)] === T.MEADOW) put(props, fx, fy, "flowers")
+    }
+    // the two lanterns at the way in
+    const side = toward + Math.PI / 2
+    for (const s of [-1, 1]) {
+      put(
+        props,
+        cx + Math.round(Math.cos(toward) * 9.5 + Math.cos(side) * 2 * s),
+        cy + Math.round(Math.sin(toward) * 9.5 + Math.sin(side) * 2 * s),
+        "lantern",
+      )
+    }
+    const id = n.name.replace(/ /g, "")
+    put(props, cx, cy, "waystone", { id, name: n.name })
+    const ax = cx + Math.round(Math.cos(toward) * 2)
+    const ay = cy + Math.round(Math.sin(toward) * 2)
+    waystones.push({ id, name: n.name, x: cx, y: cy, ax, ay })
+  }
+  console.log(
+    `waystones: ${waystones.map((w) => w.name.toLowerCase()).join(", ")}`,
+  )
+}
+
+// ---------------------------------------------------------------------
 // the rivers, made whole: since they were first run, the mountain, the
 // cities, the towns, the roads, the cove and the puzzle rooms were laid
 // over the land, cutting some of them short. So each is run again, now
@@ -1979,6 +2110,7 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
     T.ICE,
     T.BIO,
     T.CITY,
+    T.RUNE,
   ])
   const inCove = (x: number, y: number) =>
     x >= COVE_X0 && x < COVE_X0 + COVE_W && y >= COVE_Y0 &&
@@ -2508,6 +2640,29 @@ for (let round = 0; round < 50; round++) {
     }
   }
 }
+// every waystone's circle is walked to from the arrival
+{
+  const reached = new Uint8Array(W * H)
+  const queue = [idx(arrival.x, arrival.y)]
+  reached[queue[0]] = 1
+  for (let q = 0; q < queue.length; q++) {
+    const x = queue[q] % W, y = (queue[q] / W) | 0
+    for (const [dx, dy] of D4) {
+      const np = idx(x + dx, y + dy)
+      if (inside(x + dx, y + dy) && !reached[np] && walkable(np)) {
+        reached[np] = 1
+        queue.push(np)
+      }
+    }
+  }
+  const lost = waystones.filter((w) => !reached[idx(w.ax, w.ay)])
+  if (lost.length > 0) {
+    console.error(
+      `NG waystones out of reach: ${lost.map((w) => w.name).join(", ")}`,
+    )
+    Deno.exit(1)
+  }
+}
 // spawns left on cells that can't hold them are dropped
 const standable = (s: Spawn) => walkableCell(idx(s.i - OI, s.j - OJ))
 const actorsOut = actors.filter(standable)
@@ -2616,6 +2771,7 @@ if (previewAt >= 0) {
     [T.ICE]: Palette.cyan1,
     [T.BIO]: Palette.violet3,
     [T.CITY]: Palette.pink3,
+    [T.RUNE]: Palette.violet2,
   }
   const rgba = new Uint8Array(W * H * 4)
   for (let p = 0; p < W * H; p++) {
@@ -2721,6 +2877,14 @@ const places = [
     y0: COVE_Y0 + r[1],
     x1: COVE_X0 + r[2],
     y1: COVE_Y0 + r[3],
+  })),
+  // the waystones' circles
+  ...waystones.map((w) => ({
+    id: `${w.id}-WAYSTONE`,
+    x0: w.x - 10,
+    y0: w.y - 10,
+    x1: w.x + 10,
+    y1: w.y + 10,
   })),
   {
     id: "CAVERN",
@@ -2875,6 +3039,46 @@ portalRoom(
   },
   "THE CITY: STREETS, SHOPS AND A CASTLE BY THE SEA",
 )
+// the hall of waystones, off the corridor south of the start room: a
+// dark hall carved with runes, a mosaic aisle down the middle, and a
+// gate for each waystone of the WILDS along it, a standing stone behind
+// each. A gate sleeps until its waystone out in the WILDS is touched
+{
+  const X0 = 12, X1 = 30, Y0 = 29, Y1 = 34
+  carve(X0, Y0, X1, Y1, "R")
+  carve(X0, 31, 33, 32, "m") // the aisle, and the way in from the corridor
+  dropIn(X0, Y0 - 1, 33, Y1 + 1)
+  const slots: [number, number, number][] = [] // x, gate row, stone row
+  for (const x of [15, 19, 23, 27]) slots.push([x, 30, 29], [x, 33, 34])
+  if (waystones.length > slots.length) {
+    console.error(`NG ${waystones.length} waystones, ${slots.length} gates`)
+    Deno.exit(1)
+  }
+  waystones.forEach((w, n) => {
+    const [x, gy, sy] = slots[n]
+    start.props.push(
+      {
+        ...local(x, gy),
+        type: "waygate",
+        data: { id: w.id, name: w.name, i: OI + w.ax, j: OJ + w.ay },
+      },
+      { ...local(x, sy), type: "monolith" },
+      { ...local(x + 1, gy), type: "sign", data: { text: w.name } },
+    )
+  })
+  start.props.push(
+    { ...local(13, 30), type: "lantern" },
+    { ...local(13, 33), type: "lantern" },
+    {
+      ...local(32, 30),
+      type: "sign",
+      data: {
+        text:
+          "THE HALL OF WAYSTONES: A GATE WAKES WHEN ITS WAYSTONE OUT IN THE WILDS IS TOUCHED",
+      },
+    },
+  )
+}
 // tidy: the cells that can't be walked to from the start (props count
 // as passable: gates open) turn black, and what stood there goes. The
 // spawns right by the walkable cells stay (the letters over the rooms)
