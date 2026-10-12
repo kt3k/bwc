@@ -26,18 +26,42 @@ export function SpeechBubble({ el, subscribe }: Context) {
   const text = el.querySelector(".speech-text")!
   const e = el as HTMLElement
 
+  const hide = () => {
+    clearTimeout(timer)
+    el.classList.add("hidden")
+    at = null
+  }
+
   const place = (center: { x: number; y: number }) => {
     if (!at) {
       return
     }
     const screen = e.parentElement!
+    // a sign a screenful away is done talking (walked off, or the
+    // view jumped through a portal and left it behind)
+    if (
+      Math.abs(at.x - center.x) > screen.offsetWidth ||
+      Math.abs(at.y - center.y) > screen.offsetHeight
+    ) {
+      hide()
+      return
+    }
     const x = Math.round(at.x - center.x + screen.offsetWidth / 2)
     const y = Math.round(at.y - center.y + screen.offsetHeight / 2)
     e.style.left = `${x - Math.round(e.offsetWidth / 2)}px`
     e.style.top = `${below ? y : y - e.offsetHeight}px`
   }
+  const replace = () => place(signal.centerPixel.get())
 
   subscribe(signal.centerPixel, place)
+  // a teleport swaps the ground out from under whatever was talking
+  subscribe(signal.isGameLoading, (loading) => {
+    if (loading) {
+      hide()
+    }
+  })
+  // the pixel font can land after a bubble was measured: measure again
+  document.fonts?.ready.then(replace)
   subscribe(signal.speech, (speech) => {
     if (!speech) {
       return
@@ -49,9 +73,11 @@ export function SpeechBubble({ el, subscribe }: Context) {
       x: speech.i * CELL_SIZE + CELL_SIZE / 2,
       y: below ? (speech.j + 1) * CELL_SIZE + 2 : speech.j * CELL_SIZE - 2,
     }
-    // visible before measuring: display none has no size
+    // visible before measuring: display none has no size. Placed
+    // again a frame later, once the text has truly settled
     el.classList.remove("hidden")
-    place(signal.centerPixel.get())
+    replace()
+    requestAnimationFrame(replace)
     clearTimeout(timer)
     timer = setTimeout(() => {
       el.classList.add("hidden")
