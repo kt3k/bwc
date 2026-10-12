@@ -36,19 +36,25 @@ const INK: Record<string, string> = {
   w: Palette.gray1,
   r: Palette.gray2,
 }
-// The tail: a symmetric pixel triangle with 2px edges and the same
-// 1px ring on its slants, drawn down-pointing (the upward bubble);
-// the downward bubble flips it with scaleY(-1), which moves pixels
-// without blending any. Its top three rows overlap the frame's line
-// and ring, opening them for the paper
+// The tail: a thin curved whisker in the Romancing SaGa 3 manner -
+// it leaves the bubble, swings out to the side and hooks back to a
+// tapering tip over the speaker, instead of a plain triangle. The
+// same 2px line and 1px ring as the frame; the downward bubble flips
+// it with scaleY(-1), which moves pixels without blending any. Its
+// top three rows overlap the frame's line and ring, opening them
 const TAIL = [
-  ".KwwwwwwwwwK.",
-  ".KKwwwwwwwKK.",
-  ".rKKwwwwwKKr.",
-  "..rKKwwwKKr..",
-  "...rKKwKKr...",
-  "....rKKKr....",
-  ".....rrr.....",
+  "..KwwwwK........",
+  "..KKwwwK........",
+  "..rKKwwKr.......",
+  "...rKwwwKr......",
+  "....rKwwKr......",
+  ".....rKwwKr.....",
+  "......rKwKr.....",
+  "......rKKKr.....",
+  ".....rKKKr......",
+  "....rKKr........",
+  "...rKr..........",
+  "...rr...........",
 ]
 
 function draw(rows: string[], w: number, h: number) {
@@ -76,6 +82,6 @@ await Deno.writeFile(
 )
 await Deno.writeFile(
   new URL("../static/ui/bubble_tail.png", import.meta.url),
-  await draw(TAIL, 13, 7),
+  await draw(TAIL, 16, 12),
 )
 console.log("drew the bubble frame and tail")
