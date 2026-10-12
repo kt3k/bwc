@@ -22,7 +22,7 @@ const INK: Record<string, PaletteColor | null> = {
 }
 
 /** A 16x16 picture from 16 rows of 16 ink characters */
-function picture(rows: string[]): (PaletteColor | null)[] {
+export function picture(rows: string[]): (PaletteColor | null)[] {
   if (rows.length !== N) throw new Error(`${rows.length} rows`)
   return rows.flatMap((row, y) => {
     if (row.length !== N) throw new Error(`row ${y} is ${row.length} wide`)
@@ -33,7 +33,7 @@ function picture(rows: string[]): (PaletteColor | null)[] {
   })
 }
 
-async function write(path: string, px: (PaletteColor | null)[]) {
+export async function write(path: string, px: (PaletteColor | null)[]) {
   const rgba = new Uint8Array(N * N * 4)
   px.forEach((c, k) => {
     if (!c) return

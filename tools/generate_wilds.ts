@@ -2691,6 +2691,109 @@ for (let round = 0; round < 50; round++) {
     Deno.exit(1)
   }
 }
+// the shortcuts (model/shortcut.ts, ideas/wilds-roaming-todo.md 5):
+// where two walked places lie a few cells apart across trees, rock or a
+// river but a long walk round, a passage is cut between them with a
+// latch gate in it, latched on the far side (the farther from the
+// arrival on foot). Walk the long way, lift the latch, and it is a quick
+// way back from then on
+{
+  const D = new Int32Array(W * H).fill(-1)
+  const start = idx(arrival.x, arrival.y)
+  D[start] = 0
+  const queue = [start]
+  for (let q = 0; q < queue.length; q++) {
+    const x = queue[q] % W, y = (queue[q] / W) | 0
+    for (const [dx, dy] of D4) {
+      const np = idx(x + dx, y + dy)
+      if (inside(x + dx, y + dy) && D[np] < 0 && walkable(np)) {
+        D[np] = D[queue[q]] + 1
+        queue.push(np)
+      }
+    }
+  }
+  const inCoveRect = (x: number, y: number) =>
+    x >= COVE_X0 - 4 && x < COVE_X0 + COVE_W + 4 && y >= COVE_Y0 - 4 &&
+    y < COVE_Y0 + COVE_H + 4
+  const barrier = (x: number, y: number) => {
+    const p = idx(x, y)
+    const t = terrain[p] as T
+    const water = t === T.RIVER || t === T.LAKE
+    // (the rivers are kept clear of trees, not of crossings)
+    return (t === T.TREE || t === T.ROCK || water) &&
+      (water || !keepClear[p]) && !puzzleCells[p] && !taken.has(p) &&
+      !inCoveRect(x, y) && !inMassif(x, y) && !inCity(x, y)
+  }
+  type Cut = {
+    x: number
+    y: number
+    dx: number
+    dy: number
+    k: number
+    saving: number
+  }
+  const cuts: Cut[] = []
+  for (let y = 2; y < H - 2; y += 2) {
+    for (let x = 2; x < W - 2; x += 2) {
+      const p = idx(x, y)
+      if (D[p] < 0) continue
+      for (const [dx, dy] of D4) {
+        for (let k = 1; k <= 8; k++) {
+          const qx = x + dx * k, qy = y + dy * k
+          if (!inside(qx, qy)) break
+          const q = idx(qx, qy)
+          if (D[q] >= 0) {
+            const saving = Math.abs(D[p] - D[q]) - k
+            if (k >= 3 && saving >= 150) cuts.push({ x, y, dx, dy, k, saving })
+            break
+          }
+          if (!barrier(qx, qy)) break
+        }
+      }
+    }
+  }
+  cuts.sort((a, b) => b.saving - a.saving)
+  console.log(
+    `shortcut candidates: ${cuts.length}, best saving ${cuts[0]?.saving ?? 0}`,
+  )
+  const picked: Cut[] = []
+  for (const c of cuts) {
+    if (picked.length >= 4 * SCALE) break
+    if (picked.some((o) => Math.hypot(o.x - c.x, o.y - c.y) < 160)) continue
+    // still all barrier (an earlier cut may have taken a cell)
+    let clearWay = true
+    for (let s = 1; s < c.k; s++) {
+      if (!barrier(c.x + c.dx * s, c.y + c.dy * s)) clearWay = false
+    }
+    if (!clearWay) continue
+    picked.push(c)
+    const bx = c.x + c.dx * c.k, by = c.y + c.dy * c.k
+    const nearIsA = D[idx(c.x, c.y)] < D[idx(bx, by)]
+    for (let s = 1; s < c.k; s++) {
+      const p = idx(c.x + c.dx * s, c.y + c.dy * s)
+      const t = terrain[p] as T
+      terrain[p] = t === T.RIVER || t === T.LAKE ? T.BRIDGE : T.CAMP
+      keepClear[p] = 1
+    }
+    // the gate next to the near end; it is pushed toward the near side
+    const s = nearIsA ? 1 : c.k - 1
+    const gx = c.x + c.dx * s, gy = c.y + c.dy * s
+    const [pdx, pdy] = nearIsA ? [-c.dx, -c.dy] : [c.dx, c.dy]
+    const dir = pdx === 1
+      ? "right"
+      : pdx === -1
+      ? "left"
+      : pdy === 1
+      ? "down"
+      : "up"
+    put(props, gx, gy, "latch-gate", { id: `${gx}.${gy}`, dir })
+  }
+  console.log(
+    `shortcuts: ${picked.length} latch gates (saving ${
+      picked.map((c) => c.saving).join(", ")
+    } steps)`,
+  )
+}
 // spawns left on cells that can't hold them are dropped
 const standable = (s: Spawn) => walkableCell(idx(s.i - OI, s.j - OJ))
 const actorsOut = actors.filter(standable)

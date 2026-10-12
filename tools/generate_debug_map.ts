@@ -79,6 +79,7 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "apple-gate": { count: 1 },
   switch: { group: "debug-sw" },
   waystone: { id: "DEBUG", name: "DEBUG" },
+  "latch-gate": { id: "DEBUG", dir: "up" },
   waygate: { id: "DEBUG", name: "DEBUG", i: BI + ARRIVAL.i, j: BJ + ARRIVAL.j },
   "blue-wall": { group: "debug-sw" },
   "red-wall": { group: "debug-sw" },

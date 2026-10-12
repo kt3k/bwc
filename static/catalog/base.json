@@ -1830,6 +1830,39 @@
           "j"
         ]
       }
+    },
+    "latch-gate": {
+      "src": "../prop/latch_gate.png",
+      "canEnter": false,
+      "pushed": "latch-gate",
+      "growth": {
+        "stages": [
+          "../prop/latch_gate.png",
+          "../prop/latch_gate_open.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "dir": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down",
+              "left",
+              "right"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "dir"
+        ]
+      }
     }
   }
 }
