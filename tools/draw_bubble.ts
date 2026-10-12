@@ -8,40 +8,47 @@
 import { Palette } from "../util/palette.ts"
 import { encodePng } from "./png.ts"
 
-// 14x14, sliced 4px (corners 4x4, edges and the fill stretch).
-// K the 2px line, w the paper (light gray), . clear (the world
-// shows at the corners)
+// 16x16, sliced 5px (corners 5x5, edges and the fill stretch).
+// K the 2px line, w the paper (light gray), r the 1px ring of
+// lighter gray just outside the line - the same idea as the ring
+// around the item sprites (docs/art-guide.md) - and . clear
 const FRAME = [
-  "..KKKKKKKKKK..",
-  ".KKKKKKKKKKKK.",
-  "KKKwwwwwwwwKKK",
-  "KKwwwwwwwwwwKK",
-  "KKwwwwwwwwwwKK",
-  "KKwwwwwwwwwwKK",
-  "KKwwwwwwwwwwKK",
-  "KKwwwwwwwwwwKK",
-  "KKwwwwwwwwwwKK",
-  "KKwwwwwwwwwwKK",
-  "KKwwwwwwwwwwKK",
-  "KKKwwwwwwwwKKK",
-  ".KKKKKKKKKKKK.",
-  "..KKKKKKKKKK..",
+  "...rrrrrrrrrr...",
+  "..rKKKKKKKKKKr..",
+  ".rKKKKKKKKKKKKr.",
+  "rKKKwwwwwwwwKKKr",
+  "rKKwwwwwwwwwwKKr",
+  "rKKwwwwwwwwwwKKr",
+  "rKKwwwwwwwwwwKKr",
+  "rKKwwwwwwwwwwKKr",
+  "rKKwwwwwwwwwwKKr",
+  "rKKwwwwwwwwwwKKr",
+  "rKKwwwwwwwwwwKKr",
+  "rKKwwwwwwwwwwKKr",
+  "rKKKwwwwwwwwKKKr",
+  ".rKKKKKKKKKKKKr.",
+  "..rKKKKKKKKKKr..",
+  "...rrrrrrrrrr...",
 ]
 
 const INK: Record<string, string> = {
   K: Palette.black,
   w: Palette.gray1,
+  r: Palette.gray2,
 }
-// The tail: a symmetric pixel triangle with 2px edges to match the
-// frame, drawn down-pointing (the upward bubble); the downward bubble
-// flips it with scaleY(-1), which moves pixels without blending any
+// The tail: a symmetric pixel triangle with 2px edges and the same
+// 1px ring on its slants, drawn down-pointing (the upward bubble);
+// the downward bubble flips it with scaleY(-1), which moves pixels
+// without blending any. Its top three rows overlap the frame's line
+// and ring, opening them for the paper
 const TAIL = [
-  "KwwwwwwwwwK",
-  "KKwwwwwwwKK",
-  ".KKwwwwwKK.",
-  "..KKwwwKK..",
-  "...KKwKK...",
-  "....KKK....",
+  ".KwwwwwwwwwK.",
+  ".KKwwwwwwwKK.",
+  ".rKKwwwwwKKr.",
+  "..rKKwwwKKr..",
+  "...rKKwKKr...",
+  "....rKKKr....",
+  ".....rrr.....",
 ]
 
 function draw(rows: string[], w: number, h: number) {
@@ -65,10 +72,10 @@ await Deno.mkdir(new URL("../static/ui/", import.meta.url), {
 })
 await Deno.writeFile(
   new URL("../static/ui/bubble_frame.png", import.meta.url),
-  await draw(FRAME, 14, 14),
+  await draw(FRAME, 16, 16),
 )
 await Deno.writeFile(
   new URL("../static/ui/bubble_tail.png", import.meta.url),
-  await draw(TAIL, 11, 6),
+  await draw(TAIL, 13, 7),
 )
 console.log("drew the bubble frame and tail")
