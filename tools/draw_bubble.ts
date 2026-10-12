@@ -36,25 +36,23 @@ const INK: Record<string, string> = {
   w: Palette.gray1,
   r: Palette.gray2,
 }
-// The tail: a thin curved whisker in the Romancing SaGa 3 manner -
-// it leaves the bubble, swings out to the side and hooks back to a
-// tapering tip over the speaker, instead of a plain triangle. The
-// same 2px line and 1px ring as the frame; the downward bubble flips
-// it with scaleY(-1), which moves pixels without blending any. Its
-// top three rows overlap the frame's line and ring, opening them
+// The tail, after Romancing SaGa 3 (checked against an in-game
+// shot): not a triangle but a swell of the window's own edge - a
+// gentle concave slope away from the speaker, a rounded crest, and a
+// steep side under them, the paper flowing through unbroken. Drawn
+// down-pointing; the downward bubble flips it with scaleY(-1), which
+// moves pixels without blending any. Its top three rows overlap the
+// frame's line and ring, opening them
 const TAIL = [
-  "..KwwwwK........",
-  "..KKwwwK........",
-  "..rKKwwKr.......",
-  "...rKwwwKr......",
-  "....rKwwKr......",
-  ".....rKwwKr.....",
-  "......rKwKr.....",
-  "......rKKKr.....",
-  ".....rKKKr......",
-  "....rKKr........",
-  "...rKr..........",
-  "...rr...........",
+  ".KwwwwwwwwwwwwwK....",
+  ".KwwwwwwwwwwwwwK....",
+  ".rKwwwwwwwwwwwwKr...",
+  "..rKKwwwwwwwwwwKr...",
+  "....rKKwwwwwwwwKr...",
+  "......rKKwwwwwwKr...",
+  "........rKKwwwKKr...",
+  "..........rKKKKr....",
+  "...........rrrr.....",
 ]
 
 function draw(rows: string[], w: number, h: number) {
@@ -82,6 +80,6 @@ await Deno.writeFile(
 )
 await Deno.writeFile(
   new URL("../static/ui/bubble_tail.png", import.meta.url),
-  await draw(TAIL, 16, 12),
+  await draw(TAIL, 20, 9),
 )
 console.log("drew the bubble frame and tail")
