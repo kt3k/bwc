@@ -14,6 +14,9 @@ type SaveData = {
   position?: { i: number; j: number }
   /** the player's walking speed (the speed buttons) */
   speed?: 1 | 2 | 4
+  /** the letter being carried, and how many were delivered (errands) */
+  letter?: signal.Letter | null
+  deliveries?: number
 }
 
 let data: SaveData = {}
@@ -55,6 +58,8 @@ export function restoreSave() {
     signal.seedCount.update(saved.seedCount ?? 0)
     signal.keyCount.update(saved.keyCount ?? 0)
     Item.deserializeCollected(saved.collectedItemIds ?? [])
+    signal.letter.update(saved.letter ?? null)
+    signal.deliveries.update(saved.deliveries ?? 0)
     if (saved.speed === 1 || saved.speed === 2 || saved.speed === 4) {
       signal.playerSpeed.update(saved.speed)
     }
@@ -82,6 +87,14 @@ export function restoreSave() {
   })
   signal.keyCount.subscribe((v) => {
     data.keyCount = v
+    write()
+  })
+  signal.letter.subscribe((v) => {
+    data.letter = v
+    write()
+  })
+  signal.deliveries.subscribe((v) => {
+    data.deliveries = v
     write()
   })
 }

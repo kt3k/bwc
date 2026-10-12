@@ -17,6 +17,7 @@ import { ExitButton } from "./ui/exit-button.ts"
 
 import { Minimap } from "./ui/minimap.ts"
 import { PlaceLabel } from "./ui/place-label.ts"
+import { LetterLabel } from "./ui/letter-label.ts"
 import { SoundPlayer } from "./ui/sound-player.ts"
 import { SpeechBubble } from "./ui/speech-bubble.ts"
 import { SpeedButtons } from "./ui/speed-buttons.ts"
@@ -41,5 +42,6 @@ register(SoundPlayer, "js-sound-player")
 register(SpeechBubble, "js-speech-bubble")
 register(Minimap, "js-minimap")
 register(PlaceLabel, "js-place-label")
+register(LetterLabel, "js-letter-label")
 register(SpeedButtons, "js-speed-buttons")
 register(ToolButtons, "js-tool-buttons")

@@ -1968,6 +1968,70 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
 // only light. Touched, the stone wakes and its gate opens in the hall of
 // waystones on the START island
 
+// ---------------------------------------------------------------------
+// the post (model/errand.ts, ideas/wilds-roaming-todo.md 1): a post box
+// by each village's plaza and outside each city's first gate, its
+// postmaster beside it. Bump it for a letter to another town; carried
+// there, the letter pays more the farther it went
+
+{
+  type Post = { town: string; x: number; y: number }
+  const posts: Post[] = []
+  const free = (x: number, y: number) => {
+    const p = idx(x, y)
+    const t = terrain[p] as T
+    return (t === T.PLAZA || t === T.ROAD || t === T.MEADOW) &&
+      !taken.has(p) && !puzzleCells[p]
+  }
+  /** The nearest free cell to (x, y) with a free cell beside it */
+  const spot = (x0: number, y0: number): [number, number] | null => {
+    for (let d = 0; d < 14; d++) {
+      for (let dy = -d; dy <= d; dy++) {
+        for (let dx = -d; dx <= d; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== d) continue
+          const x = x0 + dx, y = y0 + dy
+          if (inside(x + 1, y) && free(x, y) && free(x + 1, y)) return [x, y]
+        }
+      }
+    }
+    return null
+  }
+  const seenCity = new Set<string>()
+  for (const n of nodes) {
+    let town: string | null = null
+    if (n.kind === "village") town = n.name
+    else if (n.kind === "citygate") {
+      const c = cities.find((c) => n.name.startsWith(`${c.name} `))
+      if (c && !seenCity.has(c.name)) {
+        seenCity.add(c.name)
+        town = c.name === "CITY" ? "THE CITY" : c.name
+      }
+    }
+    if (!town) continue
+    const at = spot(n.x + 3, n.y + 3)
+    if (!at) {
+      console.error(`NG no room for the post box of ${town}`)
+      Deno.exit(1)
+    }
+    posts.push({ town, x: at[0], y: at[1] })
+  }
+  for (const post of posts) {
+    // where it sends: the towns a fair walk away, paying by the distance
+    const others = posts.filter((o) => o !== post).map((o) => ({
+      town: o.town,
+      d: Math.hypot(o.x - post.x, o.y - post.y),
+    })).sort((a, b) => a.d - b.d)
+    const fair = others.filter((o) => o.d >= 300 && o.d <= 1600)
+    const routes = (fair.length >= 3 ? fair : others.slice(0, 3)).map((o) => ({
+      town: o.town,
+      reward: Math.max(5, Math.round(o.d / 30)),
+    }))
+    put(props, post.x, post.y, "post-box", { town: post.town, routes })
+    put(actors, post.x + 1, post.y, "keeper")
+  }
+  console.log(`post: ${posts.map((p) => p.town.toLowerCase()).join(", ")}`)
+}
+
 /**
  * The gates in the hall of waystones on the START island (local cells of
  * the start block): x, the gate's row, the row of its standing stone. The

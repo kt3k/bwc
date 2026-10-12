@@ -26,6 +26,12 @@ export const keyCount = new Signal(0)
 export type Tool = "apple" | "fish" | "seed"
 // The chosen tool, or null (space does the usual: dig, plant, fish, jump)
 export const tool = new Signal<Tool | null>(null)
+/** A letter being carried (model/errand.ts): where to, from, what it pays */
+export type Letter = { to: string; from: string; reward: number }
+// The letter the player carries, or null
+export const letter = new Signal<Letter | null>(null)
+// How many letters the player delivered
+export const deliveries = new Signal(0)
 // The player's walking speed, chosen with the speed buttons (pixels per frame)
 export const playerSpeed = new Signal<1 | 2 | 4>(2)
 // The message to show in the toast ui. Wrapped in an object so that
