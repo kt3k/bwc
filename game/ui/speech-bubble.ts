@@ -28,9 +28,12 @@ const TAIL_SHIFT = CELL_SIZE / 2
  */
 export function SpeechBubble({ el, subscribe }: Context) {
   let timer: ReturnType<typeof setTimeout> | undefined
-  /** The world pixel the tail points at, and which way the bubble
-   * opens (read from above, it opens downward, away from the reader) */
-  let at: { x: number; y: number } | null = null
+  /** Who is speaking - where the tail points (recomputed every frame
+   * for a speaker on the move) and which way the bubble opens (read
+   * from above, it opens downward, away from the reader) */
+  let src:
+    | { i: number; j: number; follow?: () => { i: number; j: number } }
+    | null = null
   let below = false
   const text = el.querySelector(".speech-text")!
   const tail = el.querySelector<HTMLElement>(".speech-tail")!
@@ -39,25 +42,30 @@ export function SpeechBubble({ el, subscribe }: Context) {
   const hide = () => {
     clearTimeout(timer)
     el.classList.add("hidden")
-    at = null
+    src = null
   }
 
   const place = (center: { x: number; y: number }) => {
-    if (!at) {
+    if (!src) {
       return
     }
+    const spot = src.follow ? src.follow() : src
+    // the fin's tip right at the speaker's edge, as the RS3 crest all
+    // but touches its speaker's feet
+    const ax = spot.i * CELL_SIZE + CELL_SIZE / 2
+    const ay = below ? (spot.j + 1) * CELL_SIZE : spot.j * CELL_SIZE
     const screen = e.parentElement!
     // a sign a screenful away is done talking (walked off, or the
     // view jumped through a portal and left it behind)
     if (
-      Math.abs(at.x - center.x) > screen.offsetWidth ||
-      Math.abs(at.y - center.y) > screen.offsetHeight
+      Math.abs(ax - center.x) > screen.offsetWidth ||
+      Math.abs(ay - center.y) > screen.offsetHeight
     ) {
       hide()
       return
     }
-    const x = Math.round(at.x - center.x + screen.offsetWidth / 2)
-    const y = Math.round(at.y - center.y + screen.offsetHeight / 2)
+    const x = Math.round(ax - center.x + screen.offsetWidth / 2)
+    const y = Math.round(ay - center.y + screen.offsetHeight / 2)
     // as in RS3: the window itself hangs centered (kept on screen),
     // and only the fin slides along its edge to stand over the sign
     const left = Math.max(
@@ -95,12 +103,7 @@ export function SpeechBubble({ el, subscribe }: Context) {
     text.textContent = speech.text
     below = speech.below === true
     el.classList.toggle("below", below)
-    at = {
-      x: speech.i * CELL_SIZE + CELL_SIZE / 2,
-      // the fin's tip right at the sign's edge, as the RS3 crest all
-      // but touches its speaker's feet
-      y: below ? (speech.j + 1) * CELL_SIZE : speech.j * CELL_SIZE,
-    }
+    src = { i: speech.i, j: speech.j, follow: speech.follow }
     // visible before measuring: display none has no size. Placed
     // again a frame later, once the text has truly settled
     el.classList.remove("hidden")

@@ -37,6 +37,21 @@ import { face, findPath, manhattan, stepAway, stepToward } from "./steering.ts"
 import { eatBait, findBait, stepToBait } from "./bait.ts"
 import type { Dir, IActor, IField, IProp, PushedEvent } from "./types.ts"
 
+/**
+ * The actor's words pop out of them as a speech bubble, like a
+ * sign's. It opens downward when the player stands above them, and it
+ * follows them if they move off mid-sentence.
+ */
+function say(actor: Actor, field: IField, text: string) {
+  signal.speech.update({
+    i: actor.i,
+    j: actor.j,
+    text,
+    below: field.me.j < actor.j,
+    follow: () => ({ i: actor.i, j: actor.j }),
+  })
+}
+
 /** A small puff above the head: talking, counting, purring */
 function puff(field: IField, actor: IActor, color: PaletteColor) {
   for (
@@ -570,13 +585,13 @@ export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
     if (pusher.id === "main") {
       const said = this.#role.talk?.(actor, field)
       if (said) {
-        signal.message.update({ text: said })
+        say(actor, field, said)
       } else {
         const lines = ROLE_LINES[actor.type] ?? VILLAGER_LINES
         if (this.#line < 0) {
           this.#line = seed(actor.id).randomInt(lines.length)
         }
-        signal.message.update({ text: lines[this.#line % lines.length] })
+        say(actor, field, lines[this.#line % lines.length])
         this.#line = (this.#line + 1) % lines.length
       }
       puff(field, actor, Palette.white)
@@ -696,7 +711,7 @@ export function crierRole(): Role {
           puff(field, actor, Palette.white)
           const me = field.me
           if (manhattan(me.i, me.j, actor.i, actor.j) <= 8) {
-            signal.message.update({ text: NEWS[k++ % NEWS.length] })
+            say(actor, field, NEWS[k++ % NEWS.length])
           }
         },
       }
@@ -847,7 +862,7 @@ export class KeeperDelegate implements IdleDelegate, ActorPushedDelegate {
       const d = manhattan(me.i, me.j, actor.i, actor.j)
       if (d <= 3 && !this.#greeted) {
         this.#greeted = true
-        signal.message.update({ text: "WELCOME! TAKE A LOOK" })
+        say(actor, field, "WELCOME! TAKE A LOOK")
         puff(field, actor, Palette.brown2)
       } else if (d > 6) {
         this.#greeted = false
@@ -876,7 +891,7 @@ export class KeeperDelegate implements IdleDelegate, ActorPushedDelegate {
     }
     face(actor, pusher.i, pusher.j)
     if (pusher.id === "main") {
-      signal.message.update({ text: KEEPER_LINES[this.#line] })
+      say(actor, field, KEEPER_LINES[this.#line])
       this.#line = (this.#line + 1) % KEEPER_LINES.length
       puff(field, actor, Palette.brown2)
     }
@@ -989,7 +1004,7 @@ export class KidDelegate implements IdleDelegate, ActorPushedDelegate {
           this.#it = false
           playerIsIt = true
           this.#restUntil = field.time + 60
-          signal.message.update({ text: "YOU'RE IT! TAG ONE OF US" })
+          say(actor, field, "YOU'RE IT! TAG ONE OF US")
           signal.playSound("jump")
         }
         // Tagging a kid is handled by its onPushed
@@ -1044,7 +1059,7 @@ export class KidDelegate implements IdleDelegate, ActorPushedDelegate {
       if (playerIsIt) {
         playerIsIt = false
         this.becomeIt(field)
-        signal.message.update({ text: "OH NO, I'M IT!" })
+        say(actor, field, "OH NO, I'M IT!")
         signal.playSound("jump")
       } else if (actor.isActionQueueEmpty()) {
         actor.enqueueActions({ type: "jump" })
@@ -1183,7 +1198,7 @@ export class CatDelegate implements IdleDelegate, ActorPushedDelegate {
     actor.setDir(opposite(event.dir))
     this.#followUntil = field.time + 600
     this.#nextStep = field.time + 30
-    signal.message.update({ text: "PURR..." })
+    say(actor, field, "PURR...")
     signal.playSound("pickupCoin")
     for (
       const effect of linePattern0(

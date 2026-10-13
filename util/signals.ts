@@ -39,13 +39,20 @@ export const playerSpeed = new Signal<1 | 2 | 4>(2)
 // The message to show in the toast ui. Wrapped in an object so that
 // the same text shown twice still triggers the subscribers.
 export const message = new Signal<{ text: string } | null>(null)
-// What a sign says and where it stands (world cell): shown as a speech
-// bubble over the sign - or under it (below: true) when the reader
-// pushed it from above, so the bubble never covers them. Wrapped in an
-// object so that reading the same sign twice still triggers the
-// subscribers.
+// What a sign or a person says and where they stand (world cell):
+// shown as a speech bubble over the speaker - or under them (below:
+// true) when the reader stands above, so the bubble never covers the
+// reader. A moving speaker passes `follow`, and the bubble keeps up
+// with them. Wrapped in an object so that reading the same sign twice
+// still triggers the subscribers.
 export const speech = new Signal<
-  { i: number; j: number; text: string; below?: boolean } | null
+  {
+    i: number
+    j: number
+    text: string
+    below?: boolean
+    follow?: () => { i: number; j: number }
+  } | null
 >(null)
 
 /** The name of a jsfxr sound preset */

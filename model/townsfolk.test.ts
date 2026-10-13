@@ -171,7 +171,7 @@ Deno.test("VillagerDelegate", async (t) => {
   })
 
   await t.step("talks to the player who bumps into it", () => {
-    signal.message.update(null)
+    signal.speech.update(null)
     const me = new Actor(1, 0, def, "main")
     const villager = new Actor(0, 0, def, "v1")
     const { field } = makeTown(me, [villager])
@@ -181,7 +181,7 @@ Deno.test("VillagerDelegate", async (t) => {
       villager,
       field,
     )
-    assert(signal.message.get()?.text)
+    assert(signal.speech.get()?.text)
     assertEquals(villager.dir, "right")
     assertEquals([villager.i, villager.j], [0, 0])
   })
@@ -325,17 +325,17 @@ Deno.test("villager roles", async (t) => {
       field,
     )
     assertEquals(signal.coinCount.get(), 1)
-    assert(signal.message.get()?.text.includes("BLESS"))
+    assert(signal.speech.get()?.text.includes("BLESS"))
   })
 
   await t.step("crier: calls the news to the player nearby", () => {
-    signal.message.update(null)
+    signal.speech.update(null)
     const me = new Actor(3, 0, def, "main")
     const crier = new Actor(0, 0, def, "cr")
     const { field, tick } = makeTown(me, [crier])
     const delegate = new VillagerDelegate(ROLES.crier())
     run(delegate, crier, tick, field, 320)
-    assert(signal.message.get()?.text.startsWith("HEAR YE"))
+    assert(signal.speech.get()?.text.startsWith("HEAR YE"))
   })
 
   await t.step("performer: stays on its spot and draws a listener", () => {
@@ -359,18 +359,18 @@ Deno.test("villager roles", async (t) => {
 
 Deno.test("KeeperDelegate", async (t) => {
   await t.step("greets the player once and watches them", () => {
-    signal.message.update(null)
+    signal.speech.update(null)
     const me = new Actor(0, 3, def, "main")
     const keeper = new Actor(0, 0, def, "k")
     const { field, tick } = makeTown(me, [keeper])
     const delegate = new KeeperDelegate()
     delegate.onIdle(keeper, field)
-    assertEquals(signal.message.get()?.text, "WELCOME! TAKE A LOOK")
+    assertEquals(signal.speech.get()?.text, "WELCOME! TAKE A LOOK")
     assertEquals(keeper.dir, "down")
-    signal.message.update(null)
+    signal.speech.update(null)
     tick()
     delegate.onIdle(keeper, field)
-    assertEquals(signal.message.get(), null)
+    assertEquals(signal.speech.get(), null)
   })
 
   await t.step("tidies up and comes back to its post", () => {
