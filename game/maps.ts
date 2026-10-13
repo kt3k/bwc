@@ -37,6 +37,8 @@ type BlockJson = {
   rooms?: Room[]
 }
 type IndexEntry = { id: string; i: number; j: number; name?: string }
+/** A town's name and its middle in world cells (map/towns.json) */
+type Town = { name: string; x: number; y: number }
 type CatalogJson = {
   cells: Record<string, { canEnter: boolean; src: string }>
   items: Record<string, { src: string }>
@@ -359,6 +361,7 @@ const status = document.querySelector<HTMLElement>("#status")!
 
 const blocks: Block[] = []
 const byId = new Map<string, Block>()
+let towns: Town[] = []
 /** The view: the center (in cells) and the device pixels per cell */
 const view = { cx: 0, cy: 0, s: 1 }
 let dirty = false
@@ -544,6 +547,18 @@ function updateLabels(vis: Block[]) {
       )
     }
   }
+  // the towns' names at their middles, at every zoom, so where each
+  // town stands can be read off the whole world at a glance
+  for (const t of towns) {
+    const key = `t:${t.name}`
+    const el = label(key, t.name, "ink-yellow")
+    place(
+      el,
+      key,
+      toScreenX(t.x) - el.offsetWidth / 2 * dpr,
+      toScreenY(t.y) - el.offsetHeight / 2 * dpr,
+    )
+  }
   for (const [key, el] of labels) {
     if (!seen.has(key)) el.hidden = true
   }
@@ -704,6 +719,21 @@ function buildToolbar() {
     bar.appendChild(btn)
   }
   add("WORLD", () => blocks.filter((b) => Math.abs(b.entry.i) < ISLAND))
+  // one button per town: jump right to it
+  for (const t of towns) {
+    const btn = document.createElement("button")
+    const span = document.createElement("span")
+    span.className = "pixel-text pixel-text-sm ink-yellow"
+    span.textContent = t.name
+    btn.appendChild(span)
+    btn.onclick = () => {
+      view.cx = t.x
+      view.cy = t.y
+      view.s = 3 * dpr
+      requestDraw()
+    }
+    bar.appendChild(btn)
+  }
   // one button per named map (a map may span several blocks)
   const named = new Map<string, Block[]>()
   for (const b of blocks) {
@@ -762,6 +792,10 @@ async function main() {
   const index = await fetch("map/index.json").then((r) =>
     r.json()
   ) as IndexEntry[]
+  // a world without the towns' list still draws, just unnamed
+  towns = await fetch("map/towns.json")
+    .then((r) => r.ok ? r.json() : [])
+    .catch(() => []) as Town[]
   for (const entry of index) {
     if (entry.id === "not_found") continue
     const b = new Block(entry)

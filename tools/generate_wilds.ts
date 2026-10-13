@@ -3296,7 +3296,7 @@ for (let by = 0; by < plan.blocks.h; by++) {
     }
     await Deno.writeTextFile(
       new URL(`../static/map/block_${bi}.${bj}.json`, import.meta.url),
-      JSON.stringify(json, null, 2),
+      JSON.stringify(json, null, 2) + "\n",
     )
   }
 }
@@ -3305,6 +3305,18 @@ console.log(
     plan.blocks.w * plan.blocks.h
   } blocks of the WILDS at ${OI},${OJ}`,
 )
+
+// the towns' names and middles (in world cells), for the world map
+// viewer (static/maps.html) to print where each town stands
+await Deno.writeTextFile(
+  new URL("../static/map/towns.json", import.meta.url),
+  JSON.stringify(
+    towns.map((t) => ({ name: t.name, x: OI + t.x, y: OJ + t.y })),
+    null,
+    2,
+  ) + "\n",
+)
+console.log(`listed ${towns.length} towns for the map viewer`)
 
 // ---------------------------------------------------------------------
 // the "W" and "C" portal rooms on the START island, right beside the
@@ -3492,5 +3504,5 @@ portalRoom(
   )
 }
 start.field = sgrid.map((row) => row.join(""))
-await Deno.writeTextFile(startPath, JSON.stringify(start, null, 2))
+await Deno.writeTextFile(startPath, JSON.stringify(start, null, 2) + "\n")
 console.log("linked the WILDS and the CITY from the start island")

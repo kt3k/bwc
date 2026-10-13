@@ -42,6 +42,9 @@
     .ink-mid {
       filter: url(#ink-mid);
     }
+    .ink-yellow {
+      filter: url(#ink-yellow);
+    }
     #map {
       position: fixed;
       inset: 0;
@@ -150,6 +153,13 @@
             <feFuncA type="discrete" tableValues="0 1" />
           </feComponentTransfer>
           <feFlood flood-color="#6a6d6a" />
+          <feComposite in2="mask" operator="in" />
+        </filter>
+        <filter id="ink-yellow" color-interpolation-filters="sRGB">
+          <feComponentTransfer in="SourceAlpha" result="mask">
+            <feFuncA type="discrete" tableValues="0 1" />
+          </feComponentTransfer>
+          <feFlood flood-color="#f1f0aa" />
           <feComposite in2="mask" operator="in" />
         </filter>
       </defs>
