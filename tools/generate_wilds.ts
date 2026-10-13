@@ -2049,6 +2049,68 @@ const towns = [
 }
 
 // ---------------------------------------------------------------------
+// the trade (model/trade.ts, ideas/wilds-roaming-todo.md 2): a stall in
+// each town selling what the town makes, cheap; its trader beside it.
+// Any other town buys the crate, paying the more the farther it came
+
+/** What each town makes */
+const GOODS: Record<string, string> = {
+  ASHFORD: "WOOL",
+  MILLBROOK: "FLOUR",
+  STONEGATE: "IRON",
+  HAYWARD: "GRAIN",
+  THORNBURY: "HONEY",
+  OAKMERE: "TIMBER",
+  FROSTREACH: "FURS",
+  BRAMBLEWICK: "BERRIES",
+  WILLOWEND: "BASKETS",
+  HIGHCROFT: "MUSHROOMS",
+  "THE CITY": "CLOTH",
+  SOUTHPORT: "FISH",
+}
+{
+  const at = new Map(towns.map((t) => [t.name, t]))
+  const stalls: string[] = []
+  const seenCity = new Set<string>()
+  for (const n of nodes) {
+    let town: string | null = null
+    if (n.kind === "village") town = n.name
+    else if (n.kind === "citygate") {
+      const c = cities.find((c) => n.name.startsWith(`${c.name} `))
+      if (c && !seenCity.has(c.name)) {
+        seenCity.add(c.name)
+        town = c.name === "CITY" ? "THE CITY" : c.name
+      }
+    }
+    const good = town ? GOODS[town] : undefined
+    if (!town || !good) continue
+    const here = at.get(town)!
+    // what it pays for the others' goods: by how far they came
+    const prices: Record<string, number> = {}
+    for (const [other, g] of Object.entries(GOODS)) {
+      const from = at.get(other)
+      if (other === town || !from) continue
+      prices[g] = 4 +
+        Math.round(Math.hypot(from.x - here.x, from.y - here.y) / 30)
+    }
+    const spotAt = spot(n.x - 4, n.y + 3)
+    if (!spotAt) {
+      console.error(`NG no room for the trade stall of ${town}`)
+      Deno.exit(1)
+    }
+    put(props, spotAt[0], spotAt[1], "trade-stall", {
+      town,
+      good,
+      cost: 5,
+      prices,
+    })
+    put(actors, spotAt[0] + 1, spotAt[1], "keeper")
+    stalls.push(`${town.toLowerCase()} ${good.toLowerCase()}`)
+  }
+  console.log(`trade: ${stalls.join(", ")}`)
+}
+
+// ---------------------------------------------------------------------
 // the guides: people who tell the way to the towns (a speech bubble, as
 // a sign's): one in each village's plaza, one outside each city's gate,
 // one at each camp and two by the landing. Each names the nearest towns,

@@ -28,6 +28,10 @@ export const tool = new Signal<Tool | null>(null)
 export type Letter = { to: string; from: string; reward: number }
 // The letter the player carries, or null
 export const letter = new Signal<Letter | null>(null)
+/** A crate of goods being carried (model/trade.ts) */
+export type Cargo = { good: string; from: string; paid: number }
+// The crate the player carries, or null
+export const cargo = new Signal<Cargo | null>(null)
 // How many letters the player delivered
 export const deliveries = new Signal(0)
 // The player's walking speed, chosen with the speed buttons (pixels per frame)

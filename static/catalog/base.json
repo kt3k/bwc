@@ -1957,6 +1957,34 @@
           "text"
         ]
       }
+    },
+    "trade-stall": {
+      "src": "../prop/trade_stall.png",
+      "canEnter": false,
+      "pushed": "trade-stall",
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "town": {
+            "type": "string"
+          },
+          "good": {
+            "type": "string"
+          },
+          "cost": {
+            "type": "number"
+          },
+          "prices": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "town",
+          "good",
+          "cost",
+          "prices"
+        ]
+      }
     }
   }
 }

@@ -14,8 +14,13 @@ WILDS (14x9 ブロックの島、tools/generate_wilds.ts)
       ぶつかると別の町あての手紙を渡され、届けると距離に応じたコインと次の手紙。
       運んでいる手紙は画面左下に出て、セーブにも残る。model/errand.ts、
       tools/draw_post_box.ts、generate_wilds の「the post」)
-- [ ] **2. 交易**: 村ごとに安い物・高い物が違う (漁師町 SOUTHPORT
+- [x] **2. 交易**: 村ごとに安い物・高い物が違う (漁師町 SOUTHPORT
       では魚が安く、山の村ではキノコが安い)。遠くへ運ぶほど得をするので、自然と遠出する
+      (作った: 12 の町それぞれに交易の屋台と商人。町の産物 (SOUTHPORT の魚、
+      STONEGATE の鉄、HIGHCROFT のキノコなど) を 1 箱 5 コインで売り、ほかの町は
+      産地からの距離に応じた値で買い取る。持てる箱は 1 つで、画面左下に出て
+      セーブにも残る。model/trade.ts、tools/draw_trade_stall.ts、generate_wilds
+      の 「the trade」)
 - [ ] **4. 道具の出番**: りんご・魚・種 (docs/item-tools.md)
       の使いどころを島に置く。たとえば「チェイサーが居座る橋」「猫が通せんぼする裏道」「岩を止めれば開く遺跡」。道具を持って歩く理由になる
 

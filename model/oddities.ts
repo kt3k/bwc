@@ -37,6 +37,7 @@ import type { Prop, PushedDelegate } from "./prop.ts"
 import { stepWaygate, stepWaystone, WaystonePushed } from "./waystone.ts"
 import { LatchGatePushed, stepLatchGate } from "./shortcut.ts"
 import { PostBoxPushed } from "./errand.ts"
+import { TradeStallPushed } from "./trade.ts"
 import type { Actor } from "./actor.ts"
 
 // ---------------------------------------------------------------------
@@ -891,6 +892,7 @@ export const ODD_PROP_PUSHED: Record<string, () => PushedDelegate> = {
   waystone: () => new WaystonePushed(),
   "latch-gate": () => new LatchGatePushed(),
   "post-box": () => new PostBoxPushed(),
+  "trade-stall": () => new TradeStallPushed(),
 }
 
 /** Per-frame behaviors of the oddity props, by type */
