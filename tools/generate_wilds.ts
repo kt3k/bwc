@@ -1974,28 +1974,44 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
 // postmaster beside it. Bump it for a letter to another town; carried
 // there, the letter pays more the farther it went
 
-{
-  type Post = { town: string; x: number; y: number }
-  const posts: Post[] = []
-  const free = (x: number, y: number) => {
-    const p = idx(x, y)
-    const t = terrain[p] as T
-    return (t === T.PLAZA || t === T.ROAD || t === T.MEADOW) &&
-      !taken.has(p) && !puzzleCells[p]
-  }
-  /** The nearest free cell to (x, y) with a free cell beside it */
-  const spot = (x0: number, y0: number): [number, number] | null => {
-    for (let d = 0; d < 14; d++) {
-      for (let dy = -d; dy <= d; dy++) {
-        for (let dx = -d; dx <= d; dx++) {
-          if (Math.max(Math.abs(dx), Math.abs(dy)) !== d) continue
-          const x = x0 + dx, y = y0 + dy
-          if (inside(x + 1, y) && free(x, y) && free(x + 1, y)) return [x, y]
+/** A cell of open ground (plaza, road, meadow) holding nothing yet */
+const freeGround = (x: number, y: number) => {
+  const p = idx(x, y)
+  const t = terrain[p] as T
+  return (t === T.PLAZA || t === T.ROAD || t === T.MEADOW) &&
+    !taken.has(p) && !puzzleCells[p]
+}
+/** The nearest free cell to (x, y) with a free cell beside it */
+const spot = (x0: number, y0: number): [number, number] | null => {
+  for (let d = 0; d < 14; d++) {
+    for (let dy = -d; dy <= d; dy++) {
+      for (let dx = -d; dx <= d; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== d) continue
+        const x = x0 + dx, y = y0 + dy
+        if (inside(x + 1, y) && freeGround(x, y) && freeGround(x + 1, y)) {
+          return [x, y]
         }
       }
     }
-    return null
   }
+  return null
+}
+/** The towns: the villages and the cities (their middles) */
+const towns = [
+  ...nodes.filter((n) => n.kind === "village").map((n) => ({
+    name: n.name,
+    x: n.x,
+    y: n.y,
+  })),
+  ...cities.map((c) => ({
+    name: c.name === "CITY" ? "THE CITY" : c.name,
+    x: c.x0 + CITY_W / 2,
+    y: c.y0 + CITY_H / 2,
+  })),
+]
+{
+  type Post = { town: string; x: number; y: number }
+  const posts: Post[] = []
   const seenCity = new Set<string>()
   for (const n of nodes) {
     let town: string | null = null
@@ -2031,6 +2047,81 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
   }
   console.log(`post: ${posts.map((p) => p.town.toLowerCase()).join(", ")}`)
 }
+
+// ---------------------------------------------------------------------
+// the guides: people who tell the way to the towns (a speech bubble, as
+// a sign's): one in each village's plaza, one outside each city's gate,
+// one at each camp and two by the landing. Each names the nearest towns,
+// which way they lie and about how far
+
+/** "NORTH-EAST" etc.: which way (dx, dy) points (y grows southward) */
+function compass(dx: number, dy: number): string {
+  const names = [
+    "EAST",
+    "SOUTH-EAST",
+    "SOUTH",
+    "SOUTH-WEST",
+    "WEST",
+    "NORTH-WEST",
+    "NORTH",
+    "NORTH-EAST",
+  ]
+  const k = Math.round(Math.atan2(dy, dx) / (Math.PI / 4))
+  return names[(k + 8) % 8]
+}
+{
+  const GUIDES = ["guide-sage", "guide-sailor", "guide-farmer", "guide-bard"]
+  const WHO: Record<string, string> = {
+    "guide-sage": "SAGE",
+    "guide-sailor": "SAILOR",
+    "guide-farmer": "FARMER",
+    "guide-bard": "BARD",
+  }
+  /** What a guide at (x, y) says of the nearest towns (not its own) */
+  const advice = (x: number, y: number, count: number, here?: string) =>
+    towns.filter((t) => t.name !== here)
+      .map((t) => ({ ...t, d: Math.hypot(t.x - x, t.y - y) }))
+      .sort((a, b) => a.d - b.d)
+      .slice(0, count)
+      .map((t) =>
+        `${t.name} LIES ${compass(t.x - x, t.y - y)}, ABOUT ${
+          Math.max(1, Math.round(t.d / 50)) * 50
+        } STEPS`
+      ).join(". ")
+  let placed = 0
+  const guide = (x0: number, y0: number, count: number, here?: string) => {
+    const at = spot(x0, y0)
+    if (!at) return
+    const type = GUIDES[placed % GUIDES.length]
+    const text = `${WHO[type]}: ${advice(at[0], at[1], count, here)}`
+    if (put(props, at[0], at[1], type, { text })) placed++
+  }
+  for (const n of nodes) {
+    if (n.kind === "village") guide(n.x - 4, n.y - 3, 3, n.name)
+    else if (n.kind === "camp") guide(n.x + 2, n.y + 2, 2)
+    else if (n.kind === "citygate") guide(n.x - 3, n.y - 2, 2)
+    else if (n.kind === "arrival") {
+      guide(n.x + 3, n.y - 2, 3)
+      guide(n.x - 3, n.y + 2, 3)
+    }
+  }
+  console.log(`guides: ${placed}`)
+}
+/**
+ * Where the old road from the START island comes out: a free cell by
+ * ASHFORD's plaza, in the middle of the west (the portal at the west end
+ * of the hall of waystones leads here)
+ */
+const townRoad = (() => {
+  const n = nodes.find((n) => n.name === "ASHFORD")!
+  const at = spot(n.x + 1, n.y - 4)
+  if (!at) {
+    console.error("NG no room for the old road's end in ASHFORD")
+    Deno.exit(1)
+  }
+  taken.add(idx(at[0], at[1]))
+  return { name: n.name, x: at[0], y: at[1] }
+})()
 
 /**
  * The gates in the hall of waystones on the START island (local cells of
@@ -3254,6 +3345,23 @@ portalRoom(
       { ...local(x + 1, gy), type: "sign", data: { text: w.name } },
     )
   })
+  // the old road: a plain portal at the west end of the aisle, open from
+  // the start, to a village in the middle of the WILDS
+  start.props.push(
+    {
+      ...local(12, 31),
+      type: "portal",
+      data: { i: OI + townRoad.x, j: OJ + townRoad.y },
+    },
+    {
+      ...local(12, 32),
+      type: "sign",
+      data: {
+        text:
+          `THE OLD ROAD TO ${townRoad.name}, A VILLAGE IN THE MIDDLE OF THE WILDS`,
+      },
+    },
+  )
   start.props.push(
     { ...local(13, 30), type: "lantern" },
     { ...local(13, 33), type: "lantern" },
