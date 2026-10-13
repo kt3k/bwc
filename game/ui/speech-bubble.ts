@@ -28,11 +28,12 @@ const TAIL_SHIFT = CELL_SIZE / 2
  */
 export function SpeechBubble({ el, subscribe }: Context) {
   let timer: ReturnType<typeof setTimeout> | undefined
+  let raf = 0
   /** Who is speaking - where the tail points (recomputed every frame
    * for a speaker on the move) and which way the bubble opens (read
    * from above, it opens downward, away from the reader) */
   let src:
-    | { i: number; j: number; follow?: () => { i: number; j: number } }
+    | { i: number; j: number; follow?: () => { x: number; y: number } }
     | null = null
   let below = false
   const text = el.querySelector(".speech-text")!
@@ -41,6 +42,7 @@ export function SpeechBubble({ el, subscribe }: Context) {
 
   const hide = () => {
     clearTimeout(timer)
+    cancelAnimationFrame(raf)
     el.classList.add("hidden")
     src = null
   }
@@ -49,11 +51,14 @@ export function SpeechBubble({ el, subscribe }: Context) {
     if (!src) {
       return
     }
-    const spot = src.follow ? src.follow() : src
     // the fin's tip right at the speaker's edge, as the RS3 crest all
-    // but touches its speaker's feet
-    const ax = spot.i * CELL_SIZE + CELL_SIZE / 2
-    const ay = below ? (spot.j + 1) * CELL_SIZE : spot.j * CELL_SIZE
+    // but touches its speaker's feet. A moving speaker is anchored at
+    // their drawn pixels, so the bubble glides along with the walk
+    const spot = src.follow
+      ? src.follow()
+      : { x: src.i * CELL_SIZE, y: src.j * CELL_SIZE }
+    const ax = spot.x + CELL_SIZE / 2
+    const ay = below ? spot.y + CELL_SIZE : spot.y
     const screen = e.parentElement!
     // a sign a screenful away is done talking (walked off, or the
     // view jumped through a portal and left it behind)
@@ -86,8 +91,16 @@ export function SpeechBubble({ el, subscribe }: Context) {
     }px`
   }
   const replace = () => place(signal.centerPixel.get())
+  // while a bubble is up it is re-placed every frame: the view only
+  // signals when it scrolls, but the speaker walks on even while the
+  // reader stands still
+  const loop = () => {
+    replace()
+    if (src) {
+      raf = requestAnimationFrame(loop)
+    }
+  }
 
-  subscribe(signal.centerPixel, place)
   // a teleport swaps the ground out from under whatever was talking
   subscribe(signal.isGameLoading, (loading) => {
     if (loading) {
@@ -104,14 +117,13 @@ export function SpeechBubble({ el, subscribe }: Context) {
     below = speech.below === true
     el.classList.toggle("below", below)
     src = { i: speech.i, j: speech.j, follow: speech.follow }
-    // visible before measuring: display none has no size. Placed
-    // again a frame later, once the text has truly settled
+    // visible before measuring: display none has no size. The loop
+    // places it again every frame from here on
     el.classList.remove("hidden")
     replace()
-    requestAnimationFrame(replace)
+    cancelAnimationFrame(raf)
+    raf = requestAnimationFrame(loop)
     clearTimeout(timer)
-    timer = setTimeout(() => {
-      el.classList.add("hidden")
-    }, duration(speech.text))
+    timer = setTimeout(hide, duration(speech.text))
   })
 }

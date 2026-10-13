@@ -48,7 +48,8 @@ function say(actor: Actor, field: IField, text: string) {
     j: actor.j,
     text,
     below: field.me.j < actor.j,
-    follow: () => ({ i: actor.i, j: actor.j }),
+    // the drawn spot, not the grid one: mid-step it is between cells
+    follow: () => ({ x: actor.x, y: actor.y }),
   })
 }
 

@@ -42,16 +42,18 @@ export const message = new Signal<{ text: string } | null>(null)
 // What a sign or a person says and where they stand (world cell):
 // shown as a speech bubble over the speaker - or under them (below:
 // true) when the reader stands above, so the bubble never covers the
-// reader. A moving speaker passes `follow`, and the bubble keeps up
-// with them. Wrapped in an object so that reading the same sign twice
-// still triggers the subscribers.
+// reader. A moving speaker passes `follow` - their drawn spot in
+// world pixels, read every frame, so the bubble glides along with the
+// walk animation instead of jumping cell by cell. Wrapped in an
+// object so that reading the same sign twice still triggers the
+// subscribers.
 export const speech = new Signal<
   {
     i: number
     j: number
     text: string
     below?: boolean
-    follow?: () => { i: number; j: number }
+    follow?: () => { x: number; y: number }
   } | null
 >(null)
 
