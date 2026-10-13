@@ -97,7 +97,9 @@ export function SpeechBubble({ el, subscribe }: Context) {
     el.classList.toggle("below", below)
     at = {
       x: speech.i * CELL_SIZE + CELL_SIZE / 2,
-      y: below ? (speech.j + 1) * CELL_SIZE + 2 : speech.j * CELL_SIZE - 2,
+      // the fin's tip right at the sign's edge, as the RS3 crest all
+      // but touches its speaker's feet
+      y: below ? (speech.j + 1) * CELL_SIZE : speech.j * CELL_SIZE,
     }
     // visible before measuring: display none has no size. Placed
     // again a frame later, once the text has truly settled
