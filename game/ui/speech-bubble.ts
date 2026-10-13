@@ -10,6 +10,9 @@ const duration = (text: string) => Math.min(7000, 2200 + text.length * 50)
 const TAIL_W = 23
 const TAIL_SIDE = 4
 const TAIL_DROP = 10
+/** Measured off the RS3 shot: the fin's straight side stands at the
+ * speaker's near edge, not under their middle - half a cell over */
+const TAIL_SHIFT = CELL_SIZE / 2
 
 /**
  * The speech bubble over a sign: when one is read, its words pop out
@@ -66,13 +69,12 @@ export function SpeechBubble({ el, subscribe }: Context) {
     )
     e.style.left = `${left}px`
     e.style.top = `${below ? y + TAIL_DROP : y - e.offsetHeight - TAIL_DROP}px`
-    // the fin's straight side and its overhanging corner on the
-    // sign's middle - measured so in RS3, where they stand exactly on
-    // the speaker's center while the ogee sweeps aside - held off the
-    // rounded corners
+    // the fin's straight side at the sign's near edge, its body
+    // leaning away (measured so in RS3), held off the rounded corners
     const side = below ? TAIL_W - TAIL_SIDE : TAIL_SIDE
+    const aim = below ? x - TAIL_SHIFT : x + TAIL_SHIFT
     tail.style.left = `${
-      Math.max(6, Math.min(e.offsetWidth - TAIL_W - 6, x - left - side))
+      Math.max(6, Math.min(e.offsetWidth - TAIL_W - 6, aim - left - side))
     }px`
   }
   const replace = () => place(signal.centerPixel.get())
