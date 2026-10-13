@@ -72,16 +72,17 @@
     .speech-tail {
       background: url(./ui/bubble_tail.png);
       image-rendering: pixelated;
-      position: relative;
-      left: -3px;
-      margin: -3px auto 0;
-      width: 20px;
-      height: 9px;
+      align-self: flex-end;
+      margin: -3px 10px 0 0;
+      width: 23px;
+      height: 13px;
     }
     .js-speech-bubble.below .speech-tail {
-      /* flipped, it points up; a flip moves pixels, it blends none */
-      transform: scaleY(-1);
-      margin: 0 auto -3px;
+      /* turned 180 degrees it points up AND mirrors, as in RS3; a
+         turn moves pixels, it blends none */
+      transform: scale(-1, -1);
+      align-self: flex-start;
+      margin: 0 0 -3px 10px;
     }
     </style>
   </head>

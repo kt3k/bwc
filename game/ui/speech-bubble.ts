@@ -5,6 +5,10 @@ import { CELL_SIZE } from "../../util/constants.ts"
 /** How long a bubble stays up, by how much there is to read */
 const duration = (text: string) => Math.min(7000, 2200 + text.length * 50)
 
+/** Where the tail fin's straight side stands, from the bubble's edge
+ * (the 10px tail inset plus the straight side's place in the sprite) */
+const TAIL_X = 28
+
 /**
  * The speech bubble over a sign: when one is read, its words pop out
  * of the sign itself (downward when read from above). The bubble sits
@@ -48,7 +52,10 @@ export function SpeechBubble({ el, subscribe }: Context) {
     }
     const x = Math.round(at.x - center.x + screen.offsetWidth / 2)
     const y = Math.round(at.y - center.y + screen.offsetHeight / 2)
-    e.style.left = `${x - Math.round(e.offsetWidth / 2)}px`
+    // the fin's straight side stands over the speaker, off the
+    // bubble's end (as in RS3), so the body hangs to one side of the
+    // sign: to its left opening upward, to its right opening downward
+    e.style.left = `${x - (below ? TAIL_X : e.offsetWidth - TAIL_X)}px`
     e.style.top = `${below ? y : y - e.offsetHeight}px`
   }
   const replace = () => place(signal.centerPixel.get())

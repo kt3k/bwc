@@ -36,23 +36,30 @@ const INK: Record<string, string> = {
   w: Palette.gray1,
   r: Palette.gray2,
 }
-// The tail, after Romancing SaGa 3 (checked against an in-game
-// shot): not a triangle but a swell of the window's own edge - a
-// gentle concave slope away from the speaker, a rounded crest, and a
-// steep side under them, the paper flowing through unbroken. Drawn
-// down-pointing; the downward bubble flips it with scaleY(-1), which
-// moves pixels without blending any. Its top three rows overlap the
-// frame's line and ring, opening them
+// The tail, traced from a Romancing SaGa 3 dialogue shot: the
+// window's edge swells into a fin. On the speaker's side a straight,
+// near-vertical line with a small outward flare where it joins the
+// edge; at the far end an ogee - steep by the crest, easing shallow
+// into the edge; and between them a short slanted cap meeting the
+// straight side in a sharp corner (no rounding at the tip). Drawn
+// down-pointing with the straight side left; the downward bubble
+// turns the same sprite 180 degrees with scale(-1,-1), so top/bottom
+// AND left/right swap together, as in the original. Its top three
+// rows overlap the frame's line and ring, opening them
 const TAIL = [
-  ".KwwwwwwwwwwwwwK....",
-  ".KwwwwwwwwwwwwwK....",
-  ".rKwwwwwwwwwwwwKr...",
-  "..rKKwwwwwwwwwwKr...",
-  "....rKKwwwwwwwwKr...",
-  "......rKKwwwwwwKr...",
-  "........rKKwwwKKr...",
-  "..........rKKKKr....",
-  "...........rrrr.....",
+  ".KwwwwwwwwwwwwwwwwK...",
+  ".KKwwwwwwwwwwwwwwKK...",
+  ".rKKwwwwwwwwwwwKKKr...",
+  "..rKKwwwwwwwwwKKr.....",
+  "..rKKwwwwwwwKKr.......",
+  "..rKKwwwwwKKr.........",
+  "..rKKwwwwKr...........",
+  "..rKKwwwKKr...........",
+  "..rKKwwKKr............",
+  "..rKKwwKKr............",
+  "..rKKwwKr.............",
+  "..rKKKKKr.............",
+  "..rrrrrr..............",
 ]
 
 function draw(rows: string[], w: number, h: number) {
@@ -80,6 +87,6 @@ await Deno.writeFile(
 )
 await Deno.writeFile(
   new URL("../static/ui/bubble_tail.png", import.meta.url),
-  await draw(TAIL, 20, 9),
+  await draw(TAIL, 23, 13),
 )
 console.log("drew the bubble frame and tail")
