@@ -5,9 +5,11 @@ import { CELL_SIZE } from "../../util/constants.ts"
 /** How long a bubble stays up, by how much there is to read */
 const duration = (text: string) => Math.min(7000, 2200 + text.length * 50)
 
-/** Where the tail fin's straight side stands, from the bubble's edge
- * (the 10px tail inset plus the straight side's place in the sprite) */
-const TAIL_X = 28
+/** The tail sprite's size, the straight side's column in it, and how
+ * far the fin hangs past the bubble's box */
+const TAIL_W = 23
+const TAIL_SIDE = 4
+const TAIL_DROP = 10
 
 /**
  * The speech bubble over a sign: when one is read, its words pop out
@@ -28,6 +30,7 @@ export function SpeechBubble({ el, subscribe }: Context) {
   let at: { x: number; y: number } | null = null
   let below = false
   const text = el.querySelector(".speech-text")!
+  const tail = el.querySelector<HTMLElement>(".speech-tail")!
   const e = el as HTMLElement
 
   const hide = () => {
@@ -52,11 +55,23 @@ export function SpeechBubble({ el, subscribe }: Context) {
     }
     const x = Math.round(at.x - center.x + screen.offsetWidth / 2)
     const y = Math.round(at.y - center.y + screen.offsetHeight / 2)
-    // the fin's straight side stands over the speaker, off the
-    // bubble's end (as in RS3), so the body hangs to one side of the
-    // sign: to its left opening upward, to its right opening downward
-    e.style.left = `${x - (below ? TAIL_X : e.offsetWidth - TAIL_X)}px`
-    e.style.top = `${below ? y : y - e.offsetHeight}px`
+    // as in RS3: the window itself hangs centered (kept on screen),
+    // and only the fin slides along its edge to stand over the sign
+    const left = Math.max(
+      2,
+      Math.min(
+        screen.offsetWidth - e.offsetWidth - 2,
+        x - Math.round(e.offsetWidth / 2),
+      ),
+    )
+    e.style.left = `${left}px`
+    e.style.top = `${below ? y + TAIL_DROP : y - e.offsetHeight - TAIL_DROP}px`
+    // the fin's straight side on the sign (turned around, it is the
+    // far column of the sprite), held off the rounded corners
+    const side = below ? TAIL_W - TAIL_SIDE : TAIL_SIDE
+    tail.style.left = `${
+      Math.max(6, Math.min(e.offsetWidth - TAIL_W - 6, x - left - side))
+    }px`
   }
   const replace = () => place(signal.centerPixel.get())
 

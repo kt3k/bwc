@@ -72,8 +72,10 @@
     .speech-tail {
       background: url(./ui/bubble_tail.png);
       image-rendering: pixelated;
-      align-self: flex-end;
-      margin: -3px 10px 0 0;
+      /* off the flow: it slides along the edge to its speaker, its
+         top three rows overlapping the frame's line and ring */
+      position: absolute;
+      bottom: -10px;
       width: 23px;
       height: 13px;
     }
@@ -81,8 +83,8 @@
       /* turned 180 degrees it points up AND mirrors, as in RS3; a
          turn moves pixels, it blends none */
       transform: scale(-1, -1);
-      align-self: flex-start;
-      margin: 0 0 -3px 10px;
+      bottom: auto;
+      top: -10px;
     }
     </style>
   </head>
