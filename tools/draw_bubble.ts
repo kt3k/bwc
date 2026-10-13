@@ -58,8 +58,8 @@ const TAIL = [
   "..rKKwwKKr............",
   "..rKKwwKKr............",
   "..rKKwwKr.............",
-  "..rKKKKKr.............",
-  "..rrrrrr..............",
+  ".rKKKKKKr.............",
+  ".rrrrrrr..............",
 ]
 
 function draw(rows: string[], w: number, h: number) {
