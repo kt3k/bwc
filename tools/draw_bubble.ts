@@ -47,19 +47,21 @@ const INK: Record<string, string> = {
 // AND left/right swap together, as in the original. Its top three
 // rows overlap the frame's line and ring, opening them
 const TAIL = [
-  ".KwwwwwwwwwwwwwwwwK...",
   ".KKwwwwwwwwwwwwwwKK...",
-  ".rKKwwwwwwwwwwwKKKr...",
-  "..rKKwwwwwwwwwKKr.....",
-  "..rKKwwwwwwwKKr.......",
-  "..rKKwwwwwKKr.........",
-  "..rKKwwwwKr...........",
-  "..rKKwwwKKr...........",
-  "..rKKwwKKr............",
-  "..rKKwwKKr............",
-  "..rKKwwKr.............",
-  ".rKKKKKKr.............",
-  ".rrrrrrr..............",
+  "..KKwwwwwwwwwwwwKK....",
+  "..rKKwwwwwwwwwwKKr....",
+  "...rKKwwwwwwwwKKr.....",
+  "....rKKwwwwwwKKr......",
+  "....rKKwwwwwKKr.......",
+  "....rKKwwwwwKKr.......",
+  "....rKKwwwwKKr........",
+  "....rKKwwwwKKr........",
+  "....rKKwwwKKr.........",
+  "....rKKwwKKr..........",
+  "....rKKwKKr...........",
+  "....rKKKKr............",
+  "...rKKKKKr............",
+  "...rrrrrrr............",
 ]
 
 function draw(rows: string[], w: number, h: number) {
@@ -87,6 +89,6 @@ await Deno.writeFile(
 )
 await Deno.writeFile(
   new URL("../static/ui/bubble_tail.png", import.meta.url),
-  await draw(TAIL, 23, 13),
+  await draw(TAIL, 22, 15),
 )
 console.log("drew the bubble frame and tail")

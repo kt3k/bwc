@@ -7,9 +7,9 @@ const duration = (text: string) => Math.min(7000, 2200 + text.length * 50)
 
 /** The tail sprite's size, the straight side's column in it, and how
  * far the fin hangs past the bubble's box */
-const TAIL_W = 23
-const TAIL_SIDE = 4
-const TAIL_DROP = 10
+const TAIL_W = 22
+const TAIL_SIDE = 6
+const TAIL_DROP = 12
 /** Measured off the RS3 shot: the fin's straight side stands at the
  * speaker's near edge, not under their middle - half a cell over */
 const TAIL_SHIFT = CELL_SIZE / 2
