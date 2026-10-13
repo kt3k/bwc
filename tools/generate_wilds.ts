@@ -1496,6 +1496,126 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
 }
 
 // ---------------------------------------------------------------------
+// the animal trials (docs/item-tools.md, ideas/wilds-roaming-todo.md 4):
+// walled rooms where the tools are what open the door. A door opens while
+// someone stands on its plate, and the plate lies too far from the door
+// to hold it yourself: an apple draws the chaser onto it, a fish puts the
+// cat to sleep on it, and the third room wants both, the long sleeper
+// first. No apples lie about (the chaser would follow you out and eat
+// them): bring your own, or wait on the young apple tree outside. There
+// is water to fish in
+
+{
+  type Kind = "apple" | "fish" | "both"
+  const KINDS: Kind[] = ["apple", "fish", "both"]
+  const WIDTH: Record<Kind, number> = { apple: 15, fish: 19, both: 23 }
+  const WAY: Record<Kind, number> = { apple: 7, fish: 9, both: 6 }
+  const SIGN: Record<Kind, string> = {
+    apple: "THE CHASER WILL DO ANYTHING FOR AN APPLE",
+    fish: "THE CAT SLEEPS LONG AFTER A FISH",
+    both: "TWO PLATES, TWO DOORS. WHO SLEEPS LONGER?",
+  }
+  const TREASURE: Record<Kind, string> = {
+    apple: "coin-bag",
+    fish: "gem",
+    both: "big-candy",
+  }
+  const trials: { x: number; y: number; kind: Kind }[] = []
+  for (let n = 0; n < 8000 && trials.length < 2 * KINDS.length; n++) {
+    const kind = KINDS[trials.length % KINDS.length]
+    const w = WIDTH[kind]
+    const x0 = 20 + randomInt(W - 40 - w), y0 = 20 + randomInt(H - 60)
+    let fits = true
+    for (let y = y0 - 2; y < y0 + 16 && fits; y++) {
+      for (let x = x0 - 2; x < x0 + w + 2 && fits; x++) {
+        const p = idx(x, y)
+        const t = terrain[p] as T
+        if (
+          !(t === T.MEADOW || t === T.FOREST || t === T.HILL) ||
+          keepClear[p] || taken.has(p) || puzzleCells[p] || inMassif(x, y)
+        ) fits = false
+      }
+    }
+    if (!fits) continue
+    if (
+      x0 + w + 2 > COVE_X0 - 2 && x0 - 2 < COVE_X0 + COVE_W + 2 &&
+      y0 + 16 > COVE_Y0 - 2 && y0 - 2 < COVE_Y0 + COVE_H + 2
+    ) continue
+    if (
+      [...nodes, ...puzzles, ...trials].some((o) =>
+        Math.hypot(o.x - x0, o.y - y0) < (nodes.includes(o as Node) ? 45 : 90)
+      )
+    ) continue
+    const group = `trial-${trials.length + 1}`
+    const at = (x: number, y: number, t: T) => {
+      const p = idx(x, y)
+      terrain[p] = t
+      keepClear[p] = 1
+      puzzleCells[p] = 1
+    }
+    // the room: sandstone walls, a trial floor, the way in at the bottom
+    for (let y = y0; y <= y0 + 10; y++) {
+      for (let x = x0; x < x0 + w; x++) {
+        const edge = x === x0 || x === x0 + w - 1 || y === y0 || y === y0 + 10
+        at(x, y, edge ? T.RUIN : T.TRIAL)
+      }
+    }
+    const way = x0 + WAY[kind]
+    for (let x = way - 1; x <= way + 1; x++) at(x, y0 + 10, T.TRIAL)
+    for (let y = y0 + 11; y <= y0 + 12; y++) {
+      terrain[idx(way, y)] = T.ROAD
+      keepClear[idx(way, y)] = 1
+    }
+    put(props, way + 2, y0 + 11, "sign", { text: SIGN[kind] })
+    put(props, way - 2, y0 + 11, "sign", {
+      text: "X CHOOSES WHAT TO PUT DOWN, SPACE PUTS IT",
+    })
+    const r = { x: x0 + 1, y: y0 + 1 }
+    /** A wall across at column x, a door in it at row y */
+    const doorWall = (x: number, y: number, g: string) => {
+      for (let yy = r.y; yy <= r.y + 8; yy++) at(x, yy, T.RUIN)
+      at(x, y, T.TRIAL)
+      put(props, x, y, "door", { group: g })
+    }
+    if (kind === "apple") {
+      put(props, r.x + 1, r.y + 1, "plate", { group })
+      put(actors, r.x + 6, r.y + 4, "chaser")
+      doorWall(r.x + 10, r.y + 4, group)
+      put(items, r.x + 12, r.y + 4, TREASURE[kind])
+      put(props, x0 + w - 3, y0 + 13, "sapling")
+    } else if (kind === "fish") {
+      put(props, r.x + 2, r.y + 1, "plate", { group })
+      put(actors, r.x + 5, r.y + 2, "cat")
+      for (let y = r.y + 6; y <= r.y + 7; y++) {
+        for (let x = r.x + 1; x <= r.x + 3; x++) at(x, y, T.LAKE)
+      }
+      doorWall(r.x + 14, r.y + 4, group)
+      put(items, r.x + 16, r.y + 4, TREASURE[kind])
+      put(items, x0 + 10, y0 + 13, "fish")
+    } else {
+      put(props, r.x + 1, r.y + 1, "plate", { group: `${group}a` })
+      put(props, r.x + 1, r.y + 7, "plate", { group: `${group}b` })
+      for (let x = r.x; x <= r.x + 11; x++) at(x, r.y + 4, T.RUIN)
+      put(actors, r.x + 6, r.y + 1, "chaser")
+      put(actors, r.x + 4, r.y + 7, "cat")
+      for (let y = r.y; y <= r.y + 1; y++) {
+        for (let x = r.x + 13; x <= r.x + 15; x++) at(x, y, T.LAKE)
+      }
+      doorWall(r.x + 17, r.y + 4, `${group}a`)
+      doorWall(r.x + 19, r.y + 4, `${group}b`)
+      put(items, r.x + 20, r.y + 4, TREASURE[kind])
+      put(items, x0 + 15, y0 + 13, "fish")
+      put(props, x0 + 3, y0 + 13, "sapling")
+    }
+    for (let y = y0 - 1; y <= y0 + 14; y++) {
+      for (let x = x0 - 1; x <= x0 + w; x++) keepClear[idx(x, y)] = 1
+    }
+    trials.push({ x: x0, y: y0, kind })
+  }
+  console.log(`animal trials: ${trials.map((t) => t.kind).join(", ")}`)
+}
+
+// ---------------------------------------------------------------------
 // the castaway cove: the tutorial, told by the terrain. The W portal
 // lands a castaway on the wreck beach of a cove the land itself seals:
 // the lagoon to the north, cliffs to the west, a solid thicket to the
