@@ -132,11 +132,6 @@ export class Item implements IItem {
         delegate.onCollect(actor, field, this, amount)
         break
       }
-      case "seed": {
-        const delegate = new CollectSeed()
-        delegate.onCollect(actor, field, this, amount)
-        break
-      }
       case "key": {
         const delegate = new CollectKey()
         delegate.onCollect(actor, field, this, amount)
@@ -431,35 +426,6 @@ export class CollectTreasure implements CollectDelegate {
     }
     signal.coinCount.update(signal.coinCount.get() + coins)
     signal.playSound("powerUp")
-  }
-}
-
-export class CollectSeed implements CollectDelegate {
-  onCollect(
-    actor: IActor,
-    field: IField,
-    item: Item,
-    amount: number,
-  ): void {
-    field.collectItem(actor.i, actor.j, item.id)
-
-    for (
-      const effect of linePattern0(
-        DIRS,
-        actor.i,
-        actor.j,
-        1,
-        0.7,
-        3,
-        fxColor(item, Palette.brown4),
-      )
-    ) {
-      field.effects.add(effect)
-    }
-
-    const count = signal.seedCount.get()
-    signal.seedCount.update(count + amount)
-    signal.playSound("pickupCoin")
   }
 }
 

@@ -55,11 +55,10 @@ function makeField(me: Actor, others: Actor[] = []) {
   return { field, items, tick: (n: number) => time += n }
 }
 
-Deno.test("the tools cycle: none, apple, fish, seed, none", () => {
+Deno.test("the tools cycle: none, apple, fish, none", () => {
   assertEquals(nextTool(null), "apple")
   assertEquals(nextTool("apple"), "fish")
-  assertEquals(nextTool("fish"), "seed")
-  assertEquals(nextTool("seed"), null)
+  assertEquals(nextTool("fish"), null)
 })
 
 Deno.test("putTool", async (t) => {

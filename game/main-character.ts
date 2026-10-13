@@ -12,7 +12,7 @@ import { collectAll, Item } from "../model/item.ts"
 import * as signal from "../util/signals.ts"
 import { Palette } from "../util/palette.ts"
 import { recordTrail } from "../model/oddities.ts"
-import { putTool, tryPlantSeed } from "../model/tool.ts"
+import { putTool } from "../model/tool.ts"
 
 /**
  * Digs the diggable cell the actor stands on. Each spot yields its
@@ -128,9 +128,6 @@ export class IdleMainActor implements IdleDelegate {
       }
       // the chosen tool goes down in front (docs/item-tools.md)
       if (putTool(actor, field)) {
-        return
-      }
-      if (tryPlantSeed(actor, field)) {
         return
       }
       const [fi, fj] = actor.frontGrid()

@@ -11,8 +11,18 @@
   },
   "actors": [
     {
-      "i": 3133,
-      "j": 1626,
+      "i": 3091,
+      "j": 1605,
+      "type": "crow"
+    },
+    {
+      "i": 3141,
+      "j": 1622,
+      "type": "chaser"
+    },
+    {
+      "i": 3199,
+      "j": 1656,
       "type": "chaser"
     }
   ],
@@ -141,11 +151,6 @@
       "i": 3181,
       "j": 1647,
       "type": "apple"
-    },
-    {
-      "i": 3035,
-      "j": 1626,
-      "type": "seed"
     }
   ],
   "props": [
@@ -215,9 +220,54 @@
       "type": "flowers"
     },
     {
-      "i": 3078,
-      "j": 1649,
-      "type": "moon-shell"
+      "i": 3000,
+      "j": 1600,
+      "type": "egg-wall"
+    },
+    {
+      "i": 3001,
+      "j": 1600,
+      "type": "egg-wall"
+    },
+    {
+      "i": 3002,
+      "j": 1600,
+      "type": "egg-wall"
+    },
+    {
+      "i": 3003,
+      "j": 1600,
+      "type": "egg-wall"
+    },
+    {
+      "i": 3004,
+      "j": 1600,
+      "type": "egg-wall"
+    },
+    {
+      "i": 3000,
+      "j": 1601,
+      "type": "egg-wall"
+    },
+    {
+      "i": 3001,
+      "j": 1601,
+      "type": "egg-wall"
+    },
+    {
+      "i": 3002,
+      "j": 1601,
+      "type": "egg-wall"
+    },
+    {
+      "i": 3003,
+      "j": 1601,
+      "type": "egg-wall"
+    },
+    {
+      "i": 3004,
+      "j": 1601,
+      "type": "egg-wall"
     }
   ],
   "field": [
@@ -270,7 +320,7 @@
     "66666666666666666666666yyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyywwwwwyyyyfJJffffffffJJffffyy",
     "JJ666666666666666666666yyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyywwwwwyyyyfJJfffffJfffffffffy",
     "JJ6666yyyyyyyyy66fffffyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyywwwwwwyyyffffffJJfJffffffJJfy",
-    "yyyyyyyyyyyyyyyyyyfffyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyfffJJffffffffffffffJ",
+    "yyyyyyyyyyyyyyyyyyfffyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyfffJJffffffffffffffJ",
     "yyyyyyyyyyyyyyyyyyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyfffJJfffJJffJJfffffJ",
     "yyyyyyyyyyyyyyyyyyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyffffffffJJfffffffJJf",
     "wyyyyyyyyyywwwwwwyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyffJJffffffffffffffJJf",

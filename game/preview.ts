@@ -60,7 +60,6 @@ const NOTES: Record<string, string> = {
   "item.apple": "+1 apple; spawns bouncy splashes; opens apple gates",
   "item.green-apple": "+1 green apple",
   "item.coin": "+1 coin; spend at shops",
-  "item.seed": "+1 seed; press space to plant a sapling",
   "item.key": "+1 key; key gates consume one",
   "item.mushroom": "2x speed for 15 seconds",
   "item.purple-mushroom": "4x uncontrollable straight dash",

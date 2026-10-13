@@ -1202,7 +1202,7 @@ function buildWalled(n: Node, count: number) {
   // the market around the plaza
   put(props, cx + 5, cy - 3, "shop", { sells: "potion", price: 4 })
   put(actors, cx + 5, cy - 4, "keeper")
-  put(props, cx - 5, cy - 3, "shop", { sells: "seed", price: 1 })
+  put(props, cx - 5, cy - 3, "shop", { sells: "bread", price: 3 })
   put(actors, cx - 5, cy - 4, "keeper")
   put(actors, cx - 6, cy + 3, "apprentice")
   put(props, cx + 3, cy + 5, "notice-board", {
@@ -1227,7 +1227,7 @@ function buildMarket(n: Node, count: number) {
   const R = townR(n)
   // stalls along the north side of the street, keepers behind them
   const stalls: [string, number][] = [
-    ["seed", 1],
+    ["herb", 3],
     ["bread", 3],
     ["mushroom", 3],
     ["potion", 4],
@@ -2442,7 +2442,7 @@ scatter(14, W * H / 40, (x, y) => {
   return free(x, y) && walkableCell(p) && distRoad[p] >= 12 &&
     rng() < Math.min(0.8, distRoad[p] / 40)
 }, (x, y) => put(items, x, y, "coin"))
-// apples under the trees, mushrooms deep in the forest, seeds in meadows
+// apples under the trees, mushrooms deep in the forest
 scatter(
   9,
   W * H / 40,
@@ -2459,12 +2459,6 @@ scatter(
       y,
       distRoad[idx(x, y)] > 25 && rng() < 0.2 ? "mushroom" : "apple",
     ),
-)
-scatter(
-  40,
-  W * H / 200,
-  (x, y) => free(x, y) && terrain[idx(x, y)] === T.MEADOW && rng() < 0.4,
-  (x, y) => put(items, x, y, "seed"),
 )
 
 // animals where they belong

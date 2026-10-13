@@ -858,7 +858,6 @@ export async function buildCity(
   ]
   const GOODS: [string, number][] = [
     ["bread", 3],
-    ["seed", 1],
     ["potion", 4],
     ["mushroom", 3],
     ["herb", 3],

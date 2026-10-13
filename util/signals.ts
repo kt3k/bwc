@@ -18,13 +18,11 @@ export const appleCount = new Signal(0)
 export const greenAppleCount = new Signal(0)
 // The current count of coins
 export const coinCount = new Signal(0)
-// The current count of seeds
-export const seedCount = new Signal(0)
 // The current count of keys
 export const keyCount = new Signal(0)
-/** What the player puts down with space: bait for the animals, or a seed */
-export type Tool = "apple" | "fish" | "seed"
-// The chosen tool, or null (space does the usual: dig, plant, fish, jump)
+/** What the player puts down with space: bait for the animals */
+export type Tool = "apple" | "fish"
+// The chosen tool, or null (space does the usual: dig, fish, jump)
 export const tool = new Signal<Tool | null>(null)
 /** A letter being carried (model/errand.ts): where to, from, what it pays */
 export type Letter = { to: string; from: string; reward: number }

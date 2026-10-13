@@ -22,7 +22,6 @@ export function ItemGetEffector({ el, subscribe }: Context) {
   watch(signal.appleCount, "./item/apple.png", "10px")
   watch(signal.greenAppleCount, "./item/green-apple.png", "36px")
   watch(signal.coinCount, "./item/coin.png", "62px")
-  watch(signal.seedCount, "./item/seed.png", "88px")
   watch(signal.keyCount, "./item/key.png", "114px")
 }
 

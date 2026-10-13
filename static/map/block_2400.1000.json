@@ -68,19 +68,24 @@
   },
   "actors": [
     {
-      "i": 2528,
-      "j": 1076,
-      "type": "chaser"
-    },
-    {
-      "i": 2517,
-      "j": 1011,
+      "i": 2410,
+      "j": 1005,
       "type": "chaser"
     },
     {
       "i": 2501,
       "j": 1028,
       "type": "random"
+    },
+    {
+      "i": 2536,
+      "j": 1048,
+      "type": "book"
+    },
+    {
+      "i": 2470,
+      "j": 1042,
+      "type": "snail"
     },
     {
       "i": 2595,
@@ -868,31 +873,6 @@
       "i": 2480,
       "j": 1034,
       "type": "apple"
-    },
-    {
-      "i": 2438,
-      "j": 1007,
-      "type": "seed"
-    },
-    {
-      "i": 2509,
-      "j": 1027,
-      "type": "seed"
-    },
-    {
-      "i": 2592,
-      "j": 1040,
-      "type": "seed"
-    },
-    {
-      "i": 2556,
-      "j": 1063,
-      "type": "seed"
-    },
-    {
-      "i": 2407,
-      "j": 1080,
-      "type": "seed"
     }
   ],
   "props": [
@@ -930,9 +910,67 @@
       "type": "flowers"
     },
     {
-      "i": 2570,
-      "j": 1016,
-      "type": "nest-jar-4"
+      "i": 2585,
+      "j": 1023,
+      "type": "bell-stone",
+      "data": {
+        "group": "wilds-bell-8",
+        "order": 1,
+        "count": 5,
+        "note": 0
+      }
+    },
+    {
+      "i": 2587,
+      "j": 1023,
+      "type": "bell-stone",
+      "data": {
+        "group": "wilds-bell-8",
+        "order": 2,
+        "count": 5,
+        "note": 2
+      }
+    },
+    {
+      "i": 2589,
+      "j": 1023,
+      "type": "bell-stone",
+      "data": {
+        "group": "wilds-bell-8",
+        "order": 3,
+        "count": 5,
+        "note": 4
+      }
+    },
+    {
+      "i": 2591,
+      "j": 1023,
+      "type": "bell-stone",
+      "data": {
+        "group": "wilds-bell-8",
+        "order": 4,
+        "count": 5,
+        "note": 7
+      }
+    },
+    {
+      "i": 2593,
+      "j": 1023,
+      "type": "bell-stone",
+      "data": {
+        "group": "wilds-bell-8",
+        "order": 5,
+        "count": 5,
+        "note": 9
+      }
+    },
+    {
+      "i": 2584,
+      "j": 1025,
+      "type": "sign",
+      "data": {
+        "text": "BELL STONES: LEFT TO RIGHT"
+      }
     },
     {
       "i": 2589,
@@ -2263,8 +2301,8 @@
       "j": 1173,
       "type": "shop",
       "data": {
-        "sells": "seed",
-        "price": 1
+        "sells": "potion",
+        "price": 4
       }
     },
     {
@@ -2282,8 +2320,8 @@
       "j": 1162,
       "type": "shop",
       "data": {
-        "sells": "potion",
-        "price": 4
+        "sells": "mushroom",
+        "price": 3
       }
     },
     {
@@ -2306,7 +2344,7 @@
       "j": 1173,
       "type": "shop",
       "data": {
-        "sells": "mushroom",
+        "sells": "herb",
         "price": 3
       }
     },
@@ -2330,8 +2368,8 @@
       "j": 1162,
       "type": "shop",
       "data": {
-        "sells": "herb",
-        "price": 3
+        "sells": "ether",
+        "price": 4
       }
     },
     {
@@ -2359,8 +2397,8 @@
       "j": 1162,
       "type": "shop",
       "data": {
-        "sells": "ether",
-        "price": 4
+        "sells": "bread",
+        "price": 3
       }
     },
     {
@@ -2383,8 +2421,8 @@
       "j": 1172,
       "type": "shop",
       "data": {
-        "sells": "bread",
-        "price": 3
+        "sells": "potion",
+        "price": 4
       }
     },
     {
@@ -2422,8 +2460,8 @@
       "j": 1182,
       "type": "shop",
       "data": {
-        "sells": "potion",
-        "price": 4
+        "sells": "herb",
+        "price": 3
       }
     },
     {
@@ -2441,8 +2479,8 @@
       "j": 1199,
       "type": "shop",
       "data": {
-        "sells": "mushroom",
-        "price": 3
+        "sells": "ether",
+        "price": 4
       }
     },
     {
@@ -2460,7 +2498,7 @@
       "j": 1182,
       "type": "shop",
       "data": {
-        "sells": "herb",
+        "sells": "bread",
         "price": 3
       }
     },
@@ -2494,7 +2532,7 @@
       "j": 1182,
       "type": "shop",
       "data": {
-        "sells": "ether",
+        "sells": "potion",
         "price": 4
       }
     },
@@ -2523,7 +2561,7 @@
       "j": 1198,
       "type": "shop",
       "data": {
-        "sells": "bread",
+        "sells": "mushroom",
         "price": 3
       }
     },
@@ -2547,8 +2585,8 @@
       "j": 1198,
       "type": "shop",
       "data": {
-        "sells": "seed",
-        "price": 1
+        "sells": "herb",
+        "price": 3
       }
     },
     {
@@ -2644,7 +2682,7 @@
       "j": 1179,
       "type": "shop",
       "data": {
-        "sells": "potion",
+        "sells": "ether",
         "price": 4
       }
     },
@@ -2673,7 +2711,7 @@
       "j": 1189,
       "type": "shop",
       "data": {
-        "sells": "mushroom",
+        "sells": "bread",
         "price": 3
       }
     },
@@ -2702,8 +2740,8 @@
       "j": 1162,
       "type": "shop",
       "data": {
-        "sells": "herb",
-        "price": 3
+        "sells": "ether",
+        "price": 4
       }
     },
     {
@@ -2731,8 +2769,8 @@
       "j": 1162,
       "type": "shop",
       "data": {
-        "sells": "ether",
-        "price": 4
+        "sells": "bread",
+        "price": 3
       }
     },
     {
@@ -2765,8 +2803,8 @@
       "j": 1178,
       "type": "shop",
       "data": {
-        "sells": "bread",
-        "price": 3
+        "sells": "potion",
+        "price": 4
       }
     },
     {
@@ -2794,8 +2832,8 @@
       "j": 1178,
       "type": "shop",
       "data": {
-        "sells": "seed",
-        "price": 1
+        "sells": "mushroom",
+        "price": 3
       }
     },
     {
@@ -2823,8 +2861,8 @@
       "j": 1162,
       "type": "shop",
       "data": {
-        "sells": "potion",
-        "price": 4
+        "sells": "herb",
+        "price": 3
       }
     },
     {
@@ -2872,8 +2910,8 @@
       "j": 1178,
       "type": "shop",
       "data": {
-        "sells": "mushroom",
-        "price": 3
+        "sells": "ether",
+        "price": 4
       }
     },
     {
@@ -2901,7 +2939,7 @@
       "j": 1178,
       "type": "shop",
       "data": {
-        "sells": "herb",
+        "sells": "bread",
         "price": 3
       }
     },
@@ -2930,7 +2968,7 @@
       "j": 1191,
       "type": "shop",
       "data": {
-        "sells": "ether",
+        "sells": "potion",
         "price": 4
       }
     },
@@ -2959,7 +2997,7 @@
       "j": 1191,
       "type": "shop",
       "data": {
-        "sells": "bread",
+        "sells": "mushroom",
         "price": 3
       }
     },
@@ -2988,8 +3026,8 @@
       "j": 1191,
       "type": "shop",
       "data": {
-        "sells": "ether",
-        "price": 4
+        "sells": "mushroom",
+        "price": 3
       }
     },
     {
@@ -3017,7 +3055,7 @@
       "j": 1191,
       "type": "shop",
       "data": {
-        "sells": "bread",
+        "sells": "herb",
         "price": 3
       }
     },
@@ -3051,8 +3089,8 @@
       "j": 1162,
       "type": "shop",
       "data": {
-        "sells": "potion",
-        "price": 4
+        "sells": "bread",
+        "price": 3
       }
     },
     {
@@ -3085,8 +3123,8 @@
       "j": 1162,
       "type": "shop",
       "data": {
-        "sells": "mushroom",
-        "price": 3
+        "sells": "potion",
+        "price": 4
       }
     },
     {
@@ -3129,7 +3167,7 @@
       "j": 1176,
       "type": "shop",
       "data": {
-        "sells": "herb",
+        "sells": "mushroom",
         "price": 3
       }
     },
@@ -3163,8 +3201,8 @@
       "j": 1162,
       "type": "shop",
       "data": {
-        "sells": "ether",
-        "price": 4
+        "sells": "herb",
+        "price": 3
       }
     },
     {
@@ -3192,8 +3230,8 @@
       "j": 1172,
       "type": "shop",
       "data": {
-        "sells": "bread",
-        "price": 3
+        "sells": "ether",
+        "price": 4
       }
     },
     {
@@ -3221,8 +3259,8 @@
       "j": 1162,
       "type": "shop",
       "data": {
-        "sells": "seed",
-        "price": 1
+        "sells": "bread",
+        "price": 3
       }
     },
     {
@@ -3355,8 +3393,8 @@
       "j": 1193,
       "type": "shop",
       "data": {
-        "sells": "potion",
-        "price": 4
+        "sells": "mushroom",
+        "price": 3
       }
     },
     {

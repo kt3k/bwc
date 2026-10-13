@@ -85,7 +85,7 @@ sign(104, 20, "PUZZLE DUNGEON: 9 TRIALS")
 rect(99, 0, 118, 2, "c")
 rect(116, 0, 118, 9, "c")
 sign(115, 11, "UP: THE WEST VILLAGE")
-prop(110, 30, "shop", { sells: "seed", price: 3 })
+prop(110, 30, "shop", { sells: "mushroom", price: 3 })
 prop(113, 30, "shop", { sells: "mushroom", price: 5 })
 sign(107, 30, "SHOP: PUSH TO BUY")
 item(105, 14, "mushroom")
@@ -164,10 +164,8 @@ rect(10, 70, 70, 120, "5")
 rect(70, 93, 74, 97, "5") // door stub to the west corridor
 prop(29, 95, "plate", { group: "r3" })
 actor(48, 95, "boulder") // within reach: far actors get deactivated
-item(60, 90, "seed")
-item(62, 95, "seed")
-item(60, 100, "seed")
-sign(33, 90, "PARK THE BOULDER ON THE PLATE. TREES STOP IT")
+prop(28, 95, "sapling")
+sign(33, 90, "PARK THE BOULDER ON THE PLATE. THE OLD TREE STOPS IT THERE")
 sign(55, 100, "LEAVE AND RETURN TO RESET THE ROOM")
 // reward alcove opened by the door
 rect(36, 106, 44, 116, "2")
@@ -398,7 +396,7 @@ for (let y = 146; y <= 166; y += 4) {
   }
 }
 prop(90, 168, "chest", { drops: "coin", count: 10 })
-prop(110, 168, "chest", { drops: "seed", count: 3 })
+prop(110, 168, "chest", { drops: "bread", count: 3 })
 sign(100, 144, "MASTER OF GIMMICKS!")
 // The way down to the second floor (block_200.400): a tunnel from the
 // vault floor south, then east under the lake and the forest blocks

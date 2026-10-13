@@ -365,7 +365,7 @@ export async function buildCavern(
     keepClear[idx(...outside)] = 1
     put(props, x0 + 11, y0 - 5, "sign", { text: "THE HOARD: THREE KEYS" })
     put(props, x0 + 5, y0 + 5, "chest", { drops: "coin", count: 15 })
-    put(props, x0 + 13, y0 + 5, "chest", { drops: "seed", count: 4 })
+    put(props, x0 + 13, y0 + 5, "chest", { drops: "bread", count: 4 })
     for (let y = y0 + 2; y <= y0 + 8; y += 3) {
       for (let x = x0 + 3; x <= x0 + 15; x += 3) {
         // the coin bag in the middle of the hoard

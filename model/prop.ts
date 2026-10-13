@@ -808,12 +808,10 @@ class PushedDelegateTree implements PushedDelegate {
       state.stage === 0 && field.forgetProp &&
       !field.isSlippery(pusher.i, pusher.j)
     ) {
-      // A fresh sapling comes out: the seed goes back in the pocket (a
-      // seed put down at the wrong place costs nothing). Not when
-      // sliding into it on the ice: there it is the stopper
+      // A fresh sapling comes out of the ground. Not when sliding
+      // into it on the ice: there it is the stopper
       field.forgetProp(prop.i, prop.j)
       growthStates.delete(`${prop.i}.${prop.j}`)
-      signal.seedCount.update(signal.seedCount.get() + 1)
       signal.playSound("blipSelect")
       signal.message.update({ text: "PULLED UP THE SAPLING" })
       for (
@@ -851,7 +849,7 @@ class PushedDelegateShop implements PushedDelegate {
       return
     }
     const data = prop.data as { sells?: unknown; price?: unknown } | undefined
-    const sells = typeof data?.sells === "string" ? data.sells : "seed"
+    const sells = typeof data?.sells === "string" ? data.sells : "mushroom"
     const price = typeof data?.price === "number" ? data.price : 3
     const coins = signal.coinCount.get()
     if (coins < price) {

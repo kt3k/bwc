@@ -174,11 +174,10 @@ prop(143, 90, "door", { group: "s4b" })
 item(136, 90, "key")
 item(134, 88, "coin")
 item(138, 92, "coin")
-for (const [x, y] of [[155, 88], [160, 88], [158, 92], [162, 90]]) {
-  item(x, y, "seed")
-}
+prop(149, 80, "sapling")
+prop(160, 95, "sapling")
 sign(146, 76, "PARK BOTH BOULDERS ON BOTH PLATES")
-sign(166, 108, "TREES STOP ROLLING BOULDERS")
+sign(166, 108, "THE OLD TREES STOP THEM THERE")
 
 // ---------------------------------------------------------------------
 // S5 (SW): moon garden
@@ -248,7 +247,7 @@ for (let y = 142; y <= 162; y += 4) {
   }
 }
 prop(92, 168, "chest", { drops: "coin", count: 12 })
-prop(108, 168, "chest", { drops: "seed", count: 4 })
+prop(108, 168, "chest", { drops: "bread", count: 4 })
 sign(100, 139, "GIMMICK GRANDMASTER!")
 grid[166][95] = "x" // dig spots
 grid[166][105] = "x"

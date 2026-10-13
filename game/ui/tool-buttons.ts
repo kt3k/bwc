@@ -5,7 +5,7 @@ import { chooseTool } from "../../model/tool.ts"
 
 /**
  * The tool buttons below the game screen: what space puts down (none, an
- * apple, a fish, a seed). The X key cycles them too. The chosen one is
+ * apple, a fish). The X key cycles them too. The chosen one is
  * lit.
  */
 export function ToolButtons({ queryAll, subscribe }: Context) {
@@ -14,7 +14,7 @@ export function ToolButtons({ queryAll, subscribe }: Context) {
     button.addEventListener("click", () => {
       const tool = button.dataset.tool
       chooseTool(
-        tool === "apple" || tool === "fish" || tool === "seed" ? tool : null,
+        tool === "apple" || tool === "fish" ? tool : null,
       )
       // keeps the arrow keys for walking, not for the focused button
       button.blur()

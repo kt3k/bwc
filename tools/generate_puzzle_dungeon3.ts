@@ -91,7 +91,7 @@ rect(0, 195, 106, 195, "6")
 rect(106, 115, 106, 195, "6")
 sign(107, 116, "SOUTH-WEST: THE TUNNEL BACK TO THE B2F VAULT")
 prop(110, 30, "shop", { sells: "mushroom", price: 5 })
-prop(113, 30, "shop", { sells: "seed", price: 3 })
+prop(113, 30, "shop", { sells: "mushroom", price: 3 })
 sign(107, 30, "SHOP: PUSH TO BUY")
 sign(100, 34, "KEYS ARE HIDDEN IN THE TRIALS. THE VAULT IS EAST")
 grid[10][85] = "x" // dig spot
@@ -243,8 +243,8 @@ item(184, 66, "coin")
 // T5 (row 2, west): freeze the metronome -> chest
 //
 // A patrol flips the switch every lap. The boulder only passes the
-// blue wall while it sleeps, and a rolling boulder can't wait, so plant
-// a tree in the lane (from below, facing up) to stop the patrol.
+// blue wall while it sleeps, and a rolling boulder can't wait, so roll
+// the spare boulder up into the lane to stop the patrol in its tracks.
 
 rect(6, 116, 50, 192, "6")
 rect(10, 119, 24, 119, "2") // the lane's north wall
@@ -255,11 +255,11 @@ actor(17, 120, "patrol", { dir: "left" })
 sign(
   30,
   128,
-  "THE PATROL FLIPS THE SWITCH EVERY LAP. A TREE IN THE LANE STOPS IT",
+  "THE PATROL FLIPS THE SWITCH EVERY LAP. ROLL THE BOULDER INTO ITS LANE TO STOP IT",
 )
 sign(18, 152, "THE BOULDER PASSES ONLY WHILE BOTH BLUE WALLS SLEEP")
 sign(30, 176, "LEAVE AND RETURN TO RESET")
-for (const x of [14, 20, 26]) item(x, 130, "seed")
+actor(14, 132, "boulder")
 actor(20, 150, "boulder")
 prop(28, 150, "blue-wall", { group: "t5" })
 prop(34, 150, "blue-wall", { group: "t5" })
@@ -394,7 +394,7 @@ const CHAMBERS: [number, string, () => void][] = [
     item(163, 14, "coin")
   }],
   [185, "RIGHT: SUPPLIES", () => {
-    for (const x of [182, 184, 186]) item(x, 10, "seed")
+    for (const x of [182, 184, 186]) item(x, 10, "bread")
     for (const x of [183, 187]) item(x, 14, "mushroom")
     item(185, 12, "purple-mushroom")
   }],

@@ -97,7 +97,6 @@ const ITEMS = [
   "apple",
   "green-apple",
   "coin",
-  "seed",
   "key",
   "mushroom",
   "purple-mushroom",
@@ -161,7 +160,7 @@ station("PLATE + DOOR", (x) => {
   prop(x + 2, 38, "door", { group: "zoo" })
 })
 station("SHOP", (x) => {
-  prop(x, 38, "shop", { sells: "seed", price: 1 })
+  prop(x, 38, "shop", { sells: "mushroom", price: 1 })
   item(x + 1, 38, "coin")
   item(x + 2, 38, "coin")
 })
@@ -229,8 +228,6 @@ sign(80, 58, "POND: FACE WATER + SPACE TO FISH")
 rect(80, 60, 85, 63, "w")
 
 sign(100, 58, "PLANT A SEED (SPACE)")
-item(100, 60, "seed")
-item(101, 60, "seed")
 
 sign(120, 58, "CHASER + BOULDER LANE")
 actor(120, 62, "chaser")

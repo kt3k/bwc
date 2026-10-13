@@ -266,7 +266,6 @@ function genForest(key: string): Generated {
     ],
     items: [
       ...spawnList(key, "apple", 40),
-      ...spawnList(key, "seed", 8),
       ...spawnList(key, "mushroom", 5),
       ...spawnList(key, "coin", 15),
     ],
@@ -302,7 +301,6 @@ function genLake(key: string): Generated {
     items: [
       ...spawnList(key, "coin", 30),
       ...spawnList(key, "apple", 15),
-      ...spawnList(key, "seed", 5),
     ],
     props: [
       ...spawnList(key, "spring", 8),
@@ -401,7 +399,7 @@ function genTreasury(key: string): Generated {
       j: y0 + 4 + randomInt(y1 - y0 - 8),
       type: "chest",
       data: n === 0
-        ? { drops: "seed", count: 3 }
+        ? { drops: "bread", count: 3 }
         : n === 1
         ? { drops: "apple", count: 4 }
         : { drops: "coin", count: 8 },
@@ -440,7 +438,7 @@ function genTreasury(key: string): Generated {
 //
 // Portal A of the start island drops the player into this walled
 // course. It introduces the features one by one: movement, apples,
-// crate breaking, coins, spring pads, fishing, slippery ice, seed
+// crate breaking, coins, spring pads, fishing, slippery ice, the
 // planting, chests, boulders and a switch-linked wall. The final apple
 // gate (5 apples, collectable on the course) opens onto the road
 // lattice — from there the whole world is free to explore.
@@ -464,7 +462,7 @@ function buildTutorialCourse(
     [77, 128, 79, 148, "3"], // north corridor
     [77, 132, 79, 142, "i"], // the ice segment
     [52, 126, 79, 128, "3"], // west corridor
-    [52, 112, 72, 128, "3"], // garden room (seeds, chest, boulder)
+    [52, 112, 72, 128, "3"], // garden room (chest, boulder)
     [72, 110, 95, 112, "3"], // exit corridor
     [88, 113, 94, 118, "3"], // puzzle dungeon portal nook
   ]
@@ -501,12 +499,6 @@ function buildTutorialCourse(
       data: { text: "FACE THE WATER AND PRESS SPACE TO FISH" },
     },
     { i: 79, j: 145, type: "sign", data: { text: "SLIPPERY ICE AHEAD" } },
-    {
-      i: 62,
-      j: 114,
-      type: "sign",
-      data: { text: "PRESS SPACE TO PLANT A SEED" },
-    },
     { i: 68, j: 116, type: "sign", data: { text: "PUSH THE BOULDER" } },
     { i: 56, j: 116, type: "chest", data: { drops: "apple", count: 3 } },
     {
@@ -555,10 +547,6 @@ function buildTutorialCourse(
     // Fishing room coins
     { i: 78, j: 150, type: "coin" },
     { i: 90, j: 158, type: "coin" },
-    // Seeds in the garden
-    { i: 58, j: 118, type: "seed" },
-    { i: 60, j: 122, type: "seed" },
-    { i: 64, j: 118, type: "seed" },
   ]
   const actors: Spawn[] = [
     { i: 66, j: 120, type: "boulder" },
