@@ -38,7 +38,7 @@ import { stepWaygate, stepWaystone, WaystonePushed } from "./waystone.ts"
 import { LatchGatePushed, stepLatchGate } from "./shortcut.ts"
 import { PostBoxPushed } from "./errand.ts"
 import { TradeStallPushed } from "./trade.ts"
-import { FerryPushed } from "./ferry.ts"
+import { FerryPushed, stepFerry } from "./ferry.ts"
 import { PanePushed, stepPane } from "./pane.ts"
 import type { Actor } from "./actor.ts"
 
@@ -909,6 +909,7 @@ export const ODD_PROP_STEP: Record<
   waygate: stepWaygate,
   "latch-gate": stepLatchGate,
   pane: stepPane,
+  ferry: stepFerry,
 }
 
 /**

@@ -46,6 +46,15 @@ export function writePath(dirs: Dir[]): string {
   return out
 }
 
+/** The boat out on a ride (its landing shows only rings on the water) */
+let outBoat: Prop | null = null
+
+/** The boat lies along the river: across it, or down it */
+export function stepFerry(prop: Prop, _field: IField) {
+  const { path = "" } = (prop.data ?? {}) as FerryData
+  prop.showStage(prop === outBoat ? 1 : /^[ud]/.test(path) ? 2 : 0)
+}
+
 /** The speed of the ride: a long one goes faster */
 export const rideSpeed = (steps: number): 4 | 8 => steps > 60 ? 8 : 4
 
@@ -73,7 +82,7 @@ export function ride(
       fn: () => {
         me.skin = boat
         me.speed = rideSpeed(steps.length)
-        prop.showStage(1)
+        outBoat = prop
         signal.playSound("blipSelect")
       },
     },
@@ -105,7 +114,7 @@ export function ride(
       type: "call",
       fn: () => {
         delete me.buff.riding
-        prop.showStage(0)
+        outBoat = null
       },
     },
   )

@@ -579,7 +579,20 @@ export class Actor implements IActor {
    * This defines where the actor is drawn.
    */
   get x(): number {
+    return this.#rawX - this.#bigger("width")
+  }
+
+  get #rawX(): number {
     return this.#i * CELL_SIZE + (this.#move?.x ?? 0)
+  }
+
+  /**
+   * How far a skin image larger than a cell (the rowboat) sticks out on
+   * each side: it is drawn centered on the actor's cell
+   */
+  #bigger(side: "width" | "height"): number {
+    const image = this.skin ? this.image() : null
+    return image ? Math.floor((image[side] - CELL_SIZE) / 2) : 0
   }
 
   /**
@@ -596,7 +609,7 @@ export class Actor implements IActor {
       return this.#i * CELL_SIZE + CELL_SIZE / 2
     }
 
-    return this.x + CELL_SIZE / 2
+    return this.#rawX + CELL_SIZE / 2
   }
 
   /**
@@ -605,6 +618,10 @@ export class Actor implements IActor {
    * This defines where the actor is drawn.
    */
   get y(): number {
+    return this.#rawY - this.#bigger("height")
+  }
+
+  get #rawY(): number {
     return this.#j * CELL_SIZE + (this.#move?.y ?? 0)
   }
 
@@ -622,7 +639,7 @@ export class Actor implements IActor {
       return this.#j * CELL_SIZE + CELL_SIZE / 2
     }
 
-    return this.y + CELL_SIZE / 2
+    return this.#rawY + CELL_SIZE / 2
   }
 
   get h(): number {
