@@ -35,6 +35,7 @@ import { loadCatalog } from "../model/catalog.ts"
 import { Palette } from "../util/palette.ts"
 import { encodePng } from "./png.ts"
 import { fbm } from "./noise.ts"
+import { cellKey, cellsOf, HUT, layPlan, PLANS } from "./house_plans.ts"
 
 type Spawn = { i: number; j: number; type: string; data?: unknown }
 
@@ -552,7 +553,12 @@ export async function buildCity(
     CASTLE: 0,
     PARKSIDE: 24,
   }
-  type Lot = Rect & { district: District }
+  /** How a lot is built up: "grid" parts the lot first and fits the
+   * houses to the parts, "frontage" lets the houses come first, packed
+   * along the street in whatever shapes they take, the lot's leftovers
+   * becoming yards */
+  type LotMode = "grid" | "frontage"
+  type Lot = Rect & { district: District; mode?: LotMode }
   const lots: Lot[] = []
   const districtRects: (Rect & { name: District })[] = []
 
@@ -869,7 +875,6 @@ export async function buildCity(
    * kept clear of furniture (the doorways and their steps) */
   type RoomKind = "kitchen" | "dining" | "bedroom" | "bathroom"
   type Room = Rect & { kind: RoomKind; keep: Set<string> }
-  const cellKey = (x: number, y: number) => `${x},${y}`
 
   /** Furnishes one room (the pieces after FF5's town interiors): the
    * pieces along its top wall and in its corners by kind, a painting
@@ -1112,8 +1117,121 @@ export async function buildCity(
     }
   }
 
+  /** Which way a lot is built up: the harbor, the south side and the
+   * parkside grew house by house; uptown and the castle were parted
+   * into lots first; the north side is half and half, lot by lot */
+  function modeOf(lot: Lot): LotMode {
+    if (lot.mode) return lot.mode
+    if (
+      lot.district === "HARBOR" || lot.district === "SOUTHSIDE" ||
+      lot.district === "PARKSIDE"
+    ) return "frontage"
+    if (lot.district === "UPTOWN" || lot.district === "CASTLE") return "grid"
+    return (lot.x0 + lot.y0) % 2 === 0 ? "frontage" : "grid"
+  }
+
+  /**
+   * Lays a house plan with its front door on `door`, on the lot wall
+   * facing `side`: the house's cells must be clear land not yet built
+   * on, with nothing built right against it. Writes its walls and
+   * floors, furnishes its rooms and puts the resident inside.
+   */
+  function layHousePlan(
+    plan: (typeof PLANS)[number],
+    flip: 1 | -1,
+    door: [number, number],
+    side: Side,
+    district: District,
+  ): Building | null {
+    const [dx, dy] = SIDE_DIR[side]
+    const laid = layPlan(plan, door, [-dx, -dy], flip)
+    const cells = cellsOf(laid)
+    for (const [x, y] of cells) {
+      if (!inside(x, y) || at(x, y) !== C.LAND || fixed[idx(x, y)]) return null
+      for (const [mx, my] of D4) {
+        if (inside(x + mx, y + my) && fixed[idx(x + mx, y + my)]) return null
+      }
+    }
+    const brick = wallOf("house", district)
+    for (const [x, y] of cells) {
+      set(x, y, laid.walls.has(cellKey(x, y)) ? brick : C.FLOOR)
+      fixed[idx(x, y)] = 1
+    }
+    const b: Building = {
+      ...laid.bounds,
+      door,
+      inner: [door[0] - dx, door[1] - dy],
+      side,
+      kind: "house",
+      district,
+    }
+    buildings.push(b)
+    const n = buildings.length
+    for (const r of laid.rooms) furnishRoom(r, n, laid.gaps)
+    put(actors, ...b.inner, resident(district))
+    return b
+  }
+
+  /**
+   * A lot built up house first: walking the street side end to end,
+   * at each spot the plans are tried (big ones first, the hut last)
+   * and the first with room is built, the next house a cell on from
+   * it; a spot no plan fits is skipped. Then the back street side the
+   * same way, and what is left is yard.
+   */
+  function frontage(lot: Lot) {
+    const sides = streetSides(lot)
+    const area = inset(lot, 1)
+    if (sides.length === 0) {
+      yard(area)
+      return
+    }
+    for (const side of sides.slice(0, 2)) {
+      const [dx, dy] = SIDE_DIR[side]
+      const horizontal = side === "n" || side === "s"
+      const [from, to] = horizontal ? [area.x0, area.x1] : [area.y0, area.y1]
+      const wallAt = side === "n"
+        ? area.y0
+        : side === "s"
+        ? area.y1
+        : side === "w"
+        ? area.x0
+        : area.x1
+      let cursor = from
+      while (cursor <= to) {
+        let built: Building | null = null
+        for (const plan of [...shuffle([...PLANS]), HUT]) {
+          for (const flip of shuffle([1, -1] as (1 | -1)[])) {
+            // how far the plan reaches either side of its door
+            const probe = layPlan(plan, [0, 0], [-dx, -dy], flip)
+            const [lo, hi] = horizontal
+              ? [probe.bounds.x0, probe.bounds.x1]
+              : [probe.bounds.y0, probe.bounds.y1]
+            const doorAlong = cursor - lo
+            if (doorAlong + hi > to) continue
+            const door: [number, number] = horizontal
+              ? [doorAlong, wallAt]
+              : [wallAt, doorAlong]
+            built = layHousePlan(plan, flip, door, side, lot.district)
+            if (built) {
+              cursor = doorAlong + hi + 2
+              break
+            }
+          }
+          if (built) break
+        }
+        if (!built) cursor++
+      }
+    }
+    yardLeft(area)
+  }
+
   /** A residential lot: one or two houses facing the street, a yard */
   function residential(lot: Lot) {
+    if (modeOf(lot) === "frontage") {
+      frontage(lot)
+      return
+    }
     const sides = streetSides(lot)
     const area = inset(lot, 1)
     if (sides.length === 0) {

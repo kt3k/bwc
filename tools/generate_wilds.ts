@@ -56,6 +56,15 @@ import { Palette } from "../util/palette.ts"
 import { encodePng } from "./png.ts"
 import { fbm, hash, smoothstep } from "./noise.ts"
 import { type Kind, MAKERS } from "./minipuzzles.ts"
+import {
+  cellKey,
+  cellsOf,
+  type HousePlan,
+  HUT,
+  layPlan,
+  PLANS,
+  type RoomKind,
+} from "./house_plans.ts"
 import { writePath } from "../model/ferry.ts"
 import type { Dir } from "../model/types.ts"
 import {
@@ -996,8 +1005,6 @@ type Room = {
   kind: RoomKind
   keep: Set<string>
 }
-type RoomKind = "kitchen" | "dining" | "bedroom" | "bathroom"
-const cellKey = (x: number, y: number) => `${x},${y}`
 
 /**
  * Furnishes one room (the pieces after FF5's town interiors). The
@@ -1089,80 +1096,6 @@ function furnishRoom(r: Room, n: number, gaps: Set<string>) {
 }
 
 /**
- * A house plan, drawn in its own frame: the front door on the bottom
- * wall, the house reaching up (away from the street) from it. The
- * rooms are rects (walls inclusive) that touch along shared wall
- * lines; a doorway is cut in a shared wall at each listed gap cell.
- * The plan is turned to face its street (and mirrored at random), so
- * one plan gives four orientations and their mirror images.
- */
-type HousePlan = {
-  name: string
-  rooms: { x0: number; y0: number; x1: number; y1: number; kind: RoomKind }[]
-  door: [number, number]
-  gaps: [number, number][]
-}
-
-/** The plans, big ones first: an L-shaped cottage with the bathroom
- * out back, the farmhouse with its wing, the longhouse, and the rare
- * manor with its two wings and a hall in the middle. The hut is the
- * last resort where none of these finds room */
-const PLANS: HousePlan[] = [
-  {
-    name: "cottage",
-    rooms: [
-      { x0: 0, y0: 4, x1: 8, y1: 10, kind: "kitchen" },
-      { x0: 0, y0: 0, x1: 8, y1: 4, kind: "bedroom" },
-      { x0: 8, y0: 0, x1: 12, y1: 4, kind: "bathroom" },
-    ],
-    door: [4, 10],
-    gaps: [[4, 4], [8, 2]],
-  },
-  {
-    name: "farmhouse",
-    rooms: [
-      { x0: 0, y0: 4, x1: 10, y1: 10, kind: "dining" },
-      { x0: 0, y0: 0, x1: 5, y1: 4, kind: "kitchen" },
-      { x0: 5, y0: 0, x1: 10, y1: 4, kind: "bedroom" },
-      { x0: 10, y0: 5, x1: 14, y1: 10, kind: "bathroom" },
-    ],
-    door: [5, 10],
-    gaps: [[2, 4], [8, 4], [10, 7]],
-  },
-  {
-    name: "longhouse",
-    rooms: [
-      { x0: 6, y0: 4, x1: 12, y1: 10, kind: "dining" },
-      { x0: 0, y0: 4, x1: 6, y1: 10, kind: "kitchen" },
-      { x0: 12, y0: 4, x1: 18, y1: 10, kind: "bedroom" },
-      { x0: 7, y0: 0, x1: 11, y1: 4, kind: "bathroom" },
-    ],
-    door: [9, 10],
-    gaps: [[6, 7], [12, 7], [9, 4]],
-  },
-  {
-    name: "manor",
-    rooms: [
-      { x0: 4, y0: 6, x1: 10, y1: 12, kind: "dining" },
-      { x0: 4, y0: 0, x1: 10, y1: 6, kind: "kitchen" },
-      { x0: 0, y0: 0, x1: 4, y1: 12, kind: "bedroom" },
-      { x0: 10, y0: 0, x1: 14, y1: 12, kind: "bathroom" },
-    ],
-    door: [7, 12],
-    gaps: [[7, 6], [4, 9], [10, 9]],
-  },
-]
-const HUT: HousePlan = {
-  name: "hut",
-  rooms: [
-    { x0: 0, y0: 4, x1: 8, y1: 9, kind: "kitchen" },
-    { x0: 0, y0: 0, x1: 8, y1: 4, kind: "bedroom" },
-  ],
-  door: [4, 9],
-  gaps: [[4, 4]],
-}
-
-/**
  * A house by the street cell (sx, sy), set back along (nx, ny) (away
  * from the street) with its door facing the street and a path to it.
  * The plans are tried in turn (big ones first, the hut when nothing
@@ -1184,7 +1117,7 @@ function house(
     ? [HUT]
     : [...shuffle(PLANS.filter((p) => p.name !== "manor" || rng() < 0.3))]
   for (const plan of plans) {
-    for (const flip of shuffle([1, -1])) {
+    for (const flip of shuffle([1, -1] as (1 | -1)[])) {
       if (layHouse(village, sx, sy, nx, ny, plan, flip, resident)) return true
     }
   }
@@ -1198,63 +1131,15 @@ function layHouse(
   nx: number,
   ny: number,
   plan: HousePlan,
-  flip: number,
+  flip: 1 | -1,
   resident: string,
 ): boolean {
-  // the plan's frame onto the world: its door lands two cells off the
-  // street, "up" in the plan is inward (nx, ny), "right" turns with it
+  // the door lands two cells off the street, the house reaching inward
   const doorX = sx + 2 * nx, doorY = sy + 2 * ny
-  const rx = -ny * flip, ry = nx * flip
-  const tf = (px: number, py: number): [number, number] => {
-    const u = px - plan.door[0], v = py - plan.door[1]
-    return [doorX + u * rx - v * nx, doorY + u * ry - v * ny]
-  }
-  const rooms: Room[] = plan.rooms.map((r) => {
-    const [ax, ay] = tf(r.x0, r.y0), [bx, by] = tf(r.x1, r.y1)
-    return {
-      x0: Math.min(ax, bx),
-      y0: Math.min(ay, by),
-      x1: Math.max(ax, bx),
-      y1: Math.max(ay, by),
-      kind: r.kind,
-      keep: new Set<string>(),
-    }
-  })
-  // the cells: a room's inside is floor, its border wall (a wall two
-  // rooms share stays a wall between them), the doorways floor again
-  const floor = new Set<number>(), walls = new Set<number>()
-  for (const r of rooms) {
-    for (let y = r.y0; y <= r.y1; y++) {
-      for (let x = r.x0; x <= r.x1; x++) {
-        if (!inside(x, y)) return false
-        const edge = x === r.x0 || x === r.x1 || y === r.y0 || y === r.y1
-        ;(edge ? walls : floor).add(idx(x, y))
-      }
-    }
-  }
-  for (const p of floor) walls.delete(p)
-  const gaps = new Set<string>()
-  const keep = new Set<string>()
-  const open = (x: number, y: number) => {
-    const p = idx(x, y)
-    walls.delete(p)
-    floor.add(p)
-    gaps.add(cellKey(x, y))
-    // the cells either side of a doorway stay clear of furniture
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      if (floor.has(idx(x + dx, y + dy))) {
-        keep.add(cellKey(x + dx, y + dy))
-        keep.add(cellKey(x + 2 * dx, y + 2 * dy))
-      }
-    }
-  }
-  for (const [gx, gy] of plan.gaps) open(...tf(gx, gy))
-  open(doorX, doorY)
-  // no piece hangs over the front door or where the shop sign goes
-  gaps.add(cellKey(doorX + 1, doorY))
+  const laid = layPlan(plan, [doorX, doorY], [nx, ny], flip)
+  const cells = cellsOf(laid)
   // room for the whole of it and a cell of margin all round
-  for (const p of [...floor, ...walls]) {
-    const x = p % W, y = (p / W) | 0
+  for (const [x, y] of cells) {
     for (let dy = -1; dy <= 1; dy++) {
       for (let dx = -1; dx <= 1; dx++) {
         if (!inside(x + dx, y + dy)) return false
@@ -1265,28 +1150,10 @@ function layHouse(
       }
     }
   }
-  // every room reachable from the door (a plan's gaps all cut)
-  {
-    const seen = new Set<number>([idx(doorX, doorY)])
-    const queue = [idx(doorX, doorY)]
-    for (let q = 0; q < queue.length; q++) {
-      const x = queue[q] % W, y = (queue[q] / W) | 0
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-        const np = idx(x + dx, y + dy)
-        if (floor.has(np) && !seen.has(np)) {
-          seen.add(np)
-          queue.push(np)
-        }
-      }
-    }
-    if (seen.size !== floor.size) {
-      console.error(`NG the ${plan.name} plan has a room shut off`)
-      return false
-    }
+  for (const [x, y] of cells) {
+    terrain[idx(x, y)] = laid.walls.has(cellKey(x, y)) ? T.WALL : T.FLOOR
+    keepClear[idx(x, y)] = 1
   }
-  for (const p of walls) terrain[p] = T.WALL
-  for (const p of floor) terrain[p] = T.FLOOR
-  for (const p of [...floor, ...walls]) keepClear[p] = 1
   // the path from the door to the street
   let [px, py] = [doorX, doorY]
   for (let k = 0; k < 8; k++) {
@@ -1297,11 +1164,10 @@ function layHouse(
     terrain[q] = T.ROAD
     keepClear[q] = 1
   }
+  // no piece hangs where the shop sign goes
+  const gaps = new Set([...laid.gaps, cellKey(doorX + 1, doorY)])
   const n = houses.length
-  for (const r of rooms) {
-    r.keep = keep
-    furnishRoom(r, n, gaps)
-  }
+  for (const r of laid.rooms) furnishRoom(r, n, gaps)
   const inX = doorX + nx, inY = doorY + ny
   put(actors, inX, inY, resident)
   residents++
@@ -1309,13 +1175,7 @@ function layHouse(
   if (signs < VILLAGER_SIGNS.length && ny !== 0) {
     put(props, doorX + 1, doorY, VILLAGER_SIGNS[signs++])
   }
-  houses.push({
-    x0: Math.min(...rooms.map((r) => r.x0)),
-    y0: Math.min(...rooms.map((r) => r.y0)),
-    x1: Math.max(...rooms.map((r) => r.x1)),
-    y1: Math.max(...rooms.map((r) => r.y1)),
-    village,
-  })
+  houses.push({ ...laid.bounds, village })
   return true
 }
 
