@@ -1037,10 +1037,47 @@ function house(
     terrain[q] = T.ROAD
     keepClear[q] = 1
   }
-  put(props, x0 + 2, y0 + 2, "table")
-  put(props, x0 + 3, y0 + 2, "stool")
-  put(props, x1 - 1, y0 + 1, houses.length % 2 ? "jar" : "barrel")
-  put(actors, door[0] + nx, door[1] + ny, resident)
+  // the room furnished (the pieces after FF5's town interiors): the
+  // table and stool, a bed in a corner with its head on the top wall,
+  // one piece against that wall, a painting over it, and sometimes
+  // something small left on the floor. The doorway stays clear
+  const inX = door[0] + nx, inY = door[1] + ny
+  const used = new Set([`${inX},${inY}`, `${inX + nx},${inY + ny}`])
+  const free = (x: number, y: number) =>
+    x > x0 && x < x1 && y > y0 && y < y1 && !used.has(`${x},${y}`)
+  const take = (x: number, y: number, type: string) => {
+    if (!free(x, y)) return false
+    used.add(`${x},${y}`)
+    put(props, x, y, type)
+    return true
+  }
+  take(x0 + 2, y0 + 2, "table")
+  take(x0 + 3, y0 + 2, "stool")
+  take(x1 - 1, y0 + 1, houses.length % 2 ? "jar" : "barrel")
+  for (const bx of houses.length % 2 ? [x1 - 1, x0 + 1] : [x0 + 1, x1 - 1]) {
+    if (free(bx, y0 + 1) && free(bx, y0 + 2)) {
+      take(bx, y0 + 1, "bed-head")
+      take(bx, y0 + 2, "bed-foot")
+      break
+    }
+  }
+  const PIECES = ["bookshelf", "candles", "washtub", "globe"]
+  for (let x = x0 + 1; x < x1; x++) {
+    if (take(x, y0 + 1, PIECES[houses.length % PIECES.length])) break
+  }
+  const artX = x0 + (w >> 1)
+  if (!(door[1] === y0 && (door[0] === artX || door[0] + 1 === artX))) {
+    put(props, artX, y0, "painting")
+  }
+  if (houses.length % 3 === 0) {
+    for (const [ix, iy] of [[x0 + 2, y0 + 3], [x1 - 2, y0 + 2]]) {
+      if (free(ix, iy)) {
+        put(items, ix, iy, houses.length % 2 ? "book" : "candle")
+        break
+      }
+    }
+  }
+  put(actors, inX, inY, resident)
   residents++
   // a shop sign beside some doors (on the wall cell next to it)
   if (signs < VILLAGER_SIGNS.length && ny !== 0) {
@@ -3336,8 +3373,11 @@ const actorsOut = actors.filter(standable)
 const itemsOut = items.filter(standable)
 const propsOut = props.filter((s) => {
   const t = terrain[idx(s.i - OI, s.j - OJ)] as T
-  // signs on house walls stay; everything else needs open ground
-  return s.type.startsWith("sign-") ? t === T.WALL : standable(s)
+  // signs and paintings on house walls stay; everything else needs
+  // open ground
+  return s.type.startsWith("sign-") || s.type === "painting"
+    ? t === T.WALL
+    : standable(s)
 })
 
 // ---------------------------------------------------------------------

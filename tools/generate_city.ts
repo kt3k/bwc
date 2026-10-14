@@ -865,11 +865,47 @@ export async function buildCity(
   ]
   let shops = 0
 
-  /** Furnishes a house: a table and a stool, a barrel, the resident */
+  /** Furnishes a house (the pieces after FF5's town interiors): the
+   * table and stool, a bed in a corner, a piece against the top wall,
+   * a painting over it, a barrel, and the resident. The doorway stays
+   * clear */
   function furnishHouse(b: Building) {
-    put(props, b.x0 + 2, b.y0 + 2, "table")
-    put(props, b.x0 + 3, b.y0 + 2, "stool")
-    put(props, b.x1 - 1, b.y1 - 1, buildings.length % 2 ? "jar" : "barrel")
+    const n = buildings.length
+    const taken = new Set([`${b.inner[0]},${b.inner[1]}`])
+    const free = (x: number, y: number) =>
+      x > b.x0 && x < b.x1 && y > b.y0 && y < b.y1 && !taken.has(`${x},${y}`)
+    const take = (x: number, y: number, type: string) => {
+      if (!free(x, y)) return false
+      taken.add(`${x},${y}`)
+      put(props, x, y, type)
+      return true
+    }
+    take(b.x0 + 2, b.y0 + 2, "table")
+    take(b.x0 + 3, b.y0 + 2, "stool")
+    take(b.x1 - 1, b.y1 - 1, n % 2 ? "jar" : "barrel")
+    for (const bx of n % 2 ? [b.x1 - 1, b.x0 + 1] : [b.x0 + 1, b.x1 - 1]) {
+      if (free(bx, b.y0 + 1) && free(bx, b.y0 + 2)) {
+        take(bx, b.y0 + 1, "bed-head")
+        take(bx, b.y0 + 2, "bed-foot")
+        break
+      }
+    }
+    const PIECES = ["bookshelf", "candles", "washtub", "globe"]
+    for (let x = b.x0 + 1; x < b.x1; x++) {
+      if (take(x, b.y0 + 1, PIECES[n % PIECES.length])) break
+    }
+    const px = b.x0 + ((b.x1 - b.x0) >> 1)
+    if (!(b.door[1] === b.y0 && Math.abs(b.door[0] - px) <= 1)) {
+      put(props, px, b.y0, "painting")
+    }
+    if (n % 3 === 0) {
+      for (const [x, y] of [[b.x0 + 2, b.y0 + 3], [b.x1 - 2, b.y0 + 2]]) {
+        if (free(x, y)) {
+          put(items, x, y, n % 2 ? "book" : "candle")
+          break
+        }
+      }
+    }
     put(actors, ...b.inner, resident(b.district))
   }
 
@@ -1342,7 +1378,19 @@ export async function buildCity(
   // a building whose floor isn't all reached (a narrow shop blocked by
   // its furniture) loses its furniture
   {
-    const FURNITURE = new Set(["barrel", "jar", "table", "crate"])
+    const FURNITURE = new Set([
+      "barrel",
+      "jar",
+      "table",
+      "crate",
+      "stool",
+      "bed-head",
+      "bed-foot",
+      "bookshelf",
+      "candles",
+      "washtub",
+      "globe",
+    ])
     const cut = new Set<number>()
     for (const b of buildings) {
       let blocked = false
