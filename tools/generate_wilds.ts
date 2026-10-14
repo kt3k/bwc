@@ -56,6 +56,8 @@ import { Palette } from "../util/palette.ts"
 import { encodePng } from "./png.ts"
 import { fbm, hash, smoothstep } from "./noise.ts"
 import { type Kind, MAKERS } from "./minipuzzles.ts"
+import { writePath } from "../model/ferry.ts"
+import type { Dir } from "../model/types.ts"
 import {
   buildCity,
   CITY_H,
@@ -3440,6 +3442,220 @@ for (let round = 0; round < 50; round++) {
     } steps)`,
   )
 }
+// the ferries (model/ferry.ts, ideas/wilds-roaming-todo.md 10): every
+// river and canal runs on to the sea, so each is a way down the island.
+// From each river's source and each city's farthest canal, the way down
+// to the sea is followed, and boats are moored along it at landings (a
+// bank to step off onto). A boat rows you on to the next landing; the
+// one at the mouth rows you back up to the first
+{
+  const inCoveRect = (x: number, y: number) =>
+    x >= COVE_X0 - 4 && x < COVE_X0 + COVE_W + 4 && y >= COVE_Y0 - 4 &&
+    y < COVE_Y0 + COVE_H + 4
+  const cityWater = (x: number, y: number) => {
+    const c = cityAt(x, y)
+    return c !== undefined &&
+      c.city.waterway[(y - c.y0) * CITY_W + (x - c.x0)] === 1
+  }
+  /** The waters a boat goes on (the sea aside) */
+  const isNet = (x: number, y: number) => {
+    const p = idx(x, y)
+    if (puzzleCells[p] || inCoveRect(x, y) || inMassif(x, y)) return false
+    const t = terrain[p] as T
+    if (t === T.CITY) return cityWater(x, y)
+    return t === T.RIVER || t === T.LAKE || t === T.BRIDGE
+  }
+  // the steps down to the sea, from every water
+  const down = new Int32Array(W * H).fill(-1)
+  const queue: number[] = []
+  for (let p = 0; p < W * H; p++) {
+    if (terrain[p] === T.SEA) {
+      down[p] = 0
+      queue.push(p)
+    }
+  }
+  for (let q = 0; q < queue.length; q++) {
+    const x = queue[q] % W, y = (queue[q] / W) | 0
+    for (const [dx, dy] of D4) {
+      const nx = x + dx, ny = y + dy
+      if (!inside(nx, ny)) continue
+      const np = idx(nx, ny)
+      if (down[np] < 0 && isNet(nx, ny)) {
+        down[np] = down[queue[q]] + 1
+        queue.push(np)
+      }
+    }
+  }
+  // the land walked to from the arrival (the city's own ground by its cells)
+  const citySpawn = new Set(
+    cities.flatMap((c) => [...c.city.props, ...c.city.actors, ...c.city.items])
+      .map((s) => idx(s.i - OI, s.j - OJ)),
+  )
+  const reached = new Uint8Array(W * H)
+  {
+    const q2 = [idx(arrival.x, arrival.y)]
+    reached[q2[0]] = 1
+    for (let q = 0; q < q2.length; q++) {
+      const x = q2[q] % W, y = (q2[q] / W) | 0
+      for (const [dx, dy] of D4) {
+        const np = idx(x + dx, y + dy)
+        if (inside(x + dx, y + dy) && !reached[np] && walkable(np)) {
+          reached[np] = 1
+          q2.push(np)
+        }
+      }
+    }
+  }
+  const BANK = new Set<T>([
+    T.MEADOW,
+    T.SAND,
+    T.FOREST,
+    T.HILL,
+    T.ROAD,
+    T.PLAZA,
+    T.CAMP,
+    T.FIELD,
+    T.STONE,
+  ])
+  /** The bank to step off onto from the boat at p, if any */
+  const bankOf = (p: number): number | null => {
+    const x = p % W, y = (p / W) | 0
+    for (const [dx, dy] of D4) {
+      const bx = x + dx, by = y + dy
+      if (!inside(bx, by)) continue
+      const b = idx(bx, by)
+      if (!reached[b] || taken.has(b) || puzzleCells[b]) continue
+      const t = terrain[b] as T
+      if (t === T.CITY) {
+        const c = cityAt(bx, by)!
+        const ch = cityCell(c, bx, by)
+        if (
+          cityWater(bx, by) || citySpawn.has(b) ||
+          !catalog.cells[ch]?.canEnter
+        ) continue
+      } else if (!BANK.has(t)) continue
+      return b
+    }
+    return null
+  }
+  const dirOf = (from: number, to: number): Dir =>
+    to === from + 1
+      ? "right"
+      : to === from - 1
+      ? "left"
+      : to > from
+      ? "down"
+      : "up"
+  /** Down to the sea from p, keeping straight where it can */
+  const wayDown = (p: number) => {
+    const way = [p]
+    let last = -1
+    while (down[p] > 0) {
+      const x = p % W, y = (p / W) | 0
+      const next = D4.map(([dx, dy]) => [x + dx, y + dy])
+        .filter(([nx, ny]) => inside(nx, ny))
+        .map(([nx, ny]) => idx(nx, ny))
+        .filter((np) => down[np] === down[p] - 1)
+      const ahead = next.find((np) => np - p === last) ?? next[0]
+      last = ahead - p
+      p = ahead
+      way.push(p)
+    }
+    // the sea itself is no landing
+    way.pop()
+    return way
+  }
+  const heads: number[] = []
+  for (const [sx, sy] of sources) {
+    const p = idx(sx, sy)
+    if (down[p] > 0) heads.push(p)
+  }
+  for (const c of cities) {
+    let best = -1
+    for (let y = c.y0; y < c.y0 + CITY_H; y++) {
+      for (let x = c.x0; x < c.x0 + CITY_W; x++) {
+        const p = idx(x, y)
+        if (cityWater(x, y) && down[p] > (best < 0 ? 0 : down[best])) best = p
+      }
+    }
+    if (best >= 0) heads.push(best)
+  }
+  const ways = heads.map(wayDown).filter((w) => w.length >= 60)
+    .sort((a, b) => b.length - a.length)
+  const places = [
+    ...towns,
+    ...nodes.filter((n) => plan.landmarks.some((l) => l.name === n.name)),
+  ]
+  const nameOf = (p: number, end: "head" | "mouth" | null) => {
+    const x = p % W, y = (p / W) | 0
+    let best: { name: string; d: number } | null = null
+    for (const t of places) {
+      const d = Math.hypot(t.x - x, t.y - y)
+      if (d < 60 && (!best || d < best.d)) best = { name: t.name, d }
+    }
+    if (best) return best.name
+    return end === "head"
+      ? "THE HEADWATERS"
+      : end === "mouth"
+      ? "THE RIVER MOUTH"
+      : "THE NEXT LANDING DOWN"
+  }
+  const moored: number[] = []
+  let routes = 0, boats = 0
+  for (const way of ways) {
+    if (routes >= 4 * SCALE) break
+    // the landings: the first bank from the head, then one every 100 cells
+    // or so, and the last bank before the sea
+    const stops: { k: number; bank: number }[] = []
+    const free = (p: number) =>
+      !taken.has(p) &&
+      moored.every((m) =>
+        Math.hypot(m % W - p % W, ((m / W) | 0) - ((p / W) | 0)) >= 16
+      )
+    let lastStop: { k: number; bank: number } | null = null
+    for (let k = way.length - 1; k >= 0 && !lastStop; k--) {
+      const bank = free(way[k]) ? bankOf(way[k]) : null
+      if (bank !== null) lastStop = { k, bank }
+    }
+    if (!lastStop) continue
+    for (let k = 0; k < lastStop.k - 40; k++) {
+      const prev = stops[stops.length - 1]
+      if (prev && k - prev.k < 100) continue
+      const bank = free(way[k]) ? bankOf(way[k]) : null
+      if (bank !== null) stops.push({ k, bank })
+    }
+    stops.push(lastStop)
+    if (stops.length < 2) continue
+    routes++
+    const steps = (from: number, to: number) => {
+      const cells = from < to
+        ? way.slice(from, to + 1)
+        : way.slice(to, from + 1).reverse()
+      return cells.slice(1).map((c, n) => dirOf(cells[n], c))
+    }
+    stops.forEach((stop, n) => {
+      const next = n + 1 < stops.length ? stops[n + 1] : stops[0]
+      const p = way[stop.k]
+      put(props, p % W, (p / W) | 0, "ferry", {
+        to: nameOf(
+          way[next.k],
+          n + 1 < stops.length
+            ? (n + 2 === stops.length ? "mouth" : null)
+            : "head",
+        ),
+        path: writePath(steps(stop.k, next.k)),
+        land: { up: "u", down: "d", left: "l", right: "r" }[
+          dirOf(way[next.k], next.bank)
+        ],
+      })
+      // the bank stays clear to step off onto
+      taken.add(stop.bank)
+      moored.push(p)
+      boats++
+    })
+  }
+  console.log(`ferries: ${routes} routes, ${boats} boats`)
+}
 // spawns left on cells that can't hold them are dropped
 const standable = (s: Spawn) => walkableCell(idx(s.i - OI, s.j - OJ))
 const actorsOut = actors.filter(standable)
@@ -3450,6 +3666,8 @@ const propsOut = props.filter((s) => {
   // open ground
   return s.type.startsWith("sign-") || s.type === "painting"
     ? t === T.WALL
+    : s.type === "ferry"
+    ? true // moored on the water
     : standable(s)
 })
 

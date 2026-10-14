@@ -107,7 +107,8 @@ export function GameScreen({ el, query }: Context) {
 
   // Persist the last position as the player moves around
   signals.centerGrid10.subscribe(() => {
-    savePosition(field.me.i, field.me.j)
+    // not out on the water: a ferry ride resumes from where it set off
+    if (!me.buff.riding) savePosition(field.me.i, field.me.j)
   })
 
   signals.centerPixel.subscribe(({ x, y }) => {

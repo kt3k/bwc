@@ -328,6 +328,10 @@ export class Actor implements IActor {
           action.fn(field)
           return "next"
         }
+        case "drift": {
+          this.forceMove(action.dir)
+          return "end"
+        }
         default: {
           action satisfies never
           throw new Error("Unreachable")
@@ -537,18 +541,22 @@ export class Actor implements IActor {
     }
   }
 
+  /** Another actor whose images this one shows (the player in a boat) */
+  skin: Actor | null = null
+
   image(): ImageBitmap {
     if (this.buff.invisible) {
       return transparentImage
     }
+    const look = this.skin ?? this
     if (this.#move) {
-      return this.getImage(this.#dir, this.#move.halfPassed ? 1 : 0)
+      return look.getImage(this.#dir, this.#move.halfPassed ? 1 : 0)
     } else if (this.#idleCounter % 128 < 64) {
       // idle state
-      return this.getImage(this.#dir, 0)
+      return look.getImage(this.#dir, 0)
     } else {
       // active state
-      return this.getImage(this.#dir, 1)
+      return look.getImage(this.#dir, 1)
     }
   }
 

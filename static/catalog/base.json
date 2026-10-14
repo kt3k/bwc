@@ -570,6 +570,9 @@
       "pushed": "block-fish",
       "src": "../actor/block-fish/"
     },
+    "rowboat": {
+      "src": "../actor/rowboat/"
+    },
     "echo": {
       "idle": "echo",
       "pushed": "echo",
@@ -1868,6 +1871,37 @@
         "required": [
           "id",
           "dir"
+        ]
+      }
+    },
+    "ferry": {
+      "src": "../prop/ferry.png",
+      "canEnter": false,
+      "pushed": "ferry",
+      "growth": {
+        "stages": [
+          "../prop/ferry.png",
+          "../prop/ferry_out.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "land": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "to",
+          "path",
+          "land"
         ]
       }
     },

@@ -76,6 +76,8 @@ export type ActorAction =
     readonly buff: string
   }
   | { readonly type: "call"; readonly fn: (field: IField) => void }
+  /** Moves one cell whatever is there (carried: a boat on the water) */
+  | { readonly type: "drift"; readonly dir: Dir }
 
 export class ActionQueue<
   T extends IEntity,

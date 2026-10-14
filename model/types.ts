@@ -225,6 +225,11 @@ export type Action =
     readonly type: "go-random"
   }
   | {
+    /** Moves one cell whatever is there (carried: a boat on the water) */
+    readonly type: "drift"
+    readonly dir: Dir
+  }
+  | {
     readonly type: "speed"
     readonly change: "2x" | "4x" | "reset"
   }

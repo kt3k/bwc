@@ -53,10 +53,15 @@ WILDS (14x9 ブロックの島、tools/generate_wilds.ts)
       (雪原・海・町・空) の合うものをはめると景色が戻り 25 コイン、4
       つそろうとさらに 100 コイン。
       model/pane.ts、tools/draw_panes.ts、generate_wilds の「the four corners」)
-- [ ] **10. 運河と川を舟で**: SOUTHPORT
+- [x] **10. 運河と川を舟で**: SOUTHPORT
       の運河や島の川を渡し舟で下る。川はどれも水源か港から海までつながっている
       (generate_wilds の「rivers made whole」)
-      ので、川下りがそのまま島を縦断する道になる
+      ので、川下りがそのまま島を縦断する道になる (作った:
+      川の水源と街のいちばん奥の運河から海までの水路に沿って、100
+      マスほどごとに舟着き場と舟。岸から舟に
+      ぶつかると乗り込み、次の舟着き場まで漕いで運ばれて岸に降りる。河口の舟は
+      最初の舟着き場まで川を上って戻る。model/ferry.ts、tools/draw_ferry.ts、
+      generate_wilds の「the ferries」)
 
 ## 作るときに守ること
 
