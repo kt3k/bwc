@@ -865,101 +865,220 @@ export async function buildCity(
   ]
   let shops = 0
 
-  /** Furnishes a house (the pieces after FF5's town interiors): the
-   * table and stool, a bed in a corner, a piece against the top wall,
-   * a painting over it, a barrel, and the resident. The doorway stays
-   * clear */
-  function furnishHouse(b: Building) {
-    const n = buildings.length
-    const taken = new Set([`${b.inner[0]},${b.inner[1]}`])
+  /** A room of a house: its walls (inclusive), its kind, and the cells
+   * kept clear of furniture (the doorways and their steps) */
+  type RoomKind = "kitchen" | "dining" | "bedroom" | "bathroom"
+  type Room = Rect & { kind: RoomKind; keep: Set<string> }
+  const cellKey = (x: number, y: number) => `${x},${y}`
+
+  /** Furnishes one room (the pieces after FF5's town interiors): the
+   * pieces along its top wall and in its corners by kind, a painting
+   * (a mirror in the bathroom) and a window on that wall where no
+   * doorway is, the bed in the bedroom. `n` picks the variations */
+  function furnishRoom(r: Room, n: number, gaps: Set<string>) {
+    const { x0, y0, x1, y1, kind } = r
+    const used = new Set(r.keep)
     const free = (x: number, y: number) =>
-      x > b.x0 && x < b.x1 && y > b.y0 && y < b.y1 && !taken.has(`${x},${y}`)
+      x > x0 && x < x1 && y > y0 && y < y1 && !used.has(cellKey(x, y))
     const take = (x: number, y: number, type: string) => {
       if (!free(x, y)) return false
-      taken.add(`${x},${y}`)
+      used.add(cellKey(x, y))
       put(props, x, y, type)
       return true
     }
-    const kind = n % 4
-    if (kind === 1) {
-      // the dining room: the long table, a chair at its head
-      take(b.x0 + 2, b.y0 + 2, "table-l")
-      take(b.x0 + 3, b.y0 + 2, "table-r")
-      take(b.x0 + 1, b.y0 + 2, "chair")
-      take(b.x0 + 4, b.y0 + 2, "stool")
-    } else if (kind === 3) {
-      // the bathroom: a rug on the floor
-      take(b.x0 + 2, b.y0 + 3, "rug")
+    if (kind === "dining") {
+      take(x0 + 2, y0 + 2, "table-l")
+      take(x0 + 3, y0 + 2, "table-r")
+      take(x0 + 1, y0 + 2, "chair")
+      take(x0 + 4, y0 + 2, "stool")
+    } else if (kind === "kitchen") {
+      take(x0 + 2, y0 + 2, "table")
+      take(x0 + 3, y0 + 2, "stool-round")
+    } else if (kind === "bathroom") {
+      take(x0 + 2, y0 + 2, "rug")
+      take(x0 + 1, y1 - 1, "toilet")
     } else {
-      take(b.x0 + 2, b.y0 + 2, "table")
-      take(b.x0 + 3, b.y0 + 2, kind === 2 ? "chair" : "stool-round")
-    }
-    take(b.x1 - 1, b.y1 - 1, n % 2 ? "jar" : "barrel")
-    for (const bx of n % 2 ? [b.x1 - 1, b.x0 + 1] : [b.x0 + 1, b.x1 - 1]) {
-      if (free(bx, b.y0 + 1) && free(bx, b.y0 + 2)) {
-        take(bx, b.y0 + 1, "bed-head")
-        take(bx, b.y0 + 2, "bed-foot")
-        break
+      for (const bx of n % 2 ? [x1 - 1, x0 + 1] : [x0 + 1, x1 - 1]) {
+        if (free(bx, y0 + 1) && free(bx, y0 + 2)) {
+          take(bx, y0 + 1, "bed-head")
+          take(bx, y0 + 2, "bed-foot")
+          break
+        }
       }
+      take(x1 - 1, y1 - 1, "broom")
     }
-    // the bathtub takes two cells side by side
-    if (kind === 3) {
-      for (let x = b.x0 + 1; x < b.x1 - 1; x++) {
-        if (free(x, b.y0 + 1) && free(x + 1, b.y0 + 1)) {
-          take(x, b.y0 + 1, "bathtub-l")
-          take(x + 1, b.y0 + 1, "bathtub-r")
+    if (kind === "kitchen" || kind === "dining") {
+      take(x1 - 1, y0 + 1, n % 2 ? "jar" : "barrel")
+    }
+    if (kind === "bathroom") {
+      for (let x = x0 + 1; x < x1 - 1; x++) {
+        if (free(x, y0 + 1) && free(x + 1, y0 + 1)) {
+          take(x, y0 + 1, "bathtub-l")
+          take(x + 1, y0 + 1, "bathtub-r")
           break
         }
       }
     }
-    // the top wall dressed to match: the kitchen pieces, the dining
-    // room's shelves, the study's desk and books, or the bathroom's
-    // basin and shower
-    const SETS = [
-      ["counter", "stove", n % 2 ? "cauldron" : "kettle", "hearth"],
-      ["dish-shelf", "flower-pot", n % 2 ? "candles" : "washtub"],
-      ["desk", "bookshelf", "wardrobe", n % 2 ? "globe" : "candles"],
-      ["sink", "towel-rack", "shower"],
-    ]
-    let wx = b.x0 + 1
+    const SETS: Record<RoomKind, string[]> = {
+      kitchen: ["counter", "stove", n % 2 ? "cauldron" : "kettle", "hearth"],
+      dining: ["dish-shelf", "flower-pot", n % 2 ? "candles" : "washtub"],
+      bedroom: ["wardrobe", "desk", "bookshelf", n % 2 ? "globe" : "candles"],
+      bathroom: ["sink", "towel-rack", "shower"],
+    }
+    let wx = x0 + 1
     for (const piece of SETS[kind]) {
-      for (; wx < b.x1; wx++) {
-        if (take(wx, b.y0 + 1, piece)) {
+      for (; wx < x1; wx++) {
+        if (take(wx, y0 + 1, piece)) {
           wx++
           break
         }
       }
     }
-    if (kind === 2) {
-      take(b.x1 - 2, b.y1 - 1, "broom")
+    const onWall = (x: number) => x > x0 && x < x1 && !gaps.has(cellKey(x, y0))
+    const artX = x0 + ((x1 - x0) >> 1)
+    if (onWall(artX)) {
+      put(props, artX, y0, kind === "bathroom" ? "mirror" : "painting")
     }
-    // on the top wall: a painting (a mirror in the bathroom), and a
-    // window beside it, where the door leaves room
-    const onWall = (x: number) =>
-      x > b.x0 && x < b.x1 &&
-      !(b.door[1] === b.y0 && Math.abs(b.door[0] - x) <= 1)
-    const px = b.x0 + ((b.x1 - b.x0) >> 1)
-    if (onWall(px)) {
-      put(props, px, b.y0, kind === 3 ? "mirror" : "painting")
+    if (onWall(artX - 2)) {
+      put(props, artX - 2, y0, "window")
     }
-    if (onWall(px - 2)) {
-      put(props, px - 2, b.y0, "window")
-    }
-    if (n % 3 === 0) {
-      for (const [x, y] of [[b.x0 + 2, b.y0 + 3], [b.x1 - 2, b.y0 + 2]]) {
+    if (kind === "bedroom" && n % 3 === 0) {
+      for (const [x, y] of [[x0 + 2, y0 + 3], [x1 - 2, y0 + 2]]) {
         if (free(x, y)) {
           put(items, x, y, n % 2 ? "book" : "candle")
           break
         }
       }
     }
-    // the privy corner of every other house, the washtub beside it
-    if (n % 2 === 0 || kind === 3) {
-      if (take(b.x0 + 1, b.y1 - 1, "toilet")) {
-        take(b.x0 + 2, b.y1 - 1, "washtub")
-      }
+  }
+
+  /** Furnishes a house: three rooms when it is big enough - a
+   * partition across the way in (its doorway in line with the front
+   * door) parts the front room, the kitchen or the dining room, from
+   * the back, which is parted again into the bathroom (3 cells) and
+   * the bedroom. A small house is one room with the bed. The resident
+   * stands just inside the door */
+  function furnishHouse(b: Building) {
+    const n = buildings.length
+    const [dx, dy] = SIDE_DIR[b.side]
+    const [inX, inY] = b.inner
+    const w = b.x1 - b.x0 + 1, h = b.y1 - b.y0 + 1
+    const brick = cellKey(b.x0, b.y0) && grid[idx(b.x0, b.y0)]
+    // no piece hangs over the front door
+    const gaps = new Set<string>([cellKey(...b.door)])
+    const wall = (x: number, y: number) => set(x, y, brick)
+    const gap = (x: number, y: number) => {
+      set(x, y, C.FLOOR)
+      gaps.add(cellKey(x, y))
     }
-    put(actors, ...b.inner, resident(b.district))
+    const frontKind: RoomKind = n % 2 ? "dining" : "kitchen"
+    const rooms: Room[] = []
+    if (w >= 11 && h >= 10 && dx !== 0) {
+      // the door on a side wall: the partition stands upright
+      const px = b.x0 + (w >> 1)
+      const sy = b.door[1]
+      for (let y = b.y0; y <= b.y1; y++) wall(px, y)
+      gap(px, sy)
+      // SIDE_DIR points out of the door: the front room is on the door's side
+      const [fx0, fx1, bx0, bx1] = dx > 0
+        ? [px, b.x1, b.x0, px]
+        : [b.x0, px, px, b.x1]
+      const hy = b.y0 + 4
+      for (let x = bx0; x <= bx1; x++) wall(x, hy)
+      const gx = dx > 0 ? px - 1 : px + 1
+      gap(gx, hy)
+      const inward = -dx
+      rooms.push(
+        {
+          x0: fx0,
+          y0: b.y0,
+          x1: fx1,
+          y1: b.y1,
+          kind: frontKind,
+          keep: new Set([
+            cellKey(inX, inY),
+            cellKey(inX + inward, inY),
+            cellKey(px - inward, sy),
+          ]),
+        },
+        {
+          x0: bx0,
+          y0: b.y0,
+          x1: bx1,
+          y1: hy,
+          kind: "bathroom",
+          keep: new Set([cellKey(gx, hy - 1)]),
+        },
+        {
+          x0: bx0,
+          y0: hy,
+          x1: bx1,
+          y1: b.y1,
+          kind: "bedroom",
+          keep: new Set([
+            cellKey(px + inward, sy),
+            cellKey(px + 2 * inward, sy),
+            cellKey(gx, hy + 1),
+          ]),
+        },
+      )
+    } else if (w >= 11 && h >= 10) {
+      // the door on the top or bottom wall: the partition lies across
+      const py = b.y0 + (h >> 1)
+      const sx = b.door[0]
+      for (let x = b.x0; x <= b.x1; x++) wall(x, py)
+      gap(sx, py)
+      const [fy0, fy1, by0, by1] = dy > 0
+        ? [py, b.y1, b.y0, py]
+        : [b.y0, py, py, b.y1]
+      const vx = b.x0 + 4
+      for (let y = by0; y <= by1; y++) wall(vx, y)
+      const gy = dy > 0 ? py - 1 : py + 1
+      gap(vx, gy)
+      const inward = -dy
+      rooms.push(
+        {
+          x0: b.x0,
+          y0: fy0,
+          x1: b.x1,
+          y1: fy1,
+          kind: frontKind,
+          keep: new Set([
+            cellKey(inX, inY),
+            cellKey(inX, inY + inward),
+            cellKey(sx, py - inward),
+          ]),
+        },
+        {
+          x0: b.x0,
+          y0: by0,
+          x1: vx,
+          y1: by1,
+          kind: "bathroom",
+          keep: new Set([cellKey(vx - 1, gy)]),
+        },
+        {
+          x0: vx,
+          y0: by0,
+          x1: b.x1,
+          y1: by1,
+          kind: "bedroom",
+          keep: new Set([
+            cellKey(sx, py + inward),
+            cellKey(sx, py + 2 * inward),
+            cellKey(vx + 1, gy),
+          ]),
+        },
+      )
+    } else {
+      rooms.push({
+        ...b,
+        kind: "bedroom",
+        keep: new Set([cellKey(inX, inY), cellKey(inX - dx, inY - dy)]),
+      })
+    }
+    for (const r of rooms) furnishRoom(r, n, gaps)
+    put(actors, inX, inY, resident(b.district))
   }
 
   /** A shop: a sign by the door, the counter inside, the keeper behind */
@@ -1003,11 +1122,11 @@ export async function buildCity(
     }
     const w = area.x1 - area.x0 + 1, h = area.y1 - area.y0 + 1
     const big = lot.district === "UPTOWN"
-    const depth = big ? 9 : 7
+    const depth = big ? 12 : 10
     // a row of houses along the main street side
     const side = sides[0]
     const along = side === "n" || side === "s" ? w : h
-    const step = big ? 12 : 9
+    const step = big ? 15 : 13
     for (const strip of strips(area, side, Math.min(step, along))) {
       const r = against(strip, side, depth)
       const b = build(r, side, "house", lot.district)
@@ -1546,7 +1665,7 @@ export async function buildCity(
   )
   const count = (kind: Building["kind"]) =>
     buildings.filter((b) => b.kind === kind).length
-  check(`houses (${count("house")}) >= 120`, count("house") >= 120)
+  check(`houses (${count("house")}) >= 60`, count("house") >= 60)
   check(`shops (${count("shop")}) >= 25`, count("shop") >= 25)
   check(`warehouses (${count("warehouse")}) >= 6`, count("warehouse") >= 6)
   check("the keep", count("keep") === 1)
