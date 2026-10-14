@@ -1037,10 +1037,11 @@ function house(
     terrain[q] = T.ROAD
     keepClear[q] = 1
   }
-  // the room furnished (the pieces after FF5's town interiors): the
-  // table and stool, a bed in a corner with its head on the top wall,
-  // one piece against that wall, a painting over it, and sometimes
-  // something small left on the floor. The doorway stays clear
+  // the room furnished (the pieces after FF5's town interiors): every
+  // house gets its bed, a painting and a corner jar, and the rest says
+  // who lives there - a kitchen with its counter and stove, a dining
+  // room with the long table, or a study with the desk. The doorway
+  // stays clear
   const inX = door[0] + nx, inY = door[1] + ny
   const used = new Set([`${inX},${inY}`, `${inX + nx},${inY + ny}`])
   const free = (x: number, y: number) =>
@@ -1051,8 +1052,17 @@ function house(
     put(props, x, y, type)
     return true
   }
-  take(x0 + 2, y0 + 2, "table")
-  take(x0 + 3, y0 + 2, "stool")
+  const kind = houses.length % 3
+  if (kind === 1) {
+    // the dining room: the long table, a chair at its head
+    take(x0 + 2, y0 + 2, "table-l")
+    take(x0 + 3, y0 + 2, "table-r")
+    take(x0 + 1, y0 + 2, "chair")
+    take(x0 + 4, y0 + 2, "stool")
+  } else {
+    take(x0 + 2, y0 + 2, "table")
+    take(x0 + 3, y0 + 2, kind === 2 ? "chair" : "stool")
+  }
   take(x1 - 1, y0 + 1, houses.length % 2 ? "jar" : "barrel")
   for (const bx of houses.length % 2 ? [x1 - 1, x0 + 1] : [x0 + 1, x1 - 1]) {
     if (free(bx, y0 + 1) && free(bx, y0 + 2)) {
@@ -1061,9 +1071,21 @@ function house(
       break
     }
   }
-  const PIECES = ["bookshelf", "candles", "washtub", "globe"]
-  for (let x = x0 + 1; x < x1; x++) {
-    if (take(x, y0 + 1, PIECES[houses.length % PIECES.length])) break
+  // the top wall dressed to match: the kitchen pieces, the dining
+  // room's shelves, or the study's desk and books
+  const SETS = [
+    ["counter", "stove", houses.length % 2 ? "cauldron" : "kettle"],
+    ["dish-shelf", houses.length % 2 ? "candles" : "washtub"],
+    ["desk", "bookshelf", houses.length % 2 ? "globe" : "candles"],
+  ]
+  let wx = x0 + 1
+  for (const piece of SETS[kind]) {
+    for (; wx < x1; wx++) {
+      if (take(wx, y0 + 1, piece)) {
+        wx++
+        break
+      }
+    }
   }
   const artX = x0 + (w >> 1)
   if (!(door[1] === y0 && (door[0] === artX || door[0] + 1 === artX))) {
@@ -1082,6 +1104,57 @@ function house(
   // a shop sign beside some doors (on the wall cell next to it)
   if (signs < VILLAGER_SIGNS.length && ny !== 0) {
     put(props, door[0] + 1, door[1], VILLAGER_SIGNS[signs++])
+  }
+  // the privy out back (every other house): a tiny shed a cell past
+  // the back wall, the wooden seat inside, its door toward the house
+  if (houses.length % 2 === 1) {
+    const hx0 = nx > 0 ? x1 + 2 : nx < 0 ? x0 - 5 : sx - 1
+    const hy0 = ny > 0 ? y1 + 2 : ny < 0 ? y0 - 5 : sy - 1
+    const hx1 = hx0 + (nx !== 0 ? 3 : 2)
+    const hy1 = hy0 + (ny !== 0 ? 3 : 2)
+    let room = true
+    for (let y = hy0 - 1; y <= hy1 + 1 && room; y++) {
+      for (let x = hx0 - 1; x <= hx1 + 1; x++) {
+        if (!inside(x, y)) {
+          room = false
+          break
+        }
+        const p = idx(x, y)
+        const t = terrain[p]
+        if (
+          !(t === T.MEADOW || t === T.FOREST || t === T.HILL) ||
+          taken.has(p) || roadCells.has(p)
+        ) {
+          room = false
+          break
+        }
+      }
+    }
+    if (room) {
+      for (let y = hy0; y <= hy1; y++) {
+        for (let x = hx0; x <= hx1; x++) {
+          const edge = x === hx0 || x === hx1 || y === hy0 || y === hy1
+          terrain[idx(x, y)] = edge ? T.WALL : T.FLOOR
+          keepClear[idx(x, y)] = 1
+        }
+      }
+      const [gx, gy] = nx > 0
+        ? [hx0, sy]
+        : nx < 0
+        ? [hx1, sy]
+        : ny > 0
+        ? [sx, hy0]
+        : [sx, hy1]
+      terrain[idx(gx, gy)] = T.FLOOR
+      const [tx, ty] = nx > 0
+        ? [hx1 - 1, sy]
+        : nx < 0
+        ? [hx0 + 1, sy]
+        : ny > 0
+        ? [sx, hy1 - 1]
+        : [sx, hy0 + 1]
+      put(props, tx, ty, "toilet")
+    }
   }
   houses.push({ x0, y0, x1, y1, village })
   return true

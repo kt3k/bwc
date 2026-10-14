@@ -880,8 +880,17 @@ export async function buildCity(
       put(props, x, y, type)
       return true
     }
-    take(b.x0 + 2, b.y0 + 2, "table")
-    take(b.x0 + 3, b.y0 + 2, "stool")
+    const kind = n % 3
+    if (kind === 1) {
+      // the dining room: the long table, a chair at its head
+      take(b.x0 + 2, b.y0 + 2, "table-l")
+      take(b.x0 + 3, b.y0 + 2, "table-r")
+      take(b.x0 + 1, b.y0 + 2, "chair")
+      take(b.x0 + 4, b.y0 + 2, "stool")
+    } else {
+      take(b.x0 + 2, b.y0 + 2, "table")
+      take(b.x0 + 3, b.y0 + 2, kind === 2 ? "chair" : "stool-round")
+    }
     take(b.x1 - 1, b.y1 - 1, n % 2 ? "jar" : "barrel")
     for (const bx of n % 2 ? [b.x1 - 1, b.x0 + 1] : [b.x0 + 1, b.x1 - 1]) {
       if (free(bx, b.y0 + 1) && free(bx, b.y0 + 2)) {
@@ -890,9 +899,27 @@ export async function buildCity(
         break
       }
     }
-    const PIECES = ["bookshelf", "candles", "washtub", "globe"]
-    for (let x = b.x0 + 1; x < b.x1; x++) {
-      if (take(x, b.y0 + 1, PIECES[n % PIECES.length])) break
+    // the top wall dressed to match: the kitchen pieces, the dining
+    // room's shelves, or the study's desk and books
+    const SETS = [
+      ["counter", "stove", n % 2 ? "cauldron" : "kettle"],
+      ["dish-shelf", n % 2 ? "candles" : "washtub"],
+      ["desk", "bookshelf", n % 2 ? "globe" : "candles"],
+    ]
+    let wx = b.x0 + 1
+    for (const piece of SETS[kind]) {
+      for (; wx < b.x1; wx++) {
+        if (take(wx, b.y0 + 1, piece)) {
+          wx++
+          break
+        }
+      }
+    }
+    // the privy corner of every other house, the washtub beside it
+    if (n % 2 === 0) {
+      if (take(b.x0 + 1, b.y1 - 1, "toilet")) {
+        take(b.x0 + 2, b.y1 - 1, "washtub")
+      }
     }
     const px = b.x0 + ((b.x1 - b.x0) >> 1)
     if (!(b.door[1] === b.y0 && Math.abs(b.door[0] - px) <= 1)) {
@@ -1390,6 +1417,17 @@ export async function buildCity(
       "candles",
       "washtub",
       "globe",
+      "table-l",
+      "table-r",
+      "chair",
+      "stool-round",
+      "toilet",
+      "dish-shelf",
+      "counter",
+      "stove",
+      "kettle",
+      "cauldron",
+      "desk",
     ])
     const cut = new Set<number>()
     for (const b of buildings) {

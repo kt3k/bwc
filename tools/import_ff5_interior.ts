@@ -1,6 +1,7 @@
-// Imports house-interior furniture from the FF5 town-interior tileset
-// of kt3k/ff5study (materials/rom_extract/tilesets/06_town_interior.png)
-// and fits it to docs/art-guide.md: props are grayscale only, so each
+// Imports house-interior furniture from the FF5 tilesets of
+// kt3k/ff5study (materials/rom_extract/tilesets: the town interior,
+// the castle interior and the library) and fits it to
+// docs/art-guide.md: props are grayscale only, so each
 // source color is given one of the 5 tones (white, gray2, gray3, gray4,
 // black) by its brightness, with per-piece moves where two parts would
 // fall into the same tone.
@@ -15,7 +16,13 @@ import { Palette } from "../util/palette.ts"
 import { decodePng, encodePng } from "./png.ts"
 
 const root = Deno.args[0] ?? new URL("../../ff5study", import.meta.url).pathname
-const sheet = `${root}/materials/rom_extract/tilesets/06_town_interior.png`
+const tilesets = `${root}/materials/rom_extract/tilesets`
+const SHEETS = {
+  town: `${tilesets}/06_town_interior.png`,
+  castle: `${tilesets}/01_castle_interior.png`,
+  library: `${tilesets}/21_library.png`,
+} as const
+type Sheet = keyof typeof SHEETS
 const out = new URL("../static/prop/", import.meta.url).pathname
 
 /** The 5 tones of the props */
@@ -44,6 +51,8 @@ type Copy = {
 type Piece = {
   /** static/prop/<name>.png */
   name: string
+  /** which tileset it is cut from (town interior if not said) */
+  sheet?: Sheet
   w: number
   h: number
   copies: Copy[]
@@ -66,6 +75,17 @@ const cell = (
   ...more,
 })
 
+/** The castle's dark wood, a tone up so the shapes stay readable */
+const LIFT: Record<string, Tone> = {
+  "#735a42": "L",
+  "#8c735a": "L",
+  "#5a4229": "M",
+  "#4a2908": "D",
+  "#391808": "D",
+  "#211000": "K",
+  "#100800": "K",
+}
+
 const PIECES: Piece[] = [
   // the bed in two cells: the sheet's middle column (the pillow, the
   // boards and the posts' inner halves), the plain middle rows dropped
@@ -77,10 +97,28 @@ const PIECES: Piece[] = [
   cell("painting", 112, 80),
   // four candles burning on a stand
   cell("candles", 192, 176),
-  // the globe on its stand (the sphere and the top of the mount)
-  cell("globe", 176, 184),
+  // the globe, whole on its stand
+  cell("globe", 176, 224, { sheet: "castle" }),
   // the wooden washtub
   cell("washtub", 144, 160),
+  // a low round stool, darker than the one at the house table (its
+  // dark wood lifted a tone, or it crushes to black in the grays).
+  // The long dining table is drawn by hand instead
+  // (tools/draw_furniture.ts): the castle's crushes even lifted
+  cell("stool_round", 128, 208, { sheet: "castle", tones: LIFT }),
+  // the writing desk, an open book on it and a drawer below
+  cell("desk", 144, 224, { sheet: "castle" }),
+  // the kitchen: the dish shelf (hung on the wall) over the counter,
+  // the stove with its kettle, the big pot and the cauldron
+  cell("dish_shelf", 32, 0),
+  cell("counter", 32, 16),
+  cell("stove", 64, 32),
+  cell("kettle", 80, 16),
+  cell("cauldron", 144, 192, {
+    sheet: "library",
+    // the shelf wood and the library green behind it
+    clear: ["#005a10", "#7b5231", "#5a3921"],
+  }),
 ]
 
 /** The tone of a color by its brightness */
@@ -98,8 +136,12 @@ const rgb = (hex: string) =>
   [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16))
 
 if (import.meta.main) {
-  const { w: iw, rgba } = await decodePng(await Deno.readFile(sheet))
+  const sheets = new Map<Sheet, { w: number; rgba: Uint8Array }>()
+  for (const name of Object.keys(SHEETS) as Sheet[]) {
+    sheets.set(name, await decodePng(await Deno.readFile(SHEETS[name])))
+  }
   for (const piece of PIECES) {
+    const { w: iw, rgba } = sheets.get(piece.sheet ?? "town")!
     const sprite = new Uint8Array(piece.w * piece.h * 4)
     const used = new Map<string, number>()
     const clear = new Set([...BG, ...(piece.clear ?? [])])
