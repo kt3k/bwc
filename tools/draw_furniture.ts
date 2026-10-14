@@ -46,27 +46,27 @@ const CHAIR = [
   "................",
 ]
 
-// the toilet, after the pixel-art ones (the LPC toilet, RPG tiles):
-// porcelain white, a tall tank standing at the back with its lid
-// seam, the round bowl in front with the seat ring around a dark
-// oval, a narrow foot under it - the keyhole silhouette that reads
-// as a toilet even this small
+// the toilet, after the 16px top-down ones in the pixel-art bathroom
+// packs (Maru's, gatoamarelo's, bitglow's) and ドット絵世界's: two
+// stacked blobs - the tank nearly as wide as the bowl, a white lid
+// over a dark seam, a flush button, a narrow neck, then the oval bowl
+// with its white seat ring around the dark inside, and a short foot
 const TOILET = [
-  "................",
-  ".....KKKKKK.....",
-  "....KWWWWW2K....",
-  "....KWWWW22K....",
-  "....KKKKKKKK....",
-  "....KWWWWW2K....",
-  "...KKWWWW22KK...",
+  "...KKKKKKKKKK...",
+  "..KWWWWWWWWW2K..",
+  ".KW4444444442K..",
+  ".KW2222222222K..",
+  ".KW2222222242K..",
+  ".KW2222222222K..",
+  "..KKKKK22KKKKK..",
+  "...KKKWWWWKKK...",
   "..KWWWWWWWWW2K..",
   ".KWW2KKKKKK2W2K.",
   ".KW2K444444K22K.",
-  ".KW2K444444K22K.",
+  ".KW2K44W444K22K.",
   ".KWW2KKKKKK2W2K.",
   "..KWWWWWWWW22K..",
-  "...KK2222222KK..",
-  ".....K2222K.....",
+  "...KKK2222KKK...",
   ".....KKKKKK.....",
 ]
 
