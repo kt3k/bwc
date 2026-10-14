@@ -46,25 +46,28 @@ const CHAIR = [
   "................",
 ]
 
-// the privy's wooden seat: a box bench with its round hole, a lid
-// leaning on the backboard
+// the toilet, after the pixel-art ones (the LPC toilet, RPG tiles):
+// porcelain white, a tall tank standing at the back with its lid
+// seam, the round bowl in front with the seat ring around a dark
+// oval, a narrow foot under it - the keyhole silhouette that reads
+// as a toilet even this small
 const TOILET = [
   "................",
-  "................",
   ".....KKKKKK.....",
-  "....K111111K....",
-  "...K11222211K...",
-  "...K11222211K...",
-  "..KKKKKKKKKKKK..",
-  "..K2222222222K..",
-  "..K222KKKK222K..",
-  "..K22KKKKKK22K..",
-  "..K222KKKK222K..",
-  "..K2222222222K..",
-  "..K2111111112K..",
-  "..KKKKKKKKKKKK..",
-  "...K3K....K3K...",
-  "...KKK....KKK...",
+  "....KWWWWW2K....",
+  "....KWWWW22K....",
+  "....KKKKKKKK....",
+  "....KWWWWW2K....",
+  "...KKWWWW22KK...",
+  "..KWWWWWWWWW2K..",
+  ".KWW2KKKKKK2W2K.",
+  ".KW2K444444K22K.",
+  ".KW2K444444K22K.",
+  ".KWW2KKKKKK2W2K.",
+  "..KWWWWWWWW22K..",
+  "...KK2222222KK..",
+  ".....K2222K.....",
+  ".....KKKKKK.....",
 ]
 
 /** Mirrors a picture left-right */
