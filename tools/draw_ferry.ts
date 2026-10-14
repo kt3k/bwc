@@ -64,7 +64,7 @@ class Canvas {
  * (https://minzinn.itch.io/pixel-boats-top-down-game-assets-32x32-64x64-pixel-art-free,
  * looked at, not copied): a pale gunwale all round, the far
  * inner side in shadow, the dark floor crossed by pale thwarts, a pointed
- * bow and a square stern, the near side of the hull showing below the
+ * bow and a rounded stern, the near side of the hull showing below the
  * gunwale, and foam where it sits on the water.
  *
  * It is `len` long and 2 * half broad, laid across (along x) or down
