@@ -813,7 +813,7 @@ type Layout = "crossroads" | "ring" | "walled" | "market"
 const TOWN_R: Record<Layout, number> = {
   crossroads: 38,
   ring: 38,
-  walled: 34,
+  walled: 40,
   market: 38,
 }
 const layoutOf = (n: Node): Layout =>
@@ -909,7 +909,7 @@ for (const n of nodes) {
           terrain[idx(x, y)] = T.RAMPART
         }
       }
-      for (const o of [-16, 0, 16]) {
+      for (const o of [-18, 0, 18]) {
         street(cx + o, cy - S + 1, cx + o, cy + S - 1)
         street(cx - S + 1, cy + o, cx + S - 1, cy + o)
       }
@@ -1089,13 +1089,87 @@ function furnishRoom(r: Room, n: number, gaps: Set<string>) {
 }
 
 /**
+ * A house plan, drawn in its own frame: the front door on the bottom
+ * wall, the house reaching up (away from the street) from it. The
+ * rooms are rects (walls inclusive) that touch along shared wall
+ * lines; a doorway is cut in a shared wall at each listed gap cell.
+ * The plan is turned to face its street (and mirrored at random), so
+ * one plan gives four orientations and their mirror images.
+ */
+type HousePlan = {
+  name: string
+  rooms: { x0: number; y0: number; x1: number; y1: number; kind: RoomKind }[]
+  door: [number, number]
+  gaps: [number, number][]
+}
+
+/** The plans, big ones first: an L-shaped cottage with the bathroom
+ * out back, the farmhouse with its wing, the longhouse, and the rare
+ * manor with its two wings and a hall in the middle. The hut is the
+ * last resort where none of these finds room */
+const PLANS: HousePlan[] = [
+  {
+    name: "cottage",
+    rooms: [
+      { x0: 0, y0: 4, x1: 8, y1: 10, kind: "kitchen" },
+      { x0: 0, y0: 0, x1: 8, y1: 4, kind: "bedroom" },
+      { x0: 8, y0: 0, x1: 12, y1: 4, kind: "bathroom" },
+    ],
+    door: [4, 10],
+    gaps: [[4, 4], [8, 2]],
+  },
+  {
+    name: "farmhouse",
+    rooms: [
+      { x0: 0, y0: 4, x1: 10, y1: 10, kind: "dining" },
+      { x0: 0, y0: 0, x1: 5, y1: 4, kind: "kitchen" },
+      { x0: 5, y0: 0, x1: 10, y1: 4, kind: "bedroom" },
+      { x0: 10, y0: 5, x1: 14, y1: 10, kind: "bathroom" },
+    ],
+    door: [5, 10],
+    gaps: [[2, 4], [8, 4], [10, 7]],
+  },
+  {
+    name: "longhouse",
+    rooms: [
+      { x0: 6, y0: 4, x1: 12, y1: 10, kind: "dining" },
+      { x0: 0, y0: 4, x1: 6, y1: 10, kind: "kitchen" },
+      { x0: 12, y0: 4, x1: 18, y1: 10, kind: "bedroom" },
+      { x0: 7, y0: 0, x1: 11, y1: 4, kind: "bathroom" },
+    ],
+    door: [9, 10],
+    gaps: [[6, 7], [12, 7], [9, 4]],
+  },
+  {
+    name: "manor",
+    rooms: [
+      { x0: 4, y0: 6, x1: 10, y1: 12, kind: "dining" },
+      { x0: 4, y0: 0, x1: 10, y1: 6, kind: "kitchen" },
+      { x0: 0, y0: 0, x1: 4, y1: 12, kind: "bedroom" },
+      { x0: 10, y0: 0, x1: 14, y1: 12, kind: "bathroom" },
+    ],
+    door: [7, 12],
+    gaps: [[7, 6], [4, 9], [10, 9]],
+  },
+]
+const HUT: HousePlan = {
+  name: "hut",
+  rooms: [
+    { x0: 0, y0: 4, x1: 8, y1: 9, kind: "kitchen" },
+    { x0: 0, y0: 0, x1: 8, y1: 4, kind: "bedroom" },
+  ],
+  door: [4, 9],
+  gaps: [[4, 4]],
+}
+
+/**
  * A house by the street cell (sx, sy), set back along (nx, ny) (away
  * from the street) with its door facing the street and a path to it.
- * Inside, three rooms: a partition across the house (its doorway in
- * line with the front door) parts the front room - the kitchen or the
- * dining room - from the back, and the back is parted again into the
- * bedroom and the bathroom. Someone lives just inside the door.
- * Returns false if there's no room.
+ * The plans are tried in turn (big ones first, the hut when nothing
+ * else fits, or when `compact`), each turned to face the street and
+ * mirrored at random; the first with room is built, its rooms
+ * furnished, and someone put just inside the door. Returns false if
+ * no plan has room.
  */
 function house(
   village: string,
@@ -1106,39 +1180,115 @@ function house(
   resident = RESIDENTS[residents % RESIDENTS.length],
   compact = false,
 ): boolean {
-  // a compact house (9 wide) where the full one found no room: the
-  // same three rooms, each a cell or two narrower
-  const w = compact ? 9 : 11 + randomInt(3), h = 10 + randomInt(2)
-  let x0: number, y0: number, door: [number, number]
-  if (nx !== 0) {
-    y0 = sy - (h >> 1)
-    x0 = nx > 0 ? sx + 2 : sx - 1 - w
-    door = [nx > 0 ? x0 : x0 + w - 1, sy]
-  } else {
-    x0 = sx - (w >> 1)
-    y0 = ny > 0 ? sy + 2 : sy - 1 - h
-    door = [sx, ny > 0 ? y0 : y0 + h - 1]
-  }
-  const x1 = x0 + w - 1, y1 = y0 + h - 1
-  for (let y = y0 - 1; y <= y1 + 1; y++) {
-    for (let x = x0 - 1; x <= x1 + 1; x++) {
-      if (!inside(x, y)) return false
-      const p = idx(x, y)
-      const t = terrain[p]
-      if (!(t === T.MEADOW || t === T.FOREST || t === T.HILL)) return false
-      if (taken.has(p) || roadCells.has(p)) return false
+  const plans = compact
+    ? [HUT]
+    : [...shuffle(PLANS.filter((p) => p.name !== "manor" || rng() < 0.3))]
+  for (const plan of plans) {
+    for (const flip of shuffle([1, -1])) {
+      if (layHouse(village, sx, sy, nx, ny, plan, flip, resident)) return true
     }
   }
-  for (let y = y0; y <= y1; y++) {
-    for (let x = x0; x <= x1; x++) {
-      const edge = x === x0 || x === x1 || y === y0 || y === y1
-      terrain[idx(x, y)] = edge ? T.WALL : T.FLOOR
-      keepClear[idx(x, y)] = 1
+  return false
+}
+
+function layHouse(
+  village: string,
+  sx: number,
+  sy: number,
+  nx: number,
+  ny: number,
+  plan: HousePlan,
+  flip: number,
+  resident: string,
+): boolean {
+  // the plan's frame onto the world: its door lands two cells off the
+  // street, "up" in the plan is inward (nx, ny), "right" turns with it
+  const doorX = sx + 2 * nx, doorY = sy + 2 * ny
+  const rx = -ny * flip, ry = nx * flip
+  const tf = (px: number, py: number): [number, number] => {
+    const u = px - plan.door[0], v = py - plan.door[1]
+    return [doorX + u * rx - v * nx, doorY + u * ry - v * ny]
+  }
+  const rooms: Room[] = plan.rooms.map((r) => {
+    const [ax, ay] = tf(r.x0, r.y0), [bx, by] = tf(r.x1, r.y1)
+    return {
+      x0: Math.min(ax, bx),
+      y0: Math.min(ay, by),
+      x1: Math.max(ax, bx),
+      y1: Math.max(ay, by),
+      kind: r.kind,
+      keep: new Set<string>(),
+    }
+  })
+  // the cells: a room's inside is floor, its border wall (a wall two
+  // rooms share stays a wall between them), the doorways floor again
+  const floor = new Set<number>(), walls = new Set<number>()
+  for (const r of rooms) {
+    for (let y = r.y0; y <= r.y1; y++) {
+      for (let x = r.x0; x <= r.x1; x++) {
+        if (!inside(x, y)) return false
+        const edge = x === r.x0 || x === r.x1 || y === r.y0 || y === r.y1
+        ;(edge ? walls : floor).add(idx(x, y))
+      }
     }
   }
-  terrain[idx(...door)] = T.FLOOR
+  for (const p of floor) walls.delete(p)
+  const gaps = new Set<string>()
+  const keep = new Set<string>()
+  const open = (x: number, y: number) => {
+    const p = idx(x, y)
+    walls.delete(p)
+    floor.add(p)
+    gaps.add(cellKey(x, y))
+    // the cells either side of a doorway stay clear of furniture
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      if (floor.has(idx(x + dx, y + dy))) {
+        keep.add(cellKey(x + dx, y + dy))
+        keep.add(cellKey(x + 2 * dx, y + 2 * dy))
+      }
+    }
+  }
+  for (const [gx, gy] of plan.gaps) open(...tf(gx, gy))
+  open(doorX, doorY)
+  // no piece hangs over the front door or where the shop sign goes
+  gaps.add(cellKey(doorX + 1, doorY))
+  // room for the whole of it and a cell of margin all round
+  for (const p of [...floor, ...walls]) {
+    const x = p % W, y = (p / W) | 0
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (!inside(x + dx, y + dy)) return false
+        const q = idx(x + dx, y + dy)
+        const t = terrain[q]
+        if (!(t === T.MEADOW || t === T.FOREST || t === T.HILL)) return false
+        if (taken.has(q) || roadCells.has(q)) return false
+      }
+    }
+  }
+  // every room reachable from the door (a plan's gaps all cut)
+  {
+    const seen = new Set<number>([idx(doorX, doorY)])
+    const queue = [idx(doorX, doorY)]
+    for (let q = 0; q < queue.length; q++) {
+      const x = queue[q] % W, y = (queue[q] / W) | 0
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const np = idx(x + dx, y + dy)
+        if (floor.has(np) && !seen.has(np)) {
+          seen.add(np)
+          queue.push(np)
+        }
+      }
+    }
+    if (seen.size !== floor.size) {
+      console.error(`NG the ${plan.name} plan has a room shut off`)
+      return false
+    }
+  }
+  for (const p of walls) terrain[p] = T.WALL
+  for (const p of floor) terrain[p] = T.FLOOR
+  for (const p of [...floor, ...walls]) keepClear[p] = 1
   // the path from the door to the street
-  let [px, py] = door
+  let [px, py] = [doorX, doorY]
   for (let k = 0; k < 8; k++) {
     px -= nx
     py -= ny
@@ -1147,121 +1297,25 @@ function house(
     terrain[q] = T.ROAD
     keepClear[q] = 1
   }
-  // the rooms: the partition stands across the way in, its doorway
-  // in line with the front door; the back half is parted again, the
-  // bathroom taking 3 cells of it, the bedroom the rest. Both sides of
-  // every doorway stay clear of furniture
   const n = houses.length
-  const inX = door[0] + nx, inY = door[1] + ny
-  // no piece hangs over the front door or where the shop sign goes
-  const gaps = new Set<string>([
-    cellKey(door[0], door[1]),
-    cellKey(door[0] + 1, door[1]),
-  ])
-  const wall = (x: number, y: number) => {
-    terrain[idx(x, y)] = T.WALL
+  for (const r of rooms) {
+    r.keep = keep
+    furnishRoom(r, n, gaps)
   }
-  const gap = (x: number, y: number) => {
-    terrain[idx(x, y)] = T.FLOOR
-    gaps.add(cellKey(x, y))
-  }
-  const frontKind: RoomKind = n % 2 ? "dining" : "kitchen"
-  const rooms: Room[] = []
-  if (nx !== 0) {
-    const px = x0 + (w >> 1)
-    for (let y = y0; y <= y1; y++) wall(px, y)
-    gap(px, sy)
-    const [fx0, fx1, bx0, bx1] = nx > 0 ? [x0, px, px, x1] : [px, x1, x0, px]
-    const hy = y0 + 4
-    for (let x = bx0; x <= bx1; x++) wall(x, hy)
-    const gx = nx > 0 ? px + 1 : px - 1
-    gap(gx, hy)
-    rooms.push(
-      {
-        x0: fx0,
-        y0,
-        x1: fx1,
-        y1,
-        kind: frontKind,
-        keep: new Set([
-          cellKey(inX, inY),
-          cellKey(inX + nx, inY),
-          cellKey(px - nx, sy),
-        ]),
-      },
-      {
-        x0: bx0,
-        y0,
-        x1: bx1,
-        y1: hy,
-        kind: "bathroom",
-        keep: new Set([cellKey(gx, hy - 1)]),
-      },
-      {
-        x0: bx0,
-        y0: hy,
-        x1: bx1,
-        y1,
-        kind: "bedroom",
-        keep: new Set([
-          cellKey(px + nx, sy),
-          cellKey(px + 2 * nx, sy),
-          cellKey(gx, hy + 1),
-        ]),
-      },
-    )
-  } else {
-    const py = y0 + (h >> 1)
-    for (let x = x0; x <= x1; x++) wall(x, py)
-    gap(sx, py)
-    const [fy0, fy1, by0, by1] = ny > 0 ? [y0, py, py, y1] : [py, y1, y0, py]
-    const vx = x0 + 4
-    for (let y = by0; y <= by1; y++) wall(vx, y)
-    const gy = ny > 0 ? py + 1 : py - 1
-    gap(vx, gy)
-    rooms.push(
-      {
-        x0,
-        y0: fy0,
-        x1,
-        y1: fy1,
-        kind: frontKind,
-        keep: new Set([
-          cellKey(inX, inY),
-          cellKey(inX, inY + ny),
-          cellKey(sx, py - ny),
-        ]),
-      },
-      {
-        x0,
-        y0: by0,
-        x1: vx,
-        y1: by1,
-        kind: "bathroom",
-        keep: new Set([cellKey(vx - 1, gy)]),
-      },
-      {
-        x0: vx,
-        y0: by0,
-        x1,
-        y1: by1,
-        kind: "bedroom",
-        keep: new Set([
-          cellKey(sx, py + ny),
-          cellKey(sx, py + 2 * ny),
-          cellKey(vx + 1, gy),
-        ]),
-      },
-    )
-  }
-  for (const r of rooms) furnishRoom(r, n, gaps)
+  const inX = doorX + nx, inY = doorY + ny
   put(actors, inX, inY, resident)
   residents++
   // a shop sign beside some doors (on the wall cell next to it)
   if (signs < VILLAGER_SIGNS.length && ny !== 0) {
-    put(props, door[0] + 1, door[1], VILLAGER_SIGNS[signs++])
+    put(props, doorX + 1, doorY, VILLAGER_SIGNS[signs++])
   }
-  houses.push({ x0, y0, x1, y1, village })
+  houses.push({
+    x0: Math.min(...rooms.map((r) => r.x0)),
+    y0: Math.min(...rooms.map((r) => r.y0)),
+    x1: Math.max(...rooms.map((r) => r.x1)),
+    y1: Math.max(...rooms.map((r) => r.y1)),
+    village,
+  })
   return true
 }
 
@@ -1437,15 +1491,15 @@ function buildWalled(n: Node, count: number) {
   })
   kidsAndCat(cx + 7, cy + 8)
   const spots: [number, number, number, number][] = []
-  for (const o of [-16, 0, 16]) {
-    for (const t of [-24, -8, 8, 24]) {
+  for (const o of [-18, 0, 18]) {
+    for (const t of [-28, -9, 9, 28]) {
       spots.push([cx + o, cy + t, -1, 0], [cx + o + 1, cy + t, 1, 0])
     }
   }
   housesAt(n, spots, count)
   // lamp posts at the crossings
-  for (const ox of [-16, 16]) {
-    for (const oy of [-16, 16]) lampPost(cx + ox - 1, cy + oy - 1)
+  for (const ox of [-18, 18]) {
+    for (const oy of [-18, 18]) lampPost(cx + ox - 1, cy + oy - 1)
   }
 }
 
@@ -1482,9 +1536,12 @@ function buildMarket(n: Node, count: number) {
   put(actors, cx + 22, cy - 2, "farmer")
   kidsAndCat(cx + 4, cy + 4)
   // the folk live along the back lane
+  // (and along the main street, out past the stalls and the fields)
   housesAt(n, [
-    ...alongStreet(cx, cy + 13, -1, 0, 7, R - 8, 14),
-    ...alongStreet(cx, cy + 13, 1, 0, 7, R - 8, 14),
+    ...alongStreet(cx, cy + 13, -1, 0, 7, R - 8, 10),
+    ...alongStreet(cx, cy + 13, 1, 0, 7, R - 8, 10),
+    ...alongStreet(cx, cy, -1, 0, 24, R - 8, 14),
+    ...alongStreet(cx, cy, 1, 0, 24, R - 8, 14),
   ], count)
   for (let t = -24; t <= 24; t += 8) lampPost(cx + t, cy + 2)
 }
