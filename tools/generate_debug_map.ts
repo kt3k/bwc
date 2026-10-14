@@ -82,6 +82,7 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "latch-gate": { id: "DEBUG", dir: "up" },
   "post-box": { town: "DEBUG", routes: [{ town: "DEBUG", reward: 1 }] },
   "trade-stall": { town: "DEBUG", good: "DEBRIS", cost: 1, prices: {} },
+  pane: { shard: "shard-sky" },
   "guide-sage": { text: "SAGE: DEBUG LIES NORTH, ABOUT 50 STEPS" },
   "guide-sailor": { text: "SAILOR: DEBUG LIES EAST, ABOUT 50 STEPS" },
   "guide-farmer": { text: "FARMER: DEBUG LIES SOUTH, ABOUT 50 STEPS" },

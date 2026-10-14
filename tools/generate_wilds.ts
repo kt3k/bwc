@@ -1616,6 +1616,211 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
 }
 
 // ---------------------------------------------------------------------
+// the four corners (model/pane.ts, ideas/wilds-roaming-todo.md 9): the
+// lone windows shatter into pieces of four places, and those places are
+// the corners of the island. In each, a trial with an empty window frame
+// at its end: the snowfield in the north (on the ice), the sunken ruins
+// in the south (the boulder and the plate), the cape in the east (the
+// switches) and the city's old drain in the west (a maze). Bring the
+// frame its piece and the pane is whole again
+
+{
+  type CornerKind = Kind | "maze"
+  type Corner = {
+    shard: string
+    name: string
+    kind: CornerKind
+    /** Where to look for room: a landmark's name or a spot (fractions) */
+    near: string | [number, number]
+    lore: string
+  }
+  const CORNERS: Corner[] = [
+    {
+      shard: "shard-snow",
+      name: "THE SNOWFIELD",
+      kind: "ice",
+      near: [0.5, 0.1],
+      lore: "A FIELD OF SNOW, ONCE SEEN THROUGH A WINDOW. ITS PANE IS LOST",
+    },
+    {
+      shard: "shard-sea",
+      name: "THE SUNKEN RUINS",
+      kind: "boulder",
+      near: "SUNKEN RUINS",
+      lore: "A FARAWAY SEA, ONCE SEEN THROUGH A WINDOW. ITS PANE IS LOST",
+    },
+    {
+      shard: "shard-sky",
+      name: "THE CAPE",
+      kind: "switch",
+      near: "EAST CAPE",
+      lore: "A CLOUDLESS SKY, ONCE SEEN THROUGH A WINDOW. ITS PANE IS LOST",
+    },
+    {
+      shard: "shard-town",
+      name: "THE OLD DRAIN",
+      kind: "maze",
+      near: [
+        (cities[0].x0 + CITY_W + 30) / W,
+        (cities[0].y0 + CITY_H - 60) / H,
+      ],
+      lore:
+        "THE CITY'S OLD DRAIN. A TOWN AT DUSK, ONCE SEEN THROUGH A WINDOW. ITS PANE IS LOST",
+    },
+  ]
+  /** A maze (cells 2 apart), walls '#', floor '.', 'E' in, 'G' the end */
+  const maze = (cw: number, ch: number): string[] => {
+    const w = cw * 2 + 1, h = ch * 2 + 1
+    const g = Array.from({ length: h }, () => Array(w).fill("#"))
+    const seen = new Set<number>()
+    const stack: [number, number][] = [[cw >> 1, ch - 1]]
+    seen.add((ch - 1) * cw + (cw >> 1))
+    g[(ch - 1) * 2 + 1][(cw >> 1) * 2 + 1] = "."
+    while (stack.length > 0) {
+      const [cx, cy] = stack[stack.length - 1]
+      const next = shuffle(D4.slice()).map(([dx, dy]) => [cx + dx, cy + dy])
+        .find(([nx, ny]) =>
+          nx >= 0 && ny >= 0 && nx < cw && ny < ch && !seen.has(ny * cw + nx)
+        )
+      if (!next) {
+        stack.pop()
+        continue
+      }
+      const [nx, ny] = next
+      seen.add(ny * cw + nx)
+      g[cy + ny + 1][cx + nx + 1] = "."
+      g[ny * 2 + 1][nx * 2 + 1] = "."
+      stack.push([nx, ny])
+    }
+    // the way in at the bottom middle; the end: the farthest floor from it
+    const ex = (cw >> 1) * 2 + 1
+    g[h - 1][ex] = "E"
+    const dist = new Map<number, number>([[(h - 1) * w + ex, 0]])
+    const queue = [(h - 1) * w + ex]
+    let far = queue[0]
+    for (let q = 0; q < queue.length; q++) {
+      const x = queue[q] % w, y = (queue[q] / w) | 0
+      for (const [dx, dy] of D4) {
+        const nx = x + dx, ny = y + dy
+        if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue
+        const np = ny * w + nx
+        if (g[ny][nx] === "#" || dist.has(np)) continue
+        dist.set(np, dist.get(queue[q])! + 1)
+        queue.push(np)
+        if (dist.get(np)! > dist.get(far)!) far = np
+      }
+    }
+    g[(far / w) | 0][far % w] = "G"
+    return g.map((row) => row.join(""))
+  }
+  const made: string[] = []
+  for (const c of CORNERS) {
+    const rows = c.kind === "maze" ? maze(12, 7) : MAKERS[c.kind]({
+      rng,
+      randomInt,
+    }).rows
+    const rw = rows[0].length, rh = rows.length
+    let tx: number, ty: number
+    if (typeof c.near === "string") {
+      const n = nodes.find((n) => n.name === c.near)!
+      tx = n.x
+      ty = n.y
+    } else {
+      tx = Math.round(c.near[0] * W)
+      ty = Math.round(c.near[1] * H)
+    }
+    const fitsRoom = (x0: number, y0: number) => {
+      for (let y = y0 - 3; y < y0 + rh + 5; y++) {
+        for (let x = x0 - 3; x < x0 + rw + 3; x++) {
+          if (!inside(x, y)) return false
+          const p = idx(x, y)
+          const t = terrain[p] as T
+          if (
+            !(t === T.MEADOW || t === T.FOREST || t === T.HILL ||
+              t === T.SAND) ||
+            keepClear[p] || taken.has(p) || puzzleCells[p] || inMassif(x, y)
+          ) return false
+        }
+      }
+      return !(x0 + rw + 3 > COVE_X0 - 2 && x0 - 3 < COVE_X0 + COVE_W + 2 &&
+        y0 + rh + 5 > COVE_Y0 - 2 && y0 - 3 < COVE_Y0 + COVE_H + 2)
+    }
+    let at: [number, number] | null = null
+    for (let d = 8; d < 220 && !at; d += 2) {
+      for (let k = 0; k < 36 && !at; k++) {
+        const a = (k / 36) * Math.PI * 2
+        const x0 = Math.round(tx + Math.cos(a) * d - rw / 2)
+        const y0 = Math.round(ty + Math.sin(a) * d - rh / 2)
+        if (fitsRoom(x0, y0)) at = [x0, y0]
+      }
+    }
+    if (!at) {
+      console.error(`NG no room for ${c.name}`)
+      Deno.exit(1)
+    }
+    const [x0, y0] = at
+    const group = `corner-${c.shard}`
+    // the ground around, by the place: snow, puddles, stone, the drain
+    for (let dy = -9; dy < rh + 9; dy++) {
+      for (let dx = -9; dx < rw + 9; dx++) {
+        const x = x0 + dx, y = y0 + dy
+        if (!inside(x, y)) continue
+        const p = idx(x, y)
+        const t = terrain[p] as T
+        if (
+          keepClear[p] || taken.has(p) || puzzleCells[p] ||
+          !(t === T.MEADOW || t === T.FOREST || t === T.HILL || t === T.SAND)
+        ) continue
+        const out = Math.max(-dx, dx - rw + 1, -dy, dy - rh + 1, 0)
+        const n = hash(x, y, 7711)
+        if (out > 8 - n * 4) continue
+        if (c.kind === "ice") terrain[p] = T.SAND // the snow
+        else if (c.kind === "switch") terrain[p] = T.STONE
+        else if (c.kind === "maze") terrain[p] = n < 0.5 ? T.HILL : T.CAMP
+        else if (dy < -2 && n < 0.18) terrain[p] = T.LAKE // the sunken pools
+        else if (n > 0.92) terrain[p] = T.RUIN
+      }
+    }
+    rows.forEach((row, dy) => {
+      ;[...row].forEach((ch, dx) => {
+        const x = x0 + dx, y = y0 + dy
+        const p = idx(x, y)
+        terrain[p] = ch === "#"
+          ? (c.kind === "maze" ? T.ROCK : T.RUIN)
+          : ch === "_"
+          ? T.ICE
+          : c.kind === "maze"
+          ? T.CAMP
+          : T.TRIAL
+        keepClear[p] = 1
+        puzzleCells[p] = 1
+        if (ch === "B") put(actors, x, y, "boulder")
+        else if (ch === "P") put(props, x, y, "plate", { group })
+        else if (ch === "D") put(props, x, y, "door", { group })
+        else if (ch === "S") put(props, x, y, "switch", { group })
+        else if (ch === "b") put(props, x, y, "blue-wall", { group })
+        else if (ch === "r") put(props, x, y, "red-wall", { group })
+        else if (ch === "G") put(props, x, y, "pane", { shard: c.shard })
+      })
+    })
+    // the way in from below, with the place's name and its lore
+    const exx = x0 + rows[rh - 1].indexOf("E")
+    for (let y = y0 + rh; y < y0 + rh + 3; y++) {
+      terrain[idx(exx, y)] = T.ROAD
+      keepClear[idx(exx, y)] = 1
+    }
+    put(props, exx + 1, y0 + rh + 1, "sign", { text: c.lore })
+    put(props, exx - 1, y0 + rh + 1, "sign", { text: c.name })
+    for (let y = y0 - 1; y <= y0 + rh; y++) {
+      for (let x = x0 - 1; x <= x0 + rw; x++) keepClear[idx(x, y)] = 1
+    }
+    puzzles.push({ x: x0, y: y0, kind: "ice", solution: "" })
+    made.push(c.name.toLowerCase())
+  }
+  console.log(`the four corners: ${made.join(", ")}`)
+}
+
+// ---------------------------------------------------------------------
 // the castaway cove: the tutorial, told by the terrain. The W portal
 // lands a castaway on the wreck beach of a cove the land itself seals:
 // the lagoon to the north, cliffs to the west, a solid thicket to the

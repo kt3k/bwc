@@ -18,6 +18,8 @@ type SaveData = {
   deliveries?: number
   /** the crate of goods being carried (trade) */
   cargo?: signal.Cargo | null
+  /** the window shards held */
+  shards?: string[]
 }
 
 let data: SaveData = {}
@@ -61,6 +63,7 @@ export function restoreSave() {
     signal.letter.update(saved.letter ?? null)
     signal.deliveries.update(saved.deliveries ?? 0)
     signal.cargo.update(saved.cargo ?? null)
+    signal.shards.update(saved.shards ?? [])
     if (saved.speed === 1 || saved.speed === 2 || saved.speed === 4) {
       signal.playerSpeed.update(saved.speed)
     }
@@ -96,6 +99,10 @@ export function restoreSave() {
   })
   signal.cargo.subscribe((v) => {
     data.cargo = v
+    write()
+  })
+  signal.shards.subscribe((v) => {
+    data.shards = v
     write()
   })
 }

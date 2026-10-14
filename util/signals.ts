@@ -32,6 +32,8 @@ export const letter = new Signal<Letter | null>(null)
 export type Cargo = { good: string; from: string; paid: number }
 // The crate the player carries, or null
 export const cargo = new Signal<Cargo | null>(null)
+// The window shards the player holds (their item types: "shard-sea"...)
+export const shards = new Signal<string[]>([])
 // How many letters the player delivered
 export const deliveries = new Signal(0)
 // The player's walking speed, chosen with the speed buttons (pixels per frame)

@@ -38,6 +38,7 @@ import { stepWaygate, stepWaystone, WaystonePushed } from "./waystone.ts"
 import { LatchGatePushed, stepLatchGate } from "./shortcut.ts"
 import { PostBoxPushed } from "./errand.ts"
 import { TradeStallPushed } from "./trade.ts"
+import { PanePushed, stepPane } from "./pane.ts"
 import type { Actor } from "./actor.ts"
 
 // ---------------------------------------------------------------------
@@ -893,6 +894,7 @@ export const ODD_PROP_PUSHED: Record<string, () => PushedDelegate> = {
   "latch-gate": () => new LatchGatePushed(),
   "post-box": () => new PostBoxPushed(),
   "trade-stall": () => new TradeStallPushed(),
+  pane: () => new PanePushed(),
 }
 
 /** Per-frame behaviors of the oddity props, by type */
@@ -904,6 +906,7 @@ export const ODD_PROP_STEP: Record<
   waystone: stepWaystone,
   waygate: stepWaygate,
   "latch-gate": stepLatchGate,
+  pane: stepPane,
 }
 
 /**
@@ -1507,6 +1510,10 @@ export function collectShard(
   signal.message.update({
     text: SHARDS[item.def.type] ?? "A PIECE OF SOMEWHERE",
   })
+  // kept: an empty window frame somewhere wants it (model/pane.ts)
+  if (!signal.shards.get().includes(item.def.type)) {
+    signal.shards.update([...signal.shards.get(), item.def.type])
+  }
   signal.coinCount.update(signal.coinCount.get() + 2 * amount)
   signal.playSound("pickupCoin")
   burst(field, actor.i, actor.j, [Palette.white, Palette.blue1], 5)

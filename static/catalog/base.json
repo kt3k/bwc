@@ -1985,6 +1985,32 @@
           "prices"
         ]
       }
+    },
+    "pane": {
+      "src": "../prop/pane_empty.png",
+      "canEnter": false,
+      "pushed": "pane",
+      "growth": {
+        "stages": [
+          "../prop/pane_empty.png",
+          "../prop/pane_snow.png",
+          "../prop/pane_sea.png",
+          "../prop/pane_town.png",
+          "../prop/pane_sky.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "shard": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "shard"
+        ]
+      }
     }
   }
 }
