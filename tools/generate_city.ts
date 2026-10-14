@@ -880,13 +880,16 @@ export async function buildCity(
       put(props, x, y, type)
       return true
     }
-    const kind = n % 3
+    const kind = n % 4
     if (kind === 1) {
       // the dining room: the long table, a chair at its head
       take(b.x0 + 2, b.y0 + 2, "table-l")
       take(b.x0 + 3, b.y0 + 2, "table-r")
       take(b.x0 + 1, b.y0 + 2, "chair")
       take(b.x0 + 4, b.y0 + 2, "stool")
+    } else if (kind === 3) {
+      // the bathroom: a rug on the floor
+      take(b.x0 + 2, b.y0 + 3, "rug")
     } else {
       take(b.x0 + 2, b.y0 + 2, "table")
       take(b.x0 + 3, b.y0 + 2, kind === 2 ? "chair" : "stool-round")
@@ -899,12 +902,24 @@ export async function buildCity(
         break
       }
     }
+    // the bathtub takes two cells side by side
+    if (kind === 3) {
+      for (let x = b.x0 + 1; x < b.x1 - 1; x++) {
+        if (free(x, b.y0 + 1) && free(x + 1, b.y0 + 1)) {
+          take(x, b.y0 + 1, "bathtub-l")
+          take(x + 1, b.y0 + 1, "bathtub-r")
+          break
+        }
+      }
+    }
     // the top wall dressed to match: the kitchen pieces, the dining
-    // room's shelves, or the study's desk and books
+    // room's shelves, the study's desk and books, or the bathroom's
+    // basin and shower
     const SETS = [
-      ["counter", "stove", n % 2 ? "cauldron" : "kettle"],
-      ["dish-shelf", n % 2 ? "candles" : "washtub"],
-      ["desk", "bookshelf", n % 2 ? "globe" : "candles"],
+      ["counter", "stove", n % 2 ? "cauldron" : "kettle", "hearth"],
+      ["dish-shelf", "flower-pot", n % 2 ? "candles" : "washtub"],
+      ["desk", "bookshelf", "wardrobe", n % 2 ? "globe" : "candles"],
+      ["sink", "towel-rack", "shower"],
     ]
     let wx = b.x0 + 1
     for (const piece of SETS[kind]) {
@@ -915,15 +930,20 @@ export async function buildCity(
         }
       }
     }
-    // the privy corner of every other house, the washtub beside it
-    if (n % 2 === 0) {
-      if (take(b.x0 + 1, b.y1 - 1, "toilet")) {
-        take(b.x0 + 2, b.y1 - 1, "washtub")
-      }
+    if (kind === 2) {
+      take(b.x1 - 2, b.y1 - 1, "broom")
     }
+    // on the top wall: a painting (a mirror in the bathroom), and a
+    // window beside it, where the door leaves room
+    const onWall = (x: number) =>
+      x > b.x0 && x < b.x1 &&
+      !(b.door[1] === b.y0 && Math.abs(b.door[0] - x) <= 1)
     const px = b.x0 + ((b.x1 - b.x0) >> 1)
-    if (!(b.door[1] === b.y0 && Math.abs(b.door[0] - px) <= 1)) {
-      put(props, px, b.y0, "painting")
+    if (onWall(px)) {
+      put(props, px, b.y0, kind === 3 ? "mirror" : "painting")
+    }
+    if (onWall(px - 2)) {
+      put(props, px - 2, b.y0, "window")
     }
     if (n % 3 === 0) {
       for (const [x, y] of [[b.x0 + 2, b.y0 + 3], [b.x1 - 2, b.y0 + 2]]) {
@@ -931,6 +951,12 @@ export async function buildCity(
           put(items, x, y, n % 2 ? "book" : "candle")
           break
         }
+      }
+    }
+    // the privy corner of every other house, the washtub beside it
+    if (n % 2 === 0 || kind === 3) {
+      if (take(b.x0 + 1, b.y1 - 1, "toilet")) {
+        take(b.x0 + 2, b.y1 - 1, "washtub")
       }
     }
     put(actors, ...b.inner, resident(b.district))
@@ -1428,6 +1454,15 @@ export async function buildCity(
       "kettle",
       "cauldron",
       "desk",
+      "bathtub-l",
+      "bathtub-r",
+      "shower",
+      "sink",
+      "towel-rack",
+      "wardrobe",
+      "hearth",
+      "broom",
+      "flower-pot",
     ])
     const cut = new Set<number>()
     for (const b of buildings) {
@@ -1535,8 +1570,11 @@ export async function buildCity(
     standable(s) && reached[idx(s.i - OI, s.j - OJ)]
   )
   const itemsOut = items.filter(standable)
+  // signs and the pieces hung on house walls (painting, mirror,
+  // window) stay on walls; everything else needs open ground
+  const WALL_PIECES = new Set(["painting", "mirror", "window"])
   const propsOut = props.filter((s) =>
-    s.type.startsWith("sign-")
+    s.type.startsWith("sign-") || WALL_PIECES.has(s.type)
       ? WALLS.has(grid[idx(s.i - OI, s.j - OJ)])
       : standable(s)
   )

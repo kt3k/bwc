@@ -1054,13 +1054,17 @@ function house(
     put(props, x, y, type)
     return true
   }
-  const kind = houses.length % 3
+  const kind = houses.length % 4
   if (kind === 1) {
     // the dining room: the long table, a chair at its head
     take(x0 + 2, y0 + 2, "table-l")
     take(x0 + 3, y0 + 2, "table-r")
     take(x0 + 1, y0 + 2, "chair")
     take(x0 + 4, y0 + 2, "stool")
+  } else if (kind === 3) {
+    // the bathroom: a rug on the floor, the toilet in a corner
+    take(x0 + 2, y0 + 3, "rug")
+    take(x0 + 1, y1 - 1, "toilet")
   } else {
     take(x0 + 2, y0 + 2, "table")
     take(x0 + 3, y0 + 2, kind === 2 ? "chair" : "stool")
@@ -1073,12 +1077,24 @@ function house(
       break
     }
   }
+  // the bathtub takes two cells side by side
+  if (kind === 3) {
+    for (let x = x0 + 1; x < x1 - 1; x++) {
+      if (free(x, y0 + 1) && free(x + 1, y0 + 1)) {
+        take(x, y0 + 1, "bathtub-l")
+        take(x + 1, y0 + 1, "bathtub-r")
+        break
+      }
+    }
+  }
   // the top wall dressed to match: the kitchen pieces, the dining
-  // room's shelves, or the study's desk and books
+  // room's shelves, the study's desk and books, or the bathroom's
+  // basin and shower
   const SETS = [
-    ["counter", "stove", houses.length % 2 ? "cauldron" : "kettle"],
-    ["dish-shelf", houses.length % 2 ? "candles" : "washtub"],
-    ["desk", "bookshelf", houses.length % 2 ? "globe" : "candles"],
+    ["counter", "stove", houses.length % 2 ? "cauldron" : "kettle", "hearth"],
+    ["dish-shelf", "flower-pot", houses.length % 2 ? "candles" : "washtub"],
+    ["desk", "bookshelf", "wardrobe", houses.length % 2 ? "globe" : "candles"],
+    ["sink", "towel-rack", "shower"],
   ]
   let wx = x0 + 1
   for (const piece of SETS[kind]) {
@@ -1089,9 +1105,20 @@ function house(
       }
     }
   }
+  if (kind === 2) {
+    take(x1 - 1, y1 - 1, "broom")
+  }
+  // on the top wall: a painting (a mirror in the bathroom), and a
+  // window beside it, where the door and the sign leave room
+  const onWall = (x: number) =>
+    x > x0 && x < x1 &&
+    !(door[1] === y0 && (door[0] === x || door[0] + 1 === x))
   const artX = x0 + (w >> 1)
-  if (!(door[1] === y0 && (door[0] === artX || door[0] + 1 === artX))) {
-    put(props, artX, y0, "painting")
+  if (onWall(artX)) {
+    put(props, artX, y0, kind === 3 ? "mirror" : "painting")
+  }
+  if (onWall(artX - 2)) {
+    put(props, artX - 2, y0, "window")
   }
   if (houses.length % 3 === 0) {
     for (const [ix, iy] of [[x0 + 2, y0 + 3], [x1 - 2, y0 + 2]]) {
@@ -3657,15 +3684,19 @@ for (let round = 0; round < 50; round++) {
   console.log(`ferries: ${routes} routes, ${boats} boats`)
 }
 // spawns left on cells that can't hold them are dropped
+/** The props hung on a house wall (placed on the wall cell itself) */
+const WALL_PIECES = new Set(["painting", "mirror", "window"])
 const standable = (s: Spawn) => walkableCell(idx(s.i - OI, s.j - OJ))
 const actorsOut = actors.filter(standable)
 const itemsOut = items.filter(standable)
 const propsOut = props.filter((s) => {
   const t = terrain[idx(s.i - OI, s.j - OJ)] as T
-  // signs and paintings on house walls stay; everything else needs
-  // open ground
-  return s.type.startsWith("sign-") || s.type === "painting"
-    ? t === T.WALL
+  // signs and the pieces hung on house walls stay; everything else
+  // needs open ground
+  // (the cities' own walls are T.CITY here: their generator placed
+  // those pieces on its walls itself)
+  return s.type.startsWith("sign-") || WALL_PIECES.has(s.type)
+    ? t === T.WALL || t === T.CITY
     : s.type === "ferry"
     ? true // moored on the water
     : standable(s)
