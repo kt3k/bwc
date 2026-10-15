@@ -572,6 +572,149 @@ export async function buildCity(
   const lots: Lot[] = []
   const districtRects: (Rect & { name: District })[] = []
 
+  const isStreet = (c: string) =>
+    c === C.STREET || c === C.AVENUE || c === C.SQUARE || c === C.PIER
+  type Side = "n" | "s" | "w" | "e"
+  const SIDE_DIR: Record<Side, [number, number]> = {
+    n: [0, -1],
+    s: [0, 1],
+    w: [-1, 0],
+    e: [1, 0],
+  }
+
+  /**
+   * The houses that stood before the streets: odd houses grown room
+   * by room (10-20 rooms), set down in a district where they pleased
+   * before the district is cut into lots, so the streets go round
+   * them. Laid now; furnished, and given their lanes, once the folk
+   * are known (3. buildings)
+   */
+  type OldHouse = {
+    laid: ReturnType<typeof layPlan>
+    door: [number, number]
+    side: Side
+    district: District
+  }
+  const oldHouses: OldHouse[] = []
+  function layOldHouse(
+    plan: (typeof PLANS)[number],
+    flip: 1 | -1,
+    door: [number, number],
+    side: Side,
+    district: District,
+  ): boolean {
+    const [dx, dy] = SIDE_DIR[side]
+    const laid = layPlan(plan, door, [-dx, -dy], flip)
+    const cells = cellsOf(laid)
+    for (const [x, y] of cells) {
+      if (!inside(x, y) || at(x, y) !== C.LAND || fixed[idx(x, y)]) {
+        return false
+      }
+      // a cell of land all round (an avenue may run by, no building)
+      for (const [mx, my] of D4) {
+        const nx = x + mx, ny = y + my
+        if (!inside(nx, ny) || outside[idx(nx, ny)]) return false
+        if (fixed[idx(nx, ny)] && !isStreet(at(nx, ny))) return false
+      }
+    }
+    const brick = wallOf("house", district)
+    for (const [x, y] of cells) {
+      set(x, y, laid.walls.has(cellKey(x, y)) ? brick : C.FLOOR)
+      fixed[idx(x, y)] = 1
+    }
+    oldHouses.push({ laid, door, side, district })
+    return true
+  }
+
+  /**
+   * A street (2 wide) from one end to the other: it wants its
+   * straight line (a cost for straying from it), but a house that
+   * stood first (and a cell round it) it goes round, keeping within
+   * its lot. Where no way is found it is laid straight, the house
+   * left standing in it.
+   */
+  function streetRoute(
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    box: Rect,
+  ) {
+    const len = Math.hypot(x1 - x0, y1 - y0) || 1
+    const stray = (x: number, y: number) =>
+      Math.abs((x - x0) * (y1 - y0) - (y - y0) * (x1 - x0)) / len
+    const house = (x: number, y: number) =>
+      inside(x, y) && fixed[idx(x, y)] && !isStreet(at(x, y))
+    const cost = (x: number, y: number) => {
+      if (
+        !inside(x, y) || outside[idx(x, y)] || x < box.x0 - 1 ||
+        x > box.x1 + 1 || y < box.y0 - 1 || y > box.y1 + 1 || house(x, y)
+      ) return Infinity
+      for (const [mx, my] of D4) if (house(x + mx, y + my)) return Infinity
+      return (isWater(at(x, y)) ? 3 : 1) + stray(x, y) * 0.6
+    }
+    // A* over the lot, 4-dir
+    const g = new Map<number, number>()
+    const from = new Map<number, number>()
+    const start = idx(x0, y0), goal = idx(x1, y1)
+    const heap: [number, number][] = [[0, start]]
+    g.set(start, 0)
+    const h = (p: number) => Math.abs(x1 - p % W) + Math.abs(y1 - ((p / W) | 0))
+    let found = false
+    while (heap.length > 0) {
+      let bi = 0
+      for (let i = 1; i < heap.length; i++) if (heap[i][0] < heap[bi][0]) bi = i
+      const [f, p] = heap[bi]
+      heap[bi] = heap[heap.length - 1]
+      heap.pop()
+      if (f > (g.get(p) ?? Infinity) + h(p) + 1e-6) continue
+      if (p === goal) {
+        found = true
+        break
+      }
+      const x = p % W, y = (p / W) | 0
+      for (const [mx, my] of D4) {
+        const nx = x + mx, ny = y + my
+        const c = cost(nx, ny)
+        if (c === Infinity) continue
+        const q = idx(nx, ny)
+        const ng = (g.get(p) ?? Infinity) + c
+        if (ng < (g.get(q) ?? Infinity)) {
+          g.set(q, ng)
+          from.set(q, p)
+          heap.push([ng + h(q), q])
+        }
+      }
+    }
+    if (!found) {
+      streetLine(
+        Math.min(x0, x1),
+        Math.min(y0, y1),
+        Math.max(x0, x1),
+        Math.max(y0, y1),
+      )
+      return
+    }
+    const path: number[] = []
+    for (let p: number | undefined = goal; p !== undefined; p = from.get(p)) {
+      path.unshift(p)
+    }
+    const pave = (x: number, y: number) => {
+      if (!inside(x, y) || (fixed[idx(x, y)] && !isStreet(at(x, y)))) return
+      set(x, y, isWater(at(x, y)) ? C.PIER : C.STREET)
+      fixed[idx(x, y)] = 1
+    }
+    for (let k = 0; k < path.length; k++) {
+      const p = path[k], q = path[Math.min(k + 1, path.length - 1)]
+      const x = p % W, y = (p / W) | 0
+      pave(x, y)
+      // two wide: the second cell beside the way (right, or below)
+      const horizontal = Math.abs(q - p) === 1 || q === p
+      if (horizontal) pave(x, y + 1)
+      else pave(x + 1, y)
+    }
+  }
+
   /** A street (2 wide) along a line, not over water or what's fixed */
   function streetLine(x0: number, y0: number, x1: number, y1: number) {
     for (let y = y0; y <= y1; y++) {
@@ -592,14 +735,49 @@ export async function buildCity(
     }
     if (w >= h) {
       const cut = r.x0 + Math.round(w * (0.38 + rng() * 0.24))
-      streetLine(cut, r.y0, cut + 1, r.y1)
+      streetRoute(cut, r.y0, cut, r.y1, r)
       subdivide({ ...r, x1: cut - 1 }, district)
       subdivide({ ...r, x0: cut + 2 }, district)
     } else {
       const cut = r.y0 + Math.round(h * (0.38 + rng() * 0.24))
-      streetLine(r.x0, cut, r.x1, cut + 1)
+      streetRoute(r.x0, cut, r.x1, cut, r)
       subdivide({ ...r, y1: cut - 1 }, district)
       subdivide({ ...r, y0: cut + 2 }, district)
+    }
+  }
+
+  // two odd houses before the streets, in the districts of the folk
+  {
+    const rects: (Rect & { district: District })[] = []
+    COLS.forEach(([x0, x1], c) => {
+      ROWS.forEach(([y0, y1], r) => {
+        const district = DISTRICTS[c][r]
+        if (district !== "CASTLE" && district !== "MARKET") {
+          rects.push({ x0, y0, x1, y1, district })
+        }
+      })
+    })
+    let built = 0
+    for (let k = 0; k < 80 && built < 2 && rects.length > 0; k++) {
+      const r = rects[randomInt(rects.length)]
+      const style = GROW_STYLES[randomInt(GROW_STYLES.length)]
+      const side = (["n", "s", "w", "e"] as Side[])[randomInt(4)]
+      const door: [number, number] = [
+        r.x0 + 4 + randomInt(Math.max(1, r.x1 - r.x0 - 8)),
+        r.y0 + 4 + randomInt(Math.max(1, r.y1 - r.y0 - 8)),
+      ]
+      for (let rooms = 10 + randomInt(11); rooms >= 8; rooms -= 2) {
+        const plan = growPlan(rng, rooms, style)
+        if (plan.rooms.length < 8) continue
+        const flip = rng() < 0.5 ? 1 : -1
+        if (layOldHouse(plan, flip, door, side, r.district)) {
+          built++
+          console.log(
+            `${cityName}: an old odd ${style} house of ${plan.rooms.length} rooms in ${r.district}`,
+          )
+          break
+        }
+      }
     }
   }
 
@@ -618,15 +796,6 @@ export async function buildCity(
   // ---------------------------------------------------------------------
   // 3. buildings
 
-  const isStreet = (c: string) =>
-    c === C.STREET || c === C.AVENUE || c === C.SQUARE || c === C.PIER
-  type Side = "n" | "s" | "w" | "e"
-  const SIDE_DIR: Record<Side, [number, number]> = {
-    n: [0, -1],
-    s: [0, 1],
-    w: [-1, 0],
-    e: [1, 0],
-  }
   /** The sides of a lot that face a street (by how much of each does) */
   function streetSides(r: Rect): Side[] {
     const score = (cells: [number, number][]) =>
@@ -1221,9 +1390,6 @@ export async function buildCity(
    * it; a spot no plan fits is skipped. Then the back street side the
    * same way, and what is left is yard.
    */
-  /** How many odd houses the city has so far */
-  let oddHouses = 0
-
   function frontage(lot: Lot) {
     const sides = streetSides(lot)
     const area = inset(lot, 1)
@@ -1625,6 +1791,60 @@ export async function buildCity(
 
   // build the districts
   for (const d of districtRects) if (d.name === "CASTLE") castle(d)
+  /** How many odd houses the city has so far */
+  let oddHouses = 0
+  // the houses older than the streets: furnished now that the folk
+  // are known, and each given a lane from its door to the nearest
+  // street (over the land, a cell wide)
+  for (const old of oldHouses) {
+    const [dx, dy] = SIDE_DIR[old.side]
+    const b: Building = {
+      ...old.laid.bounds,
+      door: old.door,
+      inner: [old.door[0] - dx, old.door[1] - dy],
+      side: old.side,
+      kind: "house",
+      district: old.district,
+    }
+    buildings.push(b)
+    const n = buildings.length
+    for (const r of old.laid.rooms) furnishRoom(r, n, old.laid.gaps)
+    put(actors, ...b.inner, resident(old.district))
+    for (let k = 4; k < old.laid.rooms.length; k += 4) {
+      const r = old.laid.rooms[k]
+      put(actors, r.x0 + ((r.x1 - r.x0) >> 1), r.y1 - 1, resident(old.district))
+    }
+    oddHouses++
+    const start = idx(old.door[0] + dx, old.door[1] + dy)
+    const from = new Map<number, number>([[start, -1]])
+    const queue = [start]
+    let end = -1
+    for (let q = 0; q < queue.length && end < 0; q++) {
+      const p = queue[q]
+      const x = p % W, y = (p / W) | 0
+      for (const [mx, my] of D4) {
+        const nx = x + mx, ny = y + my
+        if (!inside(nx, ny) || outside[idx(nx, ny)]) continue
+        const np = idx(nx, ny)
+        if (from.has(np)) continue
+        if (isStreet(at(nx, ny))) {
+          from.set(np, p)
+          end = np
+          break
+        }
+        if (at(nx, ny) !== C.LAND || fixed[np]) continue
+        from.set(np, p)
+        queue.push(np)
+      }
+    }
+    for (let p = end < 0 ? -1 : from.get(end)!; p >= 0; p = from.get(p)!) {
+      if (!isStreet(at(p % W, (p / W) | 0))) {
+        set(p % W, (p / W) | 0, C.STREET)
+        fixed[p] = 1
+      }
+    }
+  }
+
   for (const lot of lots) {
     const special = specials.get(lot)
     if (
