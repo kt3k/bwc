@@ -1129,8 +1129,15 @@ export class CatDelegate implements IdleDelegate, ActorPushedDelegate {
       const fish = findBait(field, actor.i, actor.j, "fish", 8)
       if (fish) {
         if (fish.i === actor.i && fish.j === actor.j) {
-          eatBait(actor, field, fish, "THE CAT CURLED UP")
+          eatBait(
+            actor,
+            field,
+            fish,
+            `THE ${actor.type.toUpperCase()} CURLED UP`,
+          )
           this.#feastUntil = field.time + CatDelegate.FEAST
+          // (its den can be robbed while it sleeps: model/den.ts)
+          actor.buff.asleepUntil = this.#feastUntil
           this.#followUntil = 0
           this.#home = [actor.i, actor.j]
           return

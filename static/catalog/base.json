@@ -207,6 +207,10 @@
       "src": "../cell/wall_bookshelf.png",
       "casts": true
     },
+    "H": {
+      "canEnter": false,
+      "src": "../cell/fence.png"
+    },
     "V": {
       "canEnter": false,
       "src": "../cell/wall_planks.png",
@@ -570,6 +574,16 @@
       "pushed": "block-fish",
       "src": "../actor/block-fish/"
     },
+    "rabbit": {
+      "idle": "rabbit",
+      "pushed": "rabbit",
+      "src": "../actor/rabbit/"
+    },
+    "bee": {
+      "idle": "bee",
+      "pushed": "bee",
+      "src": "../actor/bee/"
+    },
     "rowboat": {
       "src": "../actor/rowboat/"
     },
@@ -816,6 +830,12 @@
       "value": 2,
       "src": "../item/candle.png",
       "color": "#b9bcb9"
+    },
+    "honey": {
+      "collect": "treasure",
+      "value": 6,
+      "src": "../item/honey.png",
+      "color": "#d49d29"
     }
   },
   "props": {
@@ -1871,6 +1891,116 @@
         "required": [
           "id",
           "dir"
+        ]
+      }
+    },
+    "rabbit-hole": {
+      "src": "../prop/rabbit_hole.png",
+      "canEnter": true,
+      "growth": {
+        "stages": [
+          "../prop/rabbit_hole.png",
+          "../prop/rabbit_hole_ears.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    "fox-den": {
+      "src": "../prop/fox_den.png",
+      "canEnter": false,
+      "pushed": "fox-den",
+      "growth": {
+        "stages": [
+          "../prop/fox_den.png",
+          "../prop/fox_den_empty.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    "beehive": {
+      "src": "../prop/beehive.png",
+      "canEnter": false,
+      "pushed": "beehive",
+      "growth": {
+        "stages": [
+          "../prop/beehive.png",
+          "../prop/beehive_empty.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    "pen-gate": {
+      "src": "../prop/pen_gate_open.png",
+      "canEnter": true,
+      "growth": {
+        "stages": [
+          "../prop/pen_gate_open.png",
+          "../prop/pen_gate_shut.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "i0": {
+            "type": "number"
+          },
+          "j0": {
+            "type": "number"
+          },
+          "i1": {
+            "type": "number"
+          },
+          "j1": {
+            "type": "number"
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "i0",
+          "j0",
+          "i1",
+          "j1",
+          "count"
         ]
       }
     },

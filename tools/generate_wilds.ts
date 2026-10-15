@@ -265,6 +265,7 @@ enum T {
   BIO, // a biomechanical wall (BONE VALLEY); its kind is in bioChar
   CITY, // the city's ground (stamped in at the end)
   RUNE, // the carved floor of a waystone's circle
+  FENCE, // the fence of a sheep pen
 }
 const CELL: Record<T, string> = {
   [T.SEA]: "w",
@@ -292,6 +293,7 @@ const CELL: Record<T, string> = {
   [T.BIO]: "A",
   [T.CITY]: "b",
   [T.RUNE]: "R",
+  [T.FENCE]: "H",
 }
 /** The biomechanical wall kind (A-F) of each T.BIO cell */
 const bioChar = new Map<number, string>()
@@ -3326,24 +3328,157 @@ scatter(
     ),
 )
 
-// animals where they belong
+// animals where they belong, and the animal homes (model/den.ts,
+// ideas/animal-homes.md): by each village a sheep pen with its flock
+// grazing outside; out on the meadows the rabbits' warrens; in the
+// woods' edges the foxes' dens; and the beehives by the flowers
 const villageNodes = nodes.filter((n) => n.kind === "village")
-for (const v of villageNodes) {
-  // a flock of sheep on a meadow near the village
-  for (let n = 0; n < 200; n++) {
-    const a = rng() * Math.PI * 2, r = townR(v) + 6 + rng() * 25
-    const x = Math.round(v.x + Math.cos(a) * r),
-      y = Math.round(v.y + Math.sin(a) * r)
-    if (!inside(x, y) || terrain[idx(x, y)] !== T.MEADOW) continue
-    let placed = 0
-    for (const [dx, dy] of [[0, 0], [2, 1], [-1, 2]]) {
-      if (free(x + dx, y + dy) && terrain[idx(x + dx, y + dy)] === T.MEADOW) {
-        if (put(actors, x + dx, y + dy, "sheep")) placed++
+const homes = { pens: 0, warrens: 0, dens: 0, hives: 0 }
+const meadowFree = (x: number, y: number) =>
+  free(x, y) && terrain[idx(x, y)] === T.MEADOW && !roadCells.has(idx(x, y))
+{
+  /** the pen's fence: 9 x 7, a gate in the middle of the side facing (gx, gy) */
+  const PW = 9, PH = 7
+  for (const v of villageNodes) {
+    for (let n = 0; n < 400; n++) {
+      const a = rng() * Math.PI * 2, r = townR(v) + 8 + rng() * 24
+      const x0 = Math.round(v.x + Math.cos(a) * r) - 4,
+        y0 = Math.round(v.y + Math.sin(a) * r) - 3
+      // the pen and a margin of 2 all round
+      let fits = true
+      for (let y = y0 - 2; y < y0 + PH + 2 && fits; y++) {
+        for (let x = x0 - 2; x < x0 + PW + 2 && fits; x++) {
+          if (!inside(x, y) || !meadowFree(x, y)) fits = false
+        }
       }
+      if (!fits) continue
+      // the gate faces the village
+      const cx = x0 + 4, cy = y0 + 3
+      const dx = v.x - cx, dy = v.y - cy
+      const [gx, gy] = Math.abs(dx) > Math.abs(dy)
+        ? [dx > 0 ? x0 + PW - 1 : x0, cy]
+        : [cx, dy > 0 ? y0 + PH - 1 : y0]
+      for (let y = y0; y < y0 + PH; y++) {
+        for (let x = x0; x < x0 + PW; x++) {
+          const edge = x === x0 || y === y0 || x === x0 + PW - 1 ||
+            y === y0 + PH - 1
+          // the gateway, three wide
+          const gate = gx === cx
+            ? y === gy && Math.abs(x - gx) <= 1
+            : x === gx && Math.abs(y - gy) <= 1
+          if (edge && !gate) terrain[idx(x, y)] = T.FENCE
+          keepClear[idx(x, y)] = 1
+        }
+      }
+      const id = `${gx}.${gy}`
+      for (const k of [-1, 0, 1]) {
+        put(
+          props,
+          gx === cx ? gx + k : gx,
+          gx === cx ? gy : gy + k,
+          "pen-gate",
+          {
+            id,
+            i0: OI + x0 + 1,
+            j0: OJ + y0 + 1,
+            i1: OI + x0 + PW - 2,
+            j1: OJ + y0 + PH - 2,
+            count: 3,
+          },
+        )
+      }
+      // the sign beside the gate, outside
+      const [ox, oy] = [gx + Math.sign(gx - cx), gy + Math.sign(gy - cy)]
+      const [sx, sy] = gx === cx ? [ox + 2, oy] : [ox, oy + 2]
+      put(props, sx, sy, "sign", {
+        text: "THE SHEPHERD'S FOLD: THE GATE SHUTS ON A FULL FOLD OF THREE",
+      })
+      // the flock, grazing a little way off the far side
+      let flock = 0
+      for (let k = 0; k < 300 && flock < 3; k++) {
+        const fa = rng() * Math.PI * 2, fr = 7 + rng() * 6
+        const fx = Math.round(cx + Math.cos(fa) * fr),
+          fy = Math.round(cy + Math.sin(fa) * fr)
+        if (
+          inside(fx, fy) && meadowFree(fx, fy) &&
+          (fx < x0 - 1 || fx > x0 + PW || fy < y0 - 1 || fy > y0 + PH) &&
+          put(actors, fx, fy, "sheep")
+        ) flock++
+      }
+      homes.pens++
+      break
     }
-    if (placed > 0) break
   }
 }
+// the warrens: four holes round a patch of meadow, three rabbits
+scatter(70, W * H / 60, (x, y) => {
+  if (homes.warrens >= 8 * SCALE) return false
+  if (!meadowFree(x, y) || distRoad[idx(x, y)] < 6) return false
+  for (let dy = -5; dy <= 5; dy++) {
+    for (let dx = -5; dx <= 5; dx++) {
+      if (!inside(x + dx, y + dy) || !meadowFree(x + dx, y + dy)) return false
+    }
+  }
+  return rng() < 0.5
+}, (x, y) => {
+  const id = `${x}.${y}`
+  for (const [dx, dy] of [[-3, -2], [3, -3], [-2, 3], [4, 2]]) {
+    put(props, x + dx, y + dy, "rabbit-hole", { id })
+  }
+  for (const [dx, dy] of [[0, 0], [1, -1], [-1, 1]]) {
+    put(actors, x + dx, y + dy, "rabbit")
+  }
+  homes.warrens++
+})
+// the foxes' dens: at the forest's edge, the den's mouth to the open,
+// its fox curled nearby
+scatter(110, W * H / 60, (x, y) => {
+  const p = idx(x, y)
+  if (homes.dens >= 6 * SCALE) return false
+  if (!free(x, y) || terrain[p] !== T.FOREST) return false
+  // the forest behind (north), the open in front (south)
+  if (
+    terrain[idx(x, y - 1)] !== T.FOREST && terrain[idx(x, y - 1)] !== T.TREE
+  ) {
+    return false
+  }
+  for (let dy = 1; dy <= 3; dy++) {
+    for (let dx = -2; dx <= 2; dx++) {
+      if (!inside(x + dx, y + dy) || !free(x + dx, y + dy)) return false
+      if (!walkableCell(idx(x + dx, y + dy))) return false
+    }
+  }
+  return rng() < 0.5
+}, (x, y) => {
+  put(props, x, y, "fox-den", { id: `${x}.${y}` })
+  put(actors, x + 2, y + 2, "fox")
+  for (let dy = 1; dy <= 3; dy++) {
+    for (let dx = -2; dx <= 2; dx++) keepClear[idx(x + dx, y + dy)] = 1
+  }
+  homes.dens++
+})
+// the beehives: on the meadows near the water, where the flowers grow
+scatter(40, W * H / 20, (x, y) => {
+  const p = idx(x, y)
+  if (homes.hives >= 6 * SCALE) return false
+  if (!meadowFree(x, y) || distWater[p] > 4) return false
+  for (let dy = -2; dy <= 2; dy++) {
+    for (let dx = -2; dx <= 2; dx++) {
+      if (!inside(x + dx, y + dy) || !free(x + dx, y + dy)) return false
+      if (!walkableCell(idx(x + dx, y + dy))) return false
+    }
+  }
+  return rng() < 0.5
+}, (x, y) => {
+  put(props, x, y, "beehive", { id: `${x}.${y}` })
+  for (let dy = -3; dy <= 3; dy++) {
+    for (let dx = -3; dx <= 3; dx++) keepClear[idx(x + dx, y + dy)] = 1
+  }
+  homes.hives++
+})
+console.log(
+  `animal homes: ${homes.pens} pens, ${homes.warrens} warrens, ${homes.dens} dens, ${homes.hives} hives`,
+)
 // crows nest by the water near the coins; chasers in deep forest;
 // wanderers on the roads
 scatter(80, W * H / 100, (x, y) => {
@@ -4050,6 +4185,7 @@ if (previewAt >= 0) {
     [T.BIO]: Palette.violet3,
     [T.CITY]: Palette.pink3,
     [T.RUNE]: Palette.violet2,
+    [T.FENCE]: Palette.brown3,
   }
   const rgba = new Uint8Array(W * H * 4)
   for (let p = 0; p < W * H; p++) {

@@ -84,6 +84,10 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "trade-stall": { town: "DEBUG", good: "DEBRIS", cost: 1, prices: {} },
   pane: { shard: "shard-sky" },
   ferry: { to: "NOWHERE", path: "", land: "d" },
+  "rabbit-hole": { id: "sample" },
+  "fox-den": { id: "sample" },
+  beehive: { id: "sample" },
+  "pen-gate": { id: "sample", i0: 0, j0: 0, i1: 0, j1: 0, count: 99 },
   "guide-sage": { text: "SAGE: DEBUG LIES NORTH, ABOUT 50 STEPS" },
   "guide-sailor": { text: "SAILOR: DEBUG LIES EAST, ABOUT 50 STEPS" },
   "guide-farmer": { text: "FARMER: DEBUG LIES SOUTH, ABOUT 50 STEPS" },
@@ -158,7 +162,9 @@ const GARDEN_ROWS = 4
 const BAIT_Y = GARDEN_Y + 2 + GARDEN_ROWS * (PLOT_H + 2) + 1
 /** The top of the bait rooms (11 high, the way in at the bottom) */
 const BAIT_ROOM_Y = BAIT_Y + 4
-const height = BAIT_ROOM_Y + 13
+/** The animal homes (ideas/animal-homes.md), below the bait rooms */
+const HOMES_Y = BAIT_ROOM_Y + 14
+const height = HOMES_Y + 18
 rect(1, 1, width, height, "0")
 
 // title + arrival
@@ -420,6 +426,62 @@ rect(20, BAIT_Y + 1, 23, BAIT_Y + 2, "w")
     doorWall(r.x + 19, r.y + 4, r.y, "bait-d2")
     item(r.x + 20, r.y + 4, "big-candy")
   }
+}
+
+// the animal homes (model/den.ts): a warren, a sheep pen, a fox's den
+// and a beehive on a meadow
+letters(2, HOMES_Y, "HOMES")
+sign(8, HOMES_Y, "ANIMAL HOMES: A WARREN, A PEN, A DEN AND A HIVE")
+prop(22, 4, "portal", { i: BI + 3, j: BJ + HOMES_Y + 2 })
+sign(23, 4, "PORTAL: TO THE ANIMAL HOMES")
+prop(2, HOMES_Y + 2, "portal", { i: BI + 21, j: BJ + 4 })
+rect(1, HOMES_Y + 4, 60, HOMES_Y + 17, "6")
+{
+  const y = HOMES_Y + 5
+  // the warren: four holes, three rabbits, apples to hold one still
+  sign(2, y, "WARREN: COME CLOSE AND THEY BOLT. AN APPLE HOLDS ONE")
+  for (const [dx, dy] of [[0, 2], [7, 1], [1, 9], [8, 8]]) {
+    prop(3 + dx, y + dy, "rabbit-hole", { id: "debug" })
+  }
+  for (const [dx, dy] of [[4, 4], [5, 5], [3, 6]]) {
+    actor(3 + dx, y + dy, "rabbit")
+  }
+  // the apples wait by the portal, out of the rabbits' reach
+  for (let x = 13; x <= 15; x++) item(x, HOMES_Y + 2, "apple")
+  // the pen: a 9 x 7 fence, the gate at the bottom, the flock outside
+  const px = 16, py = y + 1
+  rect(px, py, px + 8, py + 6, "H")
+  rect(px + 1, py + 1, px + 7, py + 5, "6")
+  // the gateway, three wide
+  rect(px + 3, py + 6, px + 5, py + 6, "6")
+  for (let x = px + 3; x <= px + 5; x++) {
+    prop(x, py + 6, "pen-gate", {
+      id: "debug",
+      i0: BI + px + 1,
+      j0: BJ + py + 1,
+      i1: BI + px + 7,
+      j1: BJ + py + 5,
+      count: 3,
+    })
+  }
+  sign(
+    px + 5,
+    py + 7,
+    "THE SHEPHERD'S FOLD: THE GATE SHUTS ON A FULL FOLD OF THREE",
+  )
+  actor(px + 2, py + 9, "sheep")
+  actor(px + 5, py + 10, "sheep")
+  actor(px + 7, py + 9, "sheep")
+  // the fox's den: the fox beside it, fish and a pond to fish in
+  sign(30, y, "FOX'S DEN: THE FOX GUARDS ITS HOARD. A FISH PUTS IT TO SLEEP")
+  rect(31, y + 1, 37, y + 1, "1")
+  prop(34, y + 2, "fox-den", { id: "debug" })
+  actor(36, y + 4, "fox")
+  rect(30, y + 9, 32, y + 10, "w")
+  item(34, y + 11, "fish")
+  // the beehive: the bees go out to the flowers by turns
+  sign(44, y, "BEEHIVE: THE BEES GO OUT TO THE FLOWERS BY TURNS")
+  prop(48, y + 4, "beehive", { id: "debug" })
 }
 
 // ---------------------------------------------------------------------

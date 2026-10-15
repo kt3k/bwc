@@ -26,29 +26,54 @@
   },
   "actors": [
     {
-      "i": 2700,
-      "j": 1516,
+      "i": 2769,
+      "j": 1572,
       "type": "crow"
     },
     {
-      "i": 2788,
-      "j": 1463,
+      "i": 2768,
+      "j": 1471,
       "type": "chaser"
     },
     {
-      "i": 2744,
-      "j": 1550,
+      "i": 2689,
+      "j": 1535,
       "type": "chaser"
     },
     {
-      "i": 2749,
-      "j": 1416,
+      "i": 2698,
+      "j": 1429,
       "type": "chaser"
     },
     {
-      "i": 2712,
-      "j": 1406,
-      "type": "snail"
+      "i": 2752,
+      "j": 1562,
+      "type": "chaser"
+    },
+    {
+      "i": 2674,
+      "j": 1419,
+      "type": "block-fish"
+    },
+    {
+      "i": 2677,
+      "j": 1420,
+      "type": "block-fish"
+    },
+    {
+      "i": 2680,
+      "j": 1419,
+      "type": "block-fish"
+    },
+    {
+      "i": 2675,
+      "j": 1424,
+      "type": "block-fish"
+    },
+    {
+      "i": 2679,
+      "j": 1425,
+      "type": "block-fish"
     }
   ],
   "items": [
@@ -480,8 +505,46 @@
       "type": "flowers"
     },
     {
-      "i": 2691,
-      "j": 1442,
+      "i": 2673,
+      "j": 1445,
+      "type": "beehive",
+      "data": {
+        "id": "673.1445"
+      }
+    },
+    {
+      "i": 2795,
+      "j": 1529,
+      "type": "packed-box"
+    },
+    {
+      "i": 2629,
+      "j": 1427,
+      "type": "self-statue"
+    },
+    {
+      "i": 2625,
+      "j": 1579,
+      "type": "balloon-rock"
+    },
+    {
+      "i": 2625,
+      "j": 1578,
+      "type": "crate"
+    },
+    {
+      "i": 2624,
+      "j": 1579,
+      "type": "nest-jar-2"
+    },
+    {
+      "i": 2626,
+      "j": 1579,
+      "type": "egg-wall"
+    },
+    {
+      "i": 2641,
+      "j": 1451,
       "type": "paste-tube"
     }
   ],
@@ -664,8 +727,8 @@
     "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyyyywwwwwwwwwwwwwwwwwwyyyfffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwJwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwJJwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "wwwwwwwwwwwwwwwwwwwwwwwww6wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "wwwwwwwwwwwwwwwwwwwwwwww666wwwwwwwwwwwwwwwJJwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwJJwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwJwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwJwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",

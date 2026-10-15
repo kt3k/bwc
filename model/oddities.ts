@@ -39,6 +39,16 @@ import { LatchGatePushed, stepLatchGate } from "./shortcut.ts"
 import { PostBoxPushed } from "./errand.ts"
 import { TradeStallPushed } from "./trade.ts"
 import { FerryPushed, stepFerry } from "./ferry.ts"
+import {
+  BeeDelegate,
+  BeehivePushed,
+  FoxDenPushed,
+  RabbitDelegate,
+  stepBeehive,
+  stepFoxDen,
+  stepPenGate,
+  stepRabbitHole,
+} from "./den.ts"
 import { PanePushed, stepPane } from "./pane.ts"
 import type { Actor } from "./actor.ts"
 
@@ -897,6 +907,8 @@ export const ODD_PROP_PUSHED: Record<string, () => PushedDelegate> = {
   "trade-stall": () => new TradeStallPushed(),
   pane: () => new PanePushed(),
   ferry: () => new FerryPushed(),
+  "fox-den": () => new FoxDenPushed(),
+  beehive: () => new BeehivePushed(),
 }
 
 /** Per-frame behaviors of the oddity props, by type */
@@ -910,6 +922,10 @@ export const ODD_PROP_STEP: Record<
   "latch-gate": stepLatchGate,
   pane: stepPane,
   ferry: stepFerry,
+  "rabbit-hole": stepRabbitHole,
+  "pen-gate": stepPenGate,
+  "fox-den": stepFoxDen,
+  beehive: stepBeehive,
 }
 
 /**
@@ -1855,6 +1871,8 @@ export function clearLines(actor: IActor, field: IField): IActor[] {
 
 /** The oddity actor delegates, by the catalog's `idle` / `pushed` name */
 export const ODD_ACTORS: Record<string, new () => object> = {
+  rabbit: RabbitDelegate,
+  bee: BeeDelegate,
   spore: SporeDelegate,
   piggy: PiggyDelegate,
   fin: FinDelegate,

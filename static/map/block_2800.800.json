@@ -141,49 +141,49 @@
       "type": "keeper"
     },
     {
-      "i": 2951,
-      "j": 939,
+      "i": 2852,
+      "j": 839,
       "type": "sheep"
     },
     {
-      "i": 2953,
-      "j": 940,
+      "i": 2856,
+      "j": 852,
       "type": "sheep"
     },
     {
-      "i": 2950,
-      "j": 941,
+      "i": 2870,
+      "j": 842,
       "type": "sheep"
     },
     {
-      "i": 2824,
-      "j": 863,
+      "i": 2937,
+      "j": 839,
       "type": "chaser"
     },
     {
-      "i": 2924,
-      "j": 827,
+      "i": 2834,
+      "j": 907,
       "type": "chaser"
     },
     {
-      "i": 2817,
-      "j": 946,
-      "type": "chaser"
+      "i": 2881,
+      "j": 819,
+      "type": "random"
     },
     {
-      "i": 2873,
+      "i": 2918,
       "j": 901,
       "type": "random"
     },
     {
-      "i": 2884,
-      "j": 844,
-      "type": "random"
+      "i": 2841,
+      "j": 890,
+      "type": "spore"
     },
     {
-      "i": 2862,
-      "j": 853,
-      "type": "spore"
+      "i": 2971,
+      "j": 905,
+      "type": "piggy"
     }
   ],
   "items": [
@@ -2204,6 +2204,63 @@
       "data": {
         "text": "SAILOR: THORNBURY LIES SOUTH, ABOUT 100 STEPS. ASHFORD LIES EAST, ABOUT 250 STEPS"
       }
+    },
+    {
+      "i": 2859,
+      "j": 849,
+      "type": "pen-gate",
+      "data": {
+        "id": "860.849",
+        "i0": 2857,
+        "j0": 844,
+        "i1": 2863,
+        "j1": 848,
+        "count": 3
+      }
+    },
+    {
+      "i": 2860,
+      "j": 849,
+      "type": "pen-gate",
+      "data": {
+        "id": "860.849",
+        "i0": 2857,
+        "j0": 844,
+        "i1": 2863,
+        "j1": 848,
+        "count": 3
+      }
+    },
+    {
+      "i": 2861,
+      "j": 849,
+      "type": "pen-gate",
+      "data": {
+        "id": "860.849",
+        "i0": 2857,
+        "j0": 844,
+        "i1": 2863,
+        "j1": 848,
+        "count": 3
+      }
+    },
+    {
+      "i": 2862,
+      "j": 850,
+      "type": "sign",
+      "data": {
+        "text": "THE SHEPHERD'S FOLD: THE GATE SHUTS ON A FULL FOLD OF THREE"
+      }
+    },
+    {
+      "i": 2897,
+      "j": 843,
+      "type": "packed-box"
+    },
+    {
+      "i": 2969,
+      "j": 925,
+      "type": "drawer-tower"
     }
   ],
   "field": [
@@ -2250,13 +2307,13 @@
     "ffffffJfffffffffJJffffffJJffffffffffff666666666666666666666666666666666666666666336666666666666666666666666666666666ffffffffffffffffffffffffJJfffffJffffffffJJfffffffffppppppppppppppppppppppppppppppppp",
     "fJfffffffffJJfffffffffffffffffJffffffff66666666666666666666666666666666666666666333666666666666666666666666666666666fffffffffffffffffffffJJfffffJJffffffffffffJJfffffffppppppppppppppppppppppppppppppppp",
     "fJfffffffffffffffffJffffffffffffffffJJff6666666666666666666666666666666666666J663333366666666666666666666666666666666fJJfffffffJfffffffffJJffJJfJJfJJffffJfffffffffJJffppppppppppppppppppppppppppppppppp",
-    "fffJffffffffffffffffffffffffffffffffJJfff666666666666666666666666666666666666666633333666666JJ666666666666666666666666JJfJJffffJffffJJffffffffffffffffffffffffffJJffffJppppppppppppppppppppppppppppppppp",
-    "JffJfffJffffffffffffffffJffJffffffJJffffff6666666666666666666666666666J66666666666633336666666666666666666666666666666fffJJffffffJffffffffffffffffffffffffffffffffffffJfpppppp1ppppp1ppppppppppppppppppp",
-    "JffffffffffffffffffJfffffffJfffffffffJJfJff666666666666666666666666666J666666666666633336666666666666666666666666666666ffffffJffffffffffJffffffffffJJfffffffffffffffffffpppppppppppppppppppppppp1ppppppp",
-    "fffffffffJffJJfffffJffffffffffffffffffffJff66666666666666666666666666666666666666666633366666666666666666666666666666666fffffffffff6666fJfffffffffffffffJJfffffffJffffJJ1ppppppppppppppppppppppppppppppp",
-    "ffffffffffffJJffffffffffffffffJfffffffffffff666666666666666666666666666666666666666666336666666666666666666666666666J6666fJfffff6666666666fffJfffJffffffJJffffffffffffJJpppppppppppppppppppppppppppppppp",
-    "ffJffffffffffffJffffJJfffffffffffffffffffffJJ66666666666666666666666666666666666666666336666666666666666666666666666J66666666666666666666666fffffffffffffffffJfffffJJfffpppppppppppppppppppppppppppppppp",
-    "fffffffJJffffffffffffffffffJffffffJfffJJfffJJf666666666666666666666666666666666666666633666666666666666666666666666666666666666666666666666666ffffffffffJffffJffffffffffpppppppppppppp1ppppppppppppppppp",
+    "fffJffffffffffffffffffffffffffffffffJJfff666666666666666HHHHHHHHH666666666666666633333666666JJ666666666666666666666666JJfJJffffJffffJJffffffffffffffffffffffffffJJffffJppppppppppppppppppppppppppppppppp",
+    "JffJfffJffffffffffffffffJffJffffffJJffffff66666666666666H6666666H66666J66666666666633336666666666666666666666666666666fffJJffffffJffffffffffffffffffffffffffffffffffffJfpppppp1ppppp1ppppppppppppppppppp",
+    "JffffffffffffffffffJfffffffJfffffffffJJfJff6666666666666H6666666H66666J666666666666633336666666666666666666666666666666ffffffJffffffffffJffffffffffJJfffffffffffffffffffpppppppppppppppppppppppp1ppppppp",
+    "fffffffffJffJJfffffJffffffffffffffffffffJff6666666666666H6666666H6666666666666666666633366666666666666666666666666666666fffffffffff6666fJfffffffffffffffJJfffffffJffffJJ1ppppppppppppppppppppppppppppppp",
+    "ffffffffffffJJffffffffffffffffJfffffffffffff666666666666H6666666H666666666666666666666336666666666666666666666666666J6666fJfffff6666666666fffJfffJffffffJJffffffffffffJJpppppppppppppppppppppppppppppppp",
+    "ffJffffffffffffJffffJJfffffffffffffffffffffJJ66666666666H6666666H666666666666666666666336666666666666666666666666666J66666666666666666666666fffffffffffffffffJfffffJJfffpppppppppppppppppppppppppppppppp",
+    "fffffffJJffffffffffffffffffJffffffJfffJJfffJJf6666666666HHH666HHH66666666666666666666633666666666666666666666666666666666666666666666666666666ffffffffffJffffJffffffffffpppppppppppppp1ppppppppppppppppp",
     "fffffffffffJJffffffffffffffJffffffffffffffffff66666666666666666666666666666666666666663366666666666666666666666666666666666666666666666666666666ffffffffJfffffffffffffffpppppppppppppppppppppppppppppppp",
     "fffffffffffJJfffffJfffffJJfffffffffffffffffffff666666666666666666666666666666666666666336666666666666666J666666666666666666666666666666666666666666ffJfffffffffffffffJfffpppppppppppppppppppppp1pppppppp",
     "ffffffffffffffJJffJffffffffffffffffJffJJfffffff666666666666666666666666666666666666666336666666666666666J666666666J66666666666666666666666666666666666fffJfffffffJffff666ppppppppppppppppppppppppppppppp",
