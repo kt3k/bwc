@@ -35,7 +35,15 @@ import { loadCatalog } from "../model/catalog.ts"
 import { Palette } from "../util/palette.ts"
 import { encodePng } from "./png.ts"
 import { fbm } from "./noise.ts"
-import { cellKey, cellsOf, HUT, layPlan, PLANS } from "./house_plans.ts"
+import {
+  cellKey,
+  cellsOf,
+  HUT,
+  layPlan,
+  ODD_KINDS,
+  PLANS,
+  type RoomKind,
+} from "./house_plans.ts"
 
 type Spawn = { i: number; j: number; type: string; data?: unknown }
 
@@ -873,7 +881,6 @@ export async function buildCity(
 
   /** A room of a house: its walls (inclusive), its kind, and the cells
    * kept clear of furniture (the doorways and their steps) */
-  type RoomKind = "kitchen" | "dining" | "bedroom" | "bathroom"
   type Room = Rect & { kind: RoomKind; keep: Set<string> }
 
   /** Furnishes one room (the pieces after FF5's town interiors): the
@@ -890,6 +897,30 @@ export async function buildCity(
       used.add(cellKey(x, y))
       put(props, x, y, type)
       return true
+    }
+    // the rooms of the odd houses: one thing, over and over
+    if (ODD_KINDS.includes(kind)) {
+      if (kind === "dormitory") {
+        for (let x = x0 + 1; x < x1; x += 2) {
+          if (free(x, y0 + 1) && free(x, y0 + 2)) {
+            take(x, y0 + 1, "bed-head")
+            take(x, y0 + 2, "bed-foot")
+          }
+        }
+      } else if (kind === "privies") {
+        for (let x = x0 + 1; x < x1; x++) take(x, y0 + 1, "toilet")
+      } else if (kind === "library") {
+        for (let x = x0 + 1; x < x1; x++) {
+          take(x, y0 + 1, "bookshelf")
+          if (y1 - 1 > y0 + 1) take(x, y1 - 1, "bookshelf")
+        }
+      } else if (kind === "candlelit") {
+        for (let x = x0 + 1; x < x1; x += 2) take(x, y0 + 1, "candles")
+        for (let y = y0 + 3; y < y1; y += 2) {
+          if (free(x0 + 2, y)) put(items, x0 + 2, y, "candle")
+        }
+      }
+      return
     }
     if (kind === "dining") {
       take(x0 + 2, y0 + 2, "table-l")
@@ -924,14 +955,14 @@ export async function buildCity(
         }
       }
     }
-    const SETS: Record<RoomKind, string[]> = {
+    const SETS: Partial<Record<RoomKind, string[]>> = {
       kitchen: ["counter", "stove", n % 2 ? "cauldron" : "kettle", "hearth"],
       dining: ["dish-shelf", "flower-pot", n % 2 ? "candles" : "washtub"],
       bedroom: ["wardrobe", "desk", "bookshelf", n % 2 ? "globe" : "candles"],
       bathroom: ["sink", "towel-rack", "shower"],
     }
     let wx = x0 + 1
-    for (const piece of SETS[kind]) {
+    for (const piece of SETS[kind] ?? []) {
       for (; wx < x1; wx++) {
         if (take(wx, y0 + 1, piece)) {
           wx++

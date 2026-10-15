@@ -59,9 +59,12 @@ import { type Kind, MAKERS } from "./minipuzzles.ts"
 import {
   cellKey,
   cellsOf,
+  GROW_STYLES,
+  growPlan,
   type HousePlan,
   HUT,
   layPlan,
+  ODD_KINDS,
   PLANS,
   type RoomKind,
 } from "./house_plans.ts"
@@ -954,7 +957,13 @@ for (const n of nodes) {
   }
   // the houses that stood before the streets: a few old houses set
   // down where they pleased (off the heart of the town and off the
-  // ring street and the town wall), and the streets go round them
+  // ring street and the town wall), and the streets go round them.
+  // What can never be built on or over - water, the town's set
+  // pieces, the map's edge, a house there already - is kept out of
+  // the running from the start: a door is only tried where nothing
+  // of the kind lies within 3 cells, and rock and sand in the way
+  // are levelled (layHouse). A village in five has an odd house too,
+  // grown room by room, tried first while there is room for it
   const oldDoors: [number, number, number, number][] = []
   {
     const layout = layoutOf(n)
@@ -973,19 +982,72 @@ for (const n of nodes) {
           return d >= 16
       }
     }
-    const count = 1 + randomInt(3)
-    let built = 0
-    for (let k = 0; k < 60 && built < count; k++) {
-      const a = rng() * Math.PI * 2, d = 12 + rng() * (R - 26)
-      const dx = Math.round(Math.cos(a) * d), dy = Math.round(Math.sin(a) * d)
-      if (!okAt(dx, dy)) continue
-      const [nx, ny] = shuffle([[1, 0], [-1, 0], [0, 1], [0, -1]])[0]
-      // the spot stands for the street: two cells out of the door
-      const sx = cx + dx - 2 * nx, sy = cy + dy - 2 * ny
-      if (house(n.name, sx, sy, nx, ny, undefined, false, true)) {
-        oldDoors.push([cx + dx, cy + dy, nx, ny])
-        built++
+    const hard = (x: number, y: number) => {
+      if (!inside(x, y)) return true
+      const t = terrain[idx(x, y)] as T
+      return isWater(t) || t === T.PLAZA || t === T.RAMPART ||
+        t === T.FIELD || isHouse(t) || ponds.has(idx(x, y))
+    }
+    const candidates = () => {
+      const out: [number, number][] = []
+      for (let dy = -R; dy <= R; dy++) {
+        for (let dx = -R; dx <= R; dx++) {
+          if (!okAt(dx, dy)) continue
+          let clear = true
+          for (let my = -3; my <= 3 && clear; my++) {
+            for (let mx = -3; mx <= 3; mx++) {
+              if (hard(cx + dx + mx, cy + dy + my)) {
+                clear = false
+                break
+              }
+            }
+          }
+          if (clear) out.push([cx + dx, cy + dy])
+        }
       }
+      return shuffle(out)
+    }
+    const tryAt = (plan: HousePlan, tries: number) => {
+      for (const [x, y] of candidates().slice(0, tries)) {
+        for (const [nx, ny] of shuffle([[1, 0], [-1, 0], [0, 1], [0, -1]])) {
+          const flip = rng() < 0.5 ? 1 : -1
+          // the spot stands for the street: two cells out of the door
+          if (
+            layHouse(
+              n.name,
+              x - 2 * nx,
+              y - 2 * ny,
+              nx,
+              ny,
+              plan,
+              flip,
+              RESIDENTS[residents % RESIDENTS.length],
+              true,
+            )
+          ) {
+            oldDoors.push([x, y, nx, ny])
+            return true
+          }
+        }
+      }
+      return false
+    }
+    if (rng() < 0.2) {
+      const style = GROW_STYLES[randomInt(GROW_STYLES.length)]
+      for (let rooms = 10 + randomInt(11); rooms >= 6; rooms -= 3) {
+        const plan = growPlan(rng, rooms, style)
+        if (plan.rooms.length < 6) continue
+        if (tryAt(plan, 120)) {
+          console.log(
+            `${n.name}: an odd ${style} house of ${plan.rooms.length} rooms`,
+          )
+          break
+        }
+      }
+    }
+    const count = 1 + randomInt(3)
+    for (let k = 0; k < count; k++) {
+      tryAt(PLANS[randomInt(PLANS.length)], 40) || tryAt(HUT, 40)
     }
   }
   switch (layoutOf(n)) {
@@ -1026,8 +1088,10 @@ for (const n of nodes) {
           ], [cx + S, cy + d]]
         ) {
           if (!inside(x, y) || isWater(terrain[idx(x, y)] as T)) continue
-          // the gates: 3 wide where the middle streets go out
+          // the gates: 3 wide where the middle streets go out; a house
+          // older than the wall stands in it, its own walls the wall
           if (Math.abs(d) <= 1 || d === 2) continue
+          if (isHouse(terrain[idx(x, y)] as T)) continue
           terrain[idx(x, y)] = T.RAMPART
         }
       }
@@ -1052,6 +1116,7 @@ for (const n of nodes) {
       for (let y = cy - 14; y <= cy - 3; y++) {
         for (let x = cx + 12; x <= cx + 28; x++) {
           if (!inside(x, y) || isWater(terrain[idx(x, y)] as T)) continue
+          if (isHouse(terrain[idx(x, y)] as T)) continue
           terrain[idx(x, y)] = T.FIELD
         }
       }
@@ -1128,6 +1193,30 @@ function furnishRoom(r: Room, n: number, gaps: Set<string>) {
     put(props, x, y, type)
     return true
   }
+  // the rooms of the odd houses: one thing, over and over
+  if (ODD_KINDS.includes(kind)) {
+    if (kind === "dormitory") {
+      for (let x = x0 + 1; x < x1; x += 2) {
+        if (free(x, y0 + 1) && free(x, y0 + 2)) {
+          take(x, y0 + 1, "bed-head")
+          take(x, y0 + 2, "bed-foot")
+        }
+      }
+    } else if (kind === "privies") {
+      for (let x = x0 + 1; x < x1; x++) take(x, y0 + 1, "toilet")
+    } else if (kind === "library") {
+      for (let x = x0 + 1; x < x1; x++) {
+        take(x, y0 + 1, "bookshelf")
+        if (y1 - 1 > y0 + 1) take(x, y1 - 1, "bookshelf")
+      }
+    } else if (kind === "candlelit") {
+      for (let x = x0 + 1; x < x1; x += 2) take(x, y0 + 1, "candles")
+      for (let y = y0 + 3; y < y1; y += 2) {
+        if (free(x0 + 2, y)) put(items, x0 + 2, y, "candle")
+      }
+    }
+    return
+  }
   // the middle of the room
   if (kind === "dining") {
     take(x0 + 2, y0 + 2, "table-l")
@@ -1164,14 +1253,14 @@ function furnishRoom(r: Room, n: number, gaps: Set<string>) {
     }
   }
   // the top wall dressed to match
-  const SETS: Record<RoomKind, string[]> = {
+  const SETS: Partial<Record<RoomKind, string[]>> = {
     kitchen: ["counter", "stove", n % 2 ? "cauldron" : "kettle", "hearth"],
     dining: ["dish-shelf", "flower-pot", n % 2 ? "candles" : "washtub"],
     bedroom: ["wardrobe", "desk", "bookshelf", n % 2 ? "globe" : "candles"],
     bathroom: ["sink", "towel-rack", "shower"],
   }
   let wx = x0 + 1
-  for (const piece of SETS[kind]) {
+  for (const piece of SETS[kind] ?? []) {
     for (; wx < x1; wx++) {
       if (take(wx, y0 + 1, piece)) {
         wx++
@@ -1248,15 +1337,31 @@ function layHouse(
   const doorX = sx + 2 * nx, doorY = sy + 2 * ny
   const laid = layPlan(plan, [doorX, doorY], [nx, ny], flip)
   const cells = cellsOf(laid)
-  // room for the whole of it and a cell of margin all round
+  // room for the whole of it and a cell of margin all round. A house
+  // older than the streets makes its own room: rock and sand under it
+  // or beside it are levelled to meadow
+  const soft = (t: T) => old && (t === T.ROCK || t === T.SAND)
   for (const [x, y] of cells) {
     for (let dy = -1; dy <= 1; dy++) {
       for (let dx = -1; dx <= 1; dx++) {
         if (!inside(x + dx, y + dy)) return false
         const q = idx(x + dx, y + dy)
-        const t = terrain[q]
-        if (!(t === T.MEADOW || t === T.FOREST || t === T.HILL)) return false
+        const t = terrain[q] as T
+        if (!(t === T.MEADOW || t === T.FOREST || t === T.HILL || soft(t))) {
+          return false
+        }
         if (taken.has(q) || roadCells.has(q)) return false
+      }
+    }
+  }
+  if (old) {
+    for (const [x, y] of cells) {
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const q = idx(x + dx, y + dy)
+          if (soft(terrain[q] as T)) terrain[q] = T.MEADOW
+          keepClear[q] = 1
+        }
       }
     }
   }
@@ -1284,6 +1389,16 @@ function layHouse(
   const inX = doorX + nx, inY = doorY + ny
   put(actors, inX, inY, resident)
   residents++
+  // an odd house holds more folk, one to every few rooms
+  for (let k = 4; k < laid.rooms.length; k += 4) {
+    const r = laid.rooms[k]
+    put(
+      actors,
+      r.x0 + ((r.x1 - r.x0) >> 1),
+      r.y1 - 1,
+      RESIDENTS[residents++ % RESIDENTS.length],
+    )
+  }
   // a shop sign beside some doors (on the wall cell next to it)
   if (signs < VILLAGER_SIGNS.length && ny !== 0) {
     put(props, doorX + 1, doorY, VILLAGER_SIGNS[signs++])
@@ -1306,6 +1421,20 @@ function housesAt(
       house(n.name, sx, sy, nx, ny, residentsOf(built)) ||
       house(n.name, sx, sy, nx, ny, residentsOf(built), true)
     ) built++
+  }
+  // short of three houses (an island village hemmed in by the sea),
+  // huts are tried halfway between the spots too
+  if (built < 3) {
+    for (const [sx, sy, nx, ny] of shuffle(spots)) {
+      if (built >= 3) break
+      for (const o of [-5, 5]) {
+        const [tx, ty] = nx !== 0 ? [sx, sy + o] : [sx + o, sy]
+        if (house(n.name, tx, ty, nx, ny, residentsOf(built), true)) {
+          built++
+          break
+        }
+      }
+    }
   }
 }
 

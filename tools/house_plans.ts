@@ -10,7 +10,26 @@
 // ground, write the walls and floors their own way, and furnish the
 // rooms.
 
-export type RoomKind = "kitchen" | "dining" | "bedroom" | "bathroom"
+export type RoomKind =
+  | "kitchen"
+  | "dining"
+  | "bedroom"
+  | "bathroom"
+  // the rooms of the odd houses (growPlan): no one lives like this
+  | "dormitory"
+  | "privies"
+  | "library"
+  | "candlelit"
+  | "empty"
+
+/** The kinds of room only an odd house has */
+export const ODD_KINDS: RoomKind[] = [
+  "dormitory",
+  "privies",
+  "library",
+  "candlelit",
+  "empty",
+]
 
 export type PlanRoom = {
   x0: number
@@ -197,4 +216,123 @@ export function cellsOf(laid: LaidPlan): [number, number][] {
     const [x, y] = k.split(",").map(Number)
     return [x, y]
   })
+}
+
+// ---------------------------------------------------------------------
+// the odd houses: plans grown room by room, as no builder would
+
+export type GrowStyle = "snake" | "spiral" | "warren" | "grid"
+export const GROW_STYLES: GrowStyle[] = ["snake", "spiral", "warren", "grid"]
+
+/**
+ * Grows a plan of about `rooms` rooms (fewer if the growing gets
+ * stuck). From the front room, each new room is set against a wall
+ * of a room that is there, sharing a stretch of it 3 cells or more,
+ * and a doorway is cut in that stretch:
+ *
+ * - snake: each room against the last, so they wind off in a line
+ * - spiral: the snake turning the same way every room
+ * - warren: against any room, so it clumps and branches
+ * - grid: rooms of a size in rows and columns, a doorway between
+ *   every two neighbors, so the ways round loop
+ *
+ * Nothing goes below the front room's bottom wall, where the door is.
+ */
+export function growPlan(
+  rng: () => number,
+  rooms: number,
+  style: GrowStyle,
+): HousePlan {
+  const ri = (lo: number, hi: number) => lo + Math.floor(rng() * (hi - lo + 1))
+  const pick = () => ODD_KINDS[Math.floor(rng() * ODD_KINDS.length)]
+  if (style === "grid") {
+    const cols = Math.max(2, Math.min(5, Math.round(Math.sqrt(rooms))))
+    const rows = Math.max(2, Math.ceil(rooms / cols))
+    const w = 6, h = 6
+    const kind = pick()
+    const out: PlanRoom[] = []
+    const gaps: [number, number][] = []
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const x0 = c * w, y0 = r * h
+        out.push({ x0, y0, x1: x0 + w, y1: y0 + h, kind })
+        if (c > 0) gaps.push([x0, y0 + (h >> 1)])
+        if (r > 0) gaps.push([x0 + (w >> 1), y0])
+      }
+    }
+    return {
+      name: "grid",
+      rooms: out,
+      door: [(cols >> 1) * w + (w >> 1), rows * h],
+      gaps,
+    }
+  }
+  const first: PlanRoom = {
+    x0: 0,
+    y0: 0,
+    x1: ri(5, 8),
+    y1: ri(5, 8),
+    kind: pick(),
+  }
+  const out: PlanRoom[] = [first]
+  const gaps: [number, number][] = []
+  let turn = ri(0, 3)
+  for (let tries = 0; out.length < rooms && tries < rooms * 40; tries++) {
+    // boxed in for long, a snake or spiral grows from any room instead
+    const parent = style === "warren" || tries > rooms * 20
+      ? out[Math.floor(rng() * out.length)]
+      : out[out.length - 1]
+    // 0 north, 1 east, 2 south, 3 west (a spiral turns on, blocked or not)
+    const side = style === "spiral" ? turn++ % 4 : ri(0, 3)
+    if (parent === first && side === 2) continue
+    const [lo, hi] = style === "warren"
+      ? [4, 6]
+      : style === "snake"
+      ? [4, 9]
+      : [5, 7]
+    const nw = ri(lo, hi), nh = ri(lo, hi)
+    let r: PlanRoom
+    if (side === 0 || side === 2) {
+      const off = ri(-(nw - 3), parent.x1 - parent.x0 - 3)
+      const x0 = parent.x0 + off
+      r = side === 0
+        ? { x0, y0: parent.y0 - nh, x1: x0 + nw, y1: parent.y0, kind: pick() }
+        : { x0, y0: parent.y1, x1: x0 + nw, y1: parent.y1 + nh, kind: pick() }
+    } else {
+      const off = ri(-(nh - 3), parent.y1 - parent.y0 - 3)
+      const y0 = parent.y0 + off
+      r = side === 1
+        ? { x0: parent.x1, y0, x1: parent.x1 + nw, y1: y0 + nh, kind: pick() }
+        : { x0: parent.x0 - nw, y0, x1: parent.x0, y1: y0 + nh, kind: pick() }
+    }
+    if (r.y1 > first.y1) continue
+    // against the rooms there, a room may share a wall line, no more
+    const fits = out.every((o) => {
+      const ix0 = Math.max(o.x0, r.x0), ix1 = Math.min(o.x1, r.x1)
+      const iy0 = Math.max(o.y0, r.y0), iy1 = Math.min(o.y1, r.y1)
+      return ix0 > ix1 || iy0 > iy1 || ix0 === ix1 || iy0 === iy1
+    })
+    if (!fits) continue
+    // the doorway in the shared stretch, off both rooms' corners
+    if (side === 0 || side === 2) {
+      const gx = ri(
+        Math.max(parent.x0, r.x0) + 1,
+        Math.min(parent.x1, r.x1) - 1,
+      )
+      gaps.push([gx, side === 0 ? parent.y0 : parent.y1])
+    } else {
+      const gy = ri(
+        Math.max(parent.y0, r.y0) + 1,
+        Math.min(parent.y1, r.y1) - 1,
+      )
+      gaps.push([side === 1 ? parent.x1 : parent.x0, gy])
+    }
+    out.push(r)
+  }
+  return {
+    name: style,
+    rooms: out,
+    door: [first.x1 >> 1, first.y1],
+    gaps,
+  }
 }
