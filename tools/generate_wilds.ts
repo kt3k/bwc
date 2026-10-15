@@ -3680,6 +3680,22 @@ for (let round = 0; round < 50; round++) {
   }
   if (pockets.length === 0) break
   for (const cells of pockets) {
+    // a pocket walled in by a house on every side (the odd houses
+    // grow round such light-wells) is a courtyard: left as it is,
+    // flowers in it
+    const walledIn = cells.every((c) => {
+      const x = c % W, y = (c / W) | 0
+      return D4.every(([dx, dy]) => {
+        const q = idx(x + dx, y + dy)
+        return pocketOf[q] === pocketOf[c] ||
+          terrain[q] === T.WALL || terrain[q] === T.STONEWALL
+      })
+    })
+    if (walledIn && cells.length < 30) {
+      const c = cells[0]
+      put(props, c % W, (c / W) | 0, "flowers")
+      continue
+    }
     if (cells.length < 30) {
       // too small to matter: grown over
       for (const c of cells) {
