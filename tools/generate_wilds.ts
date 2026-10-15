@@ -1373,10 +1373,10 @@ function buildCrossroads(n: Node, count: number) {
   put(actors, cx - 1, cy - R + 2, "lady-knight")
   kidsAndCat(cx + 6, cy + 6)
   housesAt(n, [
-    ...alongStreet(cx, cy, 1, 0, 10, R - 6, 14),
-    ...alongStreet(cx, cy, -1, 0, 10, R - 6, 14),
-    ...alongStreet(cx, cy, 0, 1, 10, R - 6, 14),
-    ...alongStreet(cx, cy, 0, -1, 10, R - 6, 14),
+    ...alongStreet(cx, cy, 1, 0, 10, R - 6, 10),
+    ...alongStreet(cx, cy, -1, 0, 10, R - 6, 10),
+    ...alongStreet(cx, cy, 0, 1, 10, R - 6, 10),
+    ...alongStreet(cx, cy, 0, -1, 10, R - 6, 10),
   ], count)
   // lamp posts along the main streets
   for (let t = 8; t < R; t += 8) {
