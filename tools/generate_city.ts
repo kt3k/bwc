@@ -38,6 +38,8 @@ import { fbm } from "./noise.ts"
 import {
   cellKey,
   cellsOf,
+  GROW_STYLES,
+  growPlan,
   HUT,
   layPlan,
   ODD_KINDS,
@@ -1200,6 +1202,11 @@ export async function buildCity(
     const n = buildings.length
     for (const r of laid.rooms) furnishRoom(r, n, laid.gaps)
     put(actors, ...b.inner, resident(district))
+    // an odd house holds more folk, one to every few rooms
+    for (let k = 4; k < laid.rooms.length; k += 4) {
+      const r = laid.rooms[k]
+      put(actors, r.x0 + ((r.x1 - r.x0) >> 1), r.y1 - 1, resident(district))
+    }
     return b
   }
 
@@ -1217,8 +1224,7 @@ export async function buildCity(
       yard(area)
       return
     }
-    for (const side of sides.slice(0, 2)) {
-      const [dx, dy] = SIDE_DIR[side]
+    const frontOf = (side: Side) => {
       const horizontal = side === "n" || side === "s"
       const [from, to] = horizontal ? [area.x0, area.x1] : [area.y0, area.y1]
       const wallAt = side === "n"
@@ -1228,6 +1234,39 @@ export async function buildCity(
         : side === "w"
         ? area.x0
         : area.x1
+      const doorAt = (along: number): [number, number] =>
+        horizontal ? [along, wallAt] : [wallAt, along]
+      return { horizontal, from, to, doorAt }
+    }
+    // an odd house in a lot in six, grown room by room to the lot's
+    // depth and half its front (its door in the middle), grown again
+    // and shrunk until one fits
+    if (rng() < 0.16) {
+      const side = sides[0]
+      const { horizontal, from, to, doorAt } = frontOf(side)
+      const style = GROW_STYLES[randomInt(GROW_STYLES.length)]
+      const limits = {
+        depth: horizontal ? area.y1 - area.y0 : area.x1 - area.x0,
+        halfWidth: Math.max(2, ((to - from) >> 1) - 1),
+      }
+      const door = doorAt(from + ((to - from) >> 1))
+      odd: for (let rooms = 10 + randomInt(11); rooms >= 5; rooms -= 2) {
+        for (let k = 0; k < 4; k++) {
+          const plan = growPlan(rng, rooms, style, limits)
+          if (plan.rooms.length < 5) continue
+          const flip = rng() < 0.5 ? 1 : -1
+          if (layHousePlan(plan, flip, door, side, lot.district)) {
+            console.log(
+              `${cityName}: an odd ${style} house of ${plan.rooms.length} rooms`,
+            )
+            break odd
+          }
+        }
+      }
+    }
+    for (const side of sides.slice(0, 2)) {
+      const [dx, dy] = SIDE_DIR[side]
+      const { horizontal, from, to, doorAt } = frontOf(side)
       let cursor = from
       while (cursor <= to) {
         let built: Building | null = null
@@ -1240,10 +1279,13 @@ export async function buildCity(
               : [probe.bounds.y0, probe.bounds.y1]
             const doorAlong = cursor - lo
             if (doorAlong + hi > to) continue
-            const door: [number, number] = horizontal
-              ? [doorAlong, wallAt]
-              : [wallAt, doorAlong]
-            built = layHousePlan(plan, flip, door, side, lot.district)
+            built = layHousePlan(
+              plan,
+              flip,
+              doorAt(doorAlong),
+              side,
+              lot.district,
+            )
             if (built) {
               cursor = doorAlong + hi + 2
               break

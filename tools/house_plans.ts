@@ -237,11 +237,15 @@ export const GROW_STYLES: GrowStyle[] = ["snake", "spiral", "warren", "grid"]
  *   every two neighbors, so the ways round loop
  *
  * Nothing goes below the front room's bottom wall, where the door is.
+ * With `limits`, nothing reaches deeper than `depth` cells up from the
+ * door's wall, or farther than `halfWidth` cells to either side of
+ * the door (a city block only has so much room behind the street).
  */
 export function growPlan(
   rng: () => number,
   rooms: number,
   style: GrowStyle,
+  limits?: { depth: number; halfWidth: number },
 ): HousePlan {
   const ri = (lo: number, hi: number) => lo + Math.floor(rng() * (hi - lo + 1))
   const pick = () => ODD_KINDS[Math.floor(rng() * ODD_KINDS.length)]
@@ -250,22 +254,19 @@ export function growPlan(
     const rows = Math.max(2, Math.ceil(rooms / cols))
     const w = 6, h = 6
     const kind = pick()
-    const out: PlanRoom[] = []
-    const gaps: [number, number][] = []
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const x0 = c * w, y0 = r * h
-        out.push({ x0, y0, x1: x0 + w, y1: y0 + h, kind })
-        if (c > 0) gaps.push([x0, y0 + (h >> 1)])
-        if (r > 0) gaps.push([x0 + (w >> 1), y0])
-      }
+    if (limits) {
+      // as many rows as fit the depth, the rest of the rooms as columns
+      const rowsIn = Math.max(1, Math.min(rows, Math.floor(limits.depth / h)))
+      const colsIn = Math.max(
+        2,
+        Math.min(
+          Math.ceil(rooms / rowsIn),
+          Math.floor(2 * limits.halfWidth / w),
+        ),
+      )
+      return growGrid(rowsIn, colsIn, w, h, kind)
     }
-    return {
-      name: "grid",
-      rooms: out,
-      door: [(cols >> 1) * w + (w >> 1), rows * h],
-      gaps,
-    }
+    return growGrid(rows, cols, w, h, kind)
   }
   const first: PlanRoom = {
     x0: 0,
@@ -306,6 +307,11 @@ export function growPlan(
         : { x0: parent.x0 - nw, y0, x1: parent.x0, y1: y0 + nh, kind: pick() }
     }
     if (r.y1 > first.y1) continue
+    if (
+      limits && (first.y1 - r.y0 > limits.depth ||
+        Math.abs(r.x0 - (first.x1 >> 1)) > limits.halfWidth ||
+        Math.abs(r.x1 - (first.x1 >> 1)) > limits.halfWidth)
+    ) continue
     // against the rooms there, a room may share a wall line, no more
     const fits = out.every((o) => {
       const ix0 = Math.max(o.x0, r.x0), ix1 = Math.min(o.x1, r.x1)
@@ -333,6 +339,33 @@ export function growPlan(
     name: style,
     rooms: out,
     door: [first.x1 >> 1, first.y1],
+    gaps,
+  }
+}
+
+/** The grid plan: rooms of a size in rows and columns, a doorway
+ * between every two neighbors, the door under the middle column */
+function growGrid(
+  rows: number,
+  cols: number,
+  w: number,
+  h: number,
+  kind: RoomKind,
+): HousePlan {
+  const out: PlanRoom[] = []
+  const gaps: [number, number][] = []
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x0 = c * w, y0 = r * h
+      out.push({ x0, y0, x1: x0 + w, y1: y0 + h, kind })
+      if (c > 0) gaps.push([x0, y0 + (h >> 1)])
+      if (r > 0) gaps.push([x0 + (w >> 1), y0])
+    }
+  }
+  return {
+    name: "grid",
+    rooms: out,
+    door: [(cols >> 1) * w + (w >> 1), rows * h],
     gaps,
   }
 }
