@@ -249,6 +249,7 @@ enum T {
   BRIDGE,
   PLAZA,
   WALL,
+  OLDWALL, // the stone wall of a house older than the streets
   FLOOR,
   TREE,
   STONE, // shrine / ruins floor
@@ -275,6 +276,7 @@ const CELL: Record<T, string> = {
   [T.BRIDGE]: "d",
   [T.PLAZA]: "c",
   [T.WALL]: "V", // wall_planks: the wooden houses
+  [T.OLDWALL]: "M", // wall_masonry: the old stone houses
   [T.FLOOR]: "d",
   [T.TREE]: "J", // wall_canopy: the trees, a mass of leaves
   [T.STONE]: "m",
@@ -754,6 +756,7 @@ function stepCost(p: number, q: number): number {
   switch (t) {
     case T.SEA:
     case T.WALL:
+    case T.OLDWALL:
     case T.RUIN:
     case T.RAMPART: // the town walls: the roads come in by the gates
     case T.BIO:
@@ -806,13 +809,38 @@ function route(ax: number, ay: number, bx: number, by: number): number[] {
 const roadCells = new Set<number>()
 /** The town ponds: the roads stop at the bank (no bridge to the middle) */
 const ponds = new Set<number>()
+/** A house's cells, which no road or street is laid over */
+const isHouse = (t: T) => t === T.WALL || t === T.OLDWALL || t === T.FLOOR
 function lay(p: number) {
-  const t = terrain[p]
+  const t = terrain[p] as T
   if (t === T.PLAZA || t === T.STONE || t === T.CAMP || ponds.has(p)) return
+  if (isHouse(t)) return
   terrain[p] = isWater(t) ? T.BRIDGE : t === T.BRIDGE ? T.BRIDGE : T.ROAD
   keepClear[p] = 1
   roadCells.add(p)
 }
+const houses: {
+  x0: number
+  y0: number
+  x1: number
+  y1: number
+  village: string
+}[] = []
+const VILLAGER_SIGNS = ["sign-inn", "sign-item", "sign-pub", "sign-weapon"]
+/** Who lives in the houses, in turn (the folk of kt3k/ff5study among them) */
+const RESIDENTS = [
+  "villager",
+  "blacksmith",
+  "villager2",
+  "inventor",
+  "thief",
+  "villager",
+  "assassin",
+  "villager2",
+]
+let residents = 0
+let signs = 0
+
 // ---------------------------------------------------------------------
 // the towns' ground: cleared land, streets, walls and ponds, laid before
 // the roads so that the roads join the streets (and come in by the gates)
@@ -830,18 +858,67 @@ const layoutOf = (n: Node): Layout =>
     "crossroads") as Layout
 const townR = (n: Node) => TOWN_R[layoutOf(n)]
 
-/** A straight street, 2 cells wide (the second cell right or below) */
+/**
+ * A street, 2 cells wide (the second cell right or below). It wants
+ * to run straight from end to end, but the houses that stood before
+ * it (and a cell round each) it goes round, as real streets do. Where
+ * no way through is found (an end in the sea), it is laid straight,
+ * skipping the water.
+ */
 function street(x0: number, y0: number, x1: number, y1: number) {
-  const steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))
-  const sx = Math.sign(x1 - x0), sy = Math.sign(y1 - y0)
-  for (let k = 0; k <= steps; k++) {
-    const x = x0 + sx * k, y = y0 + sy * k
-    for (const [dx, dy] of sx !== 0 ? [[0, 0], [0, 1]] : [[0, 0], [1, 0]]) {
-      if (!inside(x + dx, y + dy)) continue
-      const t = terrain[idx(x + dx, y + dy)]
-      if (t === T.SEA || t === T.RAMPART) continue
-      lay(idx(x + dx, y + dy))
+  const straight = () => {
+    const steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))
+    const sx = Math.sign(x1 - x0), sy = Math.sign(y1 - y0)
+    for (let k = 0; k <= steps; k++) {
+      const x = x0 + sx * k, y = y0 + sy * k
+      for (const [dx, dy] of sx !== 0 ? [[0, 0], [0, 1]] : [[0, 0], [1, 0]]) {
+        if (!inside(x + dx, y + dy)) continue
+        const t = terrain[idx(x + dx, y + dy)]
+        if (t === T.SEA || t === T.RAMPART) continue
+        lay(idx(x + dx, y + dy))
+      }
     }
+  }
+  if (!inside(x0, y0) || !inside(x1, y1)) {
+    straight()
+    return
+  }
+  // how far a cell strays from the line the street wants
+  const len = Math.hypot(x1 - x0, y1 - y0) || 1
+  const stray = (x: number, y: number) =>
+    Math.abs((x - x0) * (y1 - y0) - (y - y0) * (x1 - x0)) / len
+  const cost = (_p: number, q: number) => {
+    const t = terrain[q] as T
+    if (t === T.SEA || t === T.RAMPART || isHouse(t)) return Infinity
+    const x = q % W, y = (q / W) | 0
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      if (
+        inside(x + dx, y + dy) && isHouse(terrain[idx(x + dx, y + dy)] as T)
+      ) return Infinity
+    }
+    return (isWater(t) ? 6 : 1) + stray(x, y) * 0.6
+  }
+  const goal = idx(x1, y1)
+  const path = cheapestPath(
+    idx(x0, y0),
+    (p) => p === goal,
+    cost,
+    (x, y) => Math.abs(x1 - x) + Math.abs(y1 - y),
+  )
+  if (path.length === 0 || path[path.length - 1] !== goal) {
+    straight()
+    return
+  }
+  for (let k = 0; k < path.length; k++) {
+    const p = path[k]
+    lay(p)
+    const q = path[Math.min(k + 1, path.length - 1)]
+    const horizontal = Math.abs(q - p) === 1 || q === p
+    const x = p % W, y = (p / W) | 0
+    const side = horizontal
+      ? idx(x, Math.min(H - 1, y + 1))
+      : idx(Math.min(W - 1, x + 1), y)
+    if (terrain[side] !== T.SEA && terrain[side] !== T.RAMPART) lay(side)
   }
 }
 
@@ -872,6 +949,42 @@ for (const n of nodes) {
         const out = (d - rim) / FRINGE
         if (hash(x, y, 7103) > out) terrain[p] = T.MEADOW
         if (hash(x, y, 7104) > out * 1.6) keepClear[p] = 1
+      }
+    }
+  }
+  // the houses that stood before the streets: a few old stone houses
+  // set down where they pleased (off the heart of the town and off
+  // the ring street and the town wall), and the streets go round them
+  const oldDoors: [number, number, number, number][] = []
+  {
+    const layout = layoutOf(n)
+    const S = R - 2
+    const okAt = (dx: number, dy: number) => {
+      const d = Math.hypot(dx, dy)
+      if (d > R - 14) return false
+      switch (layout) {
+        case "ring":
+          return d >= 24
+        case "walled":
+          return d >= 16 && Math.max(Math.abs(dx), Math.abs(dy)) <= S - 12
+        case "market":
+          return dy >= 8 && d >= 12
+        default:
+          return d >= 16
+      }
+    }
+    const count = 1 + randomInt(3)
+    let built = 0
+    for (let k = 0; k < 60 && built < count; k++) {
+      const a = rng() * Math.PI * 2, d = 12 + rng() * (R - 26)
+      const dx = Math.round(Math.cos(a) * d), dy = Math.round(Math.sin(a) * d)
+      if (!okAt(dx, dy)) continue
+      const [nx, ny] = shuffle([[1, 0], [-1, 0], [0, 1], [0, -1]])[0]
+      // the spot stands for the street: two cells out of the door
+      const sx = cx + dx - 2 * nx, sy = cy + dy - 2 * ny
+      if (house(n.name, sx, sy, nx, ny, undefined, false, true)) {
+        oldDoors.push([cx + dx, cy + dy, nx, ny])
+        built++
       }
     }
   }
@@ -945,6 +1058,18 @@ for (const n of nodes) {
       break
     }
   }
+  // the old houses' lanes: from each door to the nearest street
+  for (const [dx, dy, nx, ny] of oldDoors) {
+    const path = cheapestPath(
+      idx(dx - nx, dy - ny),
+      (p) => roadCells.has(p),
+      (_p, q) => {
+        const t = terrain[q] as T
+        return isHouse(t) || t === T.RAMPART || isWater(t) ? Infinity : 1
+      },
+    )
+    for (const p of path) lay(p)
+  }
 }
 
 for (const [a, b] of edges) {
@@ -971,27 +1096,6 @@ for (const [a, b] of edges) {
 // ---------------------------------------------------------------------
 // 6. the towns: houses along the streets, and what makes each kind
 
-const houses: {
-  x0: number
-  y0: number
-  x1: number
-  y1: number
-  village: string
-}[] = []
-const VILLAGER_SIGNS = ["sign-inn", "sign-item", "sign-pub", "sign-weapon"]
-/** Who lives in the houses, in turn (the folk of kt3k/ff5study among them) */
-const RESIDENTS = [
-  "villager",
-  "blacksmith",
-  "villager2",
-  "inventor",
-  "thief",
-  "villager",
-  "assassin",
-  "villager2",
-]
-let residents = 0
-let signs = 0
 /** Who sits by the campfires, camp by camp */
 const CAMPERS = ["bard", "thief", "assassin", "lady-knight", "sailor"]
 
@@ -1112,13 +1216,16 @@ function house(
   ny: number,
   resident = RESIDENTS[residents % RESIDENTS.length],
   compact = false,
+  old = false,
 ): boolean {
   const plans = compact
     ? [HUT]
     : [...shuffle(PLANS.filter((p) => p.name !== "manor" || rng() < 0.3))]
   for (const plan of plans) {
     for (const flip of shuffle([1, -1] as (1 | -1)[])) {
-      if (layHouse(village, sx, sy, nx, ny, plan, flip, resident)) return true
+      if (layHouse(village, sx, sy, nx, ny, plan, flip, resident, old)) {
+        return true
+      }
     }
   }
   return false
@@ -1133,6 +1240,9 @@ function layHouse(
   plan: HousePlan,
   flip: 1 | -1,
   resident: string,
+  /** a house older than the streets: stone walls, and its lane to
+   * the street laid later, once there is one */
+  old = false,
 ): boolean {
   // the door lands two cells off the street, the house reaching inward
   const doorX = sx + 2 * nx, doorY = sy + 2 * ny
@@ -1150,13 +1260,14 @@ function layHouse(
       }
     }
   }
+  const brick = old ? T.OLDWALL : T.WALL
   for (const [x, y] of cells) {
-    terrain[idx(x, y)] = laid.walls.has(cellKey(x, y)) ? T.WALL : T.FLOOR
+    terrain[idx(x, y)] = laid.walls.has(cellKey(x, y)) ? brick : T.FLOOR
     keepClear[idx(x, y)] = 1
   }
   // the path from the door to the street
   let [px, py] = [doorX, doorY]
-  for (let k = 0; k < 8; k++) {
+  for (let k = 0; k < (old ? 0 : 8); k++) {
     px -= nx
     py -= ny
     const q = idx(px, py)
@@ -2813,6 +2924,7 @@ const waystones: Waystone[] = []
   /** What a river may not run through */
   const STRUCTURE = new Set<T>([
     T.WALL,
+    T.OLDWALL,
     T.FLOOR,
     T.PLAZA,
     T.RAMPART,
@@ -3701,7 +3813,7 @@ const propsOut = props.filter((s) => {
   // (the cities' own walls are T.CITY here: their generator placed
   // those pieces on its walls itself)
   return s.type.startsWith("sign-") || WALL_PIECES.has(s.type)
-    ? t === T.WALL || t === T.CITY
+    ? t === T.WALL || t === T.OLDWALL || t === T.CITY
     : s.type === "ferry"
     ? true // moored on the water
     : standable(s)
@@ -3794,6 +3906,7 @@ if (previewAt >= 0) {
     [T.BRIDGE]: Palette.brown3,
     [T.PLAZA]: Palette.orange2,
     [T.WALL]: Palette.black,
+    [T.OLDWALL]: Palette.gray3,
     [T.FLOOR]: Palette.brown2,
     [T.TREE]: Palette.green4,
     [T.RAMPART]: Palette.black,
