@@ -3692,8 +3692,12 @@ for (let round = 0; round < 50; round++) {
       })
     })
     if (walledIn && cells.length < 30) {
-      const c = cells[0]
-      put(props, c % W, (c / W) | 0, "flowers")
+      // saplings fill it (no one can get in to walk it, so it must
+      // not count as walkable ground)
+      for (const c of cells) {
+        put(props, c % W, (c / W) | 0, "sapling")
+        blockingProp.add(c)
+      }
       continue
     }
     if (cells.length < 30) {
