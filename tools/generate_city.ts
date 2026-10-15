@@ -1175,12 +1175,16 @@ export async function buildCity(
     door: [number, number],
     side: Side,
     district: District,
+    /** may stand wall to wall with what is built already (an odd
+     * house squeezed into a small lot) */
+    tight = false,
   ): Building | null {
     const [dx, dy] = SIDE_DIR[side]
     const laid = layPlan(plan, door, [-dx, -dy], flip)
     const cells = cellsOf(laid)
     for (const [x, y] of cells) {
       if (!inside(x, y) || at(x, y) !== C.LAND || fixed[idx(x, y)]) return null
+      if (tight) continue
       for (const [mx, my] of D4) {
         if (inside(x + mx, y + my) && fixed[idx(x + mx, y + my)]) return null
       }
@@ -1217,6 +1221,9 @@ export async function buildCity(
    * it; a spot no plan fits is skipped. Then the back street side the
    * same way, and what is left is yard.
    */
+  /** How many odd houses the city has so far */
+  let oddHouses = 0
+
   function frontage(lot: Lot) {
     const sides = streetSides(lot)
     const area = inset(lot, 1)
@@ -1238,28 +1245,38 @@ export async function buildCity(
         horizontal ? [along, wallAt] : [wallAt, along]
       return { horizontal, from, to, doorAt }
     }
-    // an odd house in a lot in six, grown room by room to the lot's
-    // depth and half its front (its door in the middle), grown again
-    // and shrunk until one fits
-    if (rng() < 0.16) {
+    // an odd house in a lot in six - and in every lot until the city
+    // has two of them, trying harder (smaller, more often) while it
+    // has none - grown room by room to the lot's depth and half its
+    // front (its door in the middle), grown again and shrunk until
+    // one fits
+    const wanting = oddHouses < 2
+    if (wanting || rng() < 0.16) {
       const side = sides[0]
       const { horizontal, from, to, doorAt } = frontOf(side)
-      const style = GROW_STYLES[randomInt(GROW_STYLES.length)]
       const limits = {
         depth: horizontal ? area.y1 - area.y0 : area.x1 - area.x0,
-        halfWidth: Math.max(2, ((to - from) >> 1) - 1),
+        halfWidth: Math.max(2, (to - from) >> 1),
       }
       const door = doorAt(from + ((to - from) >> 1))
-      odd: for (let rooms = 10 + randomInt(11); rooms >= 5; rooms -= 2) {
-        for (let k = 0; k < 4; k++) {
-          const plan = growPlan(rng, rooms, style, limits)
-          if (plan.rooms.length < 5) continue
-          const flip = rng() < 0.5 ? 1 : -1
-          if (layHousePlan(plan, flip, door, side, lot.district)) {
-            console.log(
-              `${cityName}: an odd ${style} house of ${plan.rooms.length} rooms`,
-            )
-            break odd
+      const least = wanting ? 4 : 5
+      // one style a lot; every style, squeezed in, while the city wants
+      const styles = wanting
+        ? shuffle([...GROW_STYLES])
+        : [GROW_STYLES[randomInt(GROW_STYLES.length)]]
+      odd: for (const style of styles) {
+        for (let rooms = 10 + randomInt(11); rooms >= least; rooms -= 2) {
+          for (let k = 0; k < (wanting ? 8 : 4); k++) {
+            const plan = growPlan(rng, rooms, style, limits)
+            if (plan.rooms.length < least) continue
+            const flip = rng() < 0.5 ? 1 : -1
+            if (layHousePlan(plan, flip, door, side, lot.district, wanting)) {
+              oddHouses++
+              console.log(
+                `${cityName}: an odd ${style} house of ${plan.rooms.length} rooms`,
+              )
+              break odd
+            }
           }
         }
       }
