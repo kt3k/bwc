@@ -38,9 +38,11 @@ import { fbm } from "./noise.ts"
 import {
   cellKey,
   cellsOf,
+  closeDoor,
   GROW_STYLES,
   growPlan,
   HUT,
+  type LaidPlan,
   layPlan,
   ODD_KINDS,
   PLANS,
@@ -596,6 +598,20 @@ export async function buildCity(
     district: District
   }
   const oldHouses: OldHouse[] = []
+
+  /** A plan's other doors open onto two cells of land or street; one
+   * that would open onto a building or the water is walled up */
+  function wallUpBlindDoors(laid: LaidPlan) {
+    for (const d of [...laid.doors]) {
+      const ok = [1, 2].every((k) => {
+        const x = d.x + k * d.out[0], y = d.y + k * d.out[1]
+        if (!inside(x, y) || outside[idx(x, y)]) return false
+        return isStreet(at(x, y)) || (at(x, y) === C.LAND && !fixed[idx(x, y)])
+      })
+      if (!ok) closeDoor(laid, d)
+    }
+  }
+
   function layOldHouse(
     plan: (typeof PLANS)[number],
     flip: 1 | -1,
@@ -617,6 +633,7 @@ export async function buildCity(
         if (fixed[idx(nx, ny)] && !isStreet(at(nx, ny))) return false
       }
     }
+    wallUpBlindDoors(laid)
     const brick = wallOf("house", district)
     for (const [x, y] of cells) {
       set(x, y, laid.walls.has(cellKey(x, y)) ? brick : C.FLOOR)
@@ -772,8 +789,12 @@ export async function buildCity(
         const flip = rng() < 0.5 ? 1 : -1
         if (layOldHouse(plan, flip, door, side, r.district)) {
           built++
+          const { laid } = oldHouses[oldHouses.length - 1]
           console.log(
-            `${cityName}: an old odd ${style} house of ${plan.rooms.length} rooms in ${r.district}`,
+            `${cityName}: an old odd ${style} house of ${plan.rooms.length} rooms in ${r.district}` +
+              ` (${plan.merges?.length ?? 0} knocked through, ${
+                1 + laid.doors.length
+              } doors) at ${OI + door[0]},${OJ + door[1]}`,
           )
           break
         }
@@ -1358,11 +1379,14 @@ export async function buildCity(
         if (inside(x + mx, y + my) && fixed[idx(x + mx, y + my)]) return null
       }
     }
+    wallUpBlindDoors(laid)
     const brick = wallOf("house", district)
     for (const [x, y] of cells) {
       set(x, y, laid.walls.has(cellKey(x, y)) ? brick : C.FLOOR)
       fixed[idx(x, y)] = 1
     }
+    // the other doors get lanes through the yard to the street
+    for (const d of laid.doors) laneFrom(d.x + d.out[0], d.y + d.out[1])
     const b: Building = {
       ...laid.bounds,
       door,
@@ -1439,7 +1463,8 @@ export async function buildCity(
             if (layHousePlan(plan, flip, door, side, lot.district, wanting)) {
               oddHouses++
               console.log(
-                `${cityName}: an odd ${style} house of ${plan.rooms.length} rooms`,
+                `${cityName}: an odd ${style} house of ${plan.rooms.length} rooms` +
+                  ` (${plan.merges?.length ?? 0} knocked through)`,
               )
               break odd
             }
@@ -1453,7 +1478,12 @@ export async function buildCity(
       let cursor = from
       while (cursor <= to) {
         let built: Building | null = null
-        for (const plan of [...shuffle([...PLANS]), HUT]) {
+        for (
+          const plan of [
+            ...shuffle(PLANS.filter((p) => !p.rare || rng() < 0.3)),
+            HUT,
+          ]
+        ) {
           for (const flip of shuffle([1, -1] as (1 | -1)[])) {
             // how far the plan reaches either side of its door
             const probe = layPlan(plan, [0, 0], [-dx, -dy], flip)
@@ -1815,7 +1845,14 @@ export async function buildCity(
       put(actors, r.x0 + ((r.x1 - r.x0) >> 1), r.y1 - 1, resident(old.district))
     }
     oddHouses++
-    const start = idx(old.door[0] + dx, old.door[1] + dy)
+    laneFrom(old.door[0] + dx, old.door[1] + dy)
+    for (const d of old.laid.doors) laneFrom(d.x + d.out[0], d.y + d.out[1])
+  }
+
+  /** A lane (a cell wide, over the land) from the cell outside a door
+   * to the nearest street */
+  function laneFrom(x0: number, y0: number) {
+    const start = idx(x0, y0)
     const from = new Map<number, number>([[start, -1]])
     const queue = [start]
     let end = -1

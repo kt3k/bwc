@@ -59,10 +59,13 @@ import { type Kind, MAKERS } from "./minipuzzles.ts"
 import {
   cellKey,
   cellsOf,
+  closeDoor,
   GROW_STYLES,
   growPlan,
   type HousePlan,
   HUT,
+  type LaidDoor,
+  type LaidPlan,
   layPlan,
   ODD_KINDS,
   PLANS,
@@ -967,6 +970,8 @@ for (const n of nodes) {
   // are levelled (layHouse). A village in five has an odd house too,
   // grown room by room, tried first while there is room for it
   const oldDoors: [number, number, number, number][] = []
+  /** how many doors each odd house was built with (for the log) */
+  const doorsOf = new Map<HousePlan, number>()
   {
     const layout = layoutOf(n)
     const S = R - 2
@@ -1014,20 +1019,24 @@ for (const n of nodes) {
         for (const [nx, ny] of shuffle([[1, 0], [-1, 0], [0, 1], [0, -1]])) {
           const flip = rng() < 0.5 ? 1 : -1
           // the spot stands for the street: two cells out of the door
-          if (
-            layHouse(
-              n.name,
-              x - 2 * nx,
-              y - 2 * ny,
-              nx,
-              ny,
-              plan,
-              flip,
-              RESIDENTS[residents % RESIDENTS.length],
-              true,
-            )
-          ) {
+          const laid = layHouse(
+            n.name,
+            x - 2 * nx,
+            y - 2 * ny,
+            nx,
+            ny,
+            plan,
+            flip,
+            RESIDENTS[residents % RESIDENTS.length],
+            true,
+          )
+          if (laid) {
+            // every door gets its lane
             oldDoors.push([x, y, nx, ny])
+            for (const d of laid.doors) {
+              oldDoors.push([d.x, d.y, -d.out[0], -d.out[1]])
+            }
+            doorsOf.set(plan, 1 + laid.doors.length)
             return true
           }
         }
@@ -1041,7 +1050,10 @@ for (const n of nodes) {
         if (plan.rooms.length < 6) continue
         if (tryAt(plan, 120)) {
           console.log(
-            `${n.name}: an odd ${style} house of ${plan.rooms.length} rooms`,
+            `${n.name}: an odd ${style} house of ${plan.rooms.length} rooms` +
+              ` (${plan.merges?.length ?? 0} knocked through, ${
+                doorsOf.get(plan)
+              } doors)`,
           )
           break
         }
@@ -1311,7 +1323,7 @@ function house(
 ): boolean {
   const plans = compact
     ? [HUT]
-    : [...shuffle(PLANS.filter((p) => p.name !== "manor" || rng() < 0.3))]
+    : [...shuffle(PLANS.filter((p) => !p.rare || rng() < 0.3))]
   for (const plan of plans) {
     for (const flip of shuffle([1, -1] as (1 | -1)[])) {
       if (layHouse(village, sx, sy, nx, ny, plan, flip, resident, old)) {
@@ -1334,7 +1346,7 @@ function layHouse(
   /** a house older than the streets: its lane to the street is laid
    * later, once there is one */
   old = false,
-): boolean {
+): LaidPlan | null {
   // the door lands two cells off the street, the house reaching inward
   const doorX = sx + 2 * nx, doorY = sy + 2 * ny
   const laid = layPlan(plan, [doorX, doorY], [nx, ny], flip)
@@ -1346,15 +1358,31 @@ function layHouse(
   for (const [x, y] of cells) {
     for (let dy = -1; dy <= 1; dy++) {
       for (let dx = -1; dx <= 1; dx++) {
-        if (!inside(x + dx, y + dy)) return false
+        if (!inside(x + dx, y + dy)) return null
         const q = idx(x + dx, y + dy)
         const t = terrain[q] as T
         if (!(t === T.MEADOW || t === T.FOREST || t === T.HILL || soft(t))) {
-          return false
+          return null
         }
-        if (taken.has(q) || roadCells.has(q)) return false
+        if (taken.has(q) || roadCells.has(q)) return null
       }
     }
+  }
+  // the other doors open onto two cells of ground (a road will do);
+  // one that would open onto the water or a rock is walled up
+  const step = (d: LaidDoor, k: number): [number, number] => [
+    d.x + k * d.out[0],
+    d.y + k * d.out[1],
+  ]
+  for (const d of [...laid.doors]) {
+    const ok = [1, 2].every((k) => {
+      const [x, y] = step(d, k)
+      if (!inside(x, y)) return false
+      const t = terrain[idx(x, y)] as T
+      return t === T.MEADOW || t === T.FOREST || t === T.HILL ||
+        t === T.ROAD || soft(t)
+    })
+    if (!ok) closeDoor(laid, d)
   }
   if (old) {
     for (const [x, y] of cells) {
@@ -1365,6 +1393,14 @@ function layHouse(
           keepClear[q] = 1
         }
       }
+    }
+  }
+  // the doorsteps stay clear of trees
+  for (const d of laid.doors) {
+    for (const k of [1, 2]) {
+      const q = idx(...step(d, k))
+      if (soft(terrain[q] as T)) terrain[q] = T.MEADOW
+      keepClear[q] = 1
     }
   }
   // some houses are stone, some planks - old or new alike: walls get
@@ -1406,7 +1442,7 @@ function layHouse(
     put(props, doorX + 1, doorY, VILLAGER_SIGNS[signs++])
   }
   houses.push({ ...laid.bounds, village })
-  return true
+  return laid
 }
 
 /** Houses at the candidate spots (tried in random order) up to count */

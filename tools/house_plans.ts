@@ -39,16 +39,27 @@ export type PlanRoom = {
   kind: RoomKind
 }
 
+/** Another way in: a door cell on an outer wall, and the way out of it */
+export type PlanDoor = { at: [number, number]; out: [number, number] }
+
 export type HousePlan = {
   name: string
   rooms: PlanRoom[]
   door: [number, number]
   gaps: [number, number][]
+  /** pairs of rooms (by index) whose shared wall is knocked through:
+   * the two rects make one room of another shape (an L, a T) */
+  merges?: [number, number][]
+  /** the other front doors (a big house has more than one way in) */
+  doors?: PlanDoor[]
+  /** built now and then, not as often as the others */
+  rare?: true
 }
 
 /** The plans, big ones first: an L-shaped cottage with the bathroom
- * out back, the farmhouse with its wing, the longhouse, and the rare
- * manor with its two wings and a hall in the middle */
+ * out back, the farmhouse with its wing, the longhouse, the rare
+ * manor with its two wings and a hall in the middle, and the rare
+ * ell, whose kitchen and dining room are one L-shaped room */
 export const PLANS: HousePlan[] = [
   {
     name: "cottage",
@@ -92,6 +103,20 @@ export const PLANS: HousePlan[] = [
     ],
     door: [7, 12],
     gaps: [[7, 6], [4, 9], [10, 9]],
+    rare: true,
+  },
+  {
+    name: "ell",
+    rooms: [
+      { x0: 0, y0: 4, x1: 8, y1: 10, kind: "kitchen" },
+      { x0: 8, y0: 6, x1: 14, y1: 10, kind: "dining" },
+      { x0: 0, y0: 0, x1: 8, y1: 4, kind: "bedroom" },
+      { x0: 8, y0: 2, x1: 14, y1: 6, kind: "bathroom" },
+    ],
+    door: [4, 10],
+    gaps: [[4, 4], [8, 3], [11, 6]],
+    merges: [[0, 1]],
+    rare: true,
   },
 ]
 
@@ -118,7 +143,21 @@ export type LaidPlan = {
   walls: Set<string>
   gaps: Set<string>
   keep: Set<string>
+  /** the other front doors, each with the way out of it (the
+   * generator walls up any that opens onto nothing it can walk) */
+  doors: LaidDoor[]
   bounds: { x0: number; y0: number; x1: number; y1: number }
+}
+
+export type LaidDoor = { x: number; y: number; out: [number, number] }
+
+/** Walls up one of a laid plan's other doors again */
+export function closeDoor(laid: LaidPlan, d: LaidDoor) {
+  const k = cellKey(d.x, d.y)
+  laid.walls.add(k)
+  laid.floor.delete(k)
+  laid.gaps.delete(k)
+  laid.doors = laid.doors.filter((o) => o !== d)
 }
 
 /**
@@ -179,6 +218,47 @@ export function layPlan(
   }
   for (const [gx, gy] of plan.gaps) open(...tf(gx, gy))
   open(door[0], door[1])
+  // the merged rooms: the whole of the shared wall but its ends goes,
+  // the two rects one room (no painting hangs there, so it counts as
+  // a gap; furniture may stand beside it)
+  for (const [a, b] of plan.merges ?? []) {
+    const ra = rooms[a], rb = rooms[b]
+    const cells: [number, number][] = []
+    if (ra.x1 === rb.x0 || ra.x0 === rb.x1) {
+      const x = ra.x1 === rb.x0 ? ra.x1 : ra.x0
+      for (
+        let y = Math.max(ra.y0, rb.y0) + 1;
+        y < Math.min(ra.y1, rb.y1);
+        y++
+      ) {
+        cells.push([x, y])
+      }
+    } else if (ra.y1 === rb.y0 || ra.y0 === rb.y1) {
+      const y = ra.y1 === rb.y0 ? ra.y1 : ra.y0
+      for (
+        let x = Math.max(ra.x0, rb.x0) + 1;
+        x < Math.min(ra.x1, rb.x1);
+        x++
+      ) {
+        cells.push([x, y])
+      }
+    }
+    if (cells.length === 0) {
+      throw new Error(`the ${plan.name} plan merges rooms that share no wall`)
+    }
+    for (const [x, y] of cells) {
+      walls.delete(cellKey(x, y))
+      floor.add(cellKey(x, y))
+      gaps.add(cellKey(x, y))
+    }
+  }
+  // the other doors, turned with the plan
+  const doors: LaidDoor[] = (plan.doors ?? []).map((d) => {
+    const [x, y] = tf(...d.at)
+    const [u, v] = d.out
+    open(x, y)
+    return { x, y, out: [u * rx - v * nx, u * ry - v * ny] }
+  })
   // every room reachable from the door
   const seen = new Set<string>([cellKey(...door)])
   const queue: [number, number][] = [door]
@@ -201,6 +281,7 @@ export function layPlan(
     walls,
     gaps,
     keep,
+    doors,
     bounds: {
       x0: Math.min(...rooms.map((r) => r.x0)),
       y0: Math.min(...rooms.map((r) => r.y0)),
@@ -236,12 +317,32 @@ export const GROW_STYLES: GrowStyle[] = ["snake", "spiral", "warren", "grid"]
  * - grid: rooms of a size in rows and columns, a doorway between
  *   every two neighbors, so the ways round loop
  *
+ * Now and then a new room is not walled off from the one it is set
+ * against but knocked through into it, the two one room of an odd
+ * shape (in the grid, three rooms in an L here and there).
+ *
  * Nothing goes below the front room's bottom wall, where the door is.
  * With `limits`, nothing reaches deeper than `depth` cells up from the
  * door's wall, or farther than `halfWidth` cells to either side of
  * the door (a city block only has so much room behind the street).
+ *
+ * A house of 8 rooms or more gets one or two more doors, on outer
+ * walls away from the front door.
  */
 export function growPlan(
+  rng: () => number,
+  rooms: number,
+  style: GrowStyle,
+  limits?: { depth: number; halfWidth: number },
+): HousePlan {
+  const plan = growRooms(rng, rooms, style, limits)
+  if (plan.rooms.length >= 8) {
+    plan.doors = extraDoors(rng, plan.rooms, 1 + Math.floor(rng() * 2))
+  }
+  return plan
+}
+
+function growRooms(
   rng: () => number,
   rooms: number,
   style: GrowStyle,
@@ -264,9 +365,9 @@ export function growPlan(
           Math.floor(2 * limits.halfWidth / w),
         ),
       )
-      return growGrid(rowsIn, colsIn, w, h, kind)
+      return growGrid(rng, rowsIn, colsIn, w, h, kind)
     }
-    return growGrid(rows, cols, w, h, kind)
+    return growGrid(rng, rows, cols, w, h, kind)
   }
   const first: PlanRoom = {
     x0: 0,
@@ -277,6 +378,9 @@ export function growPlan(
   }
   const out: PlanRoom[] = [first]
   const gaps: [number, number][] = []
+  const merges: [number, number][] = []
+  /** how many rooms a room is knocked through into */
+  const joins = new Map<PlanRoom, number>()
   let turn = ri(0, 3)
   for (let tries = 0; out.length < rooms && tries < rooms * 40; tries++) {
     // boxed in for long, a snake or spiral grows from any room instead
@@ -319,6 +423,17 @@ export function growPlan(
       return ix0 > ix1 || iy0 > iy1 || ix0 === ix1 || iy0 === iy1
     })
     if (!fits) continue
+    // one room in seven is knocked through into its parent instead of
+    // a doorway (a parent takes two at most, so a room is three rects
+    // at the widest)
+    if (rng() < 0.15 && (joins.get(parent) ?? 0) < 2) {
+      r.kind = parent.kind
+      merges.push([out.indexOf(parent), out.length])
+      joins.set(parent, (joins.get(parent) ?? 0) + 1)
+      joins.set(r, 1)
+      out.push(r)
+      continue
+    }
     // the doorway in the shared stretch, off both rooms' corners
     if (side === 0 || side === 2) {
       const gx = ri(
@@ -340,12 +455,16 @@ export function growPlan(
     rooms: out,
     door: [first.x1 >> 1, first.y1],
     gaps,
+    merges,
   }
 }
 
 /** The grid plan: rooms of a size in rows and columns, a doorway
- * between every two neighbors, the door under the middle column */
+ * between every two neighbors, the door under the middle column.
+ * Here and there a room and the two before it (left and up) are
+ * knocked into one L-shaped room */
 function growGrid(
+  rng: () => number,
   rows: number,
   cols: number,
   w: number,
@@ -354,12 +473,30 @@ function growGrid(
 ): HousePlan {
   const out: PlanRoom[] = []
   const gaps: [number, number][] = []
+  const merges: [number, number][] = []
+  const id = (r: number, c: number) => r * cols + c
+  const merged = new Set<number>()
+  for (let r = 1; r < rows; r++) {
+    for (let c = 1; c < cols; c++) {
+      const me = id(r, c), left = id(r, c - 1), up = id(r - 1, c)
+      const want = rng() < 0.12
+      if (want && ![me, left, up].some((i) => merged.has(i))) {
+        merges.push([left, me], [up, me])
+        for (const i of [me, left, up]) merged.add(i)
+      }
+    }
+  }
+  const joined = new Set(merges.map(([a, b]) => `${a}-${b}`))
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const x0 = c * w, y0 = r * h
       out.push({ x0, y0, x1: x0 + w, y1: y0 + h, kind })
-      if (c > 0) gaps.push([x0, y0 + (h >> 1)])
-      if (r > 0) gaps.push([x0 + (w >> 1), y0])
+      if (c > 0 && !joined.has(`${id(r, c - 1)}-${id(r, c)}`)) {
+        gaps.push([x0, y0 + (h >> 1)])
+      }
+      if (r > 0 && !joined.has(`${id(r - 1, c)}-${id(r, c)}`)) {
+        gaps.push([x0 + (w >> 1), y0])
+      }
     }
   }
   return {
@@ -367,5 +504,59 @@ function growGrid(
     rooms: out,
     door: [(cols >> 1) * w + (w >> 1), rows * h],
     gaps,
+    merges,
   }
+}
+
+/**
+ * `count` more doors for a grown plan: each on a stretch of outer wall
+ * (no room on the line, none within two cells beyond it), off the
+ * corners, in rooms of their own, 4 cells or more from each other and
+ * from the front door; never on the front room's door wall.
+ */
+function extraDoors(
+  rng: () => number,
+  rooms: PlanRoom[],
+  count: number,
+): PlanDoor[] {
+  const inAny = (x: number, y: number, skip = -1) =>
+    rooms.some((o, i) =>
+      i !== skip && x >= o.x0 && x <= o.x1 && y >= o.y0 && y <= o.y1
+    )
+  const cands: (PlanDoor & { room: number })[] = []
+  rooms.forEach((r, i) => {
+    const walls: [number, number, number, number][] = []
+    for (let x = r.x0 + 1; x < r.x1; x++) {
+      walls.push([x, r.y0, 0, -1])
+      if (i > 0) walls.push([x, r.y1, 0, 1])
+    }
+    for (let y = r.y0 + 1; y < r.y1; y++) {
+      walls.push([r.x0, y, -1, 0], [r.x1, y, 1, 0])
+    }
+    for (const [x, y, dx, dy] of walls) {
+      if (inAny(x, y, i)) continue
+      if (inAny(x + dx, y + dy) || inAny(x + 2 * dx, y + 2 * dy)) continue
+      cands.push({ at: [x, y], out: [dx, dy], room: i })
+    }
+  })
+  for (let i = cands.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1))
+    ;[cands[i], cands[j]] = [cands[j], cands[i]]
+  }
+  const first = rooms[0]
+  const taken: [number, number][] = [[first.x1 >> 1, first.y1]]
+  const used = new Set<number>()
+  const out: PlanDoor[] = []
+  for (const c of cands) {
+    if (out.length >= count) break
+    if (used.has(c.room)) continue
+    const far = taken.every(([x, y]) =>
+      Math.abs(x - c.at[0]) + Math.abs(y - c.at[1]) >= 4
+    )
+    if (!far) continue
+    used.add(c.room)
+    taken.push(c.at)
+    out.push({ at: c.at, out: c.out })
+  }
+  return out
 }
