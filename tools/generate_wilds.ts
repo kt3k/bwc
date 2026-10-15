@@ -249,7 +249,7 @@ enum T {
   BRIDGE,
   PLAZA,
   WALL,
-  OLDWALL, // the stone wall of a house older than the streets
+  STONEWALL, // the stone wall of a house (some are stone, old or new)
   FLOOR,
   TREE,
   STONE, // shrine / ruins floor
@@ -276,7 +276,7 @@ const CELL: Record<T, string> = {
   [T.BRIDGE]: "d",
   [T.PLAZA]: "c",
   [T.WALL]: "V", // wall_planks: the wooden houses
-  [T.OLDWALL]: "M", // wall_masonry: the old stone houses
+  [T.STONEWALL]: "M", // wall_masonry: the stone houses
   [T.FLOOR]: "d",
   [T.TREE]: "J", // wall_canopy: the trees, a mass of leaves
   [T.STONE]: "m",
@@ -756,7 +756,7 @@ function stepCost(p: number, q: number): number {
   switch (t) {
     case T.SEA:
     case T.WALL:
-    case T.OLDWALL:
+    case T.STONEWALL:
     case T.RUIN:
     case T.RAMPART: // the town walls: the roads come in by the gates
     case T.BIO:
@@ -810,7 +810,7 @@ const roadCells = new Set<number>()
 /** The town ponds: the roads stop at the bank (no bridge to the middle) */
 const ponds = new Set<number>()
 /** A house's cells, which no road or street is laid over */
-const isHouse = (t: T) => t === T.WALL || t === T.OLDWALL || t === T.FLOOR
+const isHouse = (t: T) => t === T.WALL || t === T.STONEWALL || t === T.FLOOR
 function lay(p: number) {
   const t = terrain[p] as T
   if (t === T.PLAZA || t === T.STONE || t === T.CAMP || ponds.has(p)) return
@@ -952,9 +952,9 @@ for (const n of nodes) {
       }
     }
   }
-  // the houses that stood before the streets: a few old stone houses
-  // set down where they pleased (off the heart of the town and off
-  // the ring street and the town wall), and the streets go round them
+  // the houses that stood before the streets: a few old houses set
+  // down where they pleased (off the heart of the town and off the
+  // ring street and the town wall), and the streets go round them
   const oldDoors: [number, number, number, number][] = []
   {
     const layout = layoutOf(n)
@@ -1240,8 +1240,8 @@ function layHouse(
   plan: HousePlan,
   flip: 1 | -1,
   resident: string,
-  /** a house older than the streets: stone walls, and its lane to
-   * the street laid later, once there is one */
+  /** a house older than the streets: its lane to the street is laid
+   * later, once there is one */
   old = false,
 ): boolean {
   // the door lands two cells off the street, the house reaching inward
@@ -1260,7 +1260,9 @@ function layHouse(
       }
     }
   }
-  const brick = old ? T.OLDWALL : T.WALL
+  // some houses are stone, some planks - old or new alike: walls get
+  // rebuilt over the years
+  const brick = rng() < 0.3 ? T.STONEWALL : T.WALL
   for (const [x, y] of cells) {
     terrain[idx(x, y)] = laid.walls.has(cellKey(x, y)) ? brick : T.FLOOR
     keepClear[idx(x, y)] = 1
@@ -2924,7 +2926,7 @@ const waystones: Waystone[] = []
   /** What a river may not run through */
   const STRUCTURE = new Set<T>([
     T.WALL,
-    T.OLDWALL,
+    T.STONEWALL,
     T.FLOOR,
     T.PLAZA,
     T.RAMPART,
@@ -3813,7 +3815,7 @@ const propsOut = props.filter((s) => {
   // (the cities' own walls are T.CITY here: their generator placed
   // those pieces on its walls itself)
   return s.type.startsWith("sign-") || WALL_PIECES.has(s.type)
-    ? t === T.WALL || t === T.OLDWALL || t === T.CITY
+    ? t === T.WALL || t === T.STONEWALL || t === T.CITY
     : s.type === "ferry"
     ? true // moored on the water
     : standable(s)
@@ -3906,7 +3908,7 @@ if (previewAt >= 0) {
     [T.BRIDGE]: Palette.brown3,
     [T.PLAZA]: Palette.orange2,
     [T.WALL]: Palette.black,
-    [T.OLDWALL]: Palette.gray3,
+    [T.STONEWALL]: Palette.gray3,
     [T.FLOOR]: Palette.brown2,
     [T.TREE]: Palette.green4,
     [T.RAMPART]: Palette.black,
