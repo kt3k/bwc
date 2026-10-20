@@ -2816,6 +2816,7 @@ const GOODS: Record<string, string> = {
   HIGHCROFT: "MUSHROOMS",
   "THE CITY": "CLOTH",
   SOUTHPORT: "FISH",
+  CROOKHAVEN: "CANDLES",
 }
 {
   const at = new Map(towns.map((t) => [t.name, t]))
@@ -2979,7 +2980,7 @@ const waystones: Waystone[] = []
   )
   for (const n of sites) {
     let spot: [number, number] | null = null
-    for (let d = 16; d <= 90 && !spot; d += 2) {
+    for (let d = 16; d <= 130 && !spot; d += 2) {
       for (let k = 0; k < 48 && !spot; k++) {
         const a = (k / 48) * Math.PI * 2
         const cx = Math.round(n.x + Math.cos(a) * d)

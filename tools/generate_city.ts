@@ -28,7 +28,7 @@
 //    with trees), then the checks: every door is reached, the district
 //    has its buildings
 //
-// Usage: deno -A tools/generate_city.ts [--preview file.png] [--seed city-2]
+// Usage: deno -A tools/generate_city.ts [--preview file.png] [--seed city-2] [--canal|--crooked]
 //        [--canal]
 import { seed } from "../util/random.ts"
 import { loadCatalog } from "../model/catalog.ts"
@@ -61,9 +61,11 @@ export const CITY_H = 400
 export const CITY_OUT = "_"
 /**
  * The character of a city: its plan, its stuff and its people. The CITY
- * is the castle capital; SOUTHPORT is the canal town of the fishers
+ * is the castle capital; SOUTHPORT is the canal town of the fishers;
+ * CROOKHAVEN is the crooked town, where nearly every house is an odd
+ * house grown room by room
  */
-export type CityStyle = "capital" | "canal"
+export type CityStyle = "capital" | "canal" | "crooked"
 type Style = {
   /** The avenues: two down at x1, x2; two across at y1 (the ferry's), y2 */
   x1: number
@@ -100,6 +102,16 @@ type Style = {
   motto: string
   /** The street folk: [type, how many] */
   folk: [string, number][]
+  /**
+   * The odd houses (tools/house_plans.ts growPlan): how many stood
+   * before the streets, the share of the lots built house first that
+   * try an odd house, and whether the small houses that pack the rest
+   * of a lot are grown too (the crooked town) or taken from the plans.
+   * `lotMode` set makes every residential lot come house first
+   */
+  odd: { old: number; share: number; small: boolean; lotMode?: "frontage" }
+  /** The fewest houses the city passes with */
+  minHouses: number
 }
 const STYLES: Record<CityStyle, Style> = {
   capital: {
@@ -136,6 +148,8 @@ const STYLES: Record<CityStyle, Style> = {
       ["guard", 3],
       ["cat", 6],
     ],
+    odd: { old: 2, share: 0.16, small: false },
+    minHouses: 60,
   },
   canal: {
     x1: 112,
@@ -178,6 +192,57 @@ const STYLES: Record<CityStyle, Style> = {
       ["cat", 16],
       ["kid", 6],
     ],
+    odd: { old: 2, share: 0.16, small: false },
+    minHouses: 60,
+  },
+  // the crooked town: the lots are big and every one comes house first,
+  // and the houses are grown, not planned - a dozen stood before the
+  // streets, every lot tries a big odd house, and the small houses that
+  // fill the rest are grown too. Hardly a square house in the place
+  crooked: {
+    x1: 126,
+    x2: 296,
+    y1: 150,
+    y2: 268,
+    canalsX: [206],
+    canalsY: [],
+    canalWind: 12,
+    canalWidth: 3,
+    districts: [
+      ["HARBOR", "HARBOR", "HARBOR"],
+      ["NORTHSIDE", "MARKET", "SOUTHSIDE"],
+      ["UPTOWN", "CASTLE", "PARKSIDE"],
+    ],
+    names: {
+      HARBOR: "CROOKED-WHARF",
+      NORTHSIDE: "WARRENS",
+      SOUTHSIDE: "SNAKEROWS",
+      PARKSIDE: "KNOTGARDENS",
+      CASTLE: "THE-KNOT",
+      UPTOWN: "SPIRALS",
+      MARKET: "TANGLE-MARKET",
+    },
+    lotScale: 1.5,
+    avenue: "c",
+    walls: { house: "V", shop: "M", uptown: "Z" },
+    pierEvery: 16,
+    outline: { reach: 215, wobble: 0.7, scale: 35 },
+    grand: "temple",
+    motto: "NO HOUSE IS SQUARE, NO DOOR IS THE LAST, EVERY ROOM LEADS ON",
+    folk: [
+      ["lamplighter", 6],
+      ["inventor", 4],
+      ["sage", 2],
+      ["kid", 8],
+      ["shopper", 6],
+      ["apprentice", 4],
+      ["townsman", 6],
+      ["townswoman", 6],
+      ["beggar", 5],
+      ["cat", 20],
+    ],
+    odd: { old: 10, share: 1, small: true, lotMode: "frontage" },
+    minHouses: 40,
   },
 }
 
@@ -775,8 +840,15 @@ export async function buildCity(
       })
     })
     let built = 0
-    for (let k = 0; k < 80 && built < 2 && rects.length > 0; k++) {
-      const r = rects[randomInt(rects.length)]
+    const want = style.odd.old
+    // the districts take turns, and none takes more than its share, so
+    // they do not all end up on the open ground of the harbor
+    const turns = shuffle(rects)
+    const perDistrict = new Map<District, number>()
+    const cap = Math.ceil(want / new Set(rects.map((r) => r.district)).size)
+    for (let k = 0; k < 40 * want && built < want && turns.length > 0; k++) {
+      const r = turns[k % turns.length]
+      if ((perDistrict.get(r.district) ?? 0) >= cap) continue
       const style = GROW_STYLES[randomInt(GROW_STYLES.length)]
       const side = (["n", "s", "w", "e"] as Side[])[randomInt(4)]
       const door: [number, number] = [
@@ -789,6 +861,7 @@ export async function buildCity(
         const flip = rng() < 0.5 ? 1 : -1
         if (layOldHouse(plan, flip, door, side, r.district)) {
           built++
+          perDistrict.set(r.district, (perDistrict.get(r.district) ?? 0) + 1)
           const { laid } = oldHouses[oldHouses.length - 1]
           console.log(
             `${cityName}: an old odd ${style} house of ${plan.rooms.length} rooms in ${r.district}` +
@@ -849,6 +922,8 @@ export async function buildCity(
     side: Side
     kind: "house" | "shop" | "warehouse" | "chapel" | "keep"
     district: District
+    /** an odd house, grown room by room */
+    odd?: true
   }
   const buildings: Building[] = []
 
@@ -1345,6 +1420,7 @@ export async function buildCity(
    * into lots first; the north side is half and half, lot by lot */
   function modeOf(lot: Lot): LotMode {
     if (lot.mode) return lot.mode
+    if (style.odd.lotMode) return style.odd.lotMode
     if (
       lot.district === "HARBOR" || lot.district === "SOUTHSIDE" ||
       lot.district === "PARKSIDE"
@@ -1394,6 +1470,7 @@ export async function buildCity(
       side,
       kind: "house",
       district,
+      ...((GROW_STYLES as string[]).includes(plan.name) ? { odd: true } : {}),
     }
     buildings.push(b)
     const n = buildings.length
@@ -1435,13 +1512,13 @@ export async function buildCity(
         horizontal ? [along, wallAt] : [wallAt, along]
       return { horizontal, from, to, doorAt }
     }
-    // an odd house in a lot in six - and in every lot until the city
-    // has two of them, trying harder (smaller, more often) while it
-    // has none - grown room by room to the lot's depth and half its
-    // front (its door in the middle), grown again and shrunk until
-    // one fits
-    const wanting = oddHouses < 2
-    if (wanting || rng() < 0.16) {
+    // an odd house in a lot in six (every lot in the crooked town) -
+    // and in every lot until the city has two of them, trying harder
+    // (smaller, more often) while it has none - grown room by room to
+    // the lot's depth and half its front (its door in the middle),
+    // grown again and shrunk until one fits
+    const wanting = oddHouses < 2 || style.odd.share >= 1
+    if (wanting || rng() < style.odd.share) {
       const side = sides[0]
       const { horizontal, from, to, doorAt } = frontOf(side)
       const limits = {
@@ -1475,15 +1552,29 @@ export async function buildCity(
     for (const side of sides.slice(0, 2)) {
       const [dx, dy] = SIDE_DIR[side]
       const { horizontal, from, to, doorAt } = frontOf(side)
+      const depth = horizontal ? area.y1 - area.y0 : area.x1 - area.x0
       let cursor = from
       while (cursor <= to) {
         let built: Building | null = null
-        for (
-          const plan of [
-            ...shuffle(PLANS.filter((p) => !p.rare || rng() < 0.3)),
-            HUT,
-          ]
-        ) {
+        // the small houses: the plans, or in the crooked town a few
+        // small grown houses (2-7 rooms) first, the hut the last resort
+        const plans = [
+          ...shuffle(PLANS.filter((p) => !p.rare || rng() < 0.3)),
+          HUT,
+        ]
+        if (style.odd.small) {
+          const grown = [0, 1, 2, 3, 4].map(() =>
+            growPlan(
+              rng,
+              2 + randomInt(6),
+              GROW_STYLES[randomInt(GROW_STYLES.length)],
+              { depth, halfWidth: Math.max(2, (to - from) >> 1) },
+            )
+          ).filter((p) => p.rooms.length >= 2)
+          grown.sort((a, b) => b.rooms.length - a.rooms.length)
+          plans.unshift(...grown)
+        }
+        for (const plan of plans) {
           for (const flip of shuffle([1, -1] as (1 | -1)[])) {
             // how far the plan reaches either side of its door
             const probe = layPlan(plan, [0, 0], [-dx, -dy], flip)
@@ -1835,6 +1926,7 @@ export async function buildCity(
       side: old.side,
       kind: "house",
       district: old.district,
+      odd: true,
     }
     buildings.push(b)
     const n = buildings.length
@@ -2130,7 +2222,15 @@ export async function buildCity(
   )
   const count = (kind: Building["kind"]) =>
     buildings.filter((b) => b.kind === kind).length
-  check(`houses (${count("house")}) >= 60`, count("house") >= 60)
+  check(
+    `houses (${count("house")}) >= ${style.minHouses}`,
+    count("house") >= style.minHouses,
+  )
+  const odd = buildings.filter((b) => b.kind === "house" && b.odd).length
+  console.log(`odd houses ${odd} of ${count("house")}`)
+  if (style.odd.share >= 1) {
+    check(`most houses are odd (${odd})`, odd >= count("house") * 0.8)
+  }
   check(`shops (${count("shop")}) >= 25`, count("shop") >= 25)
   check(`warehouses (${count("warehouse")}) >= 6`, count("warehouse") >= 6)
   check("the keep", count("keep") === 1)
@@ -2238,7 +2338,11 @@ if (import.meta.main) {
   await buildCity(0, 0, {
     preview: at >= 0 ? Deno.args[at + 1] : undefined,
     seed: seedAt >= 0 ? Deno.args[seedAt + 1] : undefined,
-    style: Deno.args.includes("--canal") ? "canal" : undefined,
+    style: Deno.args.includes("--canal")
+      ? "canal"
+      : Deno.args.includes("--crooked")
+      ? "crooked"
+      : undefined,
   })
   console.log("the city is verified (deno task generate-wilds writes it)")
 }

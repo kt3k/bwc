@@ -59,20 +59,21 @@ B1F-R3 40,105
 
 ## マップの名前
 
-| 名前        | ファイル                                                         | 生成スクリプト                                                                  |
-| ----------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `START`     | `block_-10000.-10000.json`                                       | (手作業、各スクリプトが一部を更新)                                              |
-| `B1F`       | `block_-400.400.json`                                            | `tools/generate_puzzle_dungeon.ts`                                              |
-| `B2F`       | `block_200.400.json`                                             | `tools/generate_puzzle_dungeon2.ts`                                             |
-| `B3F`       | `block_400.400.json`                                             | `tools/generate_puzzle_dungeon3.ts`                                             |
-| `B4F`       | `block_400.200.json`                                             | `tools/generate_puzzle_dungeon4.ts`                                             |
-| `B5F`       | `block_600.200.json`                                             | `tools/generate_puzzle_dungeon5.ts`                                             |
-| `ZOO`       | `block_10000.10000.json`                                         | `tools/generate_preview_zoo.ts`                                                 |
-| `DEBUG`     | `block_10000.-10000.json`                                        | `tools/generate_debug_map.ts`                                                   |
-| `WILDS`     | `block_2000.0.json` など 126 枚 (`i` 2000〜4600, `j` 0〜1600)    | `tools/generate_wilds.ts` (有機的な生成の試作、ideas/organic-maps.md)           |
-| `CAVERN`    | WILDS のブロックの中 (山の中、部屋名 `WILDS-CAVERN-HALL` など)   | `tools/generate_cavern.ts` (`generate-wilds` が山の中に押す)                    |
-| `CITY`      | WILDS のブロックの中 (西の海岸、部屋名 `WILDS-CITY-HARBOR` など) | `tools/generate_city.ts` (`generate-wilds` が島に置く)                          |
-| `SOUTHPORT` | WILDS のブロックの中 (西の海岸の南、運河の漁師町)                | `tools/generate_city.ts` (`--seed city-2 --canal`、`generate-wilds` が島に置く) |
+| 名前         | ファイル                                                         | 生成スクリプト                                                                    |
+| ------------ | ---------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `START`      | `block_-10000.-10000.json`                                       | (手作業、各スクリプトが一部を更新)                                                |
+| `B1F`        | `block_-400.400.json`                                            | `tools/generate_puzzle_dungeon.ts`                                                |
+| `B2F`        | `block_200.400.json`                                             | `tools/generate_puzzle_dungeon2.ts`                                               |
+| `B3F`        | `block_400.400.json`                                             | `tools/generate_puzzle_dungeon3.ts`                                               |
+| `B4F`        | `block_400.200.json`                                             | `tools/generate_puzzle_dungeon4.ts`                                               |
+| `B5F`        | `block_600.200.json`                                             | `tools/generate_puzzle_dungeon5.ts`                                               |
+| `ZOO`        | `block_10000.10000.json`                                         | `tools/generate_preview_zoo.ts`                                                   |
+| `DEBUG`      | `block_10000.-10000.json`                                        | `tools/generate_debug_map.ts`                                                     |
+| `WILDS`      | `block_2000.0.json` など 168 枚 (`i` 2000〜4600, `j` 0〜2200)    | `tools/generate_wilds.ts` (有機的な生成の試作、ideas/organic-maps.md)             |
+| `CAVERN`     | WILDS のブロックの中 (山の中、部屋名 `WILDS-CAVERN-HALL` など)   | `tools/generate_cavern.ts` (`generate-wilds` が山の中に押す)                      |
+| `CITY`       | WILDS のブロックの中 (西の海岸、部屋名 `WILDS-CITY-HARBOR` など) | `tools/generate_city.ts` (`generate-wilds` が島に置く)                            |
+| `CROOKHAVEN` | WILDS のブロックの中 (西の海岸の真ん中、ほぼ全戸が変な家の町)    | `tools/generate_city.ts` (`--seed city-3 --crooked`、`generate-wilds` が島に置く) |
+| `SOUTHPORT`  | WILDS のブロックの中 (西の海岸の南、運河の漁師町)                | `tools/generate_city.ts` (`--seed city-2 --canal`、`generate-wilds` が島に置く)   |
 
 地上のマップ (`block_0.0.json` など) には名前がなく、ブロック ID が出る。
 

@@ -7,7 +7,7 @@
   },
   "blocks": {
     "w": 14,
-    "h": 9
+    "h": 12
   },
   "arrival": {
     "x": 0.36,
@@ -124,25 +124,32 @@
       "kind": "shrine"
     },
     {
-      "x": 0.8,
-      "y": 0.84,
+      "x": 0.78,
+      "y": 0.8,
       "name": "SUNKEN RUINS",
       "kind": "ruins"
     }
   ],
   "camps": 24,
-  "citiesComment": "the cities (tools/generate_city.ts, 400x400 each) on the west coast: each its left column (x * width) and top row (y * height), its name (room id), plan seed and style (capital: the castle capital; canal: the canal town of the fishers). The first is THE CITY, where the C portal of the START island lands. Each harbor opens on the sea; the avenues run out through gates in the belt of trees to the island's roads",
+  "citiesComment": "the cities (tools/generate_city.ts, 400x400 each) on the west coast: each its left column (x * width) and top row (y * height), its name (room id), plan seed and style (capital: the castle capital; canal: the canal town of the fishers; crooked: the crooked town, where nearly every house is an odd house). The first is THE CITY, where the C portal of the START island lands. Each harbor opens on the sea; the avenues run out through gates in the belt of trees to the island's roads",
   "cities": [
     {
       "x": 0.1,
-      "y": 0.17,
+      "y": 0.12,
       "name": "CITY",
       "seed": "city-1",
       "style": "capital"
     },
     {
       "x": 0.1,
-      "y": 0.57,
+      "y": 0.41,
+      "name": "CROOKHAVEN",
+      "seed": "city-3",
+      "style": "crooked"
+    },
+    {
+      "x": 0.1,
+      "y": 0.7,
       "name": "SOUTHPORT",
       "seed": "city-2",
       "style": "canal"
