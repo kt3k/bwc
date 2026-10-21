@@ -3463,6 +3463,7 @@ const meadowFree = (x: number, y: number) =>
   }
 }
 // the warrens: four holes round a patch of meadow, three rabbits
+const warrens: [number, number][] = []
 scatter(70, W * H / 60, (x, y) => {
   if (homes.warrens >= 8 * SCALE) return false
   if (!meadowFree(x, y) || distRoad[idx(x, y)] < 6) return false
@@ -3474,6 +3475,7 @@ scatter(70, W * H / 60, (x, y) => {
   return rng() < 0.5
 }, (x, y) => {
   const id = `${x}.${y}`
+  warrens.push([x, y])
   for (const [dx, dy] of [[-3, -2], [3, -3], [-2, 3], [4, 2]]) {
     put(props, x + dx, y + dy, "rabbit-hole", { id })
   }
@@ -3483,11 +3485,18 @@ scatter(70, W * H / 60, (x, y) => {
   homes.warrens++
 })
 // the foxes' dens: at the forest's edge, the den's mouth to the open,
-// its fox curled nearby
-scatter(110, W * H / 60, (x, y) => {
+// its fox curled nearby. Half of them first, each a little way off a
+// warren: the fox hunts its rabbits (model/instinct.ts), and whatever
+// draws the rabbits out draws the fox from its den
+const denSpot = (x: number, y: number, nearWarren: boolean) => {
   const p = idx(x, y)
-  if (homes.dens >= 6 * SCALE) return false
   if (!free(x, y) || terrain[p] !== T.FOREST) return false
+  if (nearWarren) {
+    const d = Math.min(
+      ...warrens.map(([wx, wy]) => Math.hypot(wx - x, wy - y)),
+    )
+    if (d < 10 || d > 18) return false
+  }
   // the forest behind (north), the open in front (south)
   if (
     terrain[idx(x, y - 1)] !== T.FOREST && terrain[idx(x, y - 1)] !== T.TREE
@@ -3500,15 +3509,29 @@ scatter(110, W * H / 60, (x, y) => {
       if (!walkableCell(idx(x + dx, y + dy))) return false
     }
   }
-  return rng() < 0.5
-}, (x, y) => {
+  return true
+}
+const putDen = (x: number, y: number) => {
   put(props, x, y, "fox-den", { id: `${x}.${y}` })
   put(actors, x + 2, y + 2, "fox")
   for (let dy = 1; dy <= 3; dy++) {
     for (let dx = -2; dx <= 2; dx++) keepClear[idx(x + dx, y + dy)] = 1
   }
   homes.dens++
-})
+}
+scatter(
+  60,
+  W * H / 20,
+  (x, y) => homes.dens < 3 * SCALE && denSpot(x, y, true),
+  putDen,
+)
+const denByWarren = homes.dens
+scatter(
+  110,
+  W * H / 60,
+  (x, y) => homes.dens < 6 * SCALE && denSpot(x, y, false) && rng() < 0.5,
+  putDen,
+)
 // the beehives: on the meadows near the water, where the flowers grow
 scatter(40, W * H / 20, (x, y) => {
   const p = idx(x, y)
@@ -3529,7 +3552,7 @@ scatter(40, W * H / 20, (x, y) => {
   homes.hives++
 })
 console.log(
-  `animal homes: ${homes.pens} pens, ${homes.warrens} warrens, ${homes.dens} dens, ${homes.hives} hives`,
+  `animal homes: ${homes.pens} pens, ${homes.warrens} warrens, ${homes.dens} dens (${denByWarren} by a warren), ${homes.hives} hives`,
 )
 // crows nest by the water near the coins; chasers in deep forest;
 // wanderers on the roads

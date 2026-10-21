@@ -40,6 +40,7 @@ import {
 } from "./townsfolk.ts"
 import { Palette } from "../util/palette.ts"
 import { addLostCoins, isFrozen, ODD_ACTORS } from "./oddities.ts"
+import { instinct } from "./instinct.ts"
 
 const fallbackImagePhase0 = await fetch(
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAADdJREFUOE9jZMAE/9GEGNH4KPLokiC1Q9AAkpzMwMCA4m0QZxgYgJ4SSPLSaDqAJAqSAm3wJSQApTMgCUQZ7FoAAAAASUVORK5CYII=",
@@ -557,7 +558,8 @@ export class Actor implements IActor {
       const state = this.#actionQueue.process(this, field)
       // a stopped clock holds the actor still (it can still be shoved)
       if (state === "idle" && !isFrozen(this, field)) {
-        this.#idle?.onIdle(this, field)
+        // what it fears or hunts comes first (model/instinct.ts)
+        if (!instinct(this, field)) this.#idle?.onIdle(this, field)
       }
     }
 

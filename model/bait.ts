@@ -6,6 +6,7 @@ import { Palette } from "../util/palette.ts"
 import * as signal from "../util/signals.ts"
 import type { Actor } from "./actor.ts"
 import { linePattern0 } from "./effect.ts"
+import { mark } from "./instinct.ts"
 import { findPath, manhattan } from "./steering.ts"
 import type { IField, IItem } from "./types.ts"
 
@@ -64,6 +65,8 @@ export function eatBait(
 ): void {
   field.collectItem(bait.i, bait.j, bait.id)
   actor.enqueueActions({ type: "jump" })
+  // pleased
+  mark(field, "love", actor.i, actor.j)
   signal.playSound("pickupCoin")
   for (
     const effect of linePattern0(

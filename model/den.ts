@@ -26,6 +26,7 @@ import { Item } from "./item.ts"
 import { scatter } from "./oddities.ts"
 import type { Prop, PushedDelegate } from "./prop.ts"
 import { face, manhattan, stepAway, stepToward } from "./steering.ts"
+import { feared, mark, markOnce } from "./instinct.ts"
 import type { IActor, IField, PushedEvent } from "./types.ts"
 
 type DenData = { id?: string }
@@ -122,10 +123,15 @@ export class RabbitDelegate {
   onIdle(actor: Actor, field: IField): void {
     const home = this.#home ??= [actor.i, actor.j]
     if (field.time < this.#nextStep || field.time < this.#nibbleUntil) return
+    // the player close by, or a fox (model/instinct.ts): down a hole
     const me = field.me
-    const near = me && me.id !== actor.id &&
-      manhattan(me.i, me.j, actor.i, actor.j) <= 3
-    if (!near) {
+    const fox = feared(actor, field)
+    const threat = fox ??
+      (me && me.id !== actor.id && manhattan(me.i, me.j, actor.i, actor.j) <= 3
+        ? me
+        : null)
+    if (fox) markOnce(actor, field, "fear")
+    if (!threat) {
       const apple = findBait(field, actor.i, actor.j, "apple", 6)
       if (apple) {
         if (apple.i === actor.i && apple.j === actor.j) {
@@ -159,7 +165,7 @@ export class RabbitDelegate {
     this.#nextStep = field.time + 4
     if (hole && stepToward(actor, field, hole.i, hole.j, 4)) return
     const { choice } = seed(`${actor.id}.${field.time}`)
-    stepAway(actor, field, me!.i, me!.j, choice, 4)
+    stepAway(actor, field, threat.i, threat.j, choice, 4)
   }
 
   onContact(actor: Actor, field: IField, by: IActor): void {
@@ -170,7 +176,7 @@ export class RabbitDelegate {
     // patted while nibbling: it thumps its foot, glad of you
     face(actor, by.i, by.j)
     actor.enqueueActions({ type: "jump" })
-    sparkle(field, actor.i, actor.j, Palette.pink2)
+    mark(field, "love", actor.i, actor.j)
     const hole = propsNear(field, "rabbit-hole", actor.i, actor.j, 12)[0]
     const key = `warren.${hole ? idOf(hole) : `${actor.i}.${actor.j}`}`
     if (Item.isCollected(key)) {
@@ -254,7 +260,7 @@ export function stepFoxDen(prop: Prop, _field: IField) {
 
 /** true if a fox near the den is awake to guard it */
 export function denGuarded(field: IField, i: number, j: number): boolean {
-  return actorsNear(field, "fox", i, j, 12).some((fox) =>
+  return actorsNear(field, "fox", i, j, 8).some((fox) =>
     ((fox as Actor).buff.asleepUntil as number | undefined ?? 0) <= field.time
   )
 }
@@ -268,7 +274,7 @@ export class FoxDenPushed implements PushedDelegate {
       return
     }
     if (denGuarded(field, prop.i, prop.j)) {
-      for (const fox of actorsNear(field, "fox", prop.i, prop.j, 12)) {
+      for (const fox of actorsNear(field, "fox", prop.i, prop.j, 8)) {
         face(fox as Actor, event.pusher.i, event.pusher.j)
         fox.enqueueActions({ type: "jump" })
       }
