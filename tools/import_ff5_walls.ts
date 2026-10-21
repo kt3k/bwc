@@ -24,18 +24,6 @@ type Wall = {
 }
 
 export const WALLS: Wall[] = [
-  // the castle's big pale bricks, the mortar dark
-  { name: "wall_castle", from: "00_castle_exterior_1", tile: [9, 10] },
-  // the castle's parapet: crenels over a dripping cornice
-  { name: "wall_battlement", from: "00_castle_exterior_1", tile: [9, 6] },
-  // dressed stone, darker and rougher
-  { name: "wall_masonry", from: "07_cave_1", tile: [3, 11] },
-  // a library's shelves of books
-  { name: "wall_bookshelf", from: "21_library", tile: [3, 2] },
-  // planks standing on end: wooden houses and sheds
-  { name: "wall_planks", from: "06_town_interior", tile: [13, 9] },
-  // carved sandstone of the desert pyramid
-  { name: "wall_sandstone", from: "19_desert_pyramid", tile: [1, 2] },
   // the forest's dense canopy, a wall of leaves
   { name: "wall_canopy", from: "12_forest_1", tile: [4, 9] },
 ]

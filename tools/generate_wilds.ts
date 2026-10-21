@@ -283,15 +283,15 @@ const CELL: Record<T, string> = {
   [T.ROAD]: "3", // floor2.png: tiles with a dotted edge, apart from the meadow
   [T.BRIDGE]: "d",
   [T.PLAZA]: "c",
-  [T.WALL]: "V", // wall_planks: the wooden houses
-  [T.STONEWALL]: "M", // wall_masonry: the stone houses
+  [T.WALL]: "2", // wall1: the wooden houses
+  [T.STONEWALL]: "1", // wall0: the stone houses
   [T.FLOOR]: "d",
   [T.TREE]: "J", // wall_canopy: the trees, a mass of leaves
   [T.STONE]: "m",
   [T.CAMP]: "p",
   [T.FIELD]: "t",
-  [T.RAMPART]: "L", // wall_battlement
-  [T.RUIN]: "Z", // wall_sandstone
+  [T.RAMPART]: "1", // wall0: a town wall
+  [T.RUIN]: "1", // wall0: the broken walls
   [T.TRIAL]: "4",
   [T.ICE]: "i",
   [T.BIO]: "A",

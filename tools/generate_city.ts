@@ -150,7 +150,7 @@ const STYLES: Record<CityStyle, Style> = {
     names: {},
     lotScale: 1,
     avenue: "c",
-    walls: { house: "M", shop: "1", uptown: "K" },
+    walls: { house: "1", shop: "1", uptown: "1" },
     pierEvery: 22,
     outline: { reach: 225, wobble: 0.4, scale: 70 },
     grand: "castle",
@@ -176,7 +176,7 @@ const STYLES: Record<CityStyle, Style> = {
       name: "ARCHIVE",
       styles: ["spiral", "snake"],
       kinds: ["library", "candlelit", "library", "empty"],
-      wall: "K",
+      wall: "1",
       household: ["sage", "apprentice", "nun", "apprentice"],
     },
   },
@@ -205,7 +205,7 @@ const STYLES: Record<CityStyle, Style> = {
     },
     lotScale: 0.75,
     avenue: "d",
-    walls: { house: "V", shop: "Z", uptown: "M" },
+    walls: { house: "2", shop: "1", uptown: "1" },
     pierEvery: 11,
     outline: { reach: 205, wobble: 0.55, scale: 45 },
     grand: "temple",
@@ -264,7 +264,7 @@ const STYLES: Record<CityStyle, Style> = {
     },
     lotScale: 1.5,
     avenue: "c",
-    walls: { house: "V", shop: "M", uptown: "Z" },
+    walls: { house: "2", shop: "1", uptown: "1" },
     pierEvery: 16,
     outline: { reach: 215, wobble: 0.7, scale: 35 },
     grand: "mansion",
@@ -363,13 +363,13 @@ export async function buildCity(
     FLOOR: "d",
     PIER: "d",
     TREE: "J", // wall_canopy: the leaves of the parks and the edge belt
-    // the walls by kind (tools/import_ff5_walls.ts)
-    CASTLE: "K", // wall_castle: the keep, the barracks, the uptown houses
-    RAMPART: "L", // wall_battlement: the castle's outer wall
-    MASONRY: "M", // wall_masonry: the houses of the town
-    PLANKS: "V", // wall_planks: the harbor's warehouses and houses
-    SANDSTONE: "Z", // wall_sandstone: the chapel
-    BOOKS: "U", // wall_bookshelf: the keep's library wall
+    // the walls by kind: stone (wall0) or planks (wall1)
+    CASTLE: "1", // the keep, the uptown houses
+    RAMPART: "1", // the castle's outer wall
+    MASONRY: "1", // the stone houses of the town
+    PLANKS: "2", // the harbor's warehouses and the wooden houses
+    SANDSTONE: "1", // the chapel, the temple
+    BOOKS: "2", // the keep's library wall
     YARD: "4",
     GRAVEL: "p",
   } as const
@@ -2519,12 +2519,7 @@ export async function buildCity(
       [C.AVENUE]: Palette.gray2,
       [C.SQUARE]: Palette.orange2,
       [C.WALL]: Palette.black,
-      [C.CASTLE]: Palette.gray4,
-      [C.RAMPART]: Palette.black,
-      [C.MASONRY]: Palette.gray4,
       [C.PLANKS]: Palette.brown3,
-      [C.SANDSTONE]: Palette.yellow3,
-      [C.BOOKS]: Palette.brown4,
       [C.FLOOR]: Palette.brown2,
       [C.TREE]: Palette.green3,
       [C.YARD]: Palette.lime1,
