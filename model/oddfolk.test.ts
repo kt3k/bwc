@@ -138,7 +138,7 @@ Deno.test("the lost one keeps to the house and follows the player out", () => {
   assert(seen.size > 3, "never went anywhere")
   // Bumped: asks to be shown out, and tags along
   me.fastTravel(lost.i, lost.j + 1)
-  d.onPushed({ dir: "up", pusher: me } as never, lost, field)
+  d.onContact(lost, field, me)
   assert(d.isFollowing)
   // The player steps out of the front door: the lost one is led out
   me.fastTravel(3, 8)

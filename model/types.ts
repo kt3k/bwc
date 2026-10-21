@@ -178,6 +178,8 @@ export type IActor =
     readonly data?: unknown
     get physicalGridKey(): string
     get dir(): Dir
+    /** The cell in front of it */
+    frontGrid(): [i: number, j: number]
     get follower(): IFollower | null
     /** true if the actor can't be shoved or crushed (patrols) */
     get isUnstoppable(): boolean

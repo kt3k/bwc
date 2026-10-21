@@ -532,7 +532,27 @@ export class Actor implements IActor {
     return this.#actionQueue.isEmpty()
   }
 
+  /** Whether the player was in contact (next to it, facing it) last frame */
+  #inContact = false
+  /** No contact is taken before this time (a word, a shove, just now) */
+  #contactUntil = 0
+
+  /** The player coming into contact: standing next to it, facing it */
+  #checkContact(field: IField) {
+    const me = field.me
+    if (!this.#pushed?.onContact || !me || me.id === this.#id) return
+    const [fi, fj] = me.frontGrid()
+    const contact = fi === this.#i && fj === this.#j &&
+      Math.abs(me.i - this.#i) + Math.abs(me.j - this.#j) === 1
+    if (contact && !this.#inContact && field.time >= this.#contactUntil) {
+      this.#contactUntil = field.time + 90
+      this.#pushed.onContact(this, field, me)
+    }
+    this.#inContact = contact
+  }
+
   step(field: IField) {
+    this.#checkContact(field)
     if (this.#move === null) {
       const state = this.#actionQueue.process(this, field)
       // a stopped clock holds the actor still (it can still be shoved)
@@ -770,7 +790,9 @@ export class Actor implements IActor {
       slide()
       return
     }
-    if (this.#pushed) {
+    // a shove puts off the next word for a moment
+    this.#contactUntil = field.time + 60
+    if (this.#pushed?.onPushed) {
       this.#pushed.onPushed(event, this, field)
       return
     }
@@ -875,8 +897,16 @@ export interface IdleDelegate {
   onIdle(actor: Actor, field: IField): void
 }
 
+/**
+ * How an actor takes a push, and contact. A push (someone moving into
+ * it) shoves it a cell by default; a delegate with `onPushed` takes it
+ * its own way (a boulder rolls, a patrol ignores it). Contact is the
+ * player standing next to it and facing it: the townsfolk talk, the
+ * cat takes it as a pat, the kids as a tag
+ */
 export interface ActorPushedDelegate {
-  onPushed(event: PushedEvent, actor: Actor, field: IField): void
+  onPushed?(event: PushedEvent, actor: Actor, field: IField): void
+  onContact?(actor: Actor, field: IField, by: IActor): void
 }
 
 /**

@@ -128,13 +128,14 @@ const NOTES: Record<string, string> = {
   "actor.crow":
     "flies over water to steal coins and keys for its nest; bump it on land to drop the loot",
   "actor.villager":
-    "runs errands to nearby shops, tables and stools; chats with other villagers; bump to talk",
+    "runs errands to nearby shops, tables and stools; chats with other villagers; walk up to it to talk, bump to shove",
   "actor.villager2": "a villager in other clothes",
   "actor.keeper":
     "minds its stall; watches passers-by, greets you, tidies up when alone",
   "actor.kid":
-    "plays tag with the other kids; if it tags you, you're it: bump a kid to tag back",
-  "actor.cat": "naps and strolls; shy of strangers; pat it and it follows you",
+    "plays tag with the other kids; if it tags you, you're it: walk up to a kid to tag back",
+  "actor.cat":
+    "naps and strolls; shy of strangers; walk up to it (a pat) and it follows you",
 }
 
 const CELL = 16

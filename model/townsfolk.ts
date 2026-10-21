@@ -3,8 +3,10 @@
 //
 // - villager: runs errands between the landmarks near its home (shop,
 //   well, tables, stools, flower beds, signs, lanterns), lingers at each, goes home to
-//   rest, stops to chat with the villagers it meets, and talks back when
-//   the player bumps into it. Other roles live the same way but pick
+//   rest, stops to chat with the villagers it meets, and has a word for
+//   the player who walks up to it (a bump shoves it, as it shoves anyone;
+//   contact is standing next to it, facing it). Other roles live the
+//   same way but pick
 //   their errands differently (the idle name in the catalog):
 //   - sentry (guard, lady knight): walks a beat from its post and back,
 //     watching the player
@@ -20,14 +22,14 @@
 //   - crier: calls the news in the square to whoever passes by
 //   - shopper: goes from stall to stall
 //   - commuter: goes to work a way off, and home again, day after day
-//   - beggar: asks for a coin, and takes one when bumped
+//   - beggar: asks for a coin, and takes one from whoever walks up
 // - keeper: minds its stall. Watches whoever comes near, greets the
 //   player, and tidies up (a step aside and back) when nobody is around
 // - kid: plays tag with the other kids. The one who is "it" runs after
 //   the others (and after the player, who can join in)
 // - cat: naps, strolls, keeps clear of strangers; pet it and it follows
 //   you for a while
-import { DIRS, nextGrid, opposite, UP } from "../util/dir.ts"
+import { DIRS, nextGrid, UP } from "../util/dir.ts"
 import { Palette, type PaletteColor } from "../util/palette.ts"
 import { seed } from "../util/random.ts"
 import * as signal from "../util/signals.ts"
@@ -35,7 +37,7 @@ import type { Actor, ActorPushedDelegate, IdleDelegate } from "./actor.ts"
 import { linePattern0 } from "./effect.ts"
 import { face, findPath, manhattan, stepAway, stepToward } from "./steering.ts"
 import { eatBait, findBait, stepToBait } from "./bait.ts"
-import type { Dir, IActor, IField, IProp, PushedEvent } from "./types.ts"
+import type { Dir, IActor, IField, IProp } from "./types.ts"
 
 /**
  * The actor's words pop out of them as a speech bubble, like a
@@ -165,7 +167,7 @@ export interface Role {
   readonly range: number
   readonly errands: number
   readonly watch?: number
-  /** What it says when the player bumps into it (null: its usual lines) */
+  /** What it says to the player who walks up to it (null: its usual lines) */
   talk?(actor: Actor, field: IField): string | null
   /** Where its ways may run, on top of what can be entered (the folk
    * of a house keep to it) */
@@ -446,7 +448,7 @@ export function attendantRole(whom: string, range = 30): Role {
  * Lives by its role (errands to the landmarks by default): walks to each
  * errand by the shortest path, stays a while, and after a few errands
  * goes home to rest. Two villagers who meet on the way stop and chat, and
- * the player who bumps into one gets a word.
+ * the player who walks up to one gets a word.
  */
 export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
   #role: Role
@@ -577,12 +579,8 @@ export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
     this.#lingerUntil = field.time + 60
   }
 
-  onPushed(event: PushedEvent, actor: Actor, field: IField): void {
-    const pusher = event.pusher
-    if (!pusher) {
-      return
-    }
-    // Turns to whoever bumped into it and has a word
+  onContact(actor: Actor, field: IField, pusher: IActor): void {
+    // Turns to whoever walked up to it and has a word
     this.#chatWith = [pusher.i, pusher.j]
     this.#chatUntil = field.time + 120
     face(actor, pusher.i, pusher.j)
@@ -890,11 +888,7 @@ export class KeeperDelegate implements IdleDelegate, ActorPushedDelegate {
     }
   }
 
-  onPushed(event: PushedEvent, actor: Actor, field: IField): void {
-    const pusher = event.pusher
-    if (!pusher) {
-      return
-    }
+  onContact(actor: Actor, field: IField, pusher: IActor): void {
     face(actor, pusher.i, pusher.j)
     if (pusher.id === "main") {
       say(actor, field, KEEPER_LINES[this.#line])
@@ -925,9 +919,9 @@ export function isPlayerIt(): boolean {
 /**
  * Plays tag. With no "it" among the kids around, one becomes "it",
  * counts to three, then runs after the nearest kid at double speed; a
- * bump tags the other kid, who counts in turn. The others run from "it"
+ * step up to the other kid tags it, and it counts in turn. The others run from "it"
  * and wander around their home spot otherwise. The player gets tagged
- * when "it" catches them, and tags back by bumping into a kid.
+ * when "it" catches them, and tags back by walking up to a kid.
  */
 export class KidDelegate implements IdleDelegate, ActorPushedDelegate {
   #home: [number, number] | null = null
@@ -1005,15 +999,17 @@ export class KidDelegate implements IdleDelegate, ActorPushedDelegate {
       if (best === 1) {
         face(actor, target.i, target.j)
         actor.tryMove("go", actor.dir, field)
+        this.#it = false
+        this.#restUntil = field.time + 60
         if (target === me) {
           // Tagged the player
-          this.#it = false
           playerIsIt = true
-          this.#restUntil = field.time + 60
           say(actor, field, "YOU'RE IT! TAG ONE OF US")
-          signal.playSound("jump")
+        } else {
+          // Tagged the kid, who counts in turn
+          kids.get(target)?.becomeIt(field)
         }
-        // Tagging a kid is handled by its onPushed
+        signal.playSound("jump")
         return
       }
       if (!stepToward(actor, field, target.i, target.j, 2)) {
@@ -1047,29 +1043,17 @@ export class KidDelegate implements IdleDelegate, ActorPushedDelegate {
     this.#wander(actor, field, home)
   }
 
-  onPushed(event: PushedEvent, actor: Actor, field: IField): void {
-    const pusher = event.pusher
-    if (!pusher || this.#it) {
+  onContact(actor: Actor, field: IField, by: IActor): void {
+    if (this.#it || by.id !== "main") {
       return
     }
-    const other = kids.get(pusher)
-    if (other?.isIt) {
-      // Tagged by "it"
-      other.#it = false
-      other.#restUntil = field.time + 60
+    if (playerIsIt) {
+      playerIsIt = false
       this.becomeIt(field)
+      say(actor, field, "OH NO, I'M IT!")
       signal.playSound("jump")
-      return
-    }
-    if (pusher.id === "main") {
-      if (playerIsIt) {
-        playerIsIt = false
-        this.becomeIt(field)
-        say(actor, field, "OH NO, I'M IT!")
-        signal.playSound("jump")
-      } else if (actor.isActionQueueEmpty()) {
-        actor.enqueueActions({ type: "jump" })
-      }
+    } else if (actor.isActionQueueEmpty()) {
+      actor.enqueueActions({ type: "jump" })
     }
   }
 
@@ -1098,7 +1082,7 @@ export class KidDelegate implements IdleDelegate, ActorPushedDelegate {
 
 /**
  * Naps, then strolls a few cells around its spot. Keeps clear of the
- * player (slowly). A bump is taken as a pat: the cat purrs and follows
+ * player (slowly). Walking up to it is a pat: the cat purrs and follows
  * the player for a while. A fish on the ground within 8 cells draws it
  * over: it eats it and sleeps there for 20 seconds (the bait).
  */
@@ -1199,16 +1183,10 @@ export class CatDelegate implements IdleDelegate, ActorPushedDelegate {
     }
   }
 
-  onPushed(event: PushedEvent, actor: Actor, field: IField): void {
-    const pusher = event.pusher
-    if (pusher?.id !== "main") {
-      if (actor.isActionQueueEmpty()) {
-        actor.enqueueActions({ type: "jump" })
-      }
-      return
-    }
+  onContact(actor: Actor, field: IField, by: IActor): void {
+    if (by.id !== "main") return
     // A pat
-    actor.setDir(opposite(event.dir))
+    face(actor, by.i, by.j)
     this.#followUntil = field.time + 600
     this.#nextStep = field.time + 30
     say(actor, field, "PURR...")

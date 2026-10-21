@@ -6,8 +6,8 @@
 //
 // - lost: wanders from room to room looking for the way out, forgets
 //   where it has been, and when it finds a door at last goes straight
-//   back in. Bumped by the player it asks to be shown the door, and
-//   follows them until they lead it outside
+//   back in. The player who walks up to it is asked to show it the
+//   door, and it follows them until they lead it outside
 // - roomkeeper: keeps to one room and does what the room is for: sleeps
 //   in the beds of a dormitory one after another, waits in the line of
 //   the privies, reads shelf to shelf in the library, lights the
@@ -20,7 +20,7 @@
 //   seeks, counting first, the rest hide in the rooms; the seeker finds
 //   a hider by coming into its room; the found wait in the front room
 //   until all are found, then the first found seeks. The player finds a
-//   hider by bumping into it
+//   hider by walking up to it
 import { DIRS } from "../util/dir.ts"
 import { Palette } from "../util/palette.ts"
 import type { Actor, ActorPushedDelegate, IdleDelegate } from "./actor.ts"
@@ -34,7 +34,7 @@ import {
   type Role,
   say,
 } from "./townsfolk.ts"
-import type { IActor, IField, IProp, PushedEvent } from "./types.ts"
+import type { IActor, IField, IProp } from "./types.ts"
 import type { Dir } from "./types.ts"
 
 /** A room of the house: its rect, walls inclusive, and what it is for */
@@ -268,15 +268,9 @@ export class LostDelegate implements IdleDelegate, ActorPushedDelegate {
     this.#lingerUntil = field.time + 60 + randomInt(90)
   }
 
-  onPushed(event: PushedEvent, actor: Actor, field: IField): void {
-    const pusher = event.pusher
-    if (!pusher) return
-    face(actor, pusher.i, pusher.j)
-    if (pusher.id !== "main") return
-    if (this.#followUntil > 0) {
-      say(actor, field, "LEAD ON, I'M RIGHT BEHIND YOU")
-      return
-    }
+  onContact(actor: Actor, field: IField, by: IActor): void {
+    face(actor, by.i, by.j)
+    if (by.id !== "main" || this.#followUntil > 0) return
     say(actor, field, "WHICH WAY IS THE DOOR? SHOW ME, PLEASE")
     this.#followUntil = field.time + 1200
     this.#state.path = []
@@ -402,7 +396,7 @@ export function roomKeeperRole(data?: unknown): Role {
 
 /**
  * Counts the rooms: walks into each in turn, a puff at each, and tells
- * the count when bumped. No two rounds give the same number
+ * the count to whoever walks up. No two rounds give the same number
  */
 export function counterRole(data?: unknown): Role {
   const house = houseOf(data)
@@ -543,8 +537,8 @@ export function resetHideSeek() {
  * Plays hide and seek in the house. The seeker counts, then walks the
  * rooms; a hider in the room it walks into is found, says so, and waits
  * in the front room. When every hider is found, the first found seeks
- * next and the rest hide again. The player finds a hider by bumping into
- * it (the seeker doesn't count that against them)
+ * next and the rest hide again. The player finds a hider by walking up
+ * to it (the seeker doesn't count that against them)
  */
 export class HideSeekDelegate implements IdleDelegate, ActorPushedDelegate {
   #state = { path: [] as Dir[], waited: 0 }
@@ -744,10 +738,9 @@ export class HideSeekDelegate implements IdleDelegate, ActorPushedDelegate {
     }
   }
 
-  onPushed(event: PushedEvent, actor: Actor, field: IField): void {
-    const pusher = event.pusher
-    if (pusher?.id !== "main") return
-    face(actor, pusher.i, pusher.j)
+  onContact(actor: Actor, field: IField, by: IActor): void {
+    if (by.id !== "main") return
+    face(actor, by.i, by.j)
     const house = houseOf(actor.data)
     if (!house) return
     const game = this.#game(house)

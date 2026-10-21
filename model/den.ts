@@ -14,7 +14,7 @@
 //
 // What has been won is kept with the collected item ids (as
 // "warren.<id>", "pen.<id>", "den.<id>", "hive.<id>").
-import { DIRS, opposite } from "../util/dir.ts"
+import { DIRS } from "../util/dir.ts"
 import { Palette, type PaletteColor } from "../util/palette.ts"
 import * as signal from "../util/signals.ts"
 import { shake } from "../util/juice.ts"
@@ -162,13 +162,13 @@ export class RabbitDelegate {
     stepAway(actor, field, me!.i, me!.j, choice, 4)
   }
 
-  onPushed(event: PushedEvent, actor: Actor, field: IField): void {
-    if (event.pusher?.id !== "main" || field.time >= this.#nibbleUntil) {
+  onContact(actor: Actor, field: IField, by: IActor): void {
+    if (by.id !== "main" || field.time >= this.#nibbleUntil) {
       if (actor.isActionQueueEmpty()) actor.enqueueActions({ type: "jump" })
       return
     }
     // patted while nibbling: it thumps its foot, glad of you
-    actor.setDir(opposite(event.dir))
+    face(actor, by.i, by.j)
     actor.enqueueActions({ type: "jump" })
     sparkle(field, actor.i, actor.j, Palette.pink2)
     const hole = propsNear(field, "rabbit-hole", actor.i, actor.j, 12)[0]
@@ -183,7 +183,7 @@ export class RabbitDelegate {
       text: "THE RABBIT THUMPS ITS FOOT. IT LEFT A FOUR-LEAF CLOVER",
     })
     scatter(field, "herb", actor.i, actor.j, 1, {
-      avoid: [event.pusher.i, event.pusher.j],
+      avoid: [by.i, by.j],
       reach: 1,
     })
   }
@@ -421,7 +421,7 @@ export class BeehivePushed implements PushedDelegate {
     sparkle(field, prop.i, prop.j, Palette.brown2)
     say(prop, "THE BEES ARE OUT AT THE FLOWERS. A HONEYCOMB!", event.dir)
     scatter(field, "honey", prop.i, prop.j, 1, {
-      avoid: [event.pusher.i, event.pusher.j],
+      avoid: [event.pusher!.i, event.pusher!.j],
       reach: 1,
     })
   }

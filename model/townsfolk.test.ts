@@ -170,17 +170,13 @@ Deno.test("VillagerDelegate", async (t) => {
     )
   })
 
-  await t.step("talks to the player who bumps into it", () => {
+  await t.step("talks to the player who walks up to it", () => {
     signal.speech.update(null)
     const me = new Actor(1, 0, def, "main")
     const villager = new Actor(0, 0, def, "v1")
     const { field } = makeTown(me, [villager])
     const delegate = new VillagerDelegate()
-    delegate.onPushed(
-      { type: "pushed", dir: "left", peakAt: 7, pusher: me },
-      villager,
-      field,
-    )
+    delegate.onContact(villager, field, me)
     assert(signal.speech.get()?.text)
     assertEquals(villager.dir, "right")
     assertEquals([villager.i, villager.j], [0, 0])
@@ -313,17 +309,13 @@ Deno.test("villager roles", async (t) => {
     assertEquals([commuter.i, commuter.j], [0, 0])
   })
 
-  await t.step("beggar: takes a coin when bumped", () => {
+  await t.step("beggar: takes a coin from who walks up", () => {
     signal.coinCount.update(2)
     const me = new Actor(1, 0, def, "main")
     const beggar = new Actor(0, 0, def, "be")
     const { field } = makeTown(me, [beggar])
     const delegate = new VillagerDelegate(ROLES.beggar())
-    delegate.onPushed(
-      { type: "pushed", dir: "left", peakAt: 7, pusher: me },
-      beggar,
-      field,
-    )
+    delegate.onContact(beggar, field, me)
     assertEquals(signal.coinCount.get(), 1)
     assert(signal.speech.get()?.text.includes("BLESS"))
   })
@@ -405,26 +397,29 @@ Deno.test("KidDelegate", async (t) => {
     assertEquals([a.i, a.j], [1, 0])
   })
 
-  await t.step("a bump from it passes it on", () => {
+  await t.step("it catching a kid passes it on", () => {
     resetTag()
     const me = new Actor(50, 50, def, "main")
     const a = new Actor(0, 0, def, "a")
     const b = new Actor(1, 0, def, "b")
-    const { field } = makeTown(me, [a, b])
+    const { field, tick } = makeTown(me, [a, b])
     const ka = new KidDelegate()
     const kb = new KidDelegate()
     ka.onIdle(a, field)
     kb.onIdle(b, field)
-    kb.onPushed(
-      { type: "pushed", dir: "right", peakAt: 7, pusher: a },
-      b,
-      field,
-    )
+    assert(ka.isIt)
+    // counts to three, then runs after the kid (who ran a step off)
+    // and catches it
+    tick(90)
+    for (let n = 0; n < 5 && ka.isIt; n++) {
+      ka.onIdle(a, field)
+      tick()
+    }
     assertFalse(ka.isIt)
     assert(kb.isIt)
   })
 
-  await t.step("tags the player, who tags back by a bump", () => {
+  await t.step("tags the player, who tags back by walking up", () => {
     resetTag()
     const me = new Actor(1, 0, def, "main")
     const a = new Actor(0, 0, def, "a")
@@ -438,11 +433,7 @@ Deno.test("KidDelegate", async (t) => {
     ka.onIdle(a, field)
     assert(isPlayerIt())
     assertFalse(ka.isIt)
-    kb.onPushed(
-      { type: "pushed", dir: "down", peakAt: 7, pusher: me as IActor },
-      b,
-      field,
-    )
+    kb.onContact(b, field, me as IActor)
     assertFalse(isPlayerIt())
     assert(kb.isIt)
     resetTag()
@@ -463,11 +454,7 @@ Deno.test("CatDelegate", async (t) => {
     const cat = new Actor(1, 0, def, "c")
     const { field, tick } = makeTown(me, [cat])
     const delegate = new CatDelegate()
-    delegate.onPushed(
-      { type: "pushed", dir: "right", peakAt: 7, pusher: me },
-      cat,
-      field,
-    )
+    delegate.onContact(cat, field, me)
     assert(delegate.isFollowing)
     me.fastTravel(-4, 0)
     tick(40)
