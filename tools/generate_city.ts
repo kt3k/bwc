@@ -1914,8 +1914,74 @@ export async function buildCity(
    * the canal town the same ground is the temple: a hedge for the wall,
    * a sandstone hall with its sages and nuns, pools for the orchards
    */
+  /**
+   * The flavor of the grand place's odd house, by the grand kind: the
+   * castle's is a keep of castle stone behind a rampart, the court in
+   * it; the temple's a cloister of sandstone behind a hedge, pools in
+   * its garden; the crooked town's a mansion behind a hedge, its folk
+   * the odd folk's
+   */
+  const GRAND: Record<Style["grand"], {
+    /** what the grounds are fenced with */
+    fence: string
+    brick: string
+    /** the kinds the rooms are given, in turn (none: as grown) */
+    kinds: RoomKind[]
+    /** who stands inside the front door, and in the last room */
+    head: string
+    last: string
+    household: string[]
+    /** the three at the gates: west, north, south */
+    gates: [string, string, string]
+    garden: "orchard" | "pools"
+    log: string
+  }> = {
+    castle: {
+      fence: C.RAMPART,
+      brick: C.CASTLE,
+      kinds: ["library", "dormitory", "candlelit", "empty", "library"],
+      head: "chancellor",
+      last: "princess",
+      household: ["guard", "lady-knight", "nun", "guard", "bard"],
+      gates: ["lady-knight", "guard", "guard"],
+      garden: "orchard",
+      log: "the keep",
+    },
+    temple: {
+      fence: C.TREE,
+      brick: C.SANDSTONE,
+      kinds: ["candlelit", "empty", "library", "candlelit", "privies"],
+      head: "sage",
+      last: "nun",
+      household: ["nun", "dancer", "nun", "sage"],
+      gates: ["sage", "nun", "nun"],
+      garden: "pools",
+      log: "the temple",
+    },
+    mansion: {
+      fence: C.TREE,
+      brick: C.CASTLE,
+      kinds: [],
+      head: "inventor",
+      last: "sage",
+      household: ["cat", "nun", "bard", "dancer", "cat"],
+      gates: ["cat", "cat", "kid"],
+      garden: "orchard",
+      log: "the mansion",
+    },
+  }
+
+  /**
+   * The grand place east of the middle: the grounds fenced (a rampart
+   * or a hedge) with a gate on three sides and the avenues running in,
+   * and in them one odd house of 20-40 rooms (the biggest that fits)
+   * with its front door toward the west gate, grown again and shrunk
+   * until it fits, its other doors opening onto the gravel. Round it
+   * the garden: lamp-posts, benches, the well, and rows of saplings
+   * (or the temple's pools) that stop short of the house
+   */
   function castle(r: Rect) {
-    const temple = style.grand === "temple"
+    const grand = GRAND[style.grand]
     const wall = inset(r, 2)
     const cx = (wall.x0 + wall.x1) >> 1, cy = (wall.y0 + wall.y1) >> 1
     for (let y = wall.y0; y <= wall.y1; y++) {
@@ -1925,9 +1991,7 @@ export async function buildCity(
         const gate = (Math.abs(y - cy) <= 1 && (x === wall.x0)) ||
           (Math.abs(x - cx) <= 1 && (y === wall.y0 || y === wall.y1))
         if (!inside(x, y) || isWater(at(x, y))) continue
-        // the castle's rampart; the temple and the mansion keep a hedge
-        const hedge = temple || style.grand === "mansion"
-        set(x, y, edge && !gate ? (hedge ? C.TREE : C.RAMPART) : C.GRAVEL)
+        set(x, y, edge && !gate ? grand.fence : C.GRAVEL)
         if (edge) fixed[idx(x, y)] = 1
       }
     }
@@ -1938,109 +2002,6 @@ export async function buildCity(
     for (const y of [r.y0, r.y0 + 1, r.y1 - 1, r.y1]) {
       for (let x = cx - 1; x <= cx + 1; x++) set(x, y, C.AVENUE)
     }
-    if (style.grand === "mansion") {
-      mansion(wall, cx, cy)
-      return
-    }
-    // the keep: a big hall in the middle, its door to the west gate
-    const keep = { x0: cx - 10, y0: cy - 8, x1: cx + 10, y1: cy + 8 }
-    for (let y = keep.y0; y <= keep.y1; y++) {
-      for (let x = keep.x0; x <= keep.x1; x++) {
-        const edge = x === keep.x0 || x === keep.x1 || y === keep.y0 ||
-          y === keep.y1
-        // the north wall of the hall is lined with books
-        set(
-          x,
-          y,
-          edge
-            ? (temple ? C.SANDSTONE : y === keep.y0 ? C.BOOKS : C.CASTLE)
-            : C.SQUARE,
-        )
-      }
-    }
-    set(keep.x0, cy, C.SQUARE)
-    buildings.push({
-      ...keep,
-      door: [keep.x0, cy],
-      inner: [keep.x0 + 1, cy],
-      side: "w",
-      kind: "keep",
-      district: "CASTLE",
-    })
-    // the throne: a table under two lanterns
-    put(props, cx + 6, cy, "table")
-    put(props, cx + 6, cy - 2, "lantern")
-    put(props, cx + 6, cy + 2, "lantern")
-    put(actors, cx + 4, cy, temple ? "sage" : "chancellor")
-    put(actors, cx + 3, cy - 3, temple ? "nun" : "guard")
-    put(actors, cx + 3, cy + 3, temple ? "nun" : "guard")
-    put(props, keep.x0 + 2, keep.y0 + 2, "barrel")
-    put(props, keep.x1 - 2, keep.y0 + 2, "barrel")
-    put(props, keep.x0 + 2, keep.y1 - 2, "lantern")
-    put(props, keep.x1 - 2, keep.y1 - 2, "lantern")
-    // guards at the gates, inside
-    put(actors, wall.x0 + 2, cy + 2, temple ? "sage" : "lady-knight")
-    put(actors, cx + 2, wall.y0 + 2, temple ? "nun" : "guard")
-    put(actors, cx + 2, wall.y1 - 2, temple ? "nun" : "guard")
-    // the garden round the keep
-    for (const [dx, dy] of [[-14, -12], [14, -12], [-14, 12], [14, 12]]) {
-      put(props, cx + dx, cy + dy, "flower-pot")
-    }
-    put(props, cx - 14, cy - 4, "bench")
-    put(props, cx + 14, cy + 4, "bench")
-    put(actors, cx - 14, cy + 6, temple ? "dancer" : "princess")
-    put(props, cx, cy - 13, "well")
-    put(actors, cx + 6, cy + 12, "bard")
-    for (const [dx, dy] of [[-16, 0], [16, 0], [0, -16], [0, 16]]) {
-      put(props, cx + dx, cy + dy, "lamp-post")
-    }
-    put(actors, cx - 16, cy - 2, "lamplighter")
-    // the barracks, north and south of the keep, and the orchards
-    for (
-      const [y0, side] of [[wall.y0 + 6, "s"], [wall.y1 - 14, "n"]] as const
-    ) {
-      for (const x0 of [cx - 24, cx + 6]) {
-        const b = build(
-          { x0, y0, x1: x0 + 17, y1: y0 + 8 },
-          side,
-          "house",
-          "CASTLE",
-        )
-        if (!b) continue
-        put(props, b.x0 + 2, b.y0 + 2, "table")
-        put(props, b.x0 + 3, b.y0 + 2, "stool")
-        put(
-          actors,
-          ...b.inner,
-          temple ? "nun" : x0 < cx ? "guard" : "lady-knight",
-        )
-      }
-    }
-    for (const [ya, yb] of [[wall.y0 + 18, cy - 16], [cy + 16, wall.y1 - 18]]) {
-      for (let y = ya; y <= yb; y += 4) {
-        for (let x = wall.x0 + 4; x <= wall.x1 - 4; x += 4) {
-          if (Math.abs(x - cx) <= 3) continue
-          // the temple's pools, the castle's orchards
-          if (temple) {
-            set(x, y, C.SEA)
-            set(x + 1, y, C.SEA)
-          } else put(props, x, y, "sapling")
-        }
-      }
-    }
-    put(actors, cx - 10, wall.y0 + 20, "farmer")
-    put(actors, cx + 10, wall.y1 - 20, "farmer")
-  }
-
-  /**
-   * The mansion of the crooked town, where the castle would stand: one
-   * odd house of 20-40 rooms (the biggest that fits the grounds) with
-   * its front door toward the west gate, grown again and shrunk until
-   * it fits, its other doors opening onto the gravel. Round it the
-   * garden: lamp-posts, benches, the well, and saplings in rows that
-   * stop short of the house
-   */
-  function mansion(wall: Rect, cx: number, cy: number) {
     const door: [number, number] = [wall.x0 + 8, cy]
     const ground = inset(wall, 3)
     const limits = {
@@ -2060,6 +2021,14 @@ export async function buildCity(
         for (let k = 0; k < 6; k++) {
           const p = growPlan(rng, rooms, style, limits)
           if (p.rooms.length < 20) continue
+          if (grand.kinds.length > 0) {
+            p.rooms.forEach((room, i) => {
+              room.kind = grand.kinds[(i * 3) % grand.kinds.length]
+            })
+            for (const [a, b] of p.merges ?? []) {
+              p.rooms[b].kind = p.rooms[a].kind
+            }
+          }
           const l = layPlan(p, door, [1, 0], rng() < 0.5 ? 1 : -1)
           const fits = cellsOf(l).every(([x, y]) =>
             x >= ground.x0 && x <= ground.x1 && y >= ground.y0 &&
@@ -2069,7 +2038,7 @@ export async function buildCity(
             laid = l
             plan = p
             console.log(
-              `${cityName}: the mansion, an odd ${style} house of ${p.rooms.length} rooms`,
+              `${cityName}: ${grand.log}, an odd ${style} house of ${p.rooms.length} rooms`,
             )
             break grow
           }
@@ -2077,7 +2046,7 @@ export async function buildCity(
       }
     }
     if (!laid || !plan) {
-      console.error("NG no mansion fits the grounds")
+      console.error(`NG no house fits the grounds of ${grand.log}`)
       Deno.exit(1)
     }
     // the other doors open onto the gravel of the garden
@@ -2088,11 +2057,11 @@ export async function buildCity(
       if (!ok) closeDoor(laid, d)
     }
     for (const [x, y] of cellsOf(laid)) {
-      set(x, y, laid.walls.has(cellKey(x, y)) ? C.CASTLE : C.FLOOR)
+      set(x, y, laid.walls.has(cellKey(x, y)) ? grand.brick : C.FLOOR)
       fixed[idx(x, y)] = 1
     }
     // the north wall of the front room is lined with books, as the
-    // keep's hall is
+    // keep's hall was
     const front = laid.rooms[0]
     for (let x = front.x0 + 1; x < front.x1; x++) {
       if (laid.walls.has(cellKey(x, front.y0))) set(x, front.y0, C.BOOKS)
@@ -2108,19 +2077,22 @@ export async function buildCity(
     })
     const n = buildings.length
     for (const r of laid.rooms) furnishRoom(r, n, laid.gaps)
-    // the household: the inventor at the door, the sage in the last
-    // room, and the rest of the folk one to every few rooms
-    put(actors, door[0] + 1, door[1], "inventor")
+    // the household: the head of it inside the door, the last of it in
+    // the last room, and the rest one to every few rooms; the throne
+    // (a table under two lanterns) in the front room
+    put(props, door[0] + 4, door[1], "table")
+    put(props, door[0] + 4, door[1] - 2, "lantern")
+    put(props, door[0] + 4, door[1] + 2, "lantern")
+    put(actors, door[0] + 1, door[1], grand.head)
     const last = laid.rooms[laid.rooms.length - 1]
-    put(actors, last.x0 + ((last.x1 - last.x0) >> 1), last.y1 - 1, "sage")
-    const household = ["cat", "nun", "bard", "dancer", "cat"]
+    put(actors, last.x0 + ((last.x1 - last.x0) >> 1), last.y1 - 1, grand.last)
     for (let k = 5; k < laid.rooms.length - 1; k += 6) {
       const r = laid.rooms[k]
       put(
         actors,
         r.x0 + ((r.x1 - r.x0) >> 1),
         r.y1 - 1,
-        household[(k / 6 | 0) % household.length],
+        grand.household[(k / 6 | 0) % grand.household.length],
       )
     }
     oddFolkIn(laid, door, [-1, 0])
@@ -2139,15 +2111,30 @@ export async function buildCity(
     for (let y = wall.y0 + 4; y <= wall.y1 - 4; y += 4) {
       for (let x = wall.x0 + 4; x <= wall.x1 - 4; x += 4) {
         if (Math.abs(x - cx) <= 3 || Math.abs(y - cy) <= 3) continue
-        garden(x, y, "sapling")
+        if (grand.garden === "pools") {
+          // a pool two cells wide, clear of the house and the gates
+          if (
+            at(x, y) === C.GRAVEL && at(x + 1, y) === C.GRAVEL &&
+            !nearHouse(x, y) && !nearHouse(x + 1, y) &&
+            Math.abs(y - cy) > 4 && Math.abs(x - cx) > 4
+          ) {
+            set(x, y, C.SEA)
+            set(x + 1, y, C.SEA)
+          }
+        } else garden(x, y, "sapling")
       }
     }
-    // the folk of the garden: cats at the gates, a lamplighter, kids
-    put(actors, wall.x0 + 2, cy + 2, "cat")
-    put(actors, cx + 2, wall.y0 + 2, "cat")
-    put(actors, cx + 2, wall.y1 - 2, "kid")
+    // the folk of the garden: at the gates, a lamplighter, a farmer
+    put(actors, wall.x0 + 2, cy + 2, grand.gates[0])
+    put(actors, cx + 2, wall.y0 + 2, grand.gates[1])
+    put(actors, cx + 2, wall.y1 - 2, grand.gates[2])
     put(actors, wall.x0 + 3, cy - 3, "lamplighter")
-    put(actors, cx - 2, wall.y0 + 3, "kid")
+    put(
+      actors,
+      cx - 2,
+      wall.y0 + 3,
+      grand.garden === "pools" ? "dancer" : "farmer",
+    )
   }
 
   // build the districts
