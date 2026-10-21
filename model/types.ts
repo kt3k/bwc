@@ -174,6 +174,8 @@ export type IActor =
     get id(): string
     /** The actor type in the catalog (e.g. "villager") */
     get type(): string
+    /** What the actor was told about its place (model/oddfolk.ts) */
+    readonly data?: unknown
     get physicalGridKey(): string
     get dir(): Dir
     get follower(): IFollower | null

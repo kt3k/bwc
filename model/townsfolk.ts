@@ -42,7 +42,7 @@ import type { Dir, IActor, IField, IProp, PushedEvent } from "./types.ts"
  * sign's. It opens downward when the player stands above them, and it
  * follows them if they move off mid-sentence.
  */
-function say(actor: Actor, field: IField, text: string) {
+export function say(actor: Actor, field: IField, text: string) {
   signal.speech.update({
     i: actor.i,
     j: actor.j,
@@ -54,7 +54,7 @@ function say(actor: Actor, field: IField, text: string) {
 }
 
 /** A small puff above the head: talking, counting, purring */
-function puff(field: IField, actor: IActor, color: PaletteColor) {
+export function puff(field: IField, actor: IActor, color: PaletteColor) {
   for (
     const effect of linePattern0([UP], actor.i, actor.j, 0.5, 0.5, 1, color)
   ) {
@@ -63,7 +63,7 @@ function puff(field: IField, actor: IActor, color: PaletteColor) {
 }
 
 /** A deterministic random source for the actor at this frame */
-function rng(actor: IActor, field: IField) {
+export function rng(actor: IActor, field: IField) {
   return seed(`${actor.id}.${field.time}`)
 }
 
@@ -167,6 +167,9 @@ export interface Role {
   readonly watch?: number
   /** What it says when the player bumps into it (null: its usual lines) */
   talk?(actor: Actor, field: IField): string | null
+  /** Where its ways may run, on top of what can be entered (the folk
+   * of a house keep to it) */
+  passable?(i: number, j: number): boolean
   next(
     actor: Actor,
     field: IField,
@@ -176,7 +179,7 @@ export interface Role {
 }
 
 /** Stands next to the prop (or on it, when it can be entered) */
-const besideProp = (prop: IProp, linger: number): Errand => ({
+export const besideProp = (prop: IProp, linger: number): Errand => ({
   goal: (i, j) =>
     prop.canEnter
       ? i === prop.i && j === prop.j
@@ -187,7 +190,7 @@ const besideProp = (prop: IProp, linger: number): Errand => ({
 })
 
 /** The props of the given types within the range of home */
-function propsNear(
+export function propsNear(
   field: IField,
   home: readonly [number, number],
   range: number,
@@ -652,7 +655,8 @@ export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
       isGoal,
       (i, j) =>
         field.canEnterStatic(i, j) &&
-        manhattan(i, j, home[0], home[1]) <= range + 2,
+        manhattan(i, j, home[0], home[1]) <= range + 2 &&
+        (this.#role.passable?.(i, j) ?? true),
       Math.max(600, (2 * range + 5) ** 2),
     )
   }
@@ -785,8 +789,9 @@ export function beggarRole(): Role {
   }
 }
 
-/** The roles by the idle name in the catalog */
-export const ROLES: Record<string, () => Role> = {
+/** The roles by the idle name in the catalog (the spawn's data, if any,
+ * tells the role about its place) */
+export const ROLES: Record<string, (data?: unknown) => Role> = {
   villager: () => errandsRole(),
   sentry: () => sentryRole(),
   performer: () => performerRole(),

@@ -68,6 +68,7 @@ import {
   type LaidPlan,
   layPlan,
   ODD_KINDS,
+  oddFolk,
   PLANS,
   type RoomKind,
 } from "./house_plans.ts"
@@ -1427,15 +1428,19 @@ function layHouse(
   const inX = doorX + nx, inY = doorY + ny
   put(actors, inX, inY, resident)
   residents++
-  // an odd house holds more folk, one to every few rooms
-  for (let k = 4; k < laid.rooms.length; k += 4) {
-    const r = laid.rooms[k]
-    put(
-      actors,
-      r.x0 + ((r.x1 - r.x0) >> 1),
-      r.y1 - 1,
-      RESIDENTS[residents++ % RESIDENTS.length],
+  // an odd house holds its own folk (model/oddfolk.ts)
+  if ((GROW_STYLES as string[]).includes(plan.name)) {
+    const spawns = oddFolk(
+      laid,
+      [doorX, doorY],
+      [-nx, -ny],
+      [OI, OJ],
+      rng,
+      (x, y) =>
+        inside(x, y) && !taken.has(idx(x, y)) &&
+        (catalog.cells[CELL[terrain[idx(x, y)] as T]]?.canEnter ?? false),
     )
+    for (const s of spawns) put(actors, s.x, s.y, s.type, s.data)
   }
   // a shop sign beside some doors (on the wall cell next to it)
   if (signs < VILLAGER_SIGNS.length && ny !== 0) {

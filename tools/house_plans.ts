@@ -560,3 +560,94 @@ function extraDoors(
   }
   return out
 }
+
+// ---------------------------------------------------------------------
+// the folk of the odd houses (model/oddfolk.ts)
+
+export type FolkSpawn = { x: number; y: number; type: string; data: unknown }
+
+/**
+ * The folk an odd house gets, told the house (its rooms and doors, in
+ * world cells) by their data: a lost one from 6 rooms up, a counter
+ * from 8, a room keeper in every third room of an odd kind, a passer
+ * through when the house has a second door, and three kids (four from
+ * 20 rooms) playing hide and seek from 10 rooms up. Each stands on the
+ * first free cell of its room, by `free` (standable, nothing there
+ * yet); `out` is the way out of the front door.
+ */
+export function oddFolk(
+  laid: LaidPlan,
+  door: [number, number],
+  out: [number, number],
+  offset: [number, number],
+  rng: () => number,
+  free: (x: number, y: number) => boolean,
+): FolkSpawn[] {
+  const [ox, oy] = offset
+  const house = {
+    rooms: laid.rooms.map((r) => ({
+      x0: r.x0 + ox,
+      y0: r.y0 + oy,
+      x1: r.x1 + ox,
+      y1: r.y1 + oy,
+      kind: r.kind,
+    })),
+    doors: [
+      { x: door[0] + ox, y: door[1] + oy, out },
+      ...laid.doors.map((d) => ({ x: d.x + ox, y: d.y + oy, out: d.out })),
+    ],
+  }
+  const n = laid.rooms.length
+  const spawns: FolkSpawn[] = []
+  const used = new Set<string>()
+  /** A free cell of the room, the middle of its bottom row first */
+  const spotIn = (k: number): [number, number] | null => {
+    const r = laid.rooms[k]
+    const mx = r.x0 + ((r.x1 - r.x0) >> 1), my = r.y0 + ((r.y1 - r.y0) >> 1)
+    const tries: [number, number][] = [
+      [mx, r.y1 - 1],
+      [mx, my],
+      [mx, r.y0 + 2],
+      [r.x0 + 1, my],
+      [r.x1 - 1, my],
+      [mx - 1, r.y1 - 1],
+      [mx + 1, r.y1 - 1],
+    ]
+    for (const [x, y] of tries) {
+      if (
+        x > r.x0 && x < r.x1 && y > r.y0 && y < r.y1 &&
+        !used.has(cellKey(x, y)) && !laid.gaps.has(cellKey(x, y)) &&
+        free(x, y)
+      ) {
+        used.add(cellKey(x, y))
+        return [x, y]
+      }
+    }
+    return null
+  }
+  const add = (k: number, type: string, data: unknown) => {
+    const spot = spotIn(k)
+    if (spot) spawns.push({ x: spot[0], y: spot[1], type, data })
+    return spot !== null
+  }
+  const ri = (hi: number) => Math.floor(rng() * hi)
+  if (n >= 6) add(1 + ri(n - 1), "lost", { house })
+  if (n >= 8) add(1, "counter", { house })
+  for (let k = 2; k < n; k += 3) {
+    if (ODD_KINDS.includes(laid.rooms[k].kind)) {
+      add(k, "roomkeeper", { house, room: k })
+    }
+  }
+  if (laid.doors.length >= 1) {
+    const d = laid.doors[0]
+    const [x, y] = [d.x + d.out[0], d.y + d.out[1]]
+    if (free(x, y)) spawns.push({ x, y, type: "passer", data: { house } })
+  }
+  if (n >= 10) {
+    const kids = n >= 20 ? 4 : 3
+    for (let k = 0, placed = 0; k < n * 3 && placed < kids; k++) {
+      if (add(1 + ri(n - 1), "hider", { house })) placed++
+    }
+  }
+  return spawns
+}

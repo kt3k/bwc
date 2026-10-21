@@ -30,6 +30,7 @@ import { linePattern0 } from "./effect.ts"
 import { MoveBounce, MoveGo, MoveJump } from "./move.ts"
 import { dirsToward, stepAway } from "./steering.ts"
 import { eatBait, findBait, stepToBait } from "./bait.ts"
+import { HideSeekDelegate, LostDelegate, ODD_ROLES } from "./oddfolk.ts"
 import {
   CatDelegate,
   KeeperDelegate,
@@ -76,7 +77,12 @@ export function spawnActor(
   i: number,
   j: number,
   def: ActorDefinition,
-  { dir = "down", speed = 1 }: { dir?: Dir; speed?: 1 | 2 | 4 | 8 | 16 } = {},
+  { dir = "down", speed = 1, data }: {
+    dir?: Dir
+    speed?: 1 | 2 | 4 | 8 | 16
+    /** What the actor is told about its place (model/oddfolk.ts) */
+    data?: unknown
+  } = {},
 ): Actor {
   let moveEnd: MoveEndDelegate | null = null
   let idle: IdleDelegate | null = null
@@ -142,7 +148,19 @@ export function spawnActor(
     case "shopper":
     case "commuter":
     case "beggar":
-      idle = villager ??= new VillagerDelegate(ROLES[def.idle]())
+      idle = villager ??= new VillagerDelegate(ROLES[def.idle](data))
+      break
+    case "roomkeeper":
+    case "counter":
+    case "passer":
+      // the folk of the odd houses (model/oddfolk.ts)
+      idle = villager ??= new VillagerDelegate(ODD_ROLES[def.idle](data))
+      break
+    case "lost":
+      idle = shared(LostDelegate)
+      break
+    case "hider":
+      idle = shared(HideSeekDelegate)
       break
     case "keeper":
       idle = shared(KeeperDelegate)
@@ -184,18 +202,26 @@ export function spawnActor(
     case "cat":
       pushed = shared(CatDelegate)
       break
+    case "lost":
+      pushed = shared(LostDelegate)
+      break
+    case "hider":
+      pushed = shared(HideSeekDelegate)
+      break
     default:
       if (def.pushed && ODD_ACTORS[def.pushed]) {
         pushed = shared(ODD_ACTORS[def.pushed]) as ActorPushedDelegate
       }
   }
-  return new Actor(i, j, def, id, dir, speed, moveEnd, idle, pushed)
+  return new Actor(i, j, def, id, dir, speed, moveEnd, idle, pushed, data)
 }
 
 /**
  * The actor class
  */
 export class Actor implements IActor {
+  /** What the actor is told about its place (a house's rooms and doors) */
+  readonly data: unknown
   /** The current direction of the actor */
   #dir: Dir
   /** The column of the world coordinates */
@@ -344,6 +370,7 @@ export class Actor implements IActor {
     return spawnActor(spawn.id, spawn.i, spawn.j, spawn.def, {
       dir: spawn.dir,
       speed: spawn.speed,
+      data: spawn.data,
     })
   }
 
@@ -357,7 +384,9 @@ export class Actor implements IActor {
     moveEnd: MoveEndDelegate | null = null,
     idle: IdleDelegate | null = null,
     pushed: ActorPushedDelegate | null = null,
+    data: unknown = undefined,
   ) {
+    this.data = data
     this.#i = i
     this.#j = j
     this.#speed = speed

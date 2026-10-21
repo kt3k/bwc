@@ -124,6 +124,8 @@ export class ActorSpawn implements IBox {
   readonly def: ActorDefinition
   readonly dir?: Dir
   readonly speed?: ActorSpeed
+  /** What the actor is told about its place (a house's rooms and doors) */
+  readonly data?: unknown
   readonly x: number
   readonly y: number
   readonly w = CELL_SIZE
@@ -132,9 +134,10 @@ export class ActorSpawn implements IBox {
     i: number,
     j: number,
     def: ActorDefinition,
-    { dir, speed }: {
+    { dir, speed, data }: {
       dir?: Dir
       speed?: ActorSpeed
+      data?: unknown
     } = {},
   ) {
     this.id = `${i}.${j}.${def.type}.${speed ?? "-"}.${dir ?? "-"}` // Unique ID for the spawn
@@ -142,6 +145,7 @@ export class ActorSpawn implements IBox {
     this.j = j
     this.dir = dir
     this.speed = speed
+    this.data = data
     this.def = def
     this.x = i * CELL_SIZE
     this.y = j * CELL_SIZE
@@ -156,13 +160,17 @@ export class ActorSpawn implements IBox {
   }
 
   toJSON(): BlockMapSource["actors"][number] {
-    return {
+    const json: BlockMapSource["actors"][number] = {
       i: this.i,
       j: this.j,
       type: this.def.type,
       dir: this.dir,
       speed: this.speed,
     }
+    if (this.data !== undefined) {
+      json.data = this.data
+    }
+    return json
   }
 }
 
@@ -294,6 +302,7 @@ interface BlockMapSource {
     type: string
     dir?: Dir
     speed?: ActorSpeed
+    data?: unknown
   }[]
   items: {
     i: number
@@ -362,6 +371,7 @@ export class BlockMap {
         {
           dir: spawn.dir,
           speed: spawn.speed,
+          data: spawn.data,
         },
       )
     )

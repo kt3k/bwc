@@ -41,11 +41,13 @@ import {
   closeDoor,
   GROW_STYLES,
   growPlan,
+  type GrowStyle,
   type HousePlan,
   HUT,
   type LaidPlan,
   layPlan,
   ODD_KINDS,
+  oddFolk,
   PLANS,
   type RoomKind,
 } from "./house_plans.ts"
@@ -114,6 +116,21 @@ type Style = {
   odd: { old: number; share: number; small: boolean; lotMode?: "frontage" }
   /** The fewest houses the city passes with */
   minHouses: number
+  /**
+   * The big odd house of a city whose grand place is not the mansion:
+   * one of 24-32 rooms that stood before the streets in the district,
+   * its rooms of the given kinds, its walls of the given cell, its
+   * household one of the given folk to every few rooms (and the odd
+   * folk of every odd house), named on the map
+   */
+  mansion?: {
+    district: string
+    name: string
+    styles: GrowStyle[]
+    kinds: RoomKind[]
+    wall: string
+    household: string[]
+  }
 }
 const STYLES: Record<CityStyle, Style> = {
   capital: {
@@ -152,6 +169,16 @@ const STYLES: Record<CityStyle, Style> = {
     ],
     odd: { old: 2, share: 0.16, small: false },
     minHouses: 60,
+    // the archive: the scholars' mansion of the uptown, a spiral of
+    // libraries and candlelit rooms behind castle walls
+    mansion: {
+      district: "UPTOWN",
+      name: "ARCHIVE",
+      styles: ["spiral", "snake"],
+      kinds: ["library", "candlelit", "library", "empty"],
+      wall: "K",
+      household: ["sage", "apprentice", "nun", "apprentice"],
+    },
   },
   canal: {
     x1: 112,
@@ -195,7 +222,18 @@ const STYLES: Record<CityStyle, Style> = {
       ["kid", 6],
     ],
     odd: { old: 2, share: 0.16, small: false },
-    minHouses: 60,
+    // the lodgings take a street's worth of the fishers' houses
+    minHouses: 50,
+    // the lodgings: the sailors' boarding house of the fishers' quarter,
+    // a warren of dormitories and privies in planks
+    mansion: {
+      district: "NORTHSIDE",
+      name: "LODGINGS",
+      styles: ["warren"],
+      kinds: ["dormitory", "privies", "dormitory", "empty", "dormitory"],
+      wall: "1",
+      household: ["sailor", "fishwife", "sailor", "cat"],
+    },
   },
   // the crooked town: the lots are big and every one comes house first,
   // and the houses are grown, not planned - a dozen stood before the
@@ -663,6 +701,8 @@ export async function buildCity(
     door: [number, number]
     side: Side
     district: District
+    /** the city's mansion (style.mansion), by its name */
+    mansion?: string
   }
   const oldHouses: OldHouse[] = []
 
@@ -685,6 +725,8 @@ export async function buildCity(
     door: [number, number],
     side: Side,
     district: District,
+    /** the mansion's name and walls, when this is the mansion */
+    mansion?: { name: string; wall: string },
   ): boolean {
     const [dx, dy] = SIDE_DIR[side]
     const laid = layPlan(plan, door, [-dx, -dy], flip)
@@ -701,12 +743,12 @@ export async function buildCity(
       }
     }
     wallUpBlindDoors(laid)
-    const brick = wallOf("house", district)
+    const brick = mansion?.wall ?? wallOf("house", district)
     for (const [x, y] of cells) {
       set(x, y, laid.walls.has(cellKey(x, y)) ? brick : C.FLOOR)
       fixed[idx(x, y)] = 1
     }
-    oldHouses.push({ laid, door, side, district })
+    oldHouses.push({ laid, door, side, district, mansion: mansion?.name })
     return true
   }
 
@@ -841,6 +883,62 @@ export async function buildCity(
         }
       })
     })
+    // the mansion of a city whose grand place is the castle or the
+    // temple: the biggest odd house (32 rooms down to 24) that finds
+    // room in its district, its rooms of the kinds of the house
+    if (style.mansion) {
+      const m = style.mansion
+      const where = rects.filter((r) => r.district === m.district)
+      let done = false
+      for (let rooms = 32; rooms >= 20 && !done; rooms -= 2) {
+        for (let k = 0; k < 60 && !done && where.length > 0; k++) {
+          const r = where[randomInt(where.length)]
+          const gs = m.styles[randomInt(m.styles.length)]
+          const side = (["n", "s", "w", "e"] as Side[])[randomInt(4)]
+          const door: [number, number] = [
+            r.x0 + 6 + randomInt(Math.max(1, r.x1 - r.x0 - 12)),
+            r.y0 + 6 + randomInt(Math.max(1, r.y1 - r.y0 - 12)),
+          ]
+          // grown to the district: no deeper than its far side from the
+          // door, no wider than the door's distance to its near sides
+          const [dx, dy] = SIDE_DIR[side]
+          const depth = dx < 0
+            ? r.x1 - door[0]
+            : dx > 0
+            ? door[0] - r.x0
+            : dy < 0
+            ? r.y1 - door[1]
+            : door[1] - r.y0
+          const halfWidth = dx !== 0
+            ? Math.min(door[1] - r.y0, r.y1 - door[1])
+            : Math.min(door[0] - r.x0, r.x1 - door[0])
+          const plan = growPlan(rng, rooms, gs, {
+            depth: depth - 2,
+            halfWidth: halfWidth - 2,
+          })
+          if (plan.rooms.length < 20) continue
+          plan.rooms.forEach((room, i) => {
+            room.kind = m.kinds[(i * 3) % m.kinds.length]
+          })
+          for (const [a, b] of plan.merges ?? []) {
+            plan.rooms[b].kind = plan.rooms[a].kind
+          }
+          const flip = rng() < 0.5 ? 1 : -1
+          if (layOldHouse(plan, flip, door, side, r.district, m)) {
+            done = true
+            console.log(
+              `${cityName}: the ${m.name}, an odd ${gs} house of ${plan.rooms.length} rooms in ${r.district} at ${
+                OI + door[0]
+              },${OJ + door[1]}`,
+            )
+          }
+        }
+      }
+      if (!done) {
+        console.error(`NG no room for the ${m.name}`)
+        Deno.exit(1)
+      }
+    }
     let built = 0
     const want = style.odd.old
     // the districts take turns, and none takes more than its share, so
@@ -1478,12 +1576,28 @@ export async function buildCity(
     const n = buildings.length
     for (const r of laid.rooms) furnishRoom(r, n, laid.gaps)
     put(actors, ...b.inner, resident(district))
-    // an odd house holds more folk, one to every few rooms
-    for (let k = 4; k < laid.rooms.length; k += 4) {
-      const r = laid.rooms[k]
-      put(actors, r.x0 + ((r.x1 - r.x0) >> 1), r.y1 - 1, resident(district))
-    }
+    // an odd house holds its own folk (model/oddfolk.ts)
+    if (b.odd) oddFolkIn(laid, door, [dx, dy])
     return b
+  }
+
+  /** Puts the folk of an odd house (model/oddfolk.ts) in it */
+  function oddFolkIn(
+    laid: LaidPlan,
+    door: [number, number],
+    out: [number, number],
+  ) {
+    const spawns = oddFolk(
+      laid,
+      door,
+      out,
+      [OI, OJ],
+      rng,
+      (x, y) =>
+        inside(x, y) && !taken.has(idx(x, y)) &&
+        (catalog.cells[at(x, y)]?.canEnter ?? false),
+    )
+    for (const s of spawns) put(actors, s.x, s.y, s.type, s.data)
   }
 
   /**
@@ -1999,16 +2113,17 @@ export async function buildCity(
     put(actors, door[0] + 1, door[1], "inventor")
     const last = laid.rooms[laid.rooms.length - 1]
     put(actors, last.x0 + ((last.x1 - last.x0) >> 1), last.y1 - 1, "sage")
-    const household = ["kid", "cat", "nun", "bard", "dancer", "kid", "cat"]
-    for (let k = 3; k < laid.rooms.length - 1; k += 3) {
+    const household = ["cat", "nun", "bard", "dancer", "cat"]
+    for (let k = 5; k < laid.rooms.length - 1; k += 6) {
       const r = laid.rooms[k]
       put(
         actors,
         r.x0 + ((r.x1 - r.x0) >> 1),
         r.y1 - 1,
-        household[(k / 3 - 1) % household.length],
+        household[(k / 6 | 0) % household.length],
       )
     }
+    oddFolkIn(laid, door, [-1, 0])
     // the garden
     const b = laid.bounds
     const nearHouse = (x: number, y: number) =>
@@ -2057,10 +2172,20 @@ export async function buildCity(
     const n = buildings.length
     for (const r of old.laid.rooms) furnishRoom(r, n, old.laid.gaps)
     put(actors, ...b.inner, resident(old.district))
-    for (let k = 4; k < old.laid.rooms.length; k += 4) {
-      const r = old.laid.rooms[k]
-      put(actors, r.x0 + ((r.x1 - r.x0) >> 1), r.y1 - 1, resident(old.district))
+    if (old.mansion && style.mansion) {
+      // the household of the mansion, one to every few rooms
+      const folk = style.mansion.household
+      for (let k = 3; k < old.laid.rooms.length; k += 5) {
+        const r = old.laid.rooms[k]
+        put(
+          actors,
+          r.x0 + ((r.x1 - r.x0) >> 1),
+          r.y1 - 1,
+          folk[(k / 5 | 0) % folk.length],
+        )
+      }
     }
+    oddFolkIn(old.laid, old.door, [dx, dy])
     oddHouses++
     laneFrom(old.door[0] + dx, old.door[1] + dy)
     for (const d of old.laid.doors) laneFrom(d.x + d.out[0], d.y + d.out[1])
@@ -2449,6 +2574,10 @@ export async function buildCity(
         id: style.names[d.name] ?? d.name,
       })),
       ...[...specials].map(([lot, what]) => ({ ...lot, id: what })),
+      ...oldHouses.filter((o) => o.mansion).map((o) => ({
+        ...o.laid.bounds,
+        id: o.mansion!,
+      })),
     ].map(({ id, x0, y0, x1, y1 }) => ({ id, x0, y0, x1, y1 })),
     arrival: ARRIVAL,
     gates,
