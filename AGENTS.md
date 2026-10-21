@@ -27,3 +27,9 @@
 - When opened a new PR, open that URL in browser
 - When merging PR, use squash and commit and summarize the contents at merge
   time
+
+## Playtesting
+
+- When asked to playtest (e.g. AI subagents playing the game), use the testers
+  and the procedure in docs/playtesters.md: give every tester its shared traits,
+  and drive the game with `node tools/playtest.mjs`.
