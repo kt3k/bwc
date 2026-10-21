@@ -75,9 +75,6 @@ const mushroomEffect = function (
 }
 
 export class IdleMainActor implements IdleDelegate {
-  /** The field time when the ongoing fishing resolves, if fishing */
-  #fishingUntil: number | null = null
-
   onIdle(actor: Actor, field: IField): void {
     let dir: Dir | null = null
     if (Input.up) {
@@ -91,27 +88,11 @@ export class IdleMainActor implements IdleDelegate {
     }
 
     if (dir !== null) {
-      // Moving cancels the ongoing fishing
-      this.#fishingUntil = null
       actor.tryMove("go", dir, field)
       if (actor.buff.mushroom) {
         for (const effect of mushroomEffect(actor, opposite(dir))) {
           field.effects.add(effect)
         }
-      }
-      return
-    }
-
-    if (this.#fishingUntil !== null) {
-      if (inputQueue[0] === "space" || inputQueue[0] === "touchendempty") {
-        // Space cancels the ongoing fishing
-        inputQueue.shift()
-        this.#fishingUntil = null
-        return
-      }
-      if (field.time >= this.#fishingUntil) {
-        this.#fishingUntil = null
-        this.#resolveFishing(actor, field)
       }
       return
     }
@@ -130,47 +111,8 @@ export class IdleMainActor implements IdleDelegate {
       if (putTool(actor, field)) {
         return
       }
-      const [fi, fj] = actor.frontGrid()
-      if (field.isWater(fi, fj)) {
-        // Starts fishing: resolves after 1 to 3 seconds
-        this.#fishingUntil = field.time + 60 + Math.floor(Math.random() * 120)
-        return
-      }
       actor.jump()
       actor.unsetFollower()
-    }
-  }
-
-  #resolveFishing(actor: Actor, field: IField): void {
-    const [fi, fj] = actor.frontGrid()
-    const roll = Math.random()
-    if (roll < 0.4) {
-      // Caught a fish, which becomes a follower
-      const fish = field.spawnItem("fish", actor.i, actor.j)
-      if (fish) {
-        fish.onCollect(actor, field)
-        signal.playSound("powerUp")
-        signal.message.update({ text: "CAUGHT A FISH!" })
-      }
-    } else if (roll < 0.7) {
-      signal.coinCount.update(signal.coinCount.get() + 1)
-      signal.playSound("pickupCoin")
-      signal.message.update({ text: "FOUND A COIN" })
-    } else {
-      signal.message.update({ text: "NO LUCK..." })
-    }
-    for (
-      const effect of linePattern0(
-        [actor.dir],
-        fi,
-        fj,
-        1,
-        0.7,
-        3,
-        Palette.cyan3,
-      )
-    ) {
-      field.effects.add(effect)
     }
   }
 }

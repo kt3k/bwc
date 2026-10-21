@@ -122,7 +122,7 @@ const ROLE_LINES: Record<string, readonly string[]> = {
   sage: ["THE RIVERS REMEMBER", "SEEK THE CAVERN'S THREE TRIALS"],
   bard: ["SHALL I SING OF THE WILDS?", "LA LA LAAA..."],
   blacksmith: ["MIND THE SPARKS", "A GOOD SWORD IS WORTH 6 COINS"],
-  fishwife: ["FRESH FISH! WELL, YESTERDAY'S", "TRY FISHING BY THE RIVER"],
+  fishwife: ["FRESH FISH! WELL, YESTERDAY'S", "FISH WASH UP BY THE RIVER"],
   assassin: ["...", "YOU SAW NOTHING"],
   princess: ["IT IS SO NICE TO BE OUTSIDE", "DON'T TELL THE CHANCELLOR"],
   chancellor: ["HAVE YOU SEEN THE PRINCESS?", "PROTOCOL, PROTOCOL..."],

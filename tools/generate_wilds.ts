@@ -1931,8 +1931,8 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
 // to hold it yourself: an apple draws the chaser onto it, a fish puts the
 // cat to sleep on it, and the third room wants both, the long sleeper
 // first. No apples lie about (the chaser would follow you out and eat
-// them): bring your own, or wait on the young apple tree outside. There
-// is water to fish in
+// them): bring your own, or wait on the young apple tree outside. A fish
+// lies outside, out of the cat's reach
 
 {
   type Kind = "apple" | "fish" | "both"
@@ -3369,6 +3369,16 @@ scatter(
       distRoad[idx(x, y)] > 25 && rng() < 0.2 ? "mushroom" : "apple",
     ),
 )
+
+// fish washed up on the shores (no fishing: this is where the fish for
+// the cats and foxes come from; one lies there again when the place
+// comes back)
+scatter(30, W * H / 40, (x, y) => {
+  const p = idx(x, y)
+  if (!free(x, y) || distWater[p] !== 1 || !walkableCell(p)) return false
+  const t = terrain[p] as T
+  return (t === T.SAND || t === T.MEADOW || t === T.FOREST) && rng() < 0.5
+}, (x, y) => put(items, x, y, "fish"))
 
 // animals where they belong, and the animal homes (model/den.ts,
 // ideas/animal-homes.md): by each village a sheep pen with its flock

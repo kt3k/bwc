@@ -105,7 +105,10 @@ export class FieldItems implements IStepper, ILoader {
   /** Collects an item from the field. */
   collect(i: number, j: number, id: string) {
     const item = this.#deactivate(i, j, id)
-    if (item?.id) {
+    // a fish lying by the water is not kept as collected: another lies
+    // there again when the place comes back (no fishing: it is where the
+    // fish come from)
+    if (item?.id && item.def.collect !== "fish") {
       Item.collect(item.id)
     }
   }

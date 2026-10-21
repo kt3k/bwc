@@ -215,13 +215,15 @@ item(146, 78, "coin")
 // ---------------------------------------------------------------------
 // T4 (row 1, east): fish through the shutters -> shrine and chest
 //
-// Catch a fish, push the clock, then walk the long way round: the
-// short way is paved with springs and a jump scares the fish off.
+// Take a fish from the shore, push the clock, then walk the long way
+// round: the short way is paved with springs and a jump scares the fish
+// off. The fish on the shore lie there again once you come back.
 
-rect(158, 46, 178, 62, "y") // the fishing area: sand
+rect(158, 46, 178, 62, "y") // the shore: sand
 rect(160, 50, 164, 56, "w")
+for (const y of [51, 53, 55]) item(165, y, "fish")
 prop(178, 58, "timer-button", { group: "t4", duration: 1080 })
-sign(166, 48, "CATCH A FISH: FACE THE WATER, PRESS SPACE")
+sign(166, 48, "A FISH FOLLOWS WHOEVER PICKS IT UP")
 sign(172, 60, "PUSH THE CLOCK AND WALK. NO JUMPING, NO SPRINGS")
 // the long way
 rect(179, 54, 185, 56, "6")

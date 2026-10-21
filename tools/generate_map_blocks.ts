@@ -307,7 +307,7 @@ function genLake(key: string): Generated {
       ...spawnList(key, "lantern", 5),
       {
         ...spawnList(key, "sign", 1)[0],
-        data: { text: "LAKESIDE: TRY FISHING" },
+        data: { text: "LAKESIDE" },
       },
     ],
     protectedRects: [],
@@ -438,7 +438,7 @@ function genTreasury(key: string): Generated {
 //
 // Portal A of the start island drops the player into this walled
 // course. It introduces the features one by one: movement, apples,
-// crate breaking, coins, spring pads, fishing, slippery ice, the
+// crate breaking, coins, spring pads, a lake, slippery ice, the
 // planting, chests, boulders and a switch-linked wall. The final apple
 // gate (5 apples, collectable on the course) opens onto the road
 // lattice — from there the whole world is free to explore.

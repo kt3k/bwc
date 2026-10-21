@@ -62,7 +62,7 @@ export function putTool(actor: Actor, field: IField): boolean {
   if (tool === null) return false
   const say = (text: string) => signal.message.update({ text })
   const [fi, fj] = actor.frontGrid()
-  // nothing goes on the water: space fishes there as usual
+  // nothing goes on the water: space jumps there as usual
   if (field.isWater(fi, fj)) return false
   const fish = followingFish(actor)
   if (tool === "apple" && signal.appleCount.get() <= 0) {
@@ -70,7 +70,7 @@ export function putTool(actor: Actor, field: IField): boolean {
     return true
   }
   if (tool === "fish" && !fish) {
-    say("NO FISH. FISH IN THE WATER")
+    say("NO FISH. FISH LIE BY THE WATER")
     return true
   }
   if (
