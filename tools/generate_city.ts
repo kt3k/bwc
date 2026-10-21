@@ -41,6 +41,7 @@ import {
   closeDoor,
   GROW_STYLES,
   growPlan,
+  type HousePlan,
   HUT,
   type LaidPlan,
   layPlan,
@@ -96,8 +97,9 @@ type Style = {
   pierEvery: number
   /** The outline: how far east the bow reaches (cells), how much it wobbles */
   outline: { reach: number; wobble: number; scale: number }
-  /** The big place east of the middle: the walled castle or the temple */
-  grand: "castle" | "temple"
+  /** The big place east of the middle: the walled castle, the temple,
+   * or the mansion (an odd house of 20-40 rooms in a hedged garden) */
+  grand: "castle" | "temple" | "mansion"
   /** What the signs say of the city */
   motto: string
   /** The street folk: [type, how many] */
@@ -227,7 +229,7 @@ const STYLES: Record<CityStyle, Style> = {
     walls: { house: "V", shop: "M", uptown: "Z" },
     pierEvery: 16,
     outline: { reach: 215, wobble: 0.7, scale: 35 },
-    grand: "temple",
+    grand: "mansion",
     motto: "NO HOUSE IS SQUARE, NO DOOR IS THE LAST, EVERY ROOM LEADS ON",
     folk: [
       ["lamplighter", 6],
@@ -1809,7 +1811,9 @@ export async function buildCity(
         const gate = (Math.abs(y - cy) <= 1 && (x === wall.x0)) ||
           (Math.abs(x - cx) <= 1 && (y === wall.y0 || y === wall.y1))
         if (!inside(x, y) || isWater(at(x, y))) continue
-        set(x, y, edge && !gate ? (temple ? C.TREE : C.RAMPART) : C.GRAVEL)
+        // the castle's rampart; the temple and the mansion keep a hedge
+        const hedge = temple || style.grand === "mansion"
+        set(x, y, edge && !gate ? (hedge ? C.TREE : C.RAMPART) : C.GRAVEL)
         if (edge) fixed[idx(x, y)] = 1
       }
     }
@@ -1819,6 +1823,10 @@ export async function buildCity(
     }
     for (const y of [r.y0, r.y0 + 1, r.y1 - 1, r.y1]) {
       for (let x = cx - 1; x <= cx + 1; x++) set(x, y, C.AVENUE)
+    }
+    if (style.grand === "mansion") {
+      mansion(wall, cx, cy)
+      return
     }
     // the keep: a big hall in the middle, its door to the west gate
     const keep = { x0: cx - 10, y0: cy - 8, x1: cx + 10, y1: cy + 8 }
@@ -1908,6 +1916,123 @@ export async function buildCity(
     }
     put(actors, cx - 10, wall.y0 + 20, "farmer")
     put(actors, cx + 10, wall.y1 - 20, "farmer")
+  }
+
+  /**
+   * The mansion of the crooked town, where the castle would stand: one
+   * odd house of 20-40 rooms (the biggest that fits the grounds) with
+   * its front door toward the west gate, grown again and shrunk until
+   * it fits, its other doors opening onto the gravel. Round it the
+   * garden: lamp-posts, benches, the well, and saplings in rows that
+   * stop short of the house
+   */
+  function mansion(wall: Rect, cx: number, cy: number) {
+    const door: [number, number] = [wall.x0 + 8, cy]
+    const ground = inset(wall, 3)
+    const limits = {
+      depth: ground.x1 - door[0] - 1,
+      halfWidth: Math.min(cy - ground.y0, ground.y1 - cy) - 1,
+    }
+    let laid: LaidPlan | null = null
+    let plan: HousePlan | null = null
+    // the winding styles first; the grid (a block of flats) the last
+    // resort
+    const styles = [
+      ...shuffle(GROW_STYLES.filter((s) => s !== "grid")),
+      "grid" as const,
+    ]
+    grow: for (let rooms = 40; rooms >= 20; rooms -= 2) {
+      for (const style of styles) {
+        for (let k = 0; k < 6; k++) {
+          const p = growPlan(rng, rooms, style, limits)
+          if (p.rooms.length < 20) continue
+          const l = layPlan(p, door, [1, 0], rng() < 0.5 ? 1 : -1)
+          const fits = cellsOf(l).every(([x, y]) =>
+            x >= ground.x0 && x <= ground.x1 && y >= ground.y0 &&
+            y <= ground.y1 && at(x, y) === C.GRAVEL
+          )
+          if (fits) {
+            laid = l
+            plan = p
+            console.log(
+              `${cityName}: the mansion, an odd ${style} house of ${p.rooms.length} rooms`,
+            )
+            break grow
+          }
+        }
+      }
+    }
+    if (!laid || !plan) {
+      console.error("NG no mansion fits the grounds")
+      Deno.exit(1)
+    }
+    // the other doors open onto the gravel of the garden
+    for (const d of [...laid.doors]) {
+      const ok = [1, 2].every((k) =>
+        at(d.x + k * d.out[0], d.y + k * d.out[1]) === C.GRAVEL
+      )
+      if (!ok) closeDoor(laid, d)
+    }
+    for (const [x, y] of cellsOf(laid)) {
+      set(x, y, laid.walls.has(cellKey(x, y)) ? C.CASTLE : C.FLOOR)
+      fixed[idx(x, y)] = 1
+    }
+    // the north wall of the front room is lined with books, as the
+    // keep's hall is
+    const front = laid.rooms[0]
+    for (let x = front.x0 + 1; x < front.x1; x++) {
+      if (laid.walls.has(cellKey(x, front.y0))) set(x, front.y0, C.BOOKS)
+    }
+    buildings.push({
+      ...laid.bounds,
+      door,
+      inner: [door[0] + 1, door[1]],
+      side: "w",
+      kind: "keep",
+      district: "CASTLE",
+      odd: true,
+    })
+    const n = buildings.length
+    for (const r of laid.rooms) furnishRoom(r, n, laid.gaps)
+    // the household: the inventor at the door, the sage in the last
+    // room, and the rest of the folk one to every few rooms
+    put(actors, door[0] + 1, door[1], "inventor")
+    const last = laid.rooms[laid.rooms.length - 1]
+    put(actors, last.x0 + ((last.x1 - last.x0) >> 1), last.y1 - 1, "sage")
+    const household = ["kid", "cat", "nun", "bard", "dancer", "kid", "cat"]
+    for (let k = 3; k < laid.rooms.length - 1; k += 3) {
+      const r = laid.rooms[k]
+      put(
+        actors,
+        r.x0 + ((r.x1 - r.x0) >> 1),
+        r.y1 - 1,
+        household[(k / 3 - 1) % household.length],
+      )
+    }
+    // the garden
+    const b = laid.bounds
+    const nearHouse = (x: number, y: number) =>
+      x >= b.x0 - 2 && x <= b.x1 + 2 && y >= b.y0 - 2 && y <= b.y1 + 2
+    const garden = (x: number, y: number, type: string) => {
+      if (at(x, y) === C.GRAVEL && !nearHouse(x, y)) put(props, x, y, type)
+    }
+    for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      garden(cx + dx * (wall.x1 - wall.x0 - 6) / 2, cy + dy * 16, "lamp-post")
+      garden(cx + dx * 12, cy + dy * ((wall.y1 - wall.y0) / 2 - 6), "bench")
+    }
+    garden(cx, wall.y1 - 6, "well")
+    for (let y = wall.y0 + 4; y <= wall.y1 - 4; y += 4) {
+      for (let x = wall.x0 + 4; x <= wall.x1 - 4; x += 4) {
+        if (Math.abs(x - cx) <= 3 || Math.abs(y - cy) <= 3) continue
+        garden(x, y, "sapling")
+      }
+    }
+    // the folk of the garden: cats at the gates, a lamplighter, kids
+    put(actors, wall.x0 + 2, cy + 2, "cat")
+    put(actors, cx + 2, wall.y0 + 2, "cat")
+    put(actors, cx + 2, wall.y1 - 2, "kid")
+    put(actors, wall.x0 + 3, cy - 3, "lamplighter")
+    put(actors, cx - 2, wall.y0 + 3, "kid")
   }
 
   // build the districts
