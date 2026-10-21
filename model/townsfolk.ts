@@ -138,7 +138,7 @@ const ROLE_LINES: Record<string, readonly string[]> = {
   shopper: ["SO MANY STALLS!", "THE BREAD HERE IS THE BEST"],
   commuter: ["CAN'T STOP, I'M LATE!", "WORK, HOME, WORK, HOME..."],
   townsman: ["THE CITY IS BUSY TODAY", "HAVE YOU SEEN THE CASTLE?"],
-  townswoman: ["THE HARBOR SMELLS OF FISH", "LOVELY WEATHER IN THE PARK"],
+  townswoman: ["THE HARBOR SMELLS OF FISH", "LOVELY WEATHER FOR A WALK"],
 }
 
 /** The villagers on the field, to find someone to chat with */

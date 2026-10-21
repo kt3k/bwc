@@ -304,15 +304,12 @@ export class CollectApple implements CollectDelegate {
     amount: number,
   ): void {
     field.collectItem(actor.i, actor.j, item.id)
-    const dirs = [] as Dir[]
-    for (const dir of DIRS) {
-      if (dir === actor.dir) continue
-      if (!actor.canGo(dir, field)) continue
-      const spawned = field.spawnActor("inertial", actor.i, actor.j, dir)
-      if (!spawned) continue
-      spawned.enqueueActions({ type: "go", dir })
-      dirs.push(dir)
-    }
+    // the pickup lines fly off to the open sides (once, little gray
+    // creatures ran off along them: playtesters took them for a strange
+    // being that came and went, docs/playtest-2026-10-21.md)
+    const dirs = DIRS.filter((dir) =>
+      dir !== actor.dir && actor.canGo(dir, field)
+    )
 
     for (
       const effect of linePattern0(

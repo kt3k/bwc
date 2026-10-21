@@ -121,6 +121,9 @@ export class Prop implements IProp {
         }
         case "remove": {
           field.props.remove(this.i, this.j)
+          // opened, broken or paid for for good (not what came out of a
+          // broken thing): it stays gone, in the save too
+          if (!this.transient) Item.collect(goneKey(this.type, this.i, this.j))
           return "next"
         }
         case "call": {
@@ -163,6 +166,9 @@ export class Prop implements IProp {
   /** Pixels above its cell while falling into place (see drop) */
   #fall = 0
   #onLand: (() => void) | null = null
+
+  /** Not in the block's spawns (what came out of a broken thing) */
+  transient = false
 
   static fromSpawn(spawn: PropSpawn) {
     let pushed: PushedDelegate | null = null
@@ -704,6 +710,10 @@ export class Prop implements IProp {
     this.#actionQueue.clear()
   }
 }
+
+/** The collected-id key of a prop that is gone for good */
+export const goneKey = (type: string, i: number, j: number) =>
+  `gone.${type}.${i}.${j}`
 
 export interface PushedDelegate {
   onPushed(event: PushedEvent, prop: Prop, field: IField): void

@@ -16,7 +16,7 @@ import type {
 } from "../model/types.ts"
 import { Actor, spawnActor } from "../model/actor.ts"
 import { Item } from "../model/item.ts"
-import { Prop } from "../model/prop.ts"
+import { goneKey, Prop } from "../model/prop.ts"
 import {
   BlockMap,
   FieldBlock,
@@ -710,6 +710,7 @@ export class Field implements IField {
     const spawn = new PropSpawn(i, j, def, data)
     if (!transient) block.propSpawns.add(spawn)
     const prop = Prop.fromSpawn(spawn)
+    prop.transient = transient
     this.#props.add(prop)
     prop.loadAssets({ loadImage })
 
@@ -853,6 +854,10 @@ export class Field implements IField {
       for (const spawn of newPropSpawns) {
         if (this.#props.get(spawn.i, spawn.j)) {
           // The space is already occupied by some other object
+          continue
+        }
+        if (Item.isCollected(goneKey(spawn.def.type, spawn.i, spawn.j))) {
+          // opened or broken for good
           continue
         }
         i++
