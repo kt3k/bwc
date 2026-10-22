@@ -31,6 +31,7 @@
 //   you for a while
 import { DIRS, nextGrid, UP } from "../util/dir.ts"
 import { Palette, type PaletteColor } from "../util/palette.ts"
+import { rumorOf } from "./rumor.ts"
 import { seed } from "../util/random.ts"
 import * as signal from "../util/signals.ts"
 import type { Actor, ActorPushedDelegate, IdleDelegate } from "./actor.ts"
@@ -589,9 +590,12 @@ export class VillagerDelegate implements IdleDelegate, ActorPushedDelegate {
       if (said) {
         say(actor, field, said)
       } else {
-        const lines = ROLE_LINES[actor.type] ?? VILLAGER_LINES
+        // a rumor of some place first (each their own), then their lines
+        const rumor = rumorOf(actor.id, actor.i, actor.j)
+        const base = ROLE_LINES[actor.type] ?? VILLAGER_LINES
+        const lines = rumor ? [rumor, ...base] : base
         if (this.#line < 0) {
-          this.#line = seed(actor.id).randomInt(lines.length)
+          this.#line = rumor ? 0 : seed(actor.id).randomInt(lines.length)
         }
         say(actor, field, lines[this.#line % lines.length])
         this.#line = (this.#line + 1) % lines.length

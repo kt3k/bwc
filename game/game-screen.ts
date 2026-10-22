@@ -11,6 +11,7 @@ import { Field } from "./field.ts"
 import { Actor } from "../model/actor.ts"
 import { juice, shakeOffset } from "../util/juice.ts"
 import { restoreSave, savedPosition, savePosition } from "../util/save.ts"
+import { loadRumors } from "../model/rumor.ts"
 
 const parseGridPosition = (hash: string) => {
   const m = hash.match(/#(-?\d+),(-?\d+)/)
@@ -64,6 +65,8 @@ const kimiDef = {
 }
 
 export function GameScreen({ el, query }: Context) {
+  // the places the folk talk of (model/rumor.ts)
+  loadRumors()
   const entityCanvas = query<HTMLCanvasElement>(".canvas-entity")!
 
   const screenSize = Math.min(globalThis.screen.width, 450)

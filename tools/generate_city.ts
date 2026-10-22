@@ -132,7 +132,7 @@ type Style = {
     household: string[]
   }
 }
-const STYLES: Record<CityStyle, Style> = {
+export const STYLES: Record<CityStyle, Style> = {
   capital: {
     x1: 140,
     x2: 310,

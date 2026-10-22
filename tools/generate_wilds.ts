@@ -80,6 +80,7 @@ import {
   CITY_OUT,
   CITY_W,
   type CityStyle,
+  STYLES,
 } from "./generate_city.ts"
 import {
   buildCavern,
@@ -2055,6 +2056,8 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
 // switches) and the city's old drain in the west (a maze). Bring the
 // frame its piece and the pane is whole again
 
+/** The places people talk about (static/map/rumors.json, model/rumor.ts) */
+const rumorSpots: { topic: string; x: number; y: number }[] = []
 {
   type CornerKind = Kind | "maze"
   type Corner = {
@@ -2247,6 +2250,7 @@ const puzzles: { x: number; y: number; kind: Kind; solution: string }[] = []
     }
     puzzles.push({ x: x0, y: y0, kind: "ice", solution: "" })
     made.push(c.name.toLowerCase())
+    rumorSpots.push({ topic: c.name, x: exx, y: y0 + rh })
   }
   console.log(`the four corners: ${made.join(", ")}`)
 }
@@ -4644,6 +4648,46 @@ await Deno.writeTextFile(
   ) + "\n",
 )
 console.log(`listed ${towns.length} towns for the map viewer`)
+
+// the rumors: the places people talk of, for them to tell which way they
+// lie and how far (model/rumor.ts): the castle, the four corners, the
+// landmarks and the cave
+{
+  // each city's grand place: the castle, the temple, the mansion
+  for (const c of cities) {
+    const style = STYLES[c.style as CityStyle] ?? STYLES.capital
+    const id = style.names.CASTLE ?? "CASTLE"
+    const room = c.city.rooms.find((r) => r.id === id)
+    if (!room) continue
+    const town = c.name === "CITY" ? "THE CITY" : c.name
+    rumorSpots.push({
+      topic: style.grand === "castle"
+        ? "THE CASTLE"
+        : `THE ${style.grand.toUpperCase()} OF ${town}`,
+      x: c.x0 + ((room.x0 + room.x1) >> 1),
+      y: c.y0 + ((room.y0 + room.y1) >> 1),
+    })
+  }
+  for (const node of nodes) {
+    if (
+      !plan.landmarks.some((l) => l.name === node.name) && node.kind !== "cave"
+    ) {
+      continue
+    }
+    const topic = node.name.startsWith("THE ") ? node.name : `THE ${node.name}`
+    if (rumorSpots.some((r) => r.topic === topic)) continue
+    rumorSpots.push({ topic, x: node.x, y: node.y })
+  }
+  await Deno.writeTextFile(
+    new URL("../static/map/rumors.json", import.meta.url),
+    JSON.stringify(
+      rumorSpots.map((r) => ({ topic: r.topic, i: OI + r.x, j: OJ + r.y })),
+      null,
+      2,
+    ) + "\n",
+  )
+  console.log(`rumors: ${rumorSpots.map((r) => r.topic).join(", ")}`)
+}
 
 // ---------------------------------------------------------------------
 // the "W" and "C" portal rooms on the START island, right beside the
