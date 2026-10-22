@@ -9,7 +9,18 @@
   "config": {
     "showsExitButton": true
   },
-  "actors": [],
+  "actors": [
+    {
+      "i": 3836,
+      "j": 2213,
+      "type": "book"
+    },
+    {
+      "i": 3820,
+      "j": 2227,
+      "type": "snail"
+    }
+  ],
   "items": [
     {
       "i": 3800,
@@ -77,21 +88,36 @@
       "i": 3804,
       "j": 2201,
       "type": "flowers"
+    },
+    {
+      "i": 3841,
+      "j": 2200,
+      "type": "moon-shell"
+    },
+    {
+      "i": 3807,
+      "j": 2215,
+      "type": "moon-shell"
+    },
+    {
+      "i": 3836,
+      "j": 2226,
+      "type": "self-statue"
     }
   ],
   "field": [
     "66666yywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyy66666666666666666ff66666666666yyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "66666yywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyy666666666666666666fffJJ666666666yyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "66666yywwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyJ666666666666666666fffJJ666666666yyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "66666yywwwwwwwwwwwwwwwwwwwwwwwwwwwyyyy6J66666666666666666Jffffff66666666yyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "66666yywwwwwwwwwwwwwwwwwwwwwwwwwwwyyyy6J66666666666666666kffffff66666666yyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "66666yywwwwwwwwwwwwwwwwwwwwwwwwwwyyyy66666666666666666666fffffJJ66666666yyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "66666yyywwwwwwwwwwwwwwwwwwwwwwwwyyyy66666666666666666666ffffffJJf6666666yyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "66666yyywwwwwwwwwwwwwwwwwwwwwwwyyyy666666666666666666666fJffJJfff666666yyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "66666yyyywwwwwwwwwwwwwwwwwwwwwyyyy6666666666666666666666fJffffffJf66666yyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "66666yyyywwwwwwwwwwwwwwwwwwwwwyyyy66666J6666666666666666ffffffffJf6666yyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "66666yyywwwwwwwwwwwwwwwwwwwwwwwyyyy666666666666666666666fkffkkfff666666yyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "66666yyyywwwwwwwwwwwwwwwwwwwwwyyyy6666666666666666666666fkffffffkf66666yyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "66666yyyywwwwwwwwwwwwwwwwwwwwwyyyy66666J6666666666666666ffffffffkf6666yyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "666666yyyywwwwwwwwwwwwwwwwwwwyyyy666666J6666666666666666ffffffffff666yyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "666666yyyywwwwwwwwwwwwwwwwwyyyyy666666666666666666666666ffffffffff66yyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "666666yyyyywwwwwwwwwwwwwwwyyyyy66666666666666666666666666fffffffJJyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "666666yyyyywwwwwwwwwwwwwwwyyyyy66666666666666666666666666fffffffkkyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "666666yyyyyyywwwwwwwwwwwyyyyy6666666666666666666666666666ffffffyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "666666yyyyyyyyyyyyyyyyyyyyyy6JJ666666666666666666666666666yyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "666666yyyyyyyyyyyyyyyyyyyy666666666666666666666666666yyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",

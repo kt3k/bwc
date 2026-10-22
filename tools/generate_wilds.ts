@@ -270,6 +270,7 @@ enum T {
   CITY, // the city's ground (stamped in at the end)
   RUNE, // the carved floor of a waystone's circle
   FENCE, // the fence of a sheep pen
+  BUSH, // a low bush: pushed, it falls flat and lets you through
 }
 const CELL: Record<T, string> = {
   [T.SEA]: "w",
@@ -298,6 +299,7 @@ const CELL: Record<T, string> = {
   [T.CITY]: "b",
   [T.RUNE]: "R",
   [T.FENCE]: "H",
+  [T.BUSH]: "k",
 }
 /** The biomechanical wall kind (A-F) of each T.BIO cell */
 const bioChar = new Map<number, string>()
@@ -3302,7 +3304,10 @@ function scatter(
 const free = (x: number, y: number) =>
   inside(x, y) && !keepClear[idx(x, y)] && !taken.has(idx(x, y))
 
-// trees: dense in forests, a few lone ones on meadows; clumps of 1-4
+// trees: dense in forests, a few lone ones on meadows; clumps of 1-4.
+// The small clumps in the forests are low bushes, pushed flat by walking
+// into them (docs/playtest-2026-10-21.md, plan 2): the woods are a way
+// through, not a maze to walk round
 scatter(2.6, W * H / 3, (x, y) => {
   if (!free(x, y)) return false
   const t = terrain[idx(x, y)]
@@ -3319,9 +3324,10 @@ scatter(2.6, W * H / 3, (x, y) => {
     : shape === 2
     ? [[0, 0], [0, 1]]
     : [[0, 0], [1, 0], [0, 1], [1, 1]]
+  const bush = shape < 3 && terrain[idx(x, y)] === T.FOREST
   for (const [dx, dy] of cells) {
     if (free(x + dx, y + dy) && isWild(terrain[idx(x + dx, y + dy)])) {
-      terrain[idx(x + dx, y + dy)] = T.TREE
+      terrain[idx(x + dx, y + dy)] = bush ? T.BUSH : T.TREE
     }
   }
 })
@@ -3358,7 +3364,9 @@ scatter(
   (x, y) => {
     const p = idx(x, y)
     if (!free(x, y) || terrain[p] !== T.FOREST) return false
-    return D4.some(([dx, dy]) => terrain[idx(x + dx, y + dy)] === T.TREE) &&
+    return D4.some(([dx, dy]) =>
+      [T.TREE, T.BUSH].includes(terrain[idx(x + dx, y + dy)] as T)
+    ) &&
       rng() < 0.5
   },
   (x, y) =>
@@ -3499,7 +3507,8 @@ const denSpot = (x: number, y: number, nearWarren: boolean) => {
   }
   // the forest behind (north), the open in front (south)
   if (
-    terrain[idx(x, y - 1)] !== T.FOREST && terrain[idx(x, y - 1)] !== T.TREE
+    terrain[idx(x, y - 1)] !== T.FOREST && terrain[idx(x, y - 1)] !== T.TREE &&
+    terrain[idx(x, y - 1)] !== T.BUSH
   ) {
     return false
   }
@@ -3802,7 +3811,7 @@ for (let round = 0; round < 50; round++) {
           hit = np
           break
         }
-        if (t === T.TREE || t === T.ROCK || isWild(t)) {
+        if (t === T.TREE || t === T.BUSH || t === T.ROCK || isWild(t)) {
           from[np] = c
           queue2.push(np)
         }
@@ -3816,8 +3825,9 @@ for (let round = 0; round < 50; round++) {
       continue
     }
     for (let c = hit; c >= 0 && from[c] !== -1; c = from[c]) {
-      if (terrain[c] === T.TREE) terrain[c] = T.FOREST
-      else if (terrain[c] === T.ROCK) terrain[c] = T.HILL
+      if (terrain[c] === T.TREE || terrain[c] === T.BUSH) {
+        terrain[c] = T.FOREST
+      } else if (terrain[c] === T.ROCK) terrain[c] = T.HILL
     }
   }
 }
@@ -4161,6 +4171,155 @@ for (let round = 0; round < 50; round++) {
   }
   console.log(`ferries: ${routes} routes, ${boats} boats`)
 }
+// nothing empty (docs/playtest-2026-10-21.md, plan 2): wherever you
+// stand on the open land, something to touch is within sight (12
+// cells). Where nothing is, a small wonder is put: an oddity that breaks
+// or a creature that isn't people. Coins and apples don't count
+{
+  const SIGHT = 12
+  const dull = new Set(["coin", "apple", "mushroom"])
+  const dist = new Uint8Array(W * H).fill(255)
+  const queue: number[] = []
+  const seedAt = (p: number) => {
+    if (dist[p] === 0) return
+    dist[p] = 0
+    queue.push(p)
+  }
+  for (const s of [...props, ...actors]) seedAt(idx(s.i - OI, s.j - OJ))
+  for (const s of items) {
+    if (!dull.has(s.type)) seedAt(idx(s.i - OI, s.j - OJ))
+  }
+  const BUILT = new Set<T>([
+    T.PLAZA,
+    T.WALL,
+    T.FLOOR,
+    T.CITY,
+    T.RUIN,
+    T.STONE,
+    T.RUNE,
+    T.TRIAL,
+    T.CAMP,
+    T.FIELD,
+    T.FENCE,
+    // a bush falls flat when pushed: something to do too
+    T.BUSH,
+  ])
+  for (let p = 0; p < W * H; p++) if (BUILT.has(terrain[p] as T)) seedAt(p)
+  /** Spreads the distance (in sight: 8 ways, through anything) */
+  const spread = (from: number[]) => {
+    const q = [...from]
+    for (let k = 0; k < q.length; k++) {
+      const x = q[k] % W, y = (q[k] / W) | 0
+      if (dist[q[k]] >= SIGHT + 1) continue
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (!inside(x + dx, y + dy)) continue
+          const np = idx(x + dx, y + dy)
+          if (dist[np] > dist[q[k]] + 1) {
+            dist[np] = dist[q[k]] + 1
+            q.push(np)
+          }
+        }
+      }
+    }
+  }
+  spread(queue)
+  // the land walked to from the arrival
+  const reached = new Uint8Array(W * H)
+  {
+    const q = [idx(arrival.x, arrival.y)]
+    reached[q[0]] = 1
+    for (let k = 0; k < q.length; k++) {
+      const x = q[k] % W, y = (q[k] / W) | 0
+      for (const [dx, dy] of D4) {
+        const np = idx(x + dx, y + dy)
+        if (inside(x + dx, y + dy) && !reached[np] && walkable(np)) {
+          reached[np] = 1
+          q.push(np)
+        }
+      }
+    }
+  }
+  /** The small wonders, a weight each: the oddities, creatures, homes */
+  const WONDERS: [number, (x: number, y: number) => void][] = [
+    ...[
+      "nest-jar-4",
+      "packed-box",
+      "drawer-tower",
+      "moon-shell",
+      "clock",
+      "pinata-tree",
+      "self-statue",
+      "balloon-rock",
+    ].map((t) =>
+      [2, (x: number, y: number) => put(props, x, y, t)] as [
+        number,
+        (x: number, y: number) => void,
+      ]
+    ),
+    ...["spore", "piggy", "cloud", "shadow", "book", "fluff", "snail"].map(
+      (t) =>
+        [2, (x: number, y: number) => put(actors, x, y, t)] as [
+          number,
+          (x: number, y: number) => void,
+        ],
+    ),
+    // a lone rabbit by its hole, a hive, a crow, a little flock
+    [3, (x, y) => {
+      put(props, x, y, "rabbit-hole", { id: `${x}.${y}` })
+      put(actors, x + 1, y, "rabbit")
+    }],
+    [2, (x, y) => put(props, x, y, "beehive", { id: `${x}.${y}` })],
+    [2, (x, y) => put(actors, x, y, "crow")],
+    [2, (x, y) => {
+      put(actors, x, y, "sheep")
+      put(actors, x + 1, y + 1, "sheep")
+    }],
+    [2, (x, y) => put(actors, x, y, "chick")],
+  ]
+  const totalWeight = WONDERS.reduce((sum, [w]) => sum + w, 0)
+  const pickWonder = () => {
+    let r = rng() * totalWeight
+    for (const [w, put] of WONDERS) {
+      if ((r -= w) < 0) return put
+    }
+    return WONDERS[0][1]
+  }
+  const open = (x: number, y: number) => {
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (!inside(x + dx, y + dy)) return false
+        const p = idx(x + dx, y + dy)
+        if (!reached[p] || taken.has(p) || puzzleCells[p]) return false
+        if (!isWild(terrain[p] as T)) return false
+      }
+    }
+    return !inCity(x, y) && !inMassif(x, y)
+  }
+  // the farthest from anything first (the distances only shrink as
+  // wonders are put, so the order holds well enough)
+  const far: number[] = []
+  for (let p = 0; p < W * H; p++) {
+    if (reached[p] && dist[p] > SIGHT && isWild(terrain[p] as T)) far.push(p)
+  }
+  far.sort((a, b) => dist[b] - dist[a])
+  let added = 0
+  for (const p of far) {
+    if (dist[p] <= SIGHT || !open(p % W, (p / W) | 0)) continue
+    pickWonder()(p % W, (p / W) | 0)
+    added++
+    dist[p] = 0
+    spread([p])
+  }
+  let empty = 0
+  for (let p = 0; p < W * H; p++) {
+    if (reached[p] && dist[p] > SIGHT && isWild(terrain[p] as T)) empty++
+  }
+  console.log(
+    `nothing empty: ${added} small wonders added, ${empty} open cells still out of sight of anything`,
+  )
+}
+
 // spawns left on cells that can't hold them are dropped
 /** The props hung on a house wall (placed on the wall cell itself) */
 const WALL_PIECES = new Set(["painting", "mirror", "window"])
@@ -4281,6 +4440,7 @@ if (previewAt >= 0) {
     [T.CITY]: Palette.pink3,
     [T.RUNE]: Palette.violet2,
     [T.FENCE]: Palette.brown3,
+    [T.BUSH]: Palette.green3,
   }
   const rgba = new Uint8Array(W * H * 4)
   for (let p = 0; p < W * H; p++) {

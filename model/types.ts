@@ -84,6 +84,11 @@ export type IField = {
   conveyorDir(i: number, j: number): Dir | null
   /** true if the cell can be dug */
   isDiggable(i: number, j: number): boolean
+  /**
+   * Pushes the cell flat if it flattens (a bush): it becomes the cell it
+   * flattens into until the place loads again. true if it did
+   */
+  flattenCell?(i: number, j: number): boolean
   /** replaces the cell terrain at the given coordinates (e.g. a bridge) */
   updateCell(i: number, j: number, cell: string): void
   peekItem(i: number, j: number): IItem | undefined

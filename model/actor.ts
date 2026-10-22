@@ -454,7 +454,19 @@ export class Actor implements IActor {
         actorPushed = true
         actor.onPushed(ev, field)
       }
-      field.props.get(i, j)?.onPushed(ev, field)
+      const prop = field.props.get(i, j)
+      prop?.onPushed(ev, field)
+      if (
+        this.#id === "main" && !actorPushed && !prop &&
+        field.flattenCell?.(i, j)
+      ) {
+        // a bush pushed flat: a way through from now on
+        for (
+          const effect of linePattern0(DIRS, i, j, 1, 0.7, 2, Palette.gray2)
+        ) {
+          field.effects.add(effect)
+        }
+      }
       this.#move = new MoveBounce(
         dir,
         actorPushed,

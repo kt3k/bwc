@@ -12,6 +12,8 @@ interface CatalogSource {
     readonly water?: boolean
     readonly conveyor?: "up" | "down" | "left" | "right"
     readonly diggable?: boolean
+    /** Bumped by the player, the cell becomes this one (a bush pushed flat) */
+    readonly flattens?: string
     /** false: spread the noise evenly instead of gathering it into patches */
     readonly noisePatches?: boolean
     readonly flip?: CellFlip
@@ -61,6 +63,7 @@ export interface CellDefinition {
   readonly water?: boolean
   readonly conveyor?: "up" | "down" | "left" | "right"
   readonly diggable?: boolean
+  readonly flattens?: string
   readonly noisePatches?: boolean
   readonly flip?: CellFlip
   readonly variants?: readonly {
@@ -135,6 +138,7 @@ export class Catalog {
           water: data.water,
           conveyor: data.conveyor,
           diggable: data.diggable,
+          flattens: data.flattens,
           noisePatches: data.noisePatches,
           flip: data.flip,
           variants: data.variants
@@ -209,6 +213,7 @@ export class Catalog {
         water: def.water,
         conveyor: def.conveyor,
         diggable: def.diggable,
+        flattens: def.flattens,
         noisePatches: def.noisePatches,
         flip: def.flip,
         variants: def.variants

@@ -627,6 +627,12 @@ export class Field implements IField {
   isDiggable(i: number, j: number): boolean {
     return this.#getCell(i, j)?.diggable ?? false
   }
+  flattenCell(i: number, j: number): boolean {
+    const flat = this.#getCell(i, j)?.flattens
+    if (!flat) return false
+    this.updateCell(i, j, flat)
+    return true
+  }
   updateCell(i: number, j: number, cell: string): void {
     const block = this.#getBlockOrNull(i, j)
     if (!block) {
