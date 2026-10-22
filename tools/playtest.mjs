@@ -11,6 +11,7 @@
 //   up:N down:N left:N right:N   walk N cells (a step bumps into what is there)
 //   space                        dig / fish / jump / put the chosen tool
 //   tool                         cycle the tool (none -> apple -> fish -> none)
+//   map                          tap the minimap (opens it big / closes it)
 //   wait:MS                      wait (1000 = 1 second)
 //   shot                         take a screenshot (its path is printed)
 // A screenshot is always taken at the end.
@@ -75,6 +76,9 @@ for (const s of stepsArg.split(/\s+/).filter(Boolean)) {
     await page.keyboard.press("Space")
     await page.waitForTimeout(400)
     await texts()
+  } else if (cmd === "map") {
+    await page.locator(".js-minimap").click()
+    await page.waitForTimeout(300)
   } else if (cmd === "tool") {
     await page.keyboard.press("x")
     await page.waitForTimeout(200)
