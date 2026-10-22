@@ -10,6 +10,7 @@ import type { Dir, IField, Move } from "../model/types.ts"
 import { linePattern0 } from "../model/effect.ts"
 import { collectAll, Item } from "../model/item.ts"
 import * as signal from "../util/signals.ts"
+import type { SpaceAction } from "../util/signals.ts"
 import { Palette } from "../util/palette.ts"
 import { recordTrail } from "../model/oddities.ts"
 import { putTool } from "../model/tool.ts"
@@ -19,15 +20,29 @@ import { putTool } from "../model/tool.ts"
  * treasure only once (tracked via the collected item ids, so it
  * persists in the save). Returns true if digging happened.
  */
+/** The ids of the treasure of the dig spot at (i, j) */
+const digIds = (i: number, j: number) => [0, 1].map((n) => `dig.${i}.${j}.${n}`)
+
+/** true if the cell can be dug and has not been dug up yet */
+function canDig(i: number, j: number, field: IField): boolean {
+  return field.isDiggable(i, j) &&
+    !digIds(i, j).every((id) => Item.isCollected(id))
+}
+
+/** What space would do now: dig, put the chosen tool down, or jump */
+export function spaceActionOf(actor: Actor, field: IField): SpaceAction {
+  if (canDig(actor.i, actor.j, field)) return "dig"
+  const tool = signal.tool.get()
+  const [fi, fj] = actor.frontGrid()
+  if (tool && !field.isWater(fi, fj)) return tool
+  return "jump"
+}
+
 function tryDig(actor: Actor, field: IField): boolean {
-  if (!field.isDiggable(actor.i, actor.j)) {
+  if (!canDig(actor.i, actor.j, field)) {
     return false
   }
-  const ids = [0, 1].map((n) => `dig.${actor.i}.${actor.j}.${n}`)
-  if (ids.every((id) => Item.isCollected(id))) {
-    // Already dug up
-    return false
-  }
+  const ids = digIds(actor.i, actor.j)
   actor.jump()
   signal.playSound("explosion")
   for (
@@ -76,6 +91,8 @@ const mushroomEffect = function (
 
 export class IdleMainActor implements IdleDelegate {
   onIdle(actor: Actor, field: IField): void {
+    // what space would do here, shown beside the tool buttons
+    signal.spaceAction.update(spaceActionOf(actor, field))
     let dir: Dir | null = null
     if (Input.up) {
       dir = UP

@@ -22,8 +22,11 @@ export const coinCount = new Signal(0)
 export const keyCount = new Signal(0)
 /** What the player puts down with space: bait for the animals */
 export type Tool = "apple" | "fish"
-// The chosen tool, or null (space does the usual: dig, fish, jump)
+// The chosen tool, or null (space does the usual: dig, jump)
 export const tool = new Signal<Tool | null>(null)
+/** What space does right now, shown beside the tool buttons */
+export type SpaceAction = "jump" | "dig" | Tool
+export const spaceAction = new Signal<SpaceAction>("jump")
 /** A letter being carried (model/errand.ts): where to, from, what it pays */
 export type Letter = { to: string; from: string; reward: number }
 // The letter the player carries, or null

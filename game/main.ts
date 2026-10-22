@@ -22,6 +22,7 @@ import { SoundPlayer } from "./ui/sound-player.ts"
 import { SpeechBubble } from "./ui/speech-bubble.ts"
 import { SpeedButtons } from "./ui/speed-buttons.ts"
 import { ToolButtons } from "./ui/tool-buttons.ts"
+import { SpaceHint } from "./ui/space-hint.ts"
 
 globalThis.addEventListener("blur", clearInput)
 
@@ -45,3 +46,4 @@ register(PlaceLabel, "js-place-label")
 register(LetterLabel, "js-letter-label")
 register(SpeedButtons, "js-speed-buttons")
 register(ToolButtons, "js-tool-buttons")
+register(SpaceHint, "js-space-hint")
