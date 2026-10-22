@@ -49,6 +49,7 @@
 // It also adds the "W" portal room to the START island.
 //
 // Usage: deno -A tools/generate_wilds.ts
+import { putCurio } from "./house_curios.ts"
 import { seed } from "../util/random.ts"
 import { loadCatalog } from "../model/catalog.ts"
 import { createRooms } from "./rooms.ts"
@@ -1430,6 +1431,19 @@ function layHouse(
   for (const r of laid.rooms) furnishRoom(r, n, gaps)
   const inX = doorX + nx, inY = doorY + ny
   put(actors, inX, inY, resident)
+  // one thing of its own, so no two houses side by side are alike
+  putCurio(
+    n,
+    laid.rooms,
+    cellKey,
+    (list, x, y, type) =>
+      put(
+        list === "props" ? props : list === "actors" ? actors : items,
+        x,
+        y,
+        type,
+      ),
+  )
   residents++
   // an odd house holds its own folk (model/oddfolk.ts)
   if ((GROW_STYLES as string[]).includes(plan.name)) {

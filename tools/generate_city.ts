@@ -30,6 +30,7 @@
 //
 // Usage: deno -A tools/generate_city.ts [--preview file.png] [--seed city-2] [--canal|--crooked]
 //        [--canal]
+import { putCurio } from "./house_curios.ts"
 import { seed } from "../util/random.ts"
 import { loadCatalog } from "../model/catalog.ts"
 import { Palette } from "../util/palette.ts"
@@ -1250,6 +1251,24 @@ export async function buildCity(
    * kept clear of furniture (the doorways and their steps) */
   type Room = Rect & { kind: RoomKind; keep: Set<string> }
 
+  /** One thing of its own in the n-th house (tools/house_curios.ts) */
+  const curio = (
+    n: number,
+    rooms: (Room & { keep?: Set<string> })[],
+  ) =>
+    putCurio(
+      n,
+      rooms,
+      cellKey,
+      (list, x, y, type) =>
+        put(
+          list === "props" ? props : list === "actors" ? actors : items,
+          x,
+          y,
+          type,
+        ),
+    )
+
   /** Furnishes one room (the pieces after FF5's town interiors): the
    * pieces along its top wall and in its corners by kind, a painting
    * (a mirror in the bathroom) and a window on that wall where no
@@ -1482,6 +1501,8 @@ export async function buildCity(
     }
     for (const r of rooms) furnishRoom(r, n, gaps)
     put(actors, inX, inY, resident(b.district))
+    // one thing of its own, so no two houses side by side are alike
+    curio(n, rooms)
   }
 
   /** A shop: a sign by the door, the counter inside, the keeper behind */
@@ -1576,6 +1597,7 @@ export async function buildCity(
     const n = buildings.length
     for (const r of laid.rooms) furnishRoom(r, n, laid.gaps)
     put(actors, ...b.inner, resident(district))
+    curio(n, laid.rooms)
     // an odd house holds its own folk (model/oddfolk.ts)
     if (b.odd) oddFolkIn(laid, door, [dx, dy])
     return b
@@ -2159,6 +2181,7 @@ export async function buildCity(
     const n = buildings.length
     for (const r of old.laid.rooms) furnishRoom(r, n, old.laid.gaps)
     put(actors, ...b.inner, resident(old.district))
+    curio(n, old.laid.rooms)
     if (old.mansion && style.mansion) {
       // the household of the mansion, one to every few rooms
       const folk = style.mansion.household
