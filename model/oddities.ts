@@ -34,7 +34,12 @@ import type {
   PushedEvent,
 } from "./types.ts"
 import type { Prop, PushedDelegate } from "./prop.ts"
-import { stepWaygate, stepWaystone, WaystonePushed } from "./waystone.ts"
+import {
+  leadBird,
+  stepWaygate,
+  stepWaystone,
+  WaystonePushed,
+} from "./waystone.ts"
 import { LatchGatePushed, stepLatchGate } from "./shortcut.ts"
 import { PostBoxPushed } from "./errand.ts"
 import { TradeStallPushed } from "./trade.ts"
@@ -1592,9 +1597,13 @@ class EggDelegate {
   }
 }
 
-/** The bird out of the egg: flies off over everything, and is gone */
+/**
+ * The bird out of the egg: flies off over everything, and is gone. The
+ * bird by a waystone leads on to the next one first (model/waystone.ts)
+ */
 class BirdDelegate {
   onIdle(actor: Actor, field: IField): void {
+    if (leadBird(actor, field)) return
     const flown = (actor.buff.flown as number | undefined) ?? 0
     if (flown >= 12) {
       removeActor(actor, field)

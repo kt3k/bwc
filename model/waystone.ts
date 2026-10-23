@@ -13,7 +13,9 @@ import { shake } from "../util/juice.ts"
 import { linePattern0 } from "./effect.ts"
 import { Item } from "./item.ts"
 import type { Prop, PushedDelegate } from "./prop.ts"
+import type { Actor } from "./actor.ts"
 import type {
+  Dir,
   IActor,
   IColorBox,
   IField,
@@ -126,6 +128,8 @@ export class WaystonePushed implements PushedDelegate {
     }
     Item.collect(waystoneKey(id))
     prop.showStage(1)
+    // a bird flies up and leads on to the next waystone
+    spawnLeadBird(field, prop.i, prop.j, id)
     shake(2)
     // a rising chime: the notes of a chord, one after another
     prop.enqueueActions(
@@ -185,4 +189,194 @@ export function enterWaygate(prop: Prop, actor: IActor) {
   if (typeof i !== "number" || typeof j !== "number") return
   location.hash = ""
   setTimeout(() => location.replace(`#${i},${j}`), 10)
+}
+
+// ---------------------------------------------------------------------
+// The bird by the waystone (docs/research-open-world-tedium.md, E-2): as
+// a waystone wakes, a bird flies up by it and leads on to the nearest
+// waystone still asleep, Ghost of Tsushima's yellow bird with no marker
+// on the screen. It flies a short hop, lands and waits; come near and it
+// flies on. Leave it and it gives up and flies off. At the next stone it
+// waits once more for you, and then it is gone.
+
+/** A waystone of the WILDS: its id, its name and its gate home */
+export type WaystoneSite = { id: string; name: string; i: number; j: number }
+
+let sites: WaystoneSite[] = []
+
+/** Sets the waystones of the WILDS (tests), or loads them from the map */
+export function setWaystones(list: WaystoneSite[]) {
+  sites = list
+}
+
+/**
+ * Loads the waystones of the WILDS from the hall of waystones on the
+ * START island: each gate there names its waystone and leads to the gate
+ * by it. Without them, no bird leads anywhere
+ */
+export async function loadWaystones(url = "map/block_-10000.-10000.json") {
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return
+    const json = await res.json() as {
+      props?: { type: string; data?: WayData }[]
+    }
+    sites = (json.props ?? []).flatMap(({ type, data }) =>
+      type === "waygate" && data && !data.home && data.id &&
+        typeof data.i === "number" && typeof data.j === "number"
+        ? [{ id: data.id, name: data.name ?? data.id, i: data.i, j: data.j }]
+        : []
+    )
+  } catch {
+    // no waystones known
+  }
+}
+
+/** The nearest waystone still asleep, from (i, j); none once all woke */
+export function nextWaystone(
+  i: number,
+  j: number,
+  awake: (id: string) => boolean = isAwake,
+): WaystoneSite | undefined {
+  let best: WaystoneSite | undefined
+  let bestD = Infinity
+  for (const s of sites) {
+    if (awake(s.id)) continue
+    const d = Math.hypot(s.i - i, s.j - j)
+    if (d < bestD) {
+      bestD = d
+      best = s
+    }
+  }
+  return best
+}
+
+/** Cells the bird flies in one hop (it stays on the screen) */
+export const BIRD_HOP = 10
+/** The player this near (cells) sends the waiting bird on */
+export const BIRD_NEAR = 4
+/** Farther than this (cells), the player is going away from the bird */
+export const BIRD_FAR = 16
+/** Frames the player may stay far off before the bird gives up */
+export const BIRD_GIVE_UP = 300
+/** This near to its waystone's gate (cells), the bird is there */
+export const BIRD_ARRIVE = 2
+
+/** The leading bird's state, kept in its buff */
+type Lead = {
+  id: string
+  name: string
+  i: number
+  j: number
+  /** Cells left to fly in this hop (0: landed, waiting) */
+  hop: number
+  /** Frames the player has been far off */
+  far: number
+  /** At the waystone */
+  arrived: boolean
+  /** Told the player it leads */
+  told: boolean
+}
+
+const cheb = (i0: number, j0: number, i1: number, j1: number) =>
+  Math.max(Math.abs(i1 - i0), Math.abs(j1 - j0))
+
+/** The way to step from (di, dj) off: along the longer side first */
+function toward(di: number, dj: number): Dir {
+  if (Math.abs(di) >= Math.abs(dj)) return di > 0 ? "right" : "left"
+  return dj > 0 ? "down" : "up"
+}
+
+/** The bird gives up leading: flies off over everything (BirdDelegate) */
+function flyOff(actor: Actor) {
+  delete actor.buff.lead
+  actor.buff.flown = 0
+}
+
+/**
+ * The leading bird, when idle: flies its hop toward the waystone, or
+ * waits for the player. Returns false for a bird that leads nowhere
+ */
+export function leadBird(actor: Actor, field: IField): boolean {
+  const lead = actor.buff.lead as Lead | undefined
+  if (!lead) return false
+  if (lead.hop > 0) {
+    if (cheb(actor.i, actor.j, lead.i, lead.j) <= BIRD_ARRIVE) {
+      lead.hop = 0
+      lead.arrived = true
+    } else {
+      lead.hop--
+      actor.speed = 4
+      actor.forceMove(toward(lead.i - actor.i, lead.j - actor.j))
+      return true
+    }
+  }
+  // landed: waits for the player
+  const me = field.me
+  const away = me ? cheb(me.i, me.j, actor.i, actor.j) : Infinity
+  if (away <= BIRD_NEAR) {
+    lead.far = 0
+    if (lead.arrived || isAwake(lead.id)) {
+      // there (or someone woke it meanwhile): its work is done
+      flyOff(actor)
+      return true
+    }
+    if (!lead.told) {
+      lead.told = true
+      signal.message.update({
+        text: `THE BIRD FLIES ON, TOWARD THE WAYSTONE OF ${lead.name}`,
+      })
+    }
+    lead.hop = BIRD_HOP
+    return true
+  }
+  if (away > BIRD_FAR) {
+    if (++lead.far >= BIRD_GIVE_UP) flyOff(actor)
+  } else {
+    lead.far = 0
+  }
+  return true
+}
+
+/**
+ * A bird flies up by the just woken waystone and leads on to the nearest
+ * one still asleep (if any is). Returns the bird
+ */
+export function spawnLeadBird(
+  field: IField,
+  i: number,
+  j: number,
+  from: string,
+): IActor | null {
+  if (!sites.some((s) => s.id === from)) return null // not of the WILDS
+  const next = nextWaystone(i, j)
+  if (!next) return null
+  const cell = ([[0, -1], [1, 0], [0, 1], [-1, 0]] as const)
+    .map(([di, dj]) => [i + di, j + dj] as const)
+    .find(([ci, cj]) => field.canEnter(ci, cj))
+  if (!cell) return null
+  const bird = field.spawnActor(
+    "bird",
+    cell[0],
+    cell[1],
+    toward(next.i - i, next.j - j),
+  ) as Actor | null
+  if (!bird) return null
+  const lead: Lead = {
+    id: next.id,
+    name: next.name,
+    i: next.i,
+    j: next.j,
+    hop: BIRD_HOP,
+    far: 0,
+    arrived: false,
+    told: false,
+  }
+  bird.buff.lead = lead
+  // it hops up, and after a moment takes off
+  bird.enqueueActions(
+    { type: "jump" },
+    { type: "wait", until: field.time + 40 },
+  )
+  return bird
 }
