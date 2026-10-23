@@ -76,6 +76,13 @@ export class Item implements IItem {
     this.#collectedItemIds.add(id)
   }
 
+  /** How many of the collected item ids the predicate holds for */
+  static countCollected(pred: (id: string) => boolean): number {
+    let n = 0
+    for (const id of this.#collectedItemIds) if (pred(id)) n++
+    return n
+  }
+
   /** Serializes the collected item ids for saving */
   static serializeCollected(): string[] {
     return [...this.#collectedItemIds]

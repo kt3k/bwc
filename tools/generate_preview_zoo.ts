@@ -245,6 +245,14 @@ prop(146, 62, "ring-slot", {
 })
 actor(146, 64, "stone")
 
+// Odradek (model/odradek.ts): in the corner of a small room, off to
+// another corner when you come near; talk to it from beside it
+sign(158, 56, "ODRADEK: IT WON'T BE CAUGHT")
+rect(158, 57, 166, 63, "1")
+rect(159, 58, 165, 62, "0")
+grid[63][162] = "0"
+actor(159, 58, "odradek")
+
 // ---------------------------------------------------------------------
 // button-linked walls (see game-ideas-3.md)
 

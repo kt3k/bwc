@@ -16,6 +16,7 @@ import type {
 } from "../model/types.ts"
 import { Actor, goneActorKey, spawnActor } from "../model/actor.ts"
 import { Item } from "../model/item.ts"
+import { dueOdradeks, ODRADEK, odradekTurnedUp } from "../model/odradek.ts"
 import { goneKey, Prop } from "../model/prop.ts"
 import {
   BlockMap,
@@ -833,6 +834,31 @@ export class Field implements IField {
     } else if (initialLoad) {
       await this.#actors.loadAssets({ loadImage })
     }
+
+    // the Odradeks: one for each goal done, each in a corner of its home
+    // (model/odradek.ts), from the count and not from the map
+    const odradeks = dueOdradeks(
+      (id) => this.#actors.has(id),
+      (i, j) => this.canEnter(i, j),
+    ).filter(({ i, j }) => {
+      const box = {
+        x: i * CELL_SIZE,
+        y: j * CELL_SIZE,
+        w: CELL_SIZE,
+        h: CELL_SIZE,
+      }
+      return this.#activateScope.overlaps(box) &&
+        (initialLoad || !viewScope.overlaps(box))
+    })
+    for (const o of odradeks) {
+      const def = this.#getBlockOrNull(o.i, o.j)?.catalog.actors[ODRADEK]
+      if (!def) continue
+      odradekTurnedUp(o.k)
+      this.#actors.add(
+        spawnActor(o.id, o.i, o.j, def, { data: { box: o.home.box } }),
+      )
+    }
+    if (odradeks.length > 0) await this.#actors.loadAssets({ loadImage })
 
     if (newItemSpawns.length > 0) {
       let i = 0

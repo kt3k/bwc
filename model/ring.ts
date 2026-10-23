@@ -26,6 +26,9 @@ import type { IActor, IField } from "./types.ts"
 
 /** The collected-id key of a whole ring */
 export const ringKey = (id: string) => `ring.${id}`
+/** true if the collected id records a whole ring (not its reward) */
+export const isRingKey = (key: string) =>
+  key.startsWith("ring.") && !key.endsWith(".reward")
 /**
  * The collected-id key (and the item id) of a ring's reward: the id of
  * its unreadable letter

@@ -136,6 +136,8 @@ const NOTES: Record<string, string> = {
     "plays tag with the other kids; if it tags you, you're it: walk up to a kid to tag back",
   "actor.cat":
     "naps and strolls; shy of strangers; walk up to it (a pat) and it follows you",
+  "actor.odradek":
+    "Kafka's star-shaped spool: one more turns up in a corner for each goal done; scuttles off when you come near, never caught; talk to it and it laughs like fallen leaves",
 }
 
 const CELL = 16

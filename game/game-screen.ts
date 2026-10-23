@@ -12,6 +12,7 @@ import { Actor } from "../model/actor.ts"
 import { juice, shakeOffset } from "../util/juice.ts"
 import { restoreSave, savedPosition, savePosition } from "../util/save.ts"
 import { loadRumors } from "../model/rumor.ts"
+import { loadOdradekHomes } from "../model/odradek.ts"
 import { leafWind } from "../model/leaf-wind.ts"
 import { loadWaystones } from "../model/waystone.ts"
 
@@ -71,6 +72,8 @@ export function GameScreen({ el, query }: Context) {
   loadRumors()
   // the waystones a bird leads on to (model/waystone.ts)
   loadWaystones()
+  // the corners the Odradeks turn up in (model/odradek.ts)
+  loadOdradekHomes()
   const entityCanvas = query<HTMLCanvasElement>(".canvas-entity")!
 
   const screenSize = Math.min(globalThis.screen.width, 450)

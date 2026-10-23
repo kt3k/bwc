@@ -56,6 +56,7 @@ import {
 } from "./den.ts"
 import { PanePushed, stepPane } from "./pane.ts"
 import { stepRingHeart, stepRingSlot } from "./ring.ts"
+import { OdradekDelegate } from "./odradek.ts"
 import type { Actor } from "./actor.ts"
 
 // ---------------------------------------------------------------------
@@ -1900,4 +1901,5 @@ export const ODD_ACTORS: Record<string, new () => object> = {
   snail: SnailDelegate,
   "block-fish": BlockFishDelegate,
   echo: EchoDelegate,
+  odradek: OdradekDelegate,
 }
