@@ -16,6 +16,7 @@ import { DIRS } from "../util/dir.ts"
 import { Palette } from "../util/palette.ts"
 import * as signal from "../util/signals.ts"
 import { linePattern0 } from "./effect.ts"
+import { GlyphReveal, REVEAL_FRAMES } from "./goal-fx.ts"
 import { Item } from "./item.ts"
 import type { IActor, IField, IItem } from "./types.ts"
 
@@ -69,6 +70,28 @@ export function layGlyph(
   if (Item.isCollected(id) || hasGlyph(id)) return null
   if (field.peekItems(i, j).some((item) => item.id === id)) return null
   return field.spawnItem(glyphType(glyphOf(id)), i, j, id)
+}
+
+/**
+ * Gives the letter of the id as the reward of a goal just done: it is
+ * laid at (i, j) as layGlyph does, but comes up out of the ground slowly
+ * (model/goal-fx.ts) and can't be picked up until it has. Only for the
+ * moment the goal is done: a letter laid again later (its place loaded
+ * again, not taken yet) just lies there (layGlyph)
+ */
+export function revealGlyph(
+  field: IField,
+  i: number,
+  j: number,
+  id: string,
+): IItem | null {
+  const item = layGlyph(field, i, j, id)
+  if (!item) return null
+  item.startReveal?.(REVEAL_FRAMES)
+  field.effects.add(
+    new GlyphReveal(i, j, field.time, () => signal.playSound("bell", 12)),
+  )
+  return item
 }
 
 /**

@@ -13,12 +13,9 @@
 // see goneActorKey) and the letter once taken ("ring.<id>.reward"):
 // they last in the save (written as soon as the ring is whole).
 import { CELL_SIZE } from "../util/constants.ts"
-import { DIRS } from "../util/dir.ts"
-import { Palette } from "../util/palette.ts"
 import { saveProgress } from "../util/save.ts"
-import * as signal from "../util/signals.ts"
 import { goneActorKey } from "./actor.ts"
-import { linePattern0 } from "./effect.ts"
+import { celebrateGoal } from "./celebrate.ts"
 import { glyphOf, glyphType, layGlyph } from "./glyph.ts"
 import { Item } from "./item.ts"
 import type { Prop } from "./prop.ts"
@@ -94,24 +91,25 @@ function fill(prop: Prop, field: IField, actor: IActor) {
   field.actors.remove(actor)
   prop.setOpen(false, false)
   prop.showStage(filledStage(data))
-  signal.playSound("powerUp")
-  signal.message.update({ text: "THE RING IS WHOLE" })
-  for (
-    const effect of linePattern0(DIRS, prop.i, prop.j, 1, 0.7, 3, Palette.white)
-  ) {
-    field.effects.add(effect)
-  }
-  layReward(field, data)
+  // the hit stop, the burst, and the letter coming up (model/celebrate.ts)
+  celebrateGoal(
+    field,
+    prop.i,
+    prop.j,
+    "THE RING IS WHOLE",
+    data.reward &&
+      { i: data.reward[0], j: data.reward[1], id: ringRewardKey(id) },
+  )
 }
 
-/** The reward by the ring, unless it was taken (once only) */
+/**
+ * The reward by the ring, laid again (its place loaded again) unless it
+ * was taken: it just lies there
+ */
 function layReward(field: IField, data: SlotData) {
   if (!data.id || !data.reward) return
   const [i, j] = data.reward
-  if (!layGlyph(field, i, j, ringRewardKey(data.id))) return
-  for (const effect of linePattern0(DIRS, i, j, 1, 0.7, 2, Palette.white)) {
-    field.effects.add(effect)
-  }
+  layGlyph(field, i, j, ringRewardKey(data.id))
 }
 
 /** The heart wakes when the ring is whole */

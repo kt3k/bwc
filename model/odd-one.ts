@@ -18,11 +18,8 @@
 // own: the letter's id is "odd.<id>.reward". A found one is kept with the
 // collected item ids ("odd.<id>") and lasts in the save (written as soon
 // as it is found), and so does the letter once taken.
-import { DIRS } from "../util/dir.ts"
-import { Palette } from "../util/palette.ts"
 import { saveProgress } from "../util/save.ts"
-import * as signal from "../util/signals.ts"
-import { linePattern0 } from "./effect.ts"
+import { celebrateGoal } from "./celebrate.ts"
 import { glyphOf, glyphType, layGlyph } from "./glyph.ts"
 import { Item } from "./item.ts"
 import type { Prop, PushedDelegate } from "./prop.ts"
@@ -60,14 +57,14 @@ const dataOf = (prop: Prop) => (prop.data ?? {}) as OddData
 /** true if the odd one of the id has been found */
 export const isFound = (id: string) => Item.isCollected(oddKey(id))
 
-/** The reward by the odd one, unless it was taken (once only) */
+/**
+ * The reward by the odd one, laid again (its place loaded again) unless
+ * it was taken: it just lies there
+ */
 function layReward(field: IField, data: OddData) {
   if (!data.id || !data.reward) return
   const [i, j] = data.reward
-  if (!layGlyph(field, i, j, oddRewardKey(data.id))) return
-  for (const effect of linePattern0(DIRS, i, j, 1, 0.7, 2, Palette.white)) {
-    field.effects.add(effect)
-  }
+  layGlyph(field, i, j, oddRewardKey(data.id))
 }
 
 /**
@@ -82,22 +79,16 @@ export class UnlikePushed implements PushedDelegate {
     Item.collect(oddKey(data.id))
     saveProgress()
     prop.showStage(1)
-    signal.playSound("powerUp")
-    signal.message.update({ text: "ONE OF A KIND" })
-    for (
-      const effect of linePattern0(
-        DIRS,
-        prop.i,
-        prop.j,
-        1,
-        0.7,
-        3,
-        Palette.white,
-      )
-    ) {
-      field.effects.add(effect)
-    }
-    layReward(field, data)
+    // the hit stop, the burst, and the letter coming up (model/celebrate.ts)
+    const id = data.id
+    celebrateGoal(
+      field,
+      prop.i,
+      prop.j,
+      "ONE OF A KIND",
+      data.reward &&
+        { i: data.reward[0], j: data.reward[1], id: oddRewardKey(id) },
+    )
   }
 }
 

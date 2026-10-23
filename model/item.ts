@@ -19,6 +19,7 @@ import { MoveGo } from "./move.ts"
 import { Palette, type PaletteColor } from "../util/palette.ts"
 import { collectLetter, collectShard } from "./oddities.ts"
 import { collectGlyph } from "./glyph.ts"
+import { REVEAL_FRAMES, revealPose } from "./goal-fx.ts"
 
 const fallbackImage = await fetch(
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAADRJREFUOE9jZKAQMFKon2FoGPAfzZsoribGC0PQALxORo92bGEwDAwgKXUTkw7wGjjwBgAAiwgIEW1Cnt4AAAAASUVORK5CYII=",
@@ -37,6 +38,8 @@ export class Item implements IItem {
   #lastMoveDir: Dir | null = null
   #follower: IFollower | null = null
   #followState: "following" | "waiting" | null = null
+  /** Frames left of its reveal (a letter rising out of the ground) */
+  #reveal = 0
   readonly #actionQueue = new ActionQueue<Item, ItemAction>(
     (_field, action) => {
       switch (action.type) {
@@ -197,10 +200,33 @@ export class Item implements IItem {
     return this.i * CELL_SIZE + (this.#move?.x ?? 0)
   }
   get y(): number {
-    return this.j * CELL_SIZE + (this.#move?.y ?? 0)
+    const dy = this.#reveal > 0
+      ? revealPose(REVEAL_FRAMES - this.#reveal).dy
+      : 0
+    return this.j * CELL_SIZE + (this.#move?.y ?? 0) + dy
+  }
+
+  /**
+   * Starts its reveal (model/goal-fx.ts): for the given frames it comes
+   * up out of the ground and can't be picked up
+   */
+  startReveal(frames = REVEAL_FRAMES) {
+    this.#reveal = frames
+  }
+
+  /** true while it is still being revealed: not to be picked up yet */
+  get revealing(): boolean {
+    return this.#reveal > 0
+  }
+
+  /** The rows of its sprite shown while it rises out of the ground */
+  get clipH(): number | undefined {
+    if (this.#reveal <= 0) return undefined
+    return revealPose(REVEAL_FRAMES - this.#reveal).rows
   }
 
   step(field: IField) {
+    if (this.#reveal > 0) this.#reveal--
     if (!this.#move) {
       this.#actionQueue.process(this, field)
     }
@@ -282,8 +308,10 @@ interface CollectDelegate {
 export function collectAll(
   actor: Actor,
   field: IField,
-  items: readonly IItem[],
+  all: readonly IItem[],
 ): void {
+  // not the ones still coming up out of the ground
+  const items = all.filter((item) => !item.revealing)
   const kinds = new Map<string, IItem[]>()
   for (const item of items) {
     const kind = kinds.get(item.def.collect)

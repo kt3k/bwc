@@ -18,11 +18,14 @@ export class DrawLayer {
   }
 
   draw(obj: IEntity): void {
-    this.#canvasWrapper.drawImage(
-      obj.image(),
-      obj.x - this.#viewScope.left,
-      obj.y - this.#viewScope.top,
-    )
+    const x = obj.x - this.#viewScope.left
+    const y = obj.y - this.#viewScope.top
+    if (obj.clipH !== undefined) {
+      // only its top rows (a letter rising out of the ground)
+      this.#canvasWrapper.drawImageTop(obj.image(), x, y, obj.clipH)
+      return
+    }
+    this.#canvasWrapper.drawImage(obj.image(), x, y)
   }
 
   drawIterableEntity(iterable: Iterable<IEntity>): void {

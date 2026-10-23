@@ -19,7 +19,15 @@ import {
   seeded,
   type SpriteData,
 } from "../model/break-fx.ts"
-import type { Dir } from "../model/types.ts"
+import {
+  GlyphReveal,
+  GOAL_HIT_STOP,
+  GOAL_SHAKE,
+  GoalBurst,
+  REVEAL_FRAMES,
+  revealPose,
+} from "../model/goal-fx.ts"
+import type { Dir, IField } from "../model/types.ts"
 import { isPaletteColor, Palette } from "../util/palette.ts"
 
 const COLS = 7
@@ -692,6 +700,147 @@ function copyButton() {
   return b
 }
 
+// ---------------------------------------------------------------------
+// a goal done (model/goal-fx.ts): the hit stop, the burst and the letter
+// rising, as in the game (a row of tulips, the odd one found)
+
+const GOAL_COLS = 11
+const GOAL_ROWS = 9
+/** The odd one, and where its letter comes up */
+const GOAL_I = 5
+const GOAL_J = 6
+const LETTER_I = 7
+const LETTER_J = 5
+
+class GoalStage {
+  readonly canvas = document.createElement("canvas")
+  #g: CanvasRenderingContext2D
+  #freeze = 0
+  #shake = 0
+  #time = 0
+  #burst: GoalBurst | null = null
+  #reveal: GlyphReveal | null = null
+  /** Frames left of the letter's reveal; null: no letter yet */
+  #letter: number | null = null
+  #tick = 0
+  #idle = 0
+  slow = 1
+  constructor(zoom: number) {
+    this.canvas.width = GOAL_COLS * CELL
+    this.canvas.height = GOAL_ROWS * CELL
+    this.canvas.className = "stage"
+    this.canvas.style.width = `${GOAL_COLS * CELL * zoom}px`
+    this.canvas.style.height = `${GOAL_ROWS * CELL * zoom}px`
+    this.#g = this.canvas.getContext("2d")!
+    this.#g.imageSmoothingEnabled = false
+    this.canvas.addEventListener("click", () => this.trigger())
+  }
+  trigger() {
+    this.#freeze = GOAL_HIT_STOP
+    this.#shake = GOAL_HIT_STOP + GOAL_SHAKE
+    this.#burst = new GoalBurst(GOAL_I, GOAL_J, this.#time)
+    this.#reveal = new GlyphReveal(LETTER_I, LETTER_J, this.#time)
+    this.#letter = REVEAL_FRAMES
+    this.#idle = 0
+  }
+  tick() {
+    if (++this.#tick % this.slow !== 0) return
+    if (this.#shake > 0) this.#shake--
+    if (this.#freeze > 0) {
+      this.#freeze--
+      return
+    }
+    this.#time++
+    const field = { time: this.#time } as IField
+    this.#burst?.step(field)
+    this.#reveal?.step(field)
+    if (this.#burst?.finished) this.#burst = null
+    if (this.#reveal?.finished) this.#reveal = null
+    if (this.#letter !== null && this.#letter > 0) this.#letter--
+    if (!this.#burst && !this.#reveal && ++this.#idle > 90) {
+      this.#letter = null
+      if (this.#idle > 120) this.trigger()
+    }
+  }
+  draw() {
+    const g = this.#g
+    const k = this.#shake % 4
+    const sx = this.#shake > 0 ? (k === 0 ? 1 : k === 2 ? -1 : 0) : 0
+    const sy = this.#shake > 0 ? (k === 1 ? 1 : k === 3 ? -1 : 0) : 0
+    g.fillStyle = Palette.black
+    g.fillRect(0, 0, this.canvas.width, this.canvas.height)
+    const floor = images.get("./cell/floor0.png")
+    const alike = images.get("./prop/alike_tulip.png")
+    const unlike = images.get("./prop/unlike_tulip.png")
+    const letter = images.get("./item/glyph-5.png")
+    if (!floor || !alike || !unlike || !letter) {
+      for (
+        const src of [
+          "./cell/floor0.png",
+          "./prop/alike_tulip.png",
+          "./prop/unlike_tulip.png",
+          "./item/glyph-5.png",
+        ]
+      ) image(src)
+      return
+    }
+    for (let j = 0; j < GOAL_ROWS; j++) {
+      for (let i = 0; i < GOAL_COLS; i++) {
+        g.drawImage(floor, i * CELL + sx, j * CELL + sy)
+      }
+    }
+    for (let i = GOAL_I - 2; i <= GOAL_I + 2; i++) {
+      const odd = i === GOAL_I && this.#letter === null
+      g.drawImage(odd ? unlike : alike, i * CELL + sx, GOAL_J * CELL + sy)
+    }
+    if (this.#letter !== null) {
+      const pose = this.#letter > 0
+        ? revealPose(REVEAL_FRAMES - this.#letter)
+        : { rows: CELL, dy: 0 }
+      if (pose.rows > 0) {
+        g.drawImage(
+          letter,
+          0,
+          0,
+          CELL,
+          pose.rows,
+          LETTER_I * CELL + sx,
+          LETTER_J * CELL + pose.dy + sy,
+          CELL,
+          pose.rows,
+        )
+      }
+    }
+    for (const fx of [this.#burst, this.#reveal]) {
+      if (!fx) continue
+      for (const b of fx.boxes()) {
+        g.fillStyle = b.color
+        g.fillRect(b.x + sx, b.y + sy, b.w, b.h)
+      }
+    }
+  }
+}
+
+const goal = new GoalStage(3)
+document.getElementById("goal")!.append(
+  el("div", "stage-wrap", goal.canvas),
+  el(
+    "p",
+    "note",
+    ink(
+      `ヒットストップ ${GOAL_HIT_STOP}f → 爆発 → 文字が地面から上がる (${REVEAL_FRAMES}f)。` +
+        "クリックで再生。時間は model/goal-fx.ts の定数。",
+      "ink-light",
+    ),
+  ),
+  chips(
+    SLOWS,
+    (n) => n === 1 ? "等速" : `1/${n}`,
+    () => goal.slow,
+    (n) => goal.slow = n,
+  ),
+)
+
 document.getElementById("gallery")!.append(gallery(build))
 build()
 document.getElementById("export")!.append(
@@ -715,9 +864,11 @@ function loop(now: number) {
   while (acc >= 1000 / 60 && n++ < 4) {
     acc -= 1000 / 60
     for (const s of stages) s.tick()
+    goal.tick()
   }
   if (acc > 100) acc = 0
   for (const s of stages) s.draw()
+  goal.draw()
   requestAnimationFrame(loop)
 }
 requestAnimationFrame(loop)

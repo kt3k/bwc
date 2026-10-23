@@ -13,6 +13,23 @@ export class CanvasWrapper {
     this.#ctx.drawImage(img, Math.floor(x), Math.floor(y))
   }
 
+  /** Draws only the top `h` rows of the image (no scaling) */
+  drawImageTop(img: ImageBitmap, x: number, y: number, h: number) {
+    if (h <= 0) return
+    const rows = Math.min(h, img.height)
+    this.#ctx.drawImage(
+      img,
+      0,
+      0,
+      img.width,
+      rows,
+      Math.floor(x),
+      Math.floor(y),
+      img.width,
+      rows,
+    )
+  }
+
   drawRect(x: number, y: number, w: number, h: number, color: string) {
     this.#ctx.fillStyle = color
     this.#ctx.fillRect(x, y, w, h)

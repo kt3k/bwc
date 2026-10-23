@@ -6,6 +6,7 @@ import type {
   Dir,
   IActor,
   IColorBox,
+  IEffectGroup,
   IField,
   IFinishable,
   IItem,
@@ -29,8 +30,10 @@ import { RectScope } from "../util/rect-scope.ts"
 import { CellDefinition, loadCatalog } from "../model/catalog.ts"
 import { GridSet } from "../util/grid-set.ts"
 
+type FieldEffect = (IStepper & IColorBox & IFinishable) | IEffectGroup
+
 class FieldEffects implements IStepper {
-  #effects = new Set<IStepper & IColorBox & IFinishable>()
+  #effects = new Set<FieldEffect>()
 
   step(field: IField): void {
     for (const effect of this.#effects) {
@@ -41,12 +44,16 @@ class FieldEffects implements IStepper {
     }
   }
 
-  add(effect: IStepper & IColorBox & IFinishable) {
+  add(effect: FieldEffect) {
     this.#effects.add(effect)
   }
 
-  iter() {
-    return this.#effects[Symbol.iterator]()
+  /** The boxes to draw this frame (a group gives its boxes) */
+  *iter(): Generator<IColorBox> {
+    for (const effect of this.#effects) {
+      if ("boxes" in effect) yield* effect.boxes()
+      else yield effect
+    }
   }
 }
 

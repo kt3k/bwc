@@ -15,6 +15,20 @@ export function hitStop(frames: number) {
   juice.freeze = Math.max(juice.freeze, frames)
 }
 
+/**
+ * One frame of the world: steps it, unless it is held still by a hit
+ * stop (then a frame of the hold is used up instead; nothing moves and
+ * the input waits). Returns true if the world was stepped
+ */
+export function stepWorld(step: () => void): boolean {
+  if (juice.freeze > 0) {
+    juice.freeze--
+    return false
+  }
+  step()
+  return true
+}
+
 /** Jitters the view for the given frames */
 export function shake(frames: number) {
   juice.shake = Math.max(juice.shake, frames)

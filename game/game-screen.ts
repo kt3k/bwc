@@ -9,7 +9,7 @@ import { RectScope } from "../util/rect-scope.ts"
 
 import { Field } from "./field.ts"
 import { Actor } from "../model/actor.ts"
-import { juice, shakeOffset } from "../util/juice.ts"
+import { juice, shakeOffset, stepWorld } from "../util/juice.ts"
 import { restoreSave, savedPosition, savePosition } from "../util/save.ts"
 import { loadRumors } from "../model/rumor.ts"
 import { loadOdradekHomes } from "../model/odradek.ts"
@@ -142,13 +142,11 @@ export function GameScreen({ el, query }: Context) {
     }
     signals.isGameLoading.update(false)
 
-    if (juice.freeze > 0) {
-      // the hit-stop: the world holds still a moment, still drawn
-      juice.freeze--
-    } else {
+    // the hit-stop: the world holds still a moment, still drawn
+    stepWorld(() => {
       field.step()
       leafWind.step(field)
-    }
+    })
     if (juice.shake > 0) juice.shake--
     const jitter = shakeOffset()
     signals.centerPixel.update({

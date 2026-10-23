@@ -32,6 +32,12 @@ export type IEntity = IBox & ILoader & {
   i: number
   j: number
   image(): ImageBitmap
+  /**
+   * Only the top rows of the sprite are drawn, this many (0: nothing),
+   * at (x, y); undefined: all of it (a letter rising out of the ground,
+   * model/goal-fx.ts)
+   */
+  readonly clipH?: number
 }
 
 export type IItem = IEntity & IStepper & IFollower & {
@@ -44,6 +50,13 @@ export type IItem = IEntity & IStepper & IFollower & {
     readonly color?: PaletteColor
   }
   isFollowing: boolean
+  /**
+   * true while it is still being revealed (a letter rising out of the
+   * ground, model/goal-fx.ts): it can't be picked up yet
+   */
+  readonly revealing?: boolean
+  /** Starts its reveal, for the given frames (model/goal-fx.ts) */
+  startReveal?(frames?: number): void
   /** Starts following the actor who set this item as its follower */
   startFollowing(): void
   /** amount: how many of this kind are picked up at once (default 1) */
@@ -124,10 +137,18 @@ export type IField = {
     iter(): Iterable<IProp>
   }
   effects: {
-    add(effect: IColorBox & IStepper & IFinishable): void
+    add(effect: (IColorBox & IStepper & IFinishable) | IEffectGroup): void
   }
   get time(): number
   colorCell(i: number, j: number, color: PaletteColor): void
+}
+
+/**
+ * An effect of many boxes stepped as one (a burst, model/goal-fx.ts):
+ * the boxes of this frame are drawn like the plain effects
+ */
+export type IEffectGroup = IStepper & IFinishable & {
+  boxes(): Iterable<IColorBox>
 }
 
 /** The implementor of 'step' function */
