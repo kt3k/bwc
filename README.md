@@ -33,6 +33,19 @@ of the catalog listed at once with a labeled sign. It is also linked by the
 "DEBUG" portal to the left of the start corridor. Regenerate it after changing
 the catalog with `deno task generate-debug`.
 
+`http://localhost:8000/#10402,-9996` is the GOALS map (block_10400.-10000), for
+trying the goals: a bay for every signature of the missing ring (each a real
+ring drawn and solved by tools/rings.ts, the WILDS' own first, with signs naming
+the signature, the pushes and a solution), a bay for every family of the odd one
+out, and a room where Odradek can be watched. Goals done there count and give
+letters like the WILDS' ones (so the Odradeks turn up, the first in the hall of
+waystones). The RESET in the map undoes the goals of this map only (their ids
+start with `goals-`), takes back their letters and reloads the map; the WILDS'
+goals are kept. It is linked by the "GOALS" portal room, past the DEBUG room
+along its bottom row. Regenerate it with `deno task generate-goals` (a few
+minutes: it draws and solves thousands of rings; `--drafts N` draws fewer extra
+ones).
+
 # vscode extensions
 
 Install

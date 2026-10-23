@@ -73,6 +73,8 @@ const NOTES: Record<string, string> = {
   "prop.portal": "step on it to teleport",
   "prop.portal-out": "teleport arrival marker",
   "prop.reset-portal": "push to wipe the save and restart",
+  "prop.goal-reset":
+    "push to undo the goals of its map only (the GOALS debug map), then reload",
   "prop.apple-gate": "opens if you carry enough apples",
   "prop.key-gate": "consumes 1 key to open",
   "prop.timer-gate": "push to open for a while, then it closes",

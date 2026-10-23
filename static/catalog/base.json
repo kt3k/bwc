@@ -1091,6 +1091,52 @@
       "canEnter": false,
       "pushed": "reset-game"
     },
+    "goal-reset": {
+      "src": "../prop/reset.png",
+      "canEnter": false,
+      "pushed": "reset-goals",
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "prefix": {
+            "type": "string"
+          },
+          "box": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "to": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "required": [
+          "prefix",
+          "box",
+          "to"
+        ]
+      }
+    },
     "spring": {
       "src": "../prop/spring.png",
       "canEnter": true,

@@ -107,6 +107,12 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "slipper-mat": { group: "debug-mat" },
   "ring-slot": { id: "debug", kind: "stone" },
   "ring-heart": { id: "debug" },
+  // undoes the goals above (their ids start with "debug")
+  "goal-reset": {
+    prefix: "debug",
+    box: [BI, BJ, BI + SIZE - 1, BJ + SIZE - 1],
+    to: [BI + ARRIVAL.i, BJ + ARRIVAL.j],
+  },
   // the odd ones out: each its own id (one found is not all found)
   ...Object.fromEntries(
     ODD_FAMILIES.map((f) => [unlikeType(f), { id: `debug-${f}` }]),
@@ -116,6 +122,7 @@ const SAMPLE_DATA: Record<string, unknown> = {
 /** Extra notes shown on the label sign of some props */
 const NOTES: Record<string, string> = {
   "reset-portal": "WIPES THE SAVE!",
+  "goal-reset": "UNDOES THE GOALS OF THIS MAP ONLY",
   portal: "BACK TO THE ARRIVAL POINT",
 }
 

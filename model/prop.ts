@@ -18,6 +18,7 @@ import { ActionQueue, type PropAction } from "./action-queue.ts"
 import { Palette } from "../util/palette.ts"
 import { ODD_PROP_INIT, ODD_PROP_PUSHED, ODD_PROP_STEP } from "./oddities.ts"
 import { enterWaygate } from "./waystone.ts"
+import { PushedDelegateResetGoals } from "./goal-reset.ts"
 
 /** How many cells a spring launches the player */
 export const SPRING_DISTANCE = 10
@@ -187,6 +188,9 @@ export class Prop implements IProp {
         break
       case "reset-game":
         pushed = new PushedDelegateResetGame()
+        break
+      case "reset-goals":
+        pushed = new PushedDelegateResetGoals()
         break
       case "tree":
         pushed = new PushedDelegateTree()

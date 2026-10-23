@@ -86,6 +86,20 @@ export class Item implements IItem {
     return n
   }
 
+  /**
+   * Forgets the collected item ids the predicate holds for (they come
+   * back as never collected), and returns how many
+   */
+  static forgetCollected(pred: (id: string) => boolean): number {
+    let n = 0
+    for (const id of [...this.#collectedItemIds]) {
+      if (!pred(id)) continue
+      this.#collectedItemIds.delete(id)
+      n++
+    }
+    return n
+  }
+
   /** Serializes the collected item ids for saving */
   static serializeCollected(): string[] {
     return [...this.#collectedItemIds]
