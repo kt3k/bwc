@@ -233,6 +233,18 @@ sign(120, 58, "CHASER + BOULDER LANE")
 actor(120, 62, "chaser")
 actor(126, 60, "boulder")
 
+// the missing ring (model/ring.ts): push the stone up into the gap
+sign(140, 58, "MISSING RING: PUSH THE STONE IN")
+const RING = [[-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [-1, 1], [-1, 0]]
+for (const [dx, dy] of RING) prop(146 + dx, 61 + dy, "ring-stone")
+prop(146, 61, "ring-heart", { id: "zoo" })
+prop(146, 62, "ring-slot", {
+  id: "zoo",
+  kind: "stone",
+  reward: [BI + 149, BJ + 61],
+})
+actor(146, 64, "stone")
+
 // ---------------------------------------------------------------------
 // button-linked walls (see game-ideas-3.md)
 

@@ -14,7 +14,7 @@ import type {
   IStepper,
   LoadOptions,
 } from "../model/types.ts"
-import { Actor, spawnActor } from "../model/actor.ts"
+import { Actor, goneActorKey, spawnActor } from "../model/actor.ts"
 import { Item } from "../model/item.ts"
 import { goneKey, Prop } from "../model/prop.ts"
 import {
@@ -801,6 +801,7 @@ export class Field implements IField {
     const newActorSpawns = chunks.values()
       .flatMap((c) => c.getCharacterSpawns())
       .filter((spawn) => !this.#actors.has(spawn.id)) // isn't spawned yet
+      .filter((spawn) => !Item.isCollected(goneActorKey(spawn.id))) // not gone for good
       .filter((spawn) => initialLoad || !viewScope.overlaps(spawn)) // not in view
       .filter((spawn) => this.#activateScope.overlaps(spawn)) // in activate scope
       .toArray()

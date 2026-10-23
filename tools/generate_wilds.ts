@@ -58,6 +58,15 @@ import { encodePng } from "./png.ts"
 import { fbm, hash, smoothstep } from "./noise.ts"
 import { type Kind, MAKERS } from "./minipuzzles.ts"
 import {
+  accept,
+  AIMS,
+  draft,
+  type Ring,
+  RING_H,
+  RING_W,
+  sigName,
+} from "./rings.ts"
+import {
   cellKey,
   cellsOf,
   closeDoor,
@@ -4189,6 +4198,127 @@ for (let round = 0; round < 50; round++) {
   }
   console.log(`ferries: ${routes} routes, ${boats} boats`)
 }
+// the missing rings (tools/rings.ts, model/ring.ts; ideas/goal-types.md,
+// 欠けた輪): out on the open land, a ring of stones with one place empty
+// and a stone lying near, each with its own trick (its signature: the
+// rules every solution uses). Drawn and solved first, then placed: a
+// signature with fewer placed so far goes first, and never one that a
+// ring within 12 cells has already. The patch is left alone by what
+// comes after (as the puzzle rooms are), its outer cells as they were.
+// Its own random numbers, so the rest of the island stays as it was
+{
+  const rr = seed(`${plan.seed}/rings`)
+  const COUNT = 12 * SCALE
+  /** Rings drawn and solved, by signature */
+  const pool = new Map<string, Ring[]>()
+  let drawn = 0
+  for (let n = 0; n < 160 * SCALE && drawn < 4 * COUNT; n++) {
+    const ring = accept(draft(rr, AIMS[n % AIMS.length]))
+    if (!ring) continue
+    const sig = sigName(ring.signature)
+    if (!pool.has(sig)) pool.set(sig, [])
+    pool.get(sig)!.push(ring)
+    drawn++
+  }
+  // the land walked to from the arrival
+  const reached = new Uint8Array(W * H)
+  {
+    const q = [idx(arrival.x, arrival.y)]
+    reached[q[0]] = 1
+    for (let k = 0; k < q.length; k++) {
+      const x = q[k] % W, y = (q[k] / W) | 0
+      for (const [dx, dy] of D4) {
+        const np = idx(x + dx, y + dy)
+        if (inside(x + dx, y + dy) && !reached[np] && walkable(np)) {
+          reached[np] = 1
+          q.push(np)
+        }
+      }
+    }
+  }
+  const inCove = (x: number, y: number) =>
+    x >= COVE_X0 - 4 && x < COVE_X0 + COVE_W + 4 && y >= COVE_Y0 - 4 &&
+    y < COVE_Y0 + COVE_H + 4
+  /** Open land under the whole patch: walked to, wild, nothing on it */
+  const fitsAt = (x0: number, y0: number) => {
+    for (let y = y0 - 1; y <= y0 + RING_H; y++) {
+      for (let x = x0 - 1; x <= x0 + RING_W; x++) {
+        if (!inside(x, y)) return false
+        const p = idx(x, y)
+        if (taken.has(p) || puzzleCells[p]) return false
+        const rim = x < x0 || y < y0 || x >= x0 + RING_W || y >= y0 + RING_H
+        if (rim) continue
+        if (!reached[p] || keepClear[p] || !isWild(terrain[p] as T)) {
+          return false
+        }
+        if (inCity(x, y) || inMassif(x, y) || inCove(x, y)) return false
+      }
+    }
+    return true
+  }
+  const placed: { x: number; y: number; sig: string }[] = []
+  const count = new Map<string, number>()
+  for (let n = 0; n < 4000 * SCALE && placed.length < COUNT; n++) {
+    const x0 = 2 + rr.randomInt(W - RING_W - 4)
+    const y0 = 2 + rr.randomInt(H - RING_H - 4)
+    const cx = x0 + (RING_W >> 1), cy = y0 + (RING_H >> 1)
+    if (placed.some((r) => Math.hypot(r.x - cx, r.y - cy) < 60)) continue
+    if (nodes.some((o) => Math.hypot(o.x - cx, o.y - cy) < 45)) continue
+    if (!fitsAt(x0, y0)) continue
+    // the least placed signature, none the same within 12 cells
+    const near = new Set(
+      placed.filter((r) => Math.hypot(r.x - cx, r.y - cy) <= 12).map((r) =>
+        r.sig
+      ),
+    )
+    const sig = [...pool.keys()]
+      .filter((s) => pool.get(s)!.length > 0 && !near.has(s))
+      .sort((a, b) => (count.get(a) ?? 0) - (count.get(b) ?? 0))[0]
+    if (!sig) break
+    const ring = pool.get(sig)!.shift()!
+    const heart = ring.rows.join("").indexOf("O")
+    const id = `${x0 + heart % RING_W}.${y0 + Math.floor(heart / RING_W)}`
+    ring.rows.forEach((row, dy) =>
+      [...row].forEach((c, dx) => {
+        const x = x0 + dx, y = y0 + dy
+        const p = idx(x, y)
+        puzzleCells[p] = 1
+        keepClear[p] = 1
+        if (c === "#") {
+          terrain[p] = terrain[p] === T.HILL ? T.ROCK : T.TREE
+        } else if (c === "w") terrain[p] = T.LAKE
+        else if (c === "i") terrain[p] = T.ICE
+        else if (c === "k") terrain[p] = T.BUSH
+        else if (c === "o") {
+          put(
+            props,
+            x,
+            y,
+            ring.fills === "boulder" ? "ring-boulder" : "ring-stone",
+          )
+          blockingProp.add(p)
+        } else if (c === "O") {
+          put(props, x, y, "ring-heart", { id })
+          blockingProp.add(p)
+        } else if (c === "_") {
+          put(props, x, y, "ring-slot", {
+            id,
+            kind: ring.fills,
+            reward: [OI + x0 + ring.reward[0], OJ + y0 + ring.reward[1]],
+          })
+        }
+      })
+    )
+    for (const t of ring.things) put(actors, x0 + t.x, y0 + t.y, t.kind)
+    placed.push({ x: cx, y: cy, sig })
+    count.set(sig, (count.get(sig) ?? 0) + 1)
+  }
+  console.log(
+    `missing rings: ${placed.length} placed (${drawn} drawn and solved): ` +
+      [...count].sort((a, b) => b[1] - a[1]).map(([s, k]) => `${s} ${k}`)
+        .join(", "),
+  )
+}
 // nothing empty (docs/playtest-2026-10-21.md, plan 2): wherever you
 // stand on the open land, something to touch is within sight (12
 // cells). Where nothing is, a small wonder is put: an oddity that breaks
@@ -4296,8 +4426,10 @@ for (let round = 0; round < 50; round++) {
     [2, (x, y) => put(actors, x, y, "chick")],
   ]
   const totalWeight = WONDERS.reduce((sum, [w]) => sum + w, 0)
-  const pickWonder = () => {
-    let r = rng() * totalWeight
+  // drawn from the place (not the running random numbers), so what is
+  // put elsewhere before this pass doesn't deal all the wonders anew
+  const pickWonder = (x: number, y: number) => {
+    let r = hash(x, y, S + 97) * totalWeight
     for (const [w, put] of WONDERS) {
       if ((r -= w) < 0) return put
     }
@@ -4324,7 +4456,8 @@ for (let round = 0; round < 50; round++) {
   let added = 0
   for (const p of far) {
     if (dist[p] <= SIGHT || !open(p % W, (p / W) | 0)) continue
-    pickWonder()(p % W, (p / W) | 0)
+    const x = p % W, y = (p / W) | 0
+    pickWonder(x, y)(x, y)
     added++
     dist[p] = 0
     spread([p])

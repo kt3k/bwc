@@ -104,6 +104,8 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "slide-wall": { group: "debug-slide", index: 0 },
   "bell-stone": { group: "debug-bell", order: 1, count: 1, note: 0 },
   "slipper-mat": { group: "debug-mat" },
+  "ring-slot": { id: "debug", kind: "stone" },
+  "ring-heart": { id: "debug" },
 }
 
 /** Extra notes shown on the label sign of some props */

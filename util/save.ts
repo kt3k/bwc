@@ -128,6 +128,14 @@ export function recordBestTime(course: string, frames: number): boolean {
   return true
 }
 
+/**
+ * Writes the progress now (the collected item ids are otherwise written
+ * with the next change of a counter or of the position)
+ */
+export function saveProgress() {
+  write()
+}
+
 /** Returns the saved last position, if any */
 export function savedPosition(): { i: number; j: number } | null {
   return data.position ?? read()?.position ?? null

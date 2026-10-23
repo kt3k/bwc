@@ -55,6 +55,7 @@ import {
   stepRabbitHole,
 } from "./den.ts"
 import { PanePushed, stepPane } from "./pane.ts"
+import { stepRingHeart, stepRingSlot } from "./ring.ts"
 import type { Actor } from "./actor.ts"
 
 // ---------------------------------------------------------------------
@@ -931,6 +932,8 @@ export const ODD_PROP_STEP: Record<
   "pen-gate": stepPenGate,
   "fox-den": stepFoxDen,
   beehive: stepBeehive,
+  "ring-slot": stepRingSlot,
+  "ring-heart": stepRingHeart,
 }
 
 /**

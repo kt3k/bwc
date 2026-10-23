@@ -282,6 +282,10 @@
       "pushed": "roll",
       "src": "../actor/boulder/"
     },
+    "stone": {
+      "pushed": "shove",
+      "src": "../actor/stone/"
+    },
     "ghost": {
       "idle": "ghost",
       "src": "../actor/ghost/"
@@ -1826,6 +1830,77 @@
     "monolith": {
       "src": "../prop/monolith.png",
       "canEnter": false
+    },
+    "ring-stone": {
+      "src": "../prop/ring_stone.png",
+      "canEnter": false
+    },
+    "ring-boulder": {
+      "src": "../actor/boulder/down0.png",
+      "canEnter": false
+    },
+    "ring-slot": {
+      "src": "../prop/ring_slot.png",
+      "canEnter": true,
+      "growth": {
+        "stages": [
+          "../prop/ring_slot.png",
+          "../prop/ring_stone.png",
+          "../actor/boulder/down0.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "stone",
+              "boulder"
+            ]
+          },
+          "reward": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    "ring-heart": {
+      "src": "../prop/ring_heart.png",
+      "canEnter": false,
+      "growth": {
+        "stages": [
+          "../prop/ring_heart.png",
+          "../prop/ring_heart_awake.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
     },
     "waygate": {
       "src": "../prop/waygate.png",

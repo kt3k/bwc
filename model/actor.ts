@@ -182,6 +182,9 @@ export function spawnActor(
     case "roll":
       pushed = new ActorPushedDelegateRoll()
       break
+    case "shove":
+      pushed = new ActorPushedDelegateShove()
+      break
     case "unstoppable":
       pushed = new ActorPushedDelegateUnstoppable()
       break
@@ -216,6 +219,12 @@ export function spawnActor(
   }
   return new Actor(i, j, def, id, dir, speed, moveEnd, idle, pushed, data)
 }
+
+/**
+ * The collected-id key of an actor of the map that is gone for good (a
+ * stone set in its ring): it doesn't come back with the place
+ */
+export const goneActorKey = (spawnId: string) => `gone.actor.${spawnId}`
 
 /**
  * The actor class
@@ -591,11 +600,12 @@ export class Actor implements IActor {
           // direction (at 4x speed), whichever way the actor came from
           this.unshiftActions({ type: "slide", dir: conveyor, speed: 4 })
         } else if (
-          move.type === "move" && field.isSlippery(this.#i, this.#j) &&
-          this.canGo(move.dir, field)
+          move.type === "move" && !this.buff.rolling &&
+          field.isSlippery(this.#i, this.#j) && this.canGo(move.dir, field)
         ) {
           // The actor keeps sliding on the slippery cell at 4x speed,
-          // ignoring the inputs and the queued actions
+          // ignoring the inputs and the queued actions (a rolling or
+          // shoved thing goes on by itself, minding the water)
           this.unshiftActions({ type: "slide", dir: move.dir, speed: 4 })
         }
       }
@@ -955,16 +965,7 @@ export class ActorPushedDelegateRoll implements ActorPushedDelegate {
         }
       }
       if (field.isWater(ni, nj)) {
-        // The boulder sinks into the water and becomes a bridge
-        field.updateCell(ni, nj, "0")
-        field.actors.remove(actor)
-        signal.playSound("explosion")
-        for (
-          const effect of linePattern0(DIRS, ni, nj, 1, 0.7, 3, Palette.cyan4)
-        ) {
-          field.effects.add(effect)
-        }
-        delete actor.buff.rolling
+        sink(actor, field, ni, nj)
         return
       }
       if (!field.canEnterStatic(ni, nj)) {
@@ -985,6 +986,64 @@ export class ActorPushedDelegateRoll implements ActorPushedDelegate {
             step()
           } else {
             // Bounced (e.g. into the player). Stops rolling.
+            delete actor.buff.rolling
+          }
+        },
+      })
+    }
+    step()
+  }
+}
+
+/** The thing sinks into the water, and the water becomes floor (a bridge) */
+function sink(actor: Actor, field: IField, i: number, j: number) {
+  field.updateCell(i, j, "0")
+  field.actors.remove(actor)
+  signal.playSound("explosion")
+  for (const effect of linePattern0(DIRS, i, j, 1, 0.7, 3, Palette.cyan4)) {
+    field.effects.add(effect)
+  }
+  delete actor.buff.rolling
+}
+
+/**
+ * Moves a cell to the pushed direction, and on over the ice till it's
+ * stopped (a stone). Into water it sinks and becomes floor, as a boulder
+ * does. Unlike a boulder it crushes no one: it stops in front of them
+ */
+export class ActorPushedDelegateShove implements ActorPushedDelegate {
+  onPushed(event: PushedEvent, actor: Actor, field: IField): void {
+    if (actor.buff.rolling) {
+      return
+    }
+    actor.buff.rolling = true
+    const dir = event.dir
+    const step = () => {
+      const [ni, nj] = actor.nextGrid(dir)
+      if (field.actors.get(ni, nj).some((other) => other !== actor)) {
+        delete actor.buff.rolling
+        return
+      }
+      if (field.isWater(ni, nj)) {
+        sink(actor, field, ni, nj)
+        return
+      }
+      if (!field.canEnterStatic(ni, nj)) {
+        // Blocked by terrain or a prop: it presses the prop (a button)
+        delete actor.buff.rolling
+        field.props.get(ni, nj)?.onPushed(
+          { type: "pushed", dir, peakAt: 0, pusher: actor },
+          field,
+        )
+        return
+      }
+      actor.enqueueActions({
+        type: "slide",
+        dir,
+        cb: (move) => {
+          if (move.type === "move" && field.isSlippery(actor.i, actor.j)) {
+            step()
+          } else {
             delete actor.buff.rolling
           }
         },
