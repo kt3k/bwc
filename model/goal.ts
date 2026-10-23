@@ -4,18 +4,21 @@
 //
 // Every goal kind records a goal done with the collected item ids, under
 // a key of its own, as soon as it is done (a whole ring: "ring.<id>",
-// model/ring.ts), so the count lasts in the save. A new kind of goal adds
-// the test of its key to DONE_KEYS and is counted too.
+// model/ring.ts; an odd one out found: "odd.<id>", model/odd-one.ts),
+// so the count lasts in the save. A new kind of goal adds the test of
+// its key to DONE_KEYS and is counted too.
 //
 // The count is of the goals done, not of the letters picked up (the
 // reward, model/glyph.ts): a goal counts the moment it is done, whether
 // or not its letter was taken yet.
 import { Item } from "./item.ts"
 import { isRingKey } from "./ring.ts"
+import { isOddKey } from "./odd-one.ts"
 
 /** The tests of the keys the goal kinds record a goal done with */
 export const DONE_KEYS: readonly ((key: string) => boolean)[] = [
   isRingKey,
+  isOddKey,
 ]
 
 /** true if the collected id records a goal done */

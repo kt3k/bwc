@@ -253,6 +253,25 @@ rect(159, 58, 165, 62, "0")
 grid[63][162] = "0"
 actor(159, 58, "odradek")
 
+// the odd ones out (model/odd-one.ts): bump the one not like the others
+sign(140, 68, "ONE OF A KIND: BUMP THE ODD ONE")
+for (let k = 0; k < 5; k++) {
+  if (k === 3) {
+    prop(140 + k, 70, "unlike-tulip", {
+      id: "zoo-tulip",
+      reward: [BI + 144, BJ + 71],
+    })
+  } else prop(140 + k, 70, "alike-tulip")
+}
+for (let k = 0; k < 4; k++) {
+  if (k === 1) {
+    prop(140 + 2 * k, 73, "unlike-menhir", {
+      id: "zoo-menhir",
+      reward: [BI + 143, BJ + 74],
+    })
+  } else prop(140 + 2 * k, 73, "alike-menhir")
+}
+
 // ---------------------------------------------------------------------
 // button-linked walls (see game-ideas-3.md)
 

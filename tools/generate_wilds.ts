@@ -66,6 +66,13 @@ import {
   RING_W,
   sigName,
 } from "./rings.ts"
+import { arrange } from "./odd_ones.ts"
+import {
+  alikeType,
+  ODD_FAMILIES,
+  type OddFamily,
+  unlikeType,
+} from "../model/odd-families.ts"
 import {
   cellKey,
   cellsOf,
@@ -4317,6 +4324,97 @@ for (let round = 0; round < 50; round++) {
     `missing rings: ${placed.length} placed (${drawn} drawn and solved): ` +
       [...count].sort((a, b) => b[1] - a[1]).map(([s, k]) => `${s} ${k}`)
         .join(", "),
+  )
+}
+// the odd ones out (tools/odd_ones.ts, model/odd-one.ts; ideas/
+// goal-types.md, 1 つだけ違う): out on the open land, a small regular
+// arrangement of the same thing with one of them not quite alike. Cheap,
+// they fill the gaps between the other goals: many, the least placed
+// family first, never one that an arrangement within 24 cells has
+// already, kept off the ring patches and the puzzles and with a cell of
+// open land all round (so they can be walked round and read). Their own
+// random numbers, so the rest of the island stays as it was
+{
+  const rr = seed(`${plan.seed}/odd-ones`)
+  const COUNT = 36 * SCALE
+  const SAME_APART = 24
+  const reached = new Uint8Array(W * H)
+  {
+    const q = [idx(arrival.x, arrival.y)]
+    reached[q[0]] = 1
+    for (let k = 0; k < q.length; k++) {
+      const x = q[k] % W, y = (q[k] / W) | 0
+      for (const [dx, dy] of D4) {
+        const np = idx(x + dx, y + dy)
+        if (inside(x + dx, y + dy) && !reached[np] && walkable(np)) {
+          reached[np] = 1
+          q.push(np)
+        }
+      }
+    }
+  }
+  const inCove = (x: number, y: number) =>
+    x >= COVE_X0 - 4 && x < COVE_X0 + COVE_W + 4 && y >= COVE_Y0 - 4 &&
+    y < COVE_Y0 + COVE_H + 4
+  /** Open land under the arrangement and the 2 cells round it */
+  const fitsAt = (x0: number, y0: number, w: number, h: number) => {
+    for (let y = y0 - 2; y < y0 + h + 2; y++) {
+      for (let x = x0 - 2; x < x0 + w + 2; x++) {
+        if (!inside(x, y)) return false
+        const p = idx(x, y)
+        if (!reached[p] || taken.has(p) || puzzleCells[p] || keepClear[p]) {
+          return false
+        }
+        if (!isWild(terrain[p] as T)) return false
+        if (inCity(x, y) || inMassif(x, y) || inCove(x, y)) return false
+      }
+    }
+    return true
+  }
+  const placed: { x: number; y: number; family: OddFamily }[] = []
+  const count = new Map<OddFamily, number>(ODD_FAMILIES.map((f) => [f, 0]))
+  for (let n = 0; n < 8000 * SCALE && placed.length < COUNT; n++) {
+    const x0 = 3 + rr.randomInt(W - 14)
+    const y0 = 3 + rr.randomInt(H - 14)
+    const cx = x0 + 3, cy = y0 + 3
+    if (placed.some((o) => Math.hypot(o.x - cx, o.y - cy) < 12)) continue
+    if (nodes.some((o) => Math.hypot(o.x - cx, o.y - cy) < 20)) continue
+    // the least placed family, none the same within 24 cells (ties in a
+    // drawn order)
+    const near = new Set(
+      placed.filter((o) => Math.hypot(o.x - cx, o.y - cy) < SAME_APART)
+        .map((o) => o.family),
+    )
+    const order = rr.shuffle([...ODD_FAMILIES])
+    const family = order.filter((f) => !near.has(f))
+      .sort((a, b) => count.get(a)! - count.get(b)!)[0]
+    if (!family) continue
+    const a = arrange(rr, family)
+    if (!fitsAt(x0, y0, a.w, a.h)) continue
+    const [ox, oy] = a.cells[a.odd]
+    const id = `${x0 + ox}.${y0 + oy}`
+    for (let y = y0 - 1; y < y0 + a.h + 1; y++) {
+      for (let x = x0 - 1; x < x0 + a.w + 1; x++) {
+        puzzleCells[idx(x, y)] = 1
+        keepClear[idx(x, y)] = 1
+      }
+    }
+    a.cells.forEach(([dx, dy], k) => {
+      const x = x0 + dx, y = y0 + dy
+      if (k === a.odd) {
+        put(props, x, y, unlikeType(family), {
+          id,
+          reward: [OI + x0 + a.reward[0], OJ + y0 + a.reward[1]],
+        })
+      } else put(props, x, y, alikeType(family))
+      blockingProp.add(idx(x, y))
+    })
+    placed.push({ x: x0 + (a.w >> 1), y: y0 + (a.h >> 1), family })
+    count.set(family, count.get(family)! + 1)
+  }
+  console.log(
+    `odd ones out: ${placed.length} placed: ` +
+      [...count].map(([f, k]) => `${f} ${k}`).join(", "),
   )
 }
 // nothing empty (docs/playtest-2026-10-21.md, plan 2): wherever you

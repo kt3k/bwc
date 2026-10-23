@@ -11,6 +11,7 @@
 // Usage: deno -A tools/generate_debug_map.ts
 import { loadCatalog } from "../model/catalog.ts"
 import { validate } from "../util/json-schema.ts"
+import { ODD_FAMILIES, unlikeType } from "../model/odd-families.ts"
 
 const SIZE = 200
 const BI = 10000
@@ -106,6 +107,10 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "slipper-mat": { group: "debug-mat" },
   "ring-slot": { id: "debug", kind: "stone" },
   "ring-heart": { id: "debug" },
+  // the odd ones out: each its own id (one found is not all found)
+  ...Object.fromEntries(
+    ODD_FAMILIES.map((f) => [unlikeType(f), { id: `debug-${f}` }]),
+  ),
 }
 
 /** Extra notes shown on the label sign of some props */
