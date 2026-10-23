@@ -42,6 +42,13 @@ export type Place = { topic: string; i: number; j: number }
 // The place of the last rumor heard, which the leaves drift toward
 // (model/leaf-wind.ts), or null once there
 export const rumorPlace = new Signal<Place | null>(null)
+/**
+ * An unreadable letter held (model/glyph.ts): its id (who gave it, e.g.
+ * "ring.<id>.reward") and its sign (0 to GLYPH_COUNT - 1)
+ */
+export type Glyph = { id: string; glyph: number }
+// The unreadable letters the player holds, in the order taken
+export const glyphs = new Signal<Glyph[]>([])
 // How many letters the player delivered
 export const deliveries = new Signal(0)
 // The player's walking speed, chosen with the speed buttons (pixels per frame)

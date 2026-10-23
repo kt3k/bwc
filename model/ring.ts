@@ -5,9 +5,12 @@
 // into it, the heart wakes and the reward appears beside the ring, once.
 // tools/rings.ts makes the rings and tools/generate_wilds.ts places them.
 //
+// The reward is an unreadable letter (model/glyph.ts), each ring its own:
+// the letter's id is "ring.<id>.reward" and its sign is drawn from it.
+//
 // A whole ring is kept with the collected item ids ("ring.<id>"), and so
 // is the stone that went into it (it doesn't come back with the place,
-// see goneActorKey) and the reward once taken ("ring.<id>.reward"):
+// see goneActorKey) and the letter once taken ("ring.<id>.reward"):
 // they last in the save (written as soon as the ring is whole).
 import { CELL_SIZE } from "../util/constants.ts"
 import { DIRS } from "../util/dir.ts"
@@ -16,21 +19,21 @@ import { saveProgress } from "../util/save.ts"
 import * as signal from "../util/signals.ts"
 import { goneActorKey } from "./actor.ts"
 import { linePattern0 } from "./effect.ts"
+import { glyphOf, glyphType, layGlyph } from "./glyph.ts"
 import { Item } from "./item.ts"
 import type { Prop } from "./prop.ts"
 import type { IActor, IField } from "./types.ts"
 
-/**
- * The reward of a whole ring, the same for every ring (an item type of
- * the catalog). A placeholder: what it should be is not decided yet
- * (ideas/goal-types.md: the same every time, and meaningful)
- */
-export const RING_REWARD = "gem"
-
 /** The collected-id key of a whole ring */
 export const ringKey = (id: string) => `ring.${id}`
-/** The collected-id key (and the item id) of a ring's reward */
+/**
+ * The collected-id key (and the item id) of a ring's reward: the id of
+ * its unreadable letter
+ */
 export const ringRewardKey = (id: string) => `ring.${id}.reward`
+/** The item type of a ring's reward: its unreadable letter */
+export const ringRewardType = (id: string) =>
+  glyphType(glyphOf(ringRewardKey(id)))
 
 /** What fills a gap: the things that are pushed about */
 const FILLERS = new Set(["stone", "boulder"])
@@ -101,11 +104,8 @@ function fill(prop: Prop, field: IField, actor: IActor) {
 /** The reward by the ring, unless it was taken (once only) */
 function layReward(field: IField, data: SlotData) {
   if (!data.id || !data.reward) return
-  const key = ringRewardKey(data.id)
-  if (Item.isCollected(key)) return
   const [i, j] = data.reward
-  if (field.peekItems(i, j).some((item) => item.id === key)) return
-  if (!field.spawnItem(RING_REWARD, i, j, key)) return
+  if (!layGlyph(field, i, j, ringRewardKey(data.id))) return
   for (const effect of linePattern0(DIRS, i, j, 1, 0.7, 2, Palette.white)) {
     field.effects.add(effect)
   }

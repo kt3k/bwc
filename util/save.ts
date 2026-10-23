@@ -22,6 +22,8 @@ type SaveData = {
   rumorPlace?: signal.Place | null
   /** the window shards held */
   shards?: string[]
+  /** the unreadable letters held (model/glyph.ts) */
+  glyphs?: signal.Glyph[]
 }
 
 let data: SaveData = {}
@@ -66,6 +68,7 @@ export function restoreSave() {
     signal.deliveries.update(saved.deliveries ?? 0)
     signal.cargo.update(saved.cargo ?? null)
     signal.shards.update(saved.shards ?? [])
+    signal.glyphs.update(saved.glyphs ?? [])
     signal.rumorPlace.update(saved.rumorPlace ?? null)
     if (saved.speed === 1 || saved.speed === 2 || saved.speed === 4) {
       signal.playerSpeed.update(saved.speed)
@@ -106,6 +109,10 @@ export function restoreSave() {
   })
   signal.shards.subscribe((v) => {
     data.shards = v
+    write()
+  })
+  signal.glyphs.subscribe((v) => {
+    data.glyphs = v
     write()
   })
   signal.rumorPlace.subscribe((v) => {

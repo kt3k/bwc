@@ -18,6 +18,7 @@ import { ActionQueue, type ItemAction } from "./action-queue.ts"
 import { MoveGo } from "./move.ts"
 import { Palette, type PaletteColor } from "../util/palette.ts"
 import { collectLetter, collectShard } from "./oddities.ts"
+import { collectGlyph } from "./glyph.ts"
 
 const fallbackImage = await fetch(
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAADRJREFUOE9jZKAQMFKon2FoGPAfzZsoribGC0PQALxORo92bGEwDAwgKXUTkw7wGjjwBgAAiwgIEW1Cnt4AAAAASUVORK5CYII=",
@@ -163,6 +164,9 @@ export class Item implements IItem {
       case "shard":
         collectShard(actor, field, this, amount)
         break
+      case "glyph":
+        collectGlyph(actor, field, this)
+        break
     }
   }
 
@@ -280,8 +284,9 @@ export function collectAll(
     else kinds.set(item.def.collect, [item])
   }
   for (const [collect, kind] of kinds) {
-    if (collect === "fish" || collect === "letter") {
-      // one by one: fish each follow, letters must come in order
+    if (collect === "fish" || collect === "letter" || collect === "glyph") {
+      // one by one: fish each follow, letters must come in order, each
+      // unreadable letter is kept by its own id
       for (const item of kind) item.onCollect(actor, field)
       continue
     }

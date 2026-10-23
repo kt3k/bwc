@@ -7,7 +7,7 @@ import { Actor, goneActorKey, spawnActor } from "./actor.ts"
 import { Item } from "./item.ts"
 import { Prop } from "./prop.ts"
 import { PropSpawn } from "./field-block.ts"
-import { RING_REWARD, ringKey, ringRewardKey } from "./ring.ts"
+import { ringKey, ringRewardKey, ringRewardType } from "./ring.ts"
 import type { IActor, IField, IItem } from "./types.ts"
 
 const catalog = Catalog.fromJSON(
@@ -128,7 +128,7 @@ Deno.test("ring: a stone pushed into the gap makes the ring whole, once", () => 
   assertEquals(sim.slot.growthState?.stage, 1)
   assertEquals(sim.heart.growthState?.stage, 1)
   assertEquals(sim.items, [
-    { id: ringRewardKey("R"), i: 102, j: 0, type: RING_REWARD },
+    { id: ringRewardKey("R"), i: 102, j: 0, type: ringRewardType("R") },
   ])
   // only once
   sim.step(200)
