@@ -12,6 +12,7 @@ import { Actor } from "../model/actor.ts"
 import { juice, shakeOffset } from "../util/juice.ts"
 import { restoreSave, savedPosition, savePosition } from "../util/save.ts"
 import { loadRumors } from "../model/rumor.ts"
+import { leafWind } from "../model/leaf-wind.ts"
 
 const parseGridPosition = (hash: string) => {
   const m = hash.match(/#(-?\d+),(-?\d+)/)
@@ -140,6 +141,7 @@ export function GameScreen({ el, query }: Context) {
       juice.freeze--
     } else {
       field.step()
+      leafWind.step(field)
     }
     if (juice.shake > 0) juice.shake--
     const jitter = shakeOffset()

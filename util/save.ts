@@ -18,6 +18,8 @@ type SaveData = {
   deliveries?: number
   /** the crate of goods being carried (trade) */
   cargo?: signal.Cargo | null
+  /** the place of the last rumor heard (the leaf wind) */
+  rumorPlace?: signal.Place | null
   /** the window shards held */
   shards?: string[]
 }
@@ -64,6 +66,7 @@ export function restoreSave() {
     signal.deliveries.update(saved.deliveries ?? 0)
     signal.cargo.update(saved.cargo ?? null)
     signal.shards.update(saved.shards ?? [])
+    signal.rumorPlace.update(saved.rumorPlace ?? null)
     if (saved.speed === 1 || saved.speed === 2 || saved.speed === 4) {
       signal.playerSpeed.update(saved.speed)
     }
@@ -103,6 +106,10 @@ export function restoreSave() {
   })
   signal.shards.subscribe((v) => {
     data.shards = v
+    write()
+  })
+  signal.rumorPlace.subscribe((v) => {
+    data.rumorPlace = v
     write()
   })
 }

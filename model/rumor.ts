@@ -26,7 +26,7 @@ export async function loadRumors(url = "map/rumors.json") {
 }
 
 /** Too far to have heard of it: another land altogether */
-const HEARD_OF = 2000
+export const HEARD_OF = 2000
 
 const DIRS8 = [
   "EAST",
@@ -59,12 +59,20 @@ export function tell(rumor: Rumor, i: number, j: number): string {
 }
 
 /**
+ * The place this one talks of (each person their own place, by who they
+ * are), standing at (i, j); null if they know of none
+ */
+export function placeOf(id: string, i: number, j: number): Rumor | null {
+  const near = rumors.filter((r) => Math.hypot(r.i - i, r.j - j) < HEARD_OF)
+  if (near.length === 0) return null
+  return near[seed(`rumor.${id}`).randomInt(near.length)]
+}
+
+/**
  * The rumor this one tells (each person their own place, by who they
  * are), as said from (i, j); null if they know of none
  */
 export function rumorOf(id: string, i: number, j: number): string | null {
-  const near = rumors.filter((r) => Math.hypot(r.i - i, r.j - j) < HEARD_OF)
-  if (near.length === 0) return null
-  const r = near[seed(`rumor.${id}`).randomInt(near.length)]
-  return tell(r, i, j)
+  const r = placeOf(id, i, j)
+  return r ? tell(r, i, j) : null
 }

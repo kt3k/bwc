@@ -37,6 +37,11 @@ export type Cargo = { good: string; from: string; paid: number }
 export const cargo = new Signal<Cargo | null>(null)
 // The window shards the player holds (their item types: "shard-sea"...)
 export const shards = new Signal<string[]>([])
+/** A place of the island talked of (model/rumor.ts): its name and cell */
+export type Place = { topic: string; i: number; j: number }
+// The place of the last rumor heard, which the leaves drift toward
+// (model/leaf-wind.ts), or null once there
+export const rumorPlace = new Signal<Place | null>(null)
 // How many letters the player delivered
 export const deliveries = new Signal(0)
 // The player's walking speed, chosen with the speed buttons (pixels per frame)
