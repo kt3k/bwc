@@ -3,8 +3,12 @@ import { assert, assertEquals } from "@std/assert"
 import { Actor } from "../model/actor.ts"
 import { Prop, SPRING_DISTANCE } from "../model/prop.ts"
 import type { ActorDefinition, PropDefinition } from "../model/catalog.ts"
-import type { IActor, IField, IProp } from "../model/types.ts"
-import { MoveEndMainActor } from "./main-character.ts"
+import type { IActor, IField, IItem, IProp } from "../model/types.ts"
+import { EMERGE_FRAMES, Item } from "../model/item.ts"
+import { chooseTool } from "../model/tool.ts"
+import * as signal from "../util/signals.ts"
+import { clearInput, Input, inputQueue } from "./ui/input.ts"
+import { IdleMainActor, MoveEndMainActor } from "./main-character.ts"
 
 const actorDef: ActorDefinition = {
   type: "main",
@@ -156,4 +160,42 @@ Deno.test("the next spring takes over a spring flight", () => {
   // One flight from the second spring, not two overlapping ones
   assertEquals(me.i, 4 + SPRING_DISTANCE)
   assert(me.isActionQueueEmpty())
+})
+
+Deno.test("the player stands still while a put apple comes out", () => {
+  const me = new Actor(0, 0, actorDef, "main")
+  me.setDir("right")
+  const items: IItem[] = []
+  const field = {
+    ...makeField(me, new Map()),
+    peekItems: (i: number, j: number) =>
+      items.filter((it) => it.i === i && it.j === j),
+    spawnItem: (type: string, i: number, j: number) => {
+      const item = new Item(null, i, j, {
+        type,
+        collect: type,
+        src: "",
+        href: "",
+      })
+      items.push(item)
+      return item
+    },
+  }
+  signal.appleCount.update(1)
+  chooseTool("apple")
+  const idle = new IdleMainActor()
+  inputQueue.push("space")
+  idle.onIdle(me, field)
+  assertEquals(items.map((it) => [it.i, it.j]), [[1, 0]])
+  // walking away is held until the apple is out
+  Input.left = true
+  for (let n = 0; n < EMERGE_FRAMES; n++) {
+    idle.onIdle(me, field)
+    assertEquals([me.i, me.dir], [0, "right"])
+  }
+  idle.onIdle(me, field)
+  assertEquals([me.i, me.dir], [-1, "left"])
+  clearInput()
+  chooseTool(null)
+  signal.appleCount.update(0)
 })

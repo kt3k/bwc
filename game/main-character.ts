@@ -8,7 +8,7 @@ import {
 import { opposite } from "../util/dir.ts"
 import type { Dir, IField, Move } from "../model/types.ts"
 import { linePattern0 } from "../model/effect.ts"
-import { collectAll, Item } from "../model/item.ts"
+import { collectAll, EMERGE_FRAMES, Item } from "../model/item.ts"
 import * as signal from "../util/signals.ts"
 import type { SpaceAction } from "../util/signals.ts"
 import { Palette } from "../util/palette.ts"
@@ -90,9 +90,17 @@ const mushroomEffect = function (
 }
 
 export class IdleMainActor implements IdleDelegate {
+  /** Frames left standing still while a put thing comes out */
+  #putting = 0
+
   onIdle(actor: Actor, field: IField): void {
     // what space would do here, shown beside the tool buttons
     signal.spaceAction.update(spaceActionOf(actor, field))
+    // the put thing comes out of the player: stand still until it is out
+    if (this.#putting > 0) {
+      this.#putting--
+      return
+    }
     let dir: Dir | null = null
     if (Input.up) {
       dir = UP
@@ -125,7 +133,9 @@ export class IdleMainActor implements IdleDelegate {
         return
       }
       // the chosen tool goes down in front (docs/item-tools.md)
-      if (putTool(actor, field)) {
+      const put = putTool(actor, field)
+      if (put === "put") this.#putting = EMERGE_FRAMES
+      if (put) {
         return
       }
       actor.jump()

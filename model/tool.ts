@@ -54,10 +54,13 @@ function putEffect(
 
 /**
  * Puts the chosen tool down on the front cell. Returns false if no tool
- * is chosen or the front is water (space does the usual then); true
- * otherwise, put or not (a message tells why not).
+ * is chosen or the front is water (space does the usual then); "put" when
+ * it went down, "refused" when it didn't (a message tells why not).
  */
-export function putTool(actor: Actor, field: IField): boolean {
+export function putTool(
+  actor: Actor,
+  field: IField,
+): "put" | "refused" | false {
   const tool = signal.tool.get()
   if (tool === null) return false
   const say = (text: string) => signal.message.update({ text })
@@ -67,17 +70,17 @@ export function putTool(actor: Actor, field: IField): boolean {
   const fish = followingFish(actor)
   if (tool === "apple" && signal.appleCount.get() <= 0) {
     say("NO APPLES")
-    return true
+    return "refused"
   }
   if (tool === "fish" && !fish) {
     say("NO FISH. FISH LIE BY THE WATER")
-    return true
+    return "refused"
   }
   if (
     !field.canEnter(fi, fj) || field.peekItems(fi, fj).length > 0
   ) {
     say("NO ROOM THERE")
-    return true
+    return "refused"
   }
   if (tool === "fish") {
     // the fish lets go of the player and lies in front instead
@@ -85,11 +88,11 @@ export function putTool(actor: Actor, field: IField): boolean {
     field.collectItem(fish!.i, fish!.j, fish!.id)
   }
   const item = field.spawnItem(tool, fi, fj)
-  if (!item) return true
+  if (!item) return "refused"
   if (tool === "apple") signal.appleCount.update(signal.appleCount.get() - 1)
   // it comes out of the player, a pixel a frame, onto the front cell
   if (item instanceof Item) item.startEmerge(actor.dir)
   signal.playSound("blipSelect")
   putEffect(field, actor, fi, fj, item.def.color ?? Palette.white)
-  return true
+  return "put"
 }
