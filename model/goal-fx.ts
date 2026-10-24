@@ -3,8 +3,9 @@
 // game's five white lines go out of the goal cell to every side. When
 // they are gone, on the cell of the reward letter (model/glyph.ts) a
 // little way off, a beat at a time: a small bolt of lightning strikes,
-// a few leaves fall round it, and the letter comes up out of the ground
-// a row at a time, hops and sparkles, and only then can be picked up.
+// three times over, a few gray leaves fall round it, and the letter comes
+// up out of the ground a row at a time, hops and sparkles while the
+// game's five lines go out of it, and only then can be picked up.
 //
 // Everything here keeps to the art rules (docs/art-guide.md): palette
 // colors only, whole pixels, no alpha and no fades. Things that go away
@@ -15,7 +16,7 @@ import { Palette, type PaletteColor } from "../util/palette.ts"
 import { CELL_SIZE } from "../util/constants.ts"
 import { DIRS } from "../util/dir.ts"
 import { type EffectLine0, linePattern0 } from "./effect.ts"
-import { EffectLeaf, LEAF_COLORS } from "./leaf-wind.ts"
+import { EffectLeaf } from "./leaf-wind.ts"
 import type { IColorBox, IEffectGroup, IField } from "./types.ts"
 
 // ---------------------------------------------------------------------
@@ -55,32 +56,55 @@ const SPARK_BLINK = 8
 export const REVEAL_DELAY = GOAL_LINES_FRAMES
 /** The pause before each beat of the reveal (the bolt, the leaves, the rise) */
 export const REVEAL_BEAT = 32
-/** Frames the bolt flickers on the cell */
+/** Frames the bolt flickers on the cell, each strike */
 export const BOLT_FRAMES = 8
+/** How many times the bolt strikes, a beat after each */
+export const BOLT_STRIKES = 3
 /** Frames the scorch of the bolt stays on the cell (from the strike) */
 export const SCORCH_FRAMES = 24
 /** Frames the leaves fall (each lands, then is gone at once) */
 export const LEAF_FALL_FRAMES = 36
 /** How many leaves fall round the cell */
 export const FALLING_LEAVES = 8
+/** The falling leaves' colors: grays only */
+export const FALLING_LEAF_COLORS: readonly PaletteColor[] = [
+  Palette.gray3,
+  Palette.gray4,
+  Palette.black,
+]
 /** Frames per row of the letter rising out of the ground */
 export const RISE_STEP = 3
 /** Frames of the climax: the hop and the sparkles */
 export const CLIMAX_FRAMES = 24
-const BOLT_AT = REVEAL_BEAT
-const LEAVES_AT = BOLT_AT + BOLT_FRAMES + REVEAL_BEAT
+/**
+ * The lines at the climax: the game's five lines (linePattern0), as when
+ * an item is picked up, in the letter's color (its stone)
+ */
+export const CLIMAX_LINES = { speed: 1, p0: 0.7, dist: 3 } as const
+export const CLIMAX_LINE_COLOR: PaletteColor = Palette.black
+/** The strikes of the bolt: each a beat after the one before */
+const BOLTS = Array.from(
+  { length: BOLT_STRIKES },
+  (_, k) =>
+    [
+      REVEAL_BEAT + k * (BOLT_FRAMES + REVEAL_BEAT),
+      REVEAL_BEAT + k * (BOLT_FRAMES + REVEAL_BEAT) + BOLT_FRAMES,
+    ] as const,
+)
+const LEAVES_AT = BOLTS[BOLTS.length - 1][1] + REVEAL_BEAT
 const RISE_AT = LEAVES_AT + LEAF_FALL_FRAMES + REVEAL_BEAT
 const CLIMAX_AT = RISE_AT + RISE_STEP * CELL_SIZE
 /**
  * The reveal of the letter, frames from its start (the lines gone):
- * a beat, a small bolt of lightning strikes the cell; a beat, a few
- * leaves fall round it; a beat, the letter rises out of the ground a
- * row at a time, and at the climax it hops and sparkles, then settles
- * and can be picked up
+ * a beat, a small bolt of lightning strikes the cell, three times with a
+ * beat after each; a few leaves fall round it; a beat, the letter rises
+ * out of the ground a row at a time, and at the climax it hops and
+ * sparkles while the five lines go out of it, then settles and can be
+ * picked up
  */
 export const REVEAL = {
-  /** the bolt flickers on the cell */
-  bolt: [BOLT_AT, BOLT_AT + BOLT_FRAMES],
+  /** each strike of the bolt flickering on the cell */
+  bolts: BOLTS,
   /** leaves fall round the cell */
   leaves: [LEAVES_AT, LEAVES_AT + LEAF_FALL_FRAMES],
   /** the letter rises a row every RISE_STEP frames */
@@ -373,7 +397,7 @@ export function fallingLeaves(
       Math.round(ly - vy * life),
       0,
       vy,
-      LEAF_COLORS[n % LEAF_COLORS.length],
+      FALLING_LEAF_COLORS[n % FALLING_LEAF_COLORS.length],
       life,
       delay,
       Math.floor(rand() * 16),
@@ -383,7 +407,7 @@ export function fallingLeaves(
 
 /** The sounds of the reveal */
 export type RevealSounds = {
-  /** as the bolt strikes */
+  /** as the bolt strikes (each strike) */
   bolt?: () => void
   /** at the climax */
   climax?: () => void
@@ -392,21 +416,25 @@ export type RevealSounds = {
 /**
  * The reveal of the letter laid at the cell (i, j), round it (the
  * letter itself rises by its pose, see revealPose and Item): after a
- * beat, a small bolt of lightning strikes the cell (it flickers, a flash
- * where it hits, a scorch left a while); after another, a few leaves
- * fall round the cell, swaying, each gone at once as it lands; after
- * another, the ground line shimmers while the letter comes up out of it
- * a row at a time (chips of earth kicked aside), and at the climax a
- * ring of sparkles goes out, a white frame flashes round it and stars
- * twinkle at its corners
+ * beat, a small bolt of lightning strikes the cell (it flickers in grays,
+ * a flash where it hits, a scorch left a while), three times, a beat
+ * after each; then a few gray leaves fall round the cell, swaying, each
+ * gone at once as it lands; after a beat, the ground line shimmers while
+ * the letter comes up out of it a row at a time (chips of earth kicked
+ * aside), and at the climax the game's five lines go out of it, a ring of
+ * sparkles goes out, a white frame flashes round it and stars twinkle at
+ * its corners
  */
 export class GlyphReveal extends Group {
+  readonly i: number
+  readonly j: number
   readonly x: number
   readonly y: number
   readonly cx: number
   readonly cy: number
-  /** The two shapes of the bolt it flickers between */
-  #bolts: [number, number][][]
+  /** For each strike, the two shapes of the bolt it flickers between */
+  #bolts: [number, number][][][]
+  #lines: EffectLine0[] = []
   #leaves: EffectLeaf[]
   #sparks: Spark[] = []
   #chips: Spark[] = []
@@ -420,6 +448,8 @@ export class GlyphReveal extends Group {
     rand: Rand = Math.random,
   ) {
     super(born)
+    this.i = i
+    this.j = j
     this.x = i * CELL_SIZE
     this.y = j * CELL_SIZE
     this.cx = this.x + CELL_SIZE / 2
@@ -427,10 +457,10 @@ export class GlyphReveal extends Group {
     this.#rand = rand
     this.#sounds = sounds
     const strike = this.y + BOLT_STRIKE
-    this.#bolts = [
+    this.#bolts = BOLTS.map(() => [
       boltPath(this.cx, strike, rand),
       boltPath(this.cx, strike, rand),
-    ]
+    ])
     this.#leaves = fallingLeaves(this.cx, this.cy, rand)
   }
   /** Frames since the reveal started (negative while it waits) */
@@ -444,20 +474,28 @@ export class GlyphReveal extends Group {
   get leaves(): readonly EffectLeaf[] {
     return this.t >= REVEAL.leaves[0] ? this.#leaves : []
   }
+  /** The latest strike, and frames since it started (u < 0: none yet) */
+  get #strike(): { k: number; u: number } {
+    const t = this.t
+    for (let k = BOLTS.length - 1; k >= 0; k--) {
+      if (t >= BOLTS[k][0]) return { k, u: t - BOLTS[k][0] }
+    }
+    return { k: 0, u: t - BOLTS[0][0] }
+  }
   /** The bolt shown this frame and its color; null: none */
   get bolt(): { path: [number, number][]; color: PaletteColor } | null {
-    const u = this.t - REVEAL.bolt[0]
+    const { k, u } = this.#strike
     if (u < 0 || u >= BOLT_FRAMES) return null
     // on 2, off 1, the other shape on 2, off 1, on 1, off 1
-    const [a, b] = this.#bolts
+    const [a, b] = this.#bolts[k]
     if (u < 2) return { path: a, color: Palette.white }
-    if (u === 3 || u === 4) return { path: b, color: Palette.yellow1 }
+    if (u === 3 || u === 4) return { path: b, color: Palette.gray1 }
     if (u === 6) return { path: a, color: Palette.white }
     return null
   }
   tick(field: Pick<IField, "time">) {
     const t = this.t
-    if (t === REVEAL.bolt[0]) this.#sounds.bolt?.()
+    if (BOLTS.some(([b0]) => t === b0)) this.#sounds.bolt?.()
     if (t > REVEAL.leaves[0]) {
       for (const leaf of this.#leaves) leaf.step(field as IField)
       this.#leaves = this.#leaves.filter((leaf) => !leaf.finished)
@@ -483,6 +521,16 @@ export class GlyphReveal extends Group {
     }
     if (t === REVEAL.climax[0]) {
       this.#sounds.climax?.()
+      const { speed, p0, dist } = CLIMAX_LINES
+      this.#lines = linePattern0(
+        DIRS,
+        this.i,
+        this.j,
+        speed,
+        p0,
+        dist,
+        CLIMAX_LINE_COLOR,
+      )
       this.#sparks = sparkRing(
         this.cx,
         this.cy,
@@ -494,6 +542,8 @@ export class GlyphReveal extends Group {
         this.#rand,
       )
     }
+    for (const line of this.#lines) line.step(field as IField)
+    this.#lines = this.#lines.filter((line) => !line.finished)
     for (const s of this.#sparks) s.step()
     for (const c of this.#chips) {
       c.vy += 0.15
@@ -501,8 +551,9 @@ export class GlyphReveal extends Group {
     }
     this.#chips = this.#chips.filter((c) => !c.done)
   }
+  /** Done when the climax is over and its lines are gone */
   get finished(): boolean {
-    return this.t >= REVEAL.climax[1]
+    return this.t >= REVEAL.climax[1] && this.#lines.length === 0
   }
   *boxes(): Generator<IColorBox> {
     const t = this.t
@@ -512,7 +563,7 @@ export class GlyphReveal extends Group {
     const pose = revealPose(t + REVEAL_DELAY)
     const [r0, r1] = REVEAL.rise
     // the scorch where the bolt struck, left a while
-    const u = t - REVEAL.bolt[0]
+    const { u } = this.#strike
     const sy = y + BOLT_STRIKE
     if (u >= 0 && u < SCORCH_FRAMES) {
       yield box(cx - 2, sy, 5, 1, Palette.gray4)
@@ -520,7 +571,7 @@ export class GlyphReveal extends Group {
       yield box(cx - 3, sy + 1, 1, 1, Palette.black)
       yield box(cx + 3, sy + 1, 1, 1, Palette.black)
     }
-    // the bolt: a white (or yellow1) core with a black edge all round
+    // the bolt: a white (or gray1) core with a black edge all round
     const bolt = this.bolt
     if (bolt) {
       for (const [px, py] of bolt.path) {
@@ -531,10 +582,10 @@ export class GlyphReveal extends Group {
     // the flash where it hits, its first 2 frames
     if (u >= 0 && u < 2) {
       yield box(cx - 3, sy, 7, 2, Palette.white)
-      yield box(cx - 5, sy + 1, 1, 1, Palette.yellow1)
-      yield box(cx + 5, sy + 1, 1, 1, Palette.yellow1)
-      yield box(cx - 4, sy - 2, 1, 1, Palette.yellow1)
-      yield box(cx + 4, sy - 2, 1, 1, Palette.yellow1)
+      yield box(cx - 5, sy + 1, 1, 1, Palette.gray4)
+      yield box(cx + 5, sy + 1, 1, 1, Palette.gray4)
+      yield box(cx - 4, sy - 2, 1, 1, Palette.gray4)
+      yield box(cx + 4, sy - 2, 1, 1, Palette.gray4)
     }
     // the leaves falling round the cell
     for (const leaf of this.leaves) {
@@ -567,6 +618,11 @@ export class GlyphReveal extends Group {
           yield box(sx - arm, sy, 2 * arm + 1, 1, Palette.white)
           yield box(sx, sy - arm, 1, 2 * arm + 1, Palette.white)
         }
+      }
+    }
+    for (const line of this.#lines) {
+      if (line.w > 0 && line.h > 0) {
+        yield box(line.x, line.y, line.w, line.h, line.color)
       }
     }
     for (const s of this.#sparks) yield* s.boxes()

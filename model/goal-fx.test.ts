@@ -14,7 +14,11 @@ import { PropSpawn } from "./field-block.ts"
 import { celebrateGoal } from "./celebrate.ts"
 import {
   BOLT_FRAMES,
+  BOLT_STRIKES,
   boltPath,
+  CLIMAX_LINE_COLOR,
+  CLIMAX_LINES,
+  FALLING_LEAF_COLORS,
   GlyphReveal,
   GOAL_HIT_STOP,
   GOAL_LINE_COLOR,
@@ -28,7 +32,6 @@ import {
   REVEAL_FRAMES,
   revealPose,
 } from "./goal-fx.ts"
-import { LEAF_COLORS } from "./leaf-wind.ts"
 import { Palette } from "../util/palette.ts"
 import { layGlyph, revealGlyph } from "./glyph.ts"
 import { ringKey, ringRewardKey, stepRingSlot } from "./ring.ts"
@@ -204,7 +207,7 @@ Deno.test("goal fx: the letter can't be picked up while it rises, and can after"
   reset()
 })
 
-Deno.test("goal fx: after the lines, a beat at a time: the bolt, the leaves, the letter rising", () => {
+Deno.test("goal fx: after the lines, a beat at a time: the bolt thrice, the leaves, the letter rising", () => {
   const sounds: [string, number][] = []
   const fx = new GlyphReveal(
     5,
@@ -222,6 +225,7 @@ Deno.test("goal fx: after the lines, a beat at a time: the bolt, the leaves, the
   const leaves: number[] = []
   const rise: number[] = []
   const shown: number[] = []
+  const climaxLines: number[] = []
   while (!fx.finished && fx.f < 1000) {
     fx.step(field)
     const f = fx.f
@@ -230,18 +234,19 @@ Deno.test("goal fx: after the lines, a beat at a time: the bolt, the leaves, the
     const b = fx.bolt
     if (b) {
       bolt.push(f)
-      // from above the cell down into it, white or yellow1, edged black
+      // from above the cell down into it, white or gray1, edged black
       assert(Math.min(...b.path.map(([, y]) => y)) < 5 * 16 - 16)
       const [lx, ly] = b.path.at(-1)!
       assert(lx >= 5 * 16 && lx < 6 * 16 && ly >= 5 * 16 && ly < 6 * 16)
-      assert(b.color === Palette.white || b.color === Palette.yellow1)
+      assert(b.color === Palette.white || b.color === Palette.gray1)
       assert(boxes.some((x) => x.color === Palette.black))
     }
     const visible = fx.leaves.filter((l) => l.visible)
     if (visible.length > 0) {
       leaves.push(f)
       for (const l of visible) {
-        assert(LEAF_COLORS.includes(l.color))
+        // grays only
+        assert(FALLING_LEAF_COLORS.includes(l.color))
         assert(l.w * l.h === 2)
         // round the letter's cell, within two cells of it
         assert(Math.abs(l.x - (5 * 16 + 8)) <= 2 * 16, `${l.x}`)
@@ -249,16 +254,44 @@ Deno.test("goal fx: after the lines, a beat at a time: the bolt, the leaves, the
       }
     }
     if (revealPose(f).rows > 0) rise.push(f)
+    if (f >= REVEAL_DELAY + REVEAL.climax[0]) {
+      // the five lines in the letter's color go out at the climax
+      const lines = boxes.filter((x) =>
+        x.color === CLIMAX_LINE_COLOR && (x.w > 3 || x.h > 3)
+      )
+      if (lines.length > 0) climaxLines.push(f)
+    }
   }
   // the lines gone, then a beat
   assertEquals(REVEAL_DELAY, GOAL_LINES_FRAMES)
   assertEquals(shown[0], REVEAL_DELAY + REVEAL_BEAT)
-  // the bolt flickers (on and off) within its frames
+  // the bolt strikes three times, a beat after each, flickering (on and
+  // off) within its frames each time
+  assertEquals(REVEAL.bolts.length, BOLT_STRIKES)
+  assertEquals(BOLT_STRIKES, 3)
   assertEquals(bolt[0], REVEAL_DELAY + REVEAL_BEAT)
-  assert(bolt.at(-1)! < bolt[0] + BOLT_FRAMES)
-  assert(bolt.length < BOLT_FRAMES)
-  // a beat after it, the leaves; each gone at once, all within their frames
-  assertEquals(REVEAL.leaves[0], REVEAL.bolt[1] + REVEAL_BEAT)
+  for (const [k, [b0, b1]] of REVEAL.bolts.entries()) {
+    assertEquals(b1 - b0, BOLT_FRAMES)
+    if (k > 0) assertEquals(b0, REVEAL.bolts[k - 1][1] + REVEAL_BEAT)
+    const these = bolt.filter((f) =>
+      f >= REVEAL_DELAY + b0 && f < REVEAL_DELAY + b1
+    )
+    assertEquals(these[0], REVEAL_DELAY + b0)
+    assert(these.length > 0 && these.length < BOLT_FRAMES)
+  }
+  assertEquals(
+    bolt.length,
+    REVEAL.bolts.reduce(
+      (n, [b0, b1]) =>
+        n +
+        bolt.filter((f) => f >= REVEAL_DELAY + b0 && f < REVEAL_DELAY + b1)
+          .length,
+      0,
+    ),
+  )
+  // a beat after the last, the leaves; each gone at once, all within their
+  // frames
+  assertEquals(REVEAL.leaves[0], REVEAL.bolts.at(-1)![1] + REVEAL_BEAT)
   assert(leaves[0] >= REVEAL_DELAY + REVEAL.leaves[0])
   assert(leaves[0] <= REVEAL_DELAY + REVEAL.leaves[0] + 10)
   assert(leaves.at(-1)! < REVEAL_DELAY + REVEAL.leaves[1])
@@ -268,12 +301,15 @@ Deno.test("goal fx: after the lines, a beat at a time: the bolt, the leaves, the
   assertEquals(REVEAL.leaves[1] - REVEAL.leaves[0], LEAF_FALL_FRAMES)
   // the sounds: the crack as it strikes, the bell at the climax
   assertEquals(sounds, [
-    ["bolt", REVEAL_DELAY + REVEAL.bolt[0]],
+    ...REVEAL.bolts.map(([b0]) => ["bolt", REVEAL_DELAY + b0]),
     ["climax", REVEAL_DELAY + REVEAL.climax[0]],
   ])
-  // pickable only when the climax is over
-  assertEquals(fx.f, REVEAL_FRAMES)
+  // the five lines go out at the climax
+  assert(climaxLines.length > 0)
+  assert(climaxLines[0] < REVEAL_DELAY + REVEAL.climax[1])
+  // pickable when the climax is over (the lines may run on a little)
   assertEquals(REVEAL_FRAMES, REVEAL_DELAY + REVEAL.climax[1])
+  assert(fx.f >= REVEAL_FRAMES)
 })
 
 Deno.test("goal fx: the bolt is one jagged line of pixels down onto the point", () => {
@@ -349,7 +385,11 @@ Deno.test("goal fx: a ring made whole celebrates once; reloaded, its letter just
   const d = Math.max(Math.abs(at.i - 100), Math.abs(at.j))
   assert(d >= 3 && d <= 4, `${d}`)
   // whole now: stepped on, it doesn't celebrate again
-  for (let k = 0; k < GOAL_HIT_STOP + REVEAL_FRAMES + 10; k++) {
+  for (
+    let k = 0;
+    k < GOAL_HIT_STOP + REVEAL_FRAMES + 16 * CLIMAX_LINES.dist + 10;
+    k++
+  ) {
     frame()
     stepRingSlot(slot, field)
   }
