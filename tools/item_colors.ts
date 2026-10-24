@@ -3,6 +3,10 @@
 // black outline, docs/art-guide.md). The lines that burst out when an
 // item is picked up are drawn in it (model/item.ts).
 //
+// The unreadable letters (collect "glyph") are the exception: they are
+// slabs of black stone with a pale sign, and their lines are black, the
+// stone, not the pale sign the count would pick.
+//
 // This script writes the colors into the catalog (`color` of each item);
 // `deno task check-palette` checks that they are up to date.
 //
@@ -42,19 +46,29 @@ export function mainColor(w: number, h: number, rgba: Uint8Array): string {
   )[0][0]
 }
 
+/** The effect color fixed by what an item is collected as, if any */
+const COLLECT_COLORS: Record<string, PaletteColor> = {
+  glyph: Palette.black,
+}
+
 /** The effect colors of the catalog's items, by type */
 export async function itemColors(): Promise<Record<string, PaletteColor>> {
   const catalog = JSON.parse(
     await Deno.readTextFile(
       new URL("../static/catalog/base.json", import.meta.url),
     ),
-  ) as { items: Record<string, { src: string }> }
+  ) as { items: Record<string, { src: string; collect?: string }> }
   const out: Record<string, PaletteColor> = {}
   for (const [type, item] of Object.entries(catalog.items)) {
     const path = new URL(
       item.src.replace("../", "../static/"),
       import.meta.url,
     )
+    const fixed = item.collect ? COLLECT_COLORS[item.collect] : undefined
+    if (fixed) {
+      out[type] = fixed
+      continue
+    }
     const { w, h, rgba } = await decodePng(await Deno.readFile(path))
     out[type] = mainColor(w, h, rgba) as PaletteColor
   }
