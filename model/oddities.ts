@@ -56,6 +56,7 @@ import {
 } from "./den.ts"
 import { PanePushed, stepPane } from "./pane.ts"
 import { stepRingHeart, stepRingSlot } from "./ring.ts"
+import { BellPushed, stepBell } from "./bell.ts"
 import { OdradekDelegate } from "./odradek.ts"
 import { stepUnlike, UnlikePushed } from "./odd-one.ts"
 import { ODD_FAMILIES, unlikeType } from "./odd-families.ts"
@@ -919,6 +920,7 @@ export const ODD_PROP_PUSHED: Record<string, () => PushedDelegate> = {
   "fox-den": () => new FoxDenPushed(),
   beehive: () => new BeehivePushed(),
   unlike: () => new UnlikePushed(),
+  "goal-bell": () => new BellPushed(),
 }
 
 /** Per-frame behaviors of the oddity props, by type */
@@ -938,6 +940,7 @@ export const ODD_PROP_STEP: Record<
   beehive: stepBeehive,
   "ring-slot": stepRingSlot,
   "ring-heart": stepRingHeart,
+  "goal-bell": stepBell,
   ...Object.fromEntries(ODD_FAMILIES.map((f) => [unlikeType(f), stepUnlike])),
 }
 

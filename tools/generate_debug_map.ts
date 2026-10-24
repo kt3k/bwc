@@ -107,6 +107,7 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "slipper-mat": { group: "debug-mat" },
   "ring-slot": { id: "debug", kind: "stone" },
   "ring-heart": { id: "debug" },
+  "goal-bell": { id: "debug-bell" },
   // undoes the goals above (their ids start with "debug")
   "goal-reset": {
     prefix: "debug",
@@ -123,6 +124,7 @@ const SAMPLE_DATA: Record<string, unknown> = {
 const NOTES: Record<string, string> = {
   "reset-portal": "WIPES THE SAVE!",
   "goal-reset": "UNDOES THE GOALS OF THIS MAP ONLY",
+  "goal-bell": "A THING BUMPED INTO IT RINGS IT, A KNOCK DOESN'T",
   portal: "BACK TO THE ARRIVAL POINT",
 }
 

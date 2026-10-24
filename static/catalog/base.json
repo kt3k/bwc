@@ -2073,6 +2073,42 @@
         ]
       }
     },
+    "goal-bell": {
+      "src": "../prop/goal_bell.png",
+      "canEnter": false,
+      "pushed": "goal-bell",
+      "growth": {
+        "stages": [
+          "../prop/goal_bell.png",
+          "../prop/goal_bell_left.png",
+          "../prop/goal_bell_right.png",
+          "../prop/goal_bell_rung.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reward": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
     "alike-tulip": {
       "src": "../prop/alike_tulip.png",
       "canEnter": false

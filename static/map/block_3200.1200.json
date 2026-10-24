@@ -41,14 +41,24 @@
       "type": "chaser"
     },
     {
-      "i": 3291,
-      "j": 1207,
-      "type": "snail"
+      "i": 3247,
+      "j": 1313,
+      "type": "stone"
     },
     {
-      "i": 3304,
-      "j": 1207,
-      "type": "book"
+      "i": 3253,
+      "j": 1316,
+      "type": "boulder"
+    },
+    {
+      "i": 3291,
+      "j": 1211,
+      "type": "spore"
+    },
+    {
+      "i": 3305,
+      "j": 1211,
+      "type": "rabbit"
     },
     {
       "i": 3270,
@@ -56,9 +66,9 @@
       "type": "crow"
     },
     {
-      "i": 3299,
-      "j": 1220,
-      "type": "book"
+      "i": 3298,
+      "j": 1224,
+      "type": "spore"
     },
     {
       "i": 3235,
@@ -96,19 +106,14 @@
       "type": "piggy"
     },
     {
-      "i": 3252,
-      "j": 1301,
-      "type": "crow"
-    },
-    {
       "i": 3280,
       "j": 1310,
       "type": "snail"
     },
     {
-      "i": 3256,
-      "j": 1325,
-      "type": "fluff"
+      "i": 3267,
+      "j": 1312,
+      "type": "cloud"
     },
     {
       "i": 3273,
@@ -119,6 +124,11 @@
       "i": 3202,
       "j": 1391,
       "type": "shadow"
+    },
+    {
+      "i": 3296,
+      "j": 1243,
+      "type": "rabbit"
     },
     {
       "i": 3261,
@@ -533,16 +543,28 @@
       }
     },
     {
+      "i": 3250,
+      "j": 1313,
+      "type": "goal-bell",
+      "data": {
+        "id": "1250.1313",
+        "reward": [
+          3250,
+          1311
+        ]
+      }
+    },
+    {
       "i": 3278,
       "j": 1201,
       "type": "balloon-rock"
     },
     {
-      "i": 3286,
-      "j": 1220,
-      "type": "beehive",
+      "i": 3304,
+      "j": 1211,
+      "type": "rabbit-hole",
       "data": {
-        "id": "1286.1220"
+        "id": "1304.1211"
       }
     },
     {
@@ -571,11 +593,6 @@
       "type": "self-statue"
     },
     {
-      "i": 3265,
-      "j": 1312,
-      "type": "drawer-tower"
-    },
-    {
       "i": 3269,
       "j": 1325,
       "type": "balloon-rock"
@@ -592,8 +609,11 @@
     },
     {
       "i": 3295,
-      "j": 1233,
-      "type": "balloon-rock"
+      "j": 1243,
+      "type": "rabbit-hole",
+      "data": {
+        "id": "1295.1243"
+      }
     },
     {
       "i": 3260,
@@ -716,11 +736,11 @@
     "ffkkffffffkffffffffkffffffpppppppp1ppppppppp1ppppppppppppppppppppppppppppp111111p1p111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111pp666666p",
     "fffffffffffffkkffffffffkfffppppppppppppppppppppppppppppppppppppppppppppp1p11111ppppp11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111166666666",
     "ffffJJffffffffffkffkfffffffpppppppppppppppppppppppppppppppppppppppppppppppp111ppppppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111116666666",
-    "kkffJJffffffffffkffffffffffpppppppppppppppppppppppppppppppppppppppppppppppppppppppppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111166666",
-    "fffffffffffffffffffffffffffpppppppppppppppppppppppppppppppppppppppppppppppppppppppppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111116",
-    "ffffJJfkffkffffffkffffffkkffpppppppppppppppppppppppppppppppppppppppppppppppppppp1ppppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
-    "fkkfJJffffkffffffffffffffffkkppppppppppppppppppppppppppppppppppppppppppppppppppppppppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
-    "fffffffffffffffJJfffffkfffffpppppppppppppppppppppppppppppppppppppp1ppppppppppppppppppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "kkffJJffffffffffkffffffffffppppppppppppppppppp1pppppppppppppppppppppppppppppppppppppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111166666",
+    "fffffffffffffffffffffffffffpppppppppppppppppppiii111ppppppppppppppppppppppppppppppppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111116",
+    "ffffJJfkffkffffffkffffffkkffppppppppppppppppppiiipp1pppppppppppppppppppppppppppp1ppppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "fkkfJJffffkffffffffffffffffkkpppppppppppppppppiip111pppppppppppppppppppppppppppppppppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "fffffffffffffffJJfffffkfffffppppppppppppppppppppppwpp1pppppppppppp1ppppppppppppppppppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
     "fffffffffkfffffJJffkffffffffpppppppppppppppppppppppppppppppppppppppppppppppppppppppppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
     "ffffkffffkffffffffffffffffkffpppppppppppppppppppppppppppppppppppppppppppppppppppppppp1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
     "ffffkffffffffffJJfffffffffkffppppppppppppppppppppppppppppppppppppppppppppppppppppppppp111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",

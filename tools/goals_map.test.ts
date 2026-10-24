@@ -1,6 +1,7 @@
 // The GOALS debug map (tools/generate_goals_map.ts, tools/goals_map.ts):
-// a bay for every ring signature, each ring solvable and of the
-// signature it is named for; a bay for every odd one family; the resets
+// a bay for every ring signature and every bell signature, each
+// solvable and of the signature it is named for; a bay for every odd one
+// family; the resets
 // scoped to the map; the portal to it on the start island
 import { assert, assertEquals } from "@std/assert"
 import { ODD_FAMILIES, unlikeType } from "../model/odd-families.ts"
@@ -11,10 +12,12 @@ import {
   type BlockJson,
   oddId,
   PREFIX,
+  readBellBay,
   readRingBay,
   SIZE,
 } from "./goals_map.ts"
 import { MAX_PUSHES, MIN_PUSHES, sigName, signature, solve } from "./rings.ts"
+import { BELL_MAX_PUSHES, BELL_MIN_PUSHES } from "./bells.ts"
 
 const read = async (name: string) =>
   JSON.parse(
@@ -22,6 +25,7 @@ const read = async (name: string) =>
   ) as BlockJson
 const block = await read(`block_${BI}.${BJ}.json`)
 const slots = block.props.filter((p) => p.type === "ring-slot")
+const bells = block.props.filter((p) => p.type === "goal-bell")
 
 Deno.test("goals map: a ring for every signature, each solvable and of its signature", () => {
   // the WILDS have 13 signatures; the map has them and maybe more
@@ -47,6 +51,34 @@ Deno.test("goals map: a ring for every signature, each solvable and of its signa
     const text = (signs[0].data as { text: string }).text
     assert(text.includes(`${solved.pushes} PUSHES`), text)
     assert(text.includes(id.slice(PREFIX.length).toUpperCase()), text)
+  }
+})
+
+Deno.test("goals map: a bell for every signature, each solvable and of its signature", () => {
+  // the WILDS have 12 signatures; the map has them and maybe more
+  assert(bells.length >= 12, `${bells.length} bells`)
+  const ids = new Set<string>()
+  for (let n = 0; n < bells.length; n++) {
+    const bay = readBellBay(block, slots.length, n)
+    assert(bay, `bell bay ${n}`)
+    const { id, layout } = bay
+    assert(id.startsWith(PREFIX), id)
+    assert(!ids.has(id), `${id} twice`)
+    ids.add(id)
+    const solved = solve(layout)
+    assert(solved, `${id} can't be solved`)
+    assert(
+      solved.pushes >= BELL_MIN_PUSHES && solved.pushes <= BELL_MAX_PUSHES,
+      id,
+    )
+    assertEquals(PREFIX + sigName(signature(layout)!), id)
+    const signs = block.props.filter((p) =>
+      p.type === "sign" &&
+      (p.data as { text: string }).text.startsWith(`BELL ${n + 1}: `)
+    )
+    assertEquals(signs.length, 1)
+    const text = (signs[0].data as { text: string }).text
+    assert(text.includes(`${solved.pushes} PUSHES`), text)
   }
 })
 

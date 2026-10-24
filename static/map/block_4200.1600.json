@@ -101,6 +101,16 @@
       "type": "stone"
     },
     {
+      "i": 4388,
+      "j": 1768,
+      "type": "stone"
+    },
+    {
+      "i": 4392,
+      "j": 1767,
+      "type": "stone"
+    },
+    {
       "i": 4256,
       "j": 1600,
       "type": "fluff"
@@ -196,21 +206,6 @@
       "type": "crow"
     },
     {
-      "i": 4396,
-      "j": 1763,
-      "type": "snail"
-    },
-    {
-      "i": 4382,
-      "j": 1767,
-      "type": "sheep"
-    },
-    {
-      "i": 4383,
-      "j": 1768,
-      "type": "sheep"
-    },
-    {
       "i": 4210,
       "j": 1770,
       "type": "book"
@@ -237,8 +232,8 @@
     },
     {
       "i": 4398,
-      "j": 1789,
-      "type": "crow"
+      "j": 1788,
+      "type": "spore"
     },
     {
       "i": 4242,
@@ -1126,6 +1121,18 @@
       "type": "ring-stone"
     },
     {
+      "i": 4388,
+      "j": 1770,
+      "type": "goal-bell",
+      "data": {
+        "id": "2388.1770",
+        "reward": [
+          4386,
+          1770
+        ]
+      }
+    },
+    {
       "i": 4224,
       "j": 1610,
       "type": "balloon-rock"
@@ -1231,11 +1238,6 @@
       "type": "moon-shell"
     },
     {
-      "i": 4383,
-      "j": 1754,
-      "type": "balloon-rock"
-    },
-    {
       "i": 4214,
       "j": 1757,
       "type": "balloon-rock"
@@ -1259,11 +1261,6 @@
       "type": "self-statue"
     },
     {
-      "i": 4395,
-      "j": 1776,
-      "type": "nest-jar-4"
-    },
-    {
       "i": 4249,
       "j": 1779,
       "type": "balloon-rock"
@@ -1278,8 +1275,11 @@
     },
     {
       "i": 4385,
-      "j": 1789,
-      "type": "self-statue"
+      "j": 1788,
+      "type": "beehive",
+      "data": {
+        "id": "2385.1788"
+      }
     },
     {
       "i": 4241,
@@ -1311,6 +1311,11 @@
       "i": 4276,
       "j": 1712,
       "type": "clock"
+    },
+    {
+      "i": 4394,
+      "j": 1752,
+      "type": "pinata-tree"
     }
   ],
   "field": [
@@ -1481,14 +1486,14 @@
     "ppppppppp6666666666666666666666666JJ66666666666666666666666666666666666fffffffkffffkfffffffkkffffffffkffffffkffffJJwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwffffffffffffkfffff6666666666666666666666666666666",
     "ppppppppp666666JJ66666666666666666666666666666666666666666JJ6666666666fffffkfffffffkffffffffffffffffffffffffkfffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfffffffkfffffffkk6666666666666666666666666666666",
     "ppppppppp666666JJ6666666666666666666666666666666666666666666666666666ffkfffkffffffffffkkffffffffffffJJffffffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfffffffffffffffff6666666666666666666666666666666",
-    "p1pppppp66666666666666666666JJ66666666666666666666666666666666666666ffffffffffffffffffffffffffkfffffJJfffffffffkfwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwffffkffffffffffff6666666666666666666666666666666",
-    "Jpppppp666666666666666666666666666666666666666666666666666666666666kffffffffJJfffffffffffkffffkffJJfffffffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfffffffffffkffff6666J66666666666666666666666666",
-    "66pppp666666666666666666666666666666666666666666666666666666666666ffffffkfffJJfkfffffffffkfffffffJJffffkffffkffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfffffffffffkffff6666666666666666666666666666666",
-    "666666666666666666666666666666666666666666JJ666666666666666666666JJffffffffffffffffffffffffkfffffffffffkffffkfwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwffffffffkfffffff6666666666666666666666666666666",
-    "66666666666666666666666666666666666666666666666666666666JJ666666fJJfffffffffJJffffffkffffffkfffkkfffffffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfkkfffffffffffkf6666666666666666666666666666666",
+    "p1pppppp66666666666666666666JJ66666666666666666666666666666666666666ffffffffffffffffffffffffffkfffffJJfffffffffkfwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwffffkffffffffffff666666666666666666iii6666666666",
+    "Jpppppp666666666666666666666666666666666666666666666666666666666666kffffffffJJfffffffffffkffffkffJJfffffffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfffffffffffkffff6666J66666666666666ii6666666666",
+    "66pppp666666666666666666666666666666666666666666666666666666666666ffffffkfffJJfkfffffffffkfffffffJJffffkffffkffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfffffffffffkffff666666666666666666J6J6666666666",
+    "666666666666666666666666666666666666666666JJ666666666666666666666JJffffffffffffffffffffffffkfffffffffffkffffkfwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwffffffffkfffffff666666666666666666J6J6666666666",
+    "66666666666666666666666666666666666666666666666666666666JJ666666fJJfffffffffJJffffffkffffffkfffkkfffffffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfkkfffffffffffkf666666666666666666JJJ6666666666",
     "6666666666666666666666JJ666666666666666666666666666666666666666fffffffffffffJJfffffffffffffffffffffffffffffJJwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwffffffffffffffkf6666666666666666666666666666666",
     "6666666666666666666666JJ666666666666666666666666666666666666666fffffffffffffffffffkkfffffJJffffffffkfffkkffJJwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfffffffffffffffff66666666J6666666666666666666666",
-    "666JJ6666666666666666666666666666666666666666666666666666666666fffkfffkkffffffffff66fffffJJfkkfkkffffffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwffffkfffffffffffff6666666J6666666666666666666666",
+    "666JJ6666666666666666666666666666666666666666666666666666666666fffkfffkkffffffffff66fffffJJfkkfkkffffffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwffffkfffffffffffff6666666J6666666666666666k66666",
     "6666666666666666666666666666666666666666666JJ66666666666666JJ6ffffkffffffffffkkfk6666fffffffffffffffffffffffkwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfffffffffJJfffffff666666666666666666666666666666",
     "6666666666666666666666666666666666666666666JJ66666666666666666ffffffffffffffffff66666fkffffffffffffffffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfJJfffkffJJfffffff666666J6666666666666666666666J",
     "66666666666666666666666666666666666666666666666666666666666666fffffffffffkffffff66666fkffffffffffffffffkffJJfwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfJJfffffffffffffff666666666666666666666666666666",

@@ -4,19 +4,14 @@
 // (model/actor.ts, model/prop.ts, model/ring.ts), compared move by move.
 import { assert, assertEquals } from "@std/assert"
 import { seed } from "../util/random.ts"
-import { Catalog } from "../model/catalog.ts"
-import { Actor, spawnActor } from "../model/actor.ts"
 import { Item } from "../model/item.ts"
-import { Prop } from "../model/prop.ts"
-import { PropSpawn } from "../model/field-block.ts"
 import { ringKey, ringRewardKey } from "../model/ring.ts"
-import type { Dir, IActor, IField, IItem } from "../model/types.ts"
+import { DIR_OF, type PropOf, World } from "./patch_world.ts"
 import {
   accept,
   AIMS,
   check,
   draft,
-  type Layout,
   parse,
   type Ring,
   sigName,
@@ -204,193 +199,24 @@ Deno.test("rings: an easy one is thrown away", () => {
 // ---------------------------------------------------------------------
 // the simulator against the game
 
-const catalog = Catalog.fromJSON(
-  [{
-    src: "base.json",
-    json: JSON.parse(
-      await Deno.readTextFile(
-        new URL("../static/catalog/base.json", import.meta.url),
-      ),
-    ),
-  }],
-  "http://localhost/catalog/",
-)
+/** The ring's props, by the patch's character */
+const ringProps = (id: string, reward: [number, number]): PropOf => (c) =>
+  c === "o"
+    ? { type: "ring-stone" }
+    : c === "O"
+    ? { type: "ring-heart", data: { id, reward } }
+    : c === "_"
+    ? { type: "ring-slot", data: { id, reward } }
+    : null
 
-const CELL_OF: Record<string, string> = {
-  ".": "0",
-  "#": "1",
-  w: "w",
-  i: "i",
-  k: "k",
-  o: "0",
-  O: "0",
-  _: "0",
-}
-const DIR_OF: Record<string, Dir> = {
-  U: "up",
-  D: "down",
-  L: "left",
-  R: "right",
-}
-
-/** A field made of a ring's patch, with the game's actors and props */
-class World {
-  time = 0
-  cells: string[][]
-  actorList: IActor[] = []
-  propMap = new Map<string, Prop>()
-  items: { id: string; i: number; j: number; type: string }[] = []
-  me: Actor
-  things: IActor[]
-  constructor(
-    readonly layout: Layout,
-    readonly ox: number,
-    readonly oy: number,
-  ) {
-    this.cells = layout.rows.map((r) => [...r].map((c) => CELL_OF[c]))
-    layout.rows.forEach((row, y) =>
-      [...row].forEach((c, x) => {
-        const type = c === "o"
-          ? "ring-stone"
-          : c === "O"
-          ? "ring-heart"
-          : c === "_"
-          ? "ring-slot"
-          : null
-        if (!type) return
-        const data = type === "ring-stone"
-          ? undefined
-          : { id: `test.${ox}`, reward: [ox, oy] }
-        const prop = Prop.fromSpawn(
-          new PropSpawn(ox + x, oy + y, catalog.props[type], data),
-        )
-        this.propMap.set(`${ox + x}.${oy + y}`, prop)
-      })
-    )
-    this.things = layout.things.map((t, n) =>
-      spawnActor(`thing${n}`, ox + t.x, oy + t.y, catalog.actors[t.kind])
-    )
-    this.me = new Actor(
-      ox + layout.start[0],
-      oy + layout.start[1],
-      { type: "main", src: "", href: "" },
-      "main",
-      "up",
-      4,
-    )
-    this.actorList = [this.me, ...this.things]
-  }
-  cellAt(i: number, j: number) {
-    const c = this.cells[j - this.oy]?.[i - this.ox] ?? "0"
-    return catalog.cells[c]
-  }
-  get field(): IField {
-    return this as unknown as IField
-  }
-  canEnterStatic(i: number, j: number) {
-    return this.cellAt(i, j).canEnter &&
-      (this.propMap.get(`${i}.${j}`)?.canEnter ?? true)
-  }
-  canEnter(i: number, j: number) {
-    return this.canEnterStatic(i, j) &&
-      !this.actorList.some((a) => a.i === i && a.j === j)
-  }
-  isSlippery(i: number, j: number) {
-    return !!this.cellAt(i, j).slippery
-  }
-  isWater(i: number, j: number) {
-    return !!this.cellAt(i, j).water
-  }
-  conveyorDir() {
-    return null
-  }
-  isDiggable() {
-    return false
-  }
-  flattenCell(i: number, j: number) {
-    const flat = this.cellAt(i, j).flattens
-    if (!flat) return false
-    this.updateCell(i, j, flat)
-    return true
-  }
-  updateCell(i: number, j: number, c: string) {
-    this.cells[j - this.oy][i - this.ox] = c
-  }
-  actors = {
-    iter: () => this.actorList[Symbol.iterator](),
-    get: (i: number, j: number) =>
-      this.actorList.filter((a) => a.i === i && a.j === j),
-    add: (a: IActor) => void this.actorList.push(a),
-    remove: (a: IActor) => {
-      this.actorList = this.actorList.filter((x) => x !== a)
-    },
-  }
-  props = {
-    get: (i: number, j: number) => this.propMap.get(`${i}.${j}`),
-    remove: () => {},
-    iter: () => this.propMap.values(),
-  }
-  effects = { add: () => {} }
-  peekItem() {
-    return undefined
-  }
-  peekItems(i: number, j: number) {
-    return this.items.filter((t) =>
-      t.i === i && t.j === j
-    ) as unknown as IItem[]
-  }
-  spawnItem(type: string, i: number, j: number, id?: string) {
-    const item = { id: id ?? `item${this.items.length}`, i, j, type }
-    this.items.push(item)
-    return item as unknown as IItem
-  }
-  colorCell() {}
-  step() {
-    this.time++
-    for (const a of [...this.actorList]) {
-      if (this.actorList.includes(a)) a.step(this.field)
-    }
-    for (const p of this.propMap.values()) p.step(this.field)
-  }
-  settled() {
-    return this.actorList.every((a) =>
-      (a as Actor).isActionQueueEmpty() && a.x === a.i * 16 && a.y === a.j * 16
-    )
-  }
-  /** Steps till everything is still */
-  settle() {
-    let still = 0
-    for (let n = 0; n < 3000 && still < 3; n++) {
-      this.step()
-      still = this.settled() ? still + 1 : 0
-    }
-  }
-  /** Where everything is, as the simulator tells it */
-  snapshot() {
-    const w = this.layout.rows[0].length, h = this.layout.rows.length
-    const cell = (i: number, j: number) => {
-      const x = i - this.ox, y = j - this.oy
-      return x < 0 || y < 0 || x >= w || y >= h ? -1 : y * w + x
-    }
-    const was = (c: string) =>
-      [...this.layout.rows.join("")].flatMap((ch, p) => ch === c ? [p] : [])
-    return {
-      player: cell(this.me.i, this.me.j),
-      things: this.things.map((t) =>
-        this.actorList.includes(t) ? cell(t.i, t.j) : -1
-      ),
-      filled: was("w").filter((p) =>
-        !this.cellAt(this.ox + p % w, this.oy + Math.floor(p / w)).water
-      ),
-      flat: was("k").filter((p) =>
-        this.cellAt(this.ox + p % w, this.oy + Math.floor(p / w)).canEnter
-      ),
-    }
-  }
-}
 /** Plays the ring's solution in the game, comparing each move */
 function replay(ring: Ring, n: number) {
-  const world = new World(ring, 1000 * n, 0)
+  const world = new World(
+    ring,
+    1000 * n,
+    0,
+    ringProps(`test.${1000 * n}`, [1000 * n, 0]),
+  )
   const sim = trace(ring, ring.solution)
   for (const [k, m] of [...ring.solution].entries()) {
     world.settle()

@@ -4,7 +4,7 @@
 // one map only, and everything they left in the save:
 //
 // - the goals done and their letters: the collected ids "ring.<id>",
-//   "odd.<id>" and "<...>.reward" whose goal id starts with the map's
+//   "odd.<id>", "bell.<id>" and "<...>.reward" whose goal id starts with the map's
 //   prefix (the GOALS map names its goals "goals-...", the WILDS name
 //   theirs by their cell, "<x>.<y>", so they never match), and the
 //   letters held among them (signal.glyphs);
@@ -29,8 +29,11 @@ export type GoalResetData = {
   to: [number, number]
 }
 
-/** The goal kinds whose ids a reset matches (model/ring.ts, odd-one.ts) */
-const GOAL_KINDS = ["ring", "odd"]
+/**
+ * The goal kinds whose ids a reset matches (model/ring.ts, odd-one.ts,
+ * bell.ts)
+ */
+const GOAL_KINDS = ["ring", "odd", "bell"]
 
 /** The cell a spawn-like collected id names, if any */
 function cellOf(id: string): [number, number] | null {

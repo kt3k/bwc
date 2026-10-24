@@ -1,8 +1,9 @@
 // The GOALS debug map (block_10400.-10000), laid out: a bay for every
-// signature of the missing ring (tools/rings.ts) and for every family of
-// the odd one out (tools/odd_ones.ts), a room to watch Odradek in, and a
-// reset that undoes the goals of this map only (model/goal-reset.ts).
-// tools/generate_goals_map.ts draws the rings and writes the block; this
+// signature of the missing ring (tools/rings.ts), of the bell out of
+// reach (tools/bells.ts) and for every family of the odd one out
+// (tools/odd_ones.ts), a room to watch Odradek in, and a reset that
+// undoes the goals of this map only (model/goal-reset.ts).
+// tools/generate_goals_map.ts draws the rings and bells and writes the block; this
 // module is the layout alone (no drawing, no files), so the tests can
 // read the block back.
 //
@@ -15,12 +16,13 @@
 //   middle (where tools/rings.ts has the player come from), the two signs
 //   in the bottom wall either side of it: the signature and the pushes,
 //   and the solution. A walkway of 2 rows under each row of bays
+// - BELLS: bays as the rings', the 13x11 bell patch in walls
 // - ODD ONES: bays of 13x13, ODD_COLS to a row, the arrangement in the
 //   middle, the way in and the signs as for the rings
 // - ODRADEK: a room with corners, beside the odd ones
 //
-// The goal ids all start with PREFIX ("goals-<signature>",
-// "goals-<family>"), which is how the reset tells this map's goals from
+// The goal ids all start with PREFIX ("goals-<signature>" for a ring and
+// for a bell, "goals-<family>"), which is how the reset tells this map's goals from
 // the WILDS' (whose ids are their cells, "<x>.<y>").
 import {
   type Layout,
@@ -31,6 +33,7 @@ import {
   sigName,
 } from "./rings.ts"
 import type { Arrangement } from "./odd_ones.ts"
+import type { Bell } from "./bells.ts"
 import { alikeType, unlikeType } from "../model/odd-families.ts"
 
 export const SIZE = 200
@@ -47,6 +50,8 @@ export const PREFIX = "goals-"
 
 /** The ring id of a signature, e.g. "goals-roll+sink" */
 export const ringId = (sig: string) => `${PREFIX}${sig}`
+/** The bell id of a signature, e.g. "goals-roll+sink" */
+export const bellId = (sig: string) => `${PREFIX}${sig}`
 /** The odd one's id of a family, e.g. "goals-tulip" */
 export const oddId = (family: string) => `${PREFIX}${family}`
 
@@ -69,15 +74,31 @@ export function ringBay(n: number): { x: number; y: number } {
   }
 }
 
-/** The top of the odd ones' section, after `rings` ring bays */
-export const oddsY = (rings: number) =>
+/** The top of the bells' section, after `rings` ring bays */
+export const bellsY = (rings: number) =>
   RINGS_Y + 2 + Math.ceil(rings / RING_COLS) * RING_PITCH_Y + 1
 
+/** The top left wall cell of the n-th bell bay (as a ring bay) */
+export function bellBay(rings: number, n: number): { x: number; y: number } {
+  return {
+    x: 3 + (n % RING_COLS) * RING_PITCH_X,
+    y: bellsY(rings) + 2 + Math.floor(n / RING_COLS) * RING_PITCH_Y,
+  }
+}
+
+/** The top of the odd ones' section, after the ring and bell bays */
+export const oddsY = (rings: number, bells: number) =>
+  bellsY(rings) + 2 + Math.ceil(bells / RING_COLS) * RING_PITCH_Y + 1
+
 /** The top left wall cell of the n-th odd one bay */
-export function oddBay(rings: number, n: number): { x: number; y: number } {
+export function oddBay(
+  rings: number,
+  bells: number,
+  n: number,
+): { x: number; y: number } {
   return {
     x: 3 + (n % ODD_COLS) * ODD_PITCH_X,
-    y: oddsY(rings) + 2 + Math.floor(n / ODD_COLS) * ODD_PITCH_Y,
+    y: oddsY(rings, bells) + 2 + Math.floor(n / ODD_COLS) * ODD_PITCH_Y,
   }
 }
 
@@ -94,6 +115,8 @@ export const FAMILY_TEXT: Record<string, string> = {
 
 /** A ring of the map: a ring and whether the WILDS have its signature */
 export type GoalRing = Ring & { inWilds: boolean }
+/** A bell of the map: a bell and whether the WILDS have its signature */
+export type GoalBell = Bell & { inWilds: boolean }
 
 export type Spawn = { i: number; j: number; type: string; data?: unknown }
 export type BlockJson = {
@@ -118,6 +141,7 @@ const PATCH_CELL: Record<string, string> = {
   o: "6",
   O: "6",
   _: "6",
+  A: "6",
 }
 const FLOOR = "0"
 const WALL = "1"
@@ -136,9 +160,10 @@ function oddPlace(a: Arrangement): string {
   return `THE ${nth(xs.indexOf(x))} ACROSS, THE ${nth(ys.indexOf(y))} DOWN`
 }
 
-/** Lays out the map: the rings (in bay order) and the odd ones */
+/** Lays out the map: the rings and bells (in bay order) and the odd ones */
 export function buildGoalsMap(
   rings: readonly GoalRing[],
+  bells: readonly GoalBell[],
   odds: readonly Arrangement[],
 ): BlockJson {
   const grid: string[][] = Array.from(
@@ -183,8 +208,10 @@ export function buildGoalsMap(
 
   const oddRows = Math.ceil(odds.length / ODD_COLS)
   const width = 3 + RING_COLS * RING_PITCH_X + 3
-  const ODDS_Y = oddsY(rings.length)
+  const ODDS_Y = oddsY(rings.length, bells.length)
+  const BELLS_Y = bellsY(rings.length)
   const height = ODDS_Y + 2 + Math.max(oddRows, 2) * ODD_PITCH_Y
+  if (height >= SIZE - 1) throw new RangeError(`${height} rows: too many bays`)
   rect(1, 1, width, height, FLOOR)
   const box: [number, number, number, number] = [
     BI,
@@ -205,8 +232,9 @@ export function buildGoalsMap(
   sign(
     8,
     2,
-    `GOALS MAP: A RING FOR EVERY SIGNATURE (${rings.length}) AND AN ODD ONE ` +
-      `FOR EVERY FAMILY (${odds.length}). GOALS DONE HERE COUNT, GIVE ` +
+    `GOALS MAP: A RING FOR EVERY SIGNATURE (${rings.length}), A BELL FOR ` +
+      `EVERY SIGNATURE (${bells.length}) AND AN ODD ONE FOR EVERY FAMILY ` +
+      `(${odds.length}). GOALS DONE HERE COUNT, GIVE ` +
       "LETTERS AND LAST IN THE SAVE AS IN THE WILDS. THE RESET UNDOES THEM",
   )
   prop(ARRIVAL.i, ARRIVAL.j, "portal-out")
@@ -278,6 +306,48 @@ export function buildGoalsMap(
     )
   })
 
+  // the bells
+  letters(2, BELLS_Y, "BELLS")
+  sign(
+    8,
+    BELLS_Y,
+    "BELLS: A THING BUMPED INTO THE BELL RINGS IT, YOUR KNOCK DOESN'T. " +
+      "THE SIGNATURE IS THE RULES EVERY SOLUTION USES",
+  )
+  bells.forEach((bell, n) => {
+    const { x, y } = bellBay(rings.length, n)
+    const px = x + 1, py = y + 1
+    const sig = sigName(bell.signature)
+    const id = bellId(sig)
+    const wx = px + bell.start[0]
+    bay(x, y, x + RING_W + 1, y + RING_H + 1, wx)
+    bell.rows.forEach((row, dy) =>
+      [...row].forEach((c, dx) => {
+        grid[py + dy][px + dx] = PATCH_CELL[c]
+        if (c === "A") {
+          prop(px + dx, py + dy, "goal-bell", {
+            id,
+            reward: [BI + px + bell.reward[0], BJ + py + bell.reward[1]],
+          })
+        }
+      })
+    )
+    for (const t of bell.things) actor(px + t.x, py + t.y, t.kind)
+    const bottom = y + RING_H + 1
+    wallSign(
+      wx - 2,
+      bottom,
+      `BELL ${n + 1}: ${sig.toUpperCase()}. ${bell.pushes} PUSHES, ` +
+        `${bell.by === "boulder" ? "A BOULDER" : "A STONE"} RINGS IT` +
+        (bell.inWilds ? "" : ". NOT IN THE WILDS (DRAWN HERE)"),
+    )
+    wallSign(
+      wx + 2,
+      bottom,
+      `SOLUTION, FROM THE CELL INSIDE THE WAY IN: ${bell.solution}`,
+    )
+  })
+
   // the odd ones
   letters(2, ODDS_Y, "ODD")
   sign(
@@ -289,7 +359,7 @@ export function buildGoalsMap(
   reset(8, ODDS_Y)
   sign(9, ODDS_Y, "RESET: UNDOES THE GOALS OF THIS MAP ONLY")
   odds.forEach((a, n) => {
-    const { x, y } = oddBay(rings.length, n)
+    const { x, y } = oddBay(rings.length, bells.length, n)
     const fx = x + 1, fy = y + 1
     const wx = fx + (ODD_IN >> 1)
     bay(x, y, x + ODD_IN + 1, y + ODD_IN + 1, wx)
@@ -379,7 +449,25 @@ export function readRingBay(
   block: BlockJson,
   n: number,
 ): { id: string; layout: Layout } | null {
-  const { x, y } = ringBay(n)
+  return readBay(block, ringBay(n))
+}
+
+/**
+ * Reads the n-th bell bay of the block back into a patch, as
+ * readRingBay does. Also the bell's id
+ */
+export function readBellBay(
+  block: BlockJson,
+  rings: number,
+  n: number,
+): { id: string; layout: Layout } | null {
+  return readBay(block, bellBay(rings, n))
+}
+
+function readBay(
+  block: BlockJson,
+  { x, y }: { x: number; y: number },
+): { id: string; layout: Layout } | null {
   const px = x + 1, py = y + 1
   const at = (list: Spawn[], dx: number, dy: number) =>
     list.find((s) => s.i === BI + px + dx && s.j === BJ + py + dy)
@@ -394,6 +482,9 @@ export function readRingBay(
       if (p?.type === "ring-slot") {
         id = (p.data as { id: string }).id
         row += "_"
+      } else if (p?.type === "goal-bell") {
+        id = (p.data as { id: string }).id
+        row += "A"
       } else if (p?.type === "ring-heart") row += "O"
       else if (p?.type === "ring-stone" || p?.type === "ring-boulder") {
         row += "o"

@@ -30,6 +30,8 @@
 //   _  the gap (the empty place of the ring)
 //   S  a stone       B  a boulder            (s, b: the same on ice)
 //   @  where the player comes from (ground)
+//   A  a bell (tools/bells.ts): rung by a thing that bumps into it
+//      (the player's knock doesn't ring it)
 //
 // The simulator follows the game's rules (model/actor.ts: the boulder's
 // roll, the stone's shove, the ice, the player flattening a bush) and
@@ -121,6 +123,8 @@ type State = {
   fm: number
   /** The bushes pushed flat (a bit each) */
   bm: number
+  /** The thing that rang the bell (unset: not yet) */
+  r?: number
 }
 
 class Sim {
@@ -131,6 +135,8 @@ class Sim {
   readonly nbr: Int32Array[]
   readonly stone: boolean[]
   readonly slot: number
+  /** The bell's cell (-1: none) */
+  readonly bell: number
   readonly rules: Rules
   constructor(layout: Layout, rules: Rules) {
     const w = layout.rows[0].length, h = layout.rows.length
@@ -140,8 +146,9 @@ class Sim {
     let waters = 0, bushes = 0
     for (let p = 0; p < w * h; p++) {
       const c = cells[p]
-      if (c === "#" || c === "o" || c === "O") this.kind[p] = SOLID
-      else if (c === "w") {
+      if (c === "#" || c === "o" || c === "O" || c === "A") {
+        this.kind[p] = SOLID
+      } else if (c === "w") {
         this.kind[p] = WATER
         this.bit[p] = waters++
       } else if (c === "k") {
@@ -161,6 +168,7 @@ class Sim {
     })
     this.stone = layout.things.map((t) => t.kind === "stone")
     this.slot = cells.indexOf("_")
+    this.bell = cells.indexOf("A")
     this.rules = rules
   }
 
@@ -203,6 +211,10 @@ class Sim {
         break
       }
       if (q === s.p) break
+      if (q === this.bell) {
+        // it bumps into the bell, and stops against it: the bell rings
+        return { ...s, t, fm, r: n }
+      }
       const other = this.thingAt(t, q, n)
       if (other >= 0) {
         if (this.stone[n]) break
@@ -317,7 +329,14 @@ class Sim {
   }
 
   done(s: State) {
+    if (this.bell >= 0) return s.r !== undefined
     return this.slot >= 0 && this.thingAt(s.t, this.slot) >= 0
+  }
+
+  /** What did it: the thing in the gap, or the thing that rang the bell */
+  doneBy(s: State): ThingKind {
+    const n = this.bell >= 0 ? s.r! : this.thingAt(s.t, this.slot)
+    return this.stone[n] ? "stone" : "boulder"
   }
 }
 
@@ -334,11 +353,17 @@ function startOf(layout: Layout): State {
 /** The search's limit (states): a patch with more is thrown away */
 const LIMIT = 50_000
 
-export type Solution = { moves: string; pushes: number; fills: ThingKind }
+export type Solution = {
+  moves: string
+  pushes: number
+  /** The kind of the thing that fills the gap (or rings the bell) */
+  fills: ThingKind
+}
 
 /**
  * A search for the fewest pushes (a bush flattened counts as a push;
- * walking is free, 0-1 BFS) that put a thing into the gap, up to `most`
+ * walking is free, 0-1 BFS) that put a thing into the gap (or ring the
+ * bell with one, if there is a bell), up to `most`
  * pushes. "none" when it can't be done, "limit" when the search grew
  * past its limit
  */
@@ -353,7 +378,7 @@ export function search(
   } catch {
     return "limit"
   }
-  if (sim.slot < 0) return "none"
+  if (sim.slot < 0 && sim.bell < 0) return "none"
   // a state is where everything lies and the part the player is in
   type Config = { rep: Int16Array; members: Map<number, number[]> }
   const configs = new Map<string, Config>()
@@ -435,9 +460,7 @@ export function search(
               return {
                 moves: movesTo(ks) + walkTo(s, at) + MOVES[d],
                 pushes: level + 1,
-                fills: sim.stone[sim.thingAt(t.t, sim.slot)]
-                  ? "stone"
-                  : "boulder",
+                fills: sim.doneBy(t),
               }
             }
           }
@@ -473,7 +496,7 @@ export function solve(
   return typeof r === "string" ? null : r
 }
 
-/** Plays the moves; true if a thing ends up in the gap */
+/** Plays the moves; true if a thing ends up in the gap (the bell rings) */
 export function check(layout: Layout, moves: string): boolean {
   return trace(layout, moves).at(-1)?.done ?? false
 }

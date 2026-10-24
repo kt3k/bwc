@@ -245,6 +245,15 @@ prop(146, 62, "ring-slot", {
 })
 actor(146, 64, "stone")
 
+// the bell out of reach (model/bell.ts): sink the stone in the pond, then
+// roll the boulder over it into the bell (a knock by hand doesn't ring it)
+sign(168, 57, "BELL: SINK THE STONE, ROLL THE BOULDER IN")
+rect(171, 59, 173, 61, "w")
+grid[60][172] = "0"
+prop(172, 60, "goal-bell", { id: "zoo-bell", reward: [BI + 175, BJ + 63] })
+actor(172, 63, "stone")
+actor(172, 65, "boulder")
+
 // Odradek (model/odradek.ts): in the corner of a small room, off to
 // another corner when you come near; talk to it from beside it
 sign(158, 56, "ODRADEK: IT WON'T BE CAUGHT")

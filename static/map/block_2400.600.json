@@ -149,6 +149,11 @@
       "type": "block-fish"
     },
     {
+      "i": 2401,
+      "j": 713,
+      "type": "boulder"
+    },
+    {
       "i": 2597,
       "j": 621,
       "type": "rabbit"
@@ -174,14 +179,9 @@
       "type": "crow"
     },
     {
-      "i": 2409,
+      "i": 2415,
       "j": 703,
-      "type": "sheep"
-    },
-    {
-      "i": 2410,
-      "j": 704,
-      "type": "sheep"
+      "type": "piggy"
     },
     {
       "i": 2532,
@@ -189,24 +189,19 @@
       "type": "spore"
     },
     {
-      "i": 2409,
+      "i": 2415,
       "j": 716,
-      "type": "snail"
+      "type": "chick"
     },
     {
-      "i": 2401,
-      "j": 729,
-      "type": "rabbit"
+      "i": 2428,
+      "j": 716,
+      "type": "fluff"
     },
     {
       "i": 2540,
       "j": 741,
       "type": "cloud"
-    },
-    {
-      "i": 2402,
-      "j": 742,
-      "type": "chick"
     },
     {
       "i": 2432,
@@ -232,6 +227,11 @@
       "i": 2590,
       "j": 677,
       "type": "snail"
+    },
+    {
+      "i": 2403,
+      "j": 753,
+      "type": "spore"
     },
     {
       "i": 2541,
@@ -1553,6 +1553,18 @@
       }
     },
     {
+      "i": 2401,
+      "j": 710,
+      "type": "goal-bell",
+      "data": {
+        "id": "401.710",
+        "reward": [
+          2401,
+          708
+        ]
+      }
+    },
+    {
       "i": 2596,
       "j": 621,
       "type": "rabbit-hole",
@@ -1586,22 +1598,19 @@
       "type": "packed-box"
     },
     {
-      "i": 2422,
+      "i": 2429,
       "j": 703,
-      "type": "clock"
-    },
-    {
-      "i": 2422,
-      "j": 716,
-      "type": "self-statue"
+      "type": "packed-box"
     },
     {
       "i": 2400,
-      "j": 729,
-      "type": "rabbit-hole",
-      "data": {
-        "id": "400.729"
-      }
+      "j": 727,
+      "type": "balloon-rock"
+    },
+    {
+      "i": 2406,
+      "j": 740,
+      "type": "nest-jar-4"
     },
     {
       "i": 2553,
@@ -1630,11 +1639,6 @@
       "i": 2568,
       "j": 627,
       "type": "balloon-rock"
-    },
-    {
-      "i": 2403,
-      "j": 755,
-      "type": "drawer-tower"
     },
     {
       "i": 2520,
@@ -3267,9 +3271,9 @@
     "666666666666666666666666666666666666666666J66666kffkffffffkfffffffkfwwwwwwwwwwwwwwwwwwwwwwwwwfffffffffffffffkffffff666666666666666666666666666666666666ffffkffffffffffff66666666666666666J66666666666666",
     "6666666666666666J6666666666666666666666666666666fffffffffffffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwfffffffffffffffffffkff6666666666666666666666666666666666fJJfffffffffffffffffk666666666666666666666666666666",
     "66666666666666666666666666666666666666666666666ffffffffkffffkkfffffwwwwwwwwwwwwwwwwwwwwwwwwwwfffffffkfffffffffffkff666666666666666666666666666666666ffJJffffffkfffffffkffkffff66666666666666666666666666",
-    "66666666666666666666666666666666666666666666666ffffffffffffffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwfkffffkffffffkffkkfff66666666666666666666666666666666fffffkfffffkfffffffkfffffffffff6666666666J66666666666",
-    "66666666666666666666666J6666666666666666666666fkfffkffffffffffffffkwwwwwwwwwwwwwwwwwwwwwwwwwwwfkffkfffffkkfkfffffff6666666666666666666666666666666fffffffffffffffffkffffffffffffffffJ6666666J66666666666",
-    "66666666666666666666666J6666666666666666666666fkfffkfffffJJffkkffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwJwwwwfkfffffffffffff6666666666666666666666666666666fffffffffffffkffffffffffffffffffffJ6666666666666666666",
+    "www66666666666666666666666666666666666666666666ffffffffffffffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwfkffffkffffffkffkkfff66666666666666666666666666666666fffffkfffffkfffffffkfffffffffff6666666666J66666666666",
+    "w6w66666666666666666666J6666666666666666666666fkfffkffffffffffffffkwwwwwwwwwwwwwwwwwwwwwwwwwwwfkffkfffffkkfkfffffff6666666666666666666666666666666fffffffffffffffffkffffffffffffffffJ6666666J66666666666",
+    "www66666666666666666666J6666666666666666666666fkfffkfffffJJffkkffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwJwwwwfkfffffffffffff6666666666666666666666666666666fffffffffffffkffffffffffffffffffffJ6666666666666666666",
     "666666666666666666666666666666666666666666666ffffffffffffJJffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwkfffffffffffkf6666666666666666666666666666666ffffffffffkffkffffffffffffkffJJffffff66666666666666666",
     "66666666666666666666666666666666666666666666ffffffffkfffffffffffkkffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfffffkffffffff66666666666666666666J666666666fffffkffkkfkffffffffJJffkffkffJJffffffff666666666666666",
     "6666666666666666666666666666666666666666666fffffffffkfffffffJJffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwfkfffffffffff666666666666666666666666666666ffffffffffffffffffffJJffffffffffffffffffff666666JJ66666",

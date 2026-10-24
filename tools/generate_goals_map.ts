@@ -1,7 +1,8 @@
 // Generates the GOALS debug map (block_10400.-10000, laid out by
 // tools/goals_map.ts): a ring for every signature tools/rings.ts makes,
-// an odd one for every family, Odradek's room and a reset that undoes
-// the goals of this map only. It is linked from the start island by a
+// a bell for every signature tools/bells.ts makes, an odd one for every
+// family, Odradek's room and a reset that undoes the goals of this map
+// only. It is linked from the start island by a
 // "GOALS" portal room, to the left of the DEBUG room.
 //
 // The rings are real: drawn and solved by tools/rings.ts. First the very
@@ -10,9 +11,11 @@
 // ring the WILDS place first; then more drafts with a seed of their own
 // (--drafts, 3000 by default; it takes some minutes) for the signatures
 // the WILDS don't have. The bays go by the number of rules, then by the
-// rules. Deterministic: the same rings every run.
+// rules. Deterministic: the same rings every run. The bells the same way
+// (--bell-drafts, 1500 by default).
 //
 // Usage: deno -A tools/generate_goals_map.ts [--drafts 3000]
+//   [--bell-drafts 1500]
 import { parseArgs } from "@std/cli/parse-args"
 import { loadCatalog } from "../model/catalog.ts"
 import { ODD_FAMILIES } from "../model/odd-families.ts"
@@ -20,18 +23,21 @@ import { validate } from "../util/json-schema.ts"
 import { seed } from "../util/random.ts"
 import { accept, AIMS, draft, type Ring, RULES, sigName } from "./rings.ts"
 import { arrange } from "./odd_ones.ts"
+import { acceptBell, type Bell, BELL_AIMS, draftBell } from "./bells.ts"
 import {
   ARRIVAL,
   BI,
   BJ,
   type BlockJson,
   buildGoalsMap,
+  type GoalBell,
   type GoalRing,
   type Spawn,
 } from "./goals_map.ts"
 
-const args = parseArgs(Deno.args, { string: ["drafts"] })
+const args = parseArgs(Deno.args, { string: ["drafts", "bell-drafts"] })
 const EXTRA_DRAFTS = Number(args.drafts ?? 3000)
+const EXTRA_BELL_DRAFTS = Number(args["bell-drafts"] ?? 1500)
 
 const catalog = await loadCatalog(
   new URL("../static/catalog/base.json", import.meta.url).href,
@@ -78,16 +84,56 @@ const add = (ring: Ring, inWilds: boolean) => {
 }
 const rank = (sig: string) =>
   sig.split("+").map((r) => RULES.indexOf(r as typeof RULES[number]))
-const rings = [...bySig.entries()]
-  .sort(([a], [b]) => {
-    const ra = rank(a), rb = rank(b)
-    if (ra.length !== rb.length) return ra.length - rb.length
-    for (let k = 0; k < ra.length; k++) {
-      if (ra[k] !== rb[k]) return ra[k] - rb[k]
+/** By the number of rules, then by the rules */
+const bySignature = ([a]: [string, unknown], [b]: [string, unknown]) => {
+  const ra = rank(a), rb = rank(b)
+  if (ra.length !== rb.length) return ra.length - rb.length
+  for (let k = 0; k < ra.length; k++) {
+    if (ra[k] !== rb[k]) return ra[k] - rb[k]
+  }
+  return 0
+}
+const rings = [...bySig.entries()].sort(bySignature).map(([, ring]) => ring)
+
+// ---------------------------------------------------------------------
+// the bells
+
+/** The first bell of each signature, in the order found */
+const bellBySig = new Map<string, GoalBell>()
+const addBell = (bell: Bell, inWilds: boolean) => {
+  const sig = sigName(bell.signature)
+  if (!bellBySig.has(sig)) bellBySig.set(sig, { ...bell, inWilds })
+}
+{
+  // the WILDS' pool: as tools/generate_wilds.ts draws it
+  const plan = JSON.parse(
+    await Deno.readTextFile(new URL("./wilds_plan.json", import.meta.url)),
+  ) as { seed: string; blocks: { w: number; h: number } }
+  const W = plan.blocks.w * 200, H = plan.blocks.h * 200
+  const SCALE = Math.max(1, Math.round((W * H) / (1600 * 1000)))
+  const COUNT = 8 * SCALE
+  const rr = seed(`${plan.seed}/bells`)
+  let drawn = 0
+  for (let n = 0; n < 160 * SCALE && drawn < 4 * COUNT; n++) {
+    const bell = acceptBell(draftBell(rr, BELL_AIMS[n % BELL_AIMS.length]))
+    if (!bell) continue
+    addBell(bell, true)
+    drawn++
+  }
+  console.log(`the WILDS' bells: ${bellBySig.size} signatures`)
+}
+{
+  // more, for the signatures the WILDS don't have
+  const rr = seed("goals/bells")
+  for (let n = 0; n < EXTRA_BELL_DRAFTS; n++) {
+    const bell = acceptBell(draftBell(rr, BELL_AIMS[n % BELL_AIMS.length]))
+    if (bell) addBell(bell, false)
+    if (n % 500 === 499) {
+      console.log(`${n + 1} more bell drafts: ${bellBySig.size} signatures`)
     }
-    return 0
-  })
-  .map(([, ring]) => ring)
+  }
+}
+const bells = [...bellBySig.entries()].sort(bySignature).map(([, b]) => b)
 
 // ---------------------------------------------------------------------
 // the odd ones
@@ -100,7 +146,7 @@ const odds = (() => {
 // ---------------------------------------------------------------------
 // the block, checked
 
-const block = buildGoalsMap(rings, odds)
+const block = buildGoalsMap(rings, bells, odds)
 
 const fail = (...msg: unknown[]) => {
   console.error(...msg)
@@ -135,6 +181,8 @@ await Deno.writeTextFile(
 console.log(
   `generated block_${BI}.${BJ}.json (goals map: ${rings.length} rings: ` +
     rings.map((r) => sigName(r.signature)).join(", ") +
+    `; ${bells.length} bells: ` +
+    bells.map((b) => sigName(b.signature)).join(", ") +
     `; ${odds.length} odd ones)`,
 )
 
@@ -182,7 +230,7 @@ const additions: Spawn[] = [
   {
     ...local(19, 23),
     type: "sign",
-    data: { text: "GOALS MAP: EVERY RING AND ODD ONE, AND A RESET" },
+    data: { text: "GOALS MAP: EVERY RING, BELL AND ODD ONE, AND A RESET" },
   },
   {
     ...local(32, 27),
