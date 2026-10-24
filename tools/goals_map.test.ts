@@ -16,6 +16,7 @@ import {
   readClearBay,
   readGazeBay,
   readPairBay,
+  readPatrolBay,
   readRingBay,
   SIZE,
 } from "./goals_map.ts"
@@ -24,6 +25,7 @@ import { BELL_MAX_PUSHES, BELL_MIN_PUSHES } from "./bells.ts"
 import { PAIR_MAX_PUSHES, PAIR_MIN_PUSHES, wantOf, withWant } from "./pairs.ts"
 import { CLEAR_MAX_PUSHES, CLEAR_MIN_PUSHES } from "./clears.ts"
 import { GAZE_MAX_PUSHES, GAZE_MIN_PUSHES } from "./gazes.ts"
+import { PATROL_MAX_PUSHES, PATROL_MIN_PUSHES } from "./patrols.ts"
 
 const read = async (name: string) =>
   JSON.parse(
@@ -35,6 +37,7 @@ const bells = block.props.filter((p) => p.type === "goal-bell")
 const plinths = block.props.filter((p) => p.type === "pair-plinth")
 const daises = block.props.filter((p) => p.type === "clear-dais")
 const statues = block.props.filter((p) => p.type === "gaze-statue")
+const beacons = block.props.filter((p) => p.type === "patrol-beacon")
 
 Deno.test("goals map: a ring for every signature, each solvable and of its signature", () => {
   // the WILDS have 13 signatures; the map has them and maybe more
@@ -167,6 +170,31 @@ Deno.test("goals map: a statue for every signature, each solvable", () => {
     const signs = block.props.filter((p) =>
       p.type === "sign" &&
       (p.data as { text: string }).text.startsWith(`STATUE ${n + 1}: `)
+    )
+    assertEquals(signs.length, 1)
+  }
+})
+
+Deno.test("goals map: a patrol for every signature, each solvable", () => {
+  assert(beacons.length >= 5, `${beacons.length} patrols`)
+  const ids = new Set<string>()
+  for (let n = 0; n < beacons.length; n++) {
+    const bay = readPatrolBay(block, n)
+    assert(bay, `patrol bay ${n}`)
+    const { id, layout } = bay
+    assert(!ids.has(id), `${id} twice`)
+    ids.add(id)
+    assert(layout.rows.some((r) => r.includes("J")), `${id}: no patrol`)
+    const solved = solve(layout)
+    assert(solved, `${id} can't be solved`)
+    assert(
+      solved.pushes >= PATROL_MIN_PUSHES && solved.pushes <= PATROL_MAX_PUSHES,
+      id,
+    )
+    assertEquals(PREFIX + sigName(signature(layout)!), id)
+    const signs = block.props.filter((p) =>
+      p.type === "sign" &&
+      (p.data as { text: string }).text.startsWith(`PATROL ${n + 1}: `)
     )
     assertEquals(signs.length, 1)
   }

@@ -41,16 +41,17 @@ out of reach (tools/bells.ts, the same way), a bay for every signature and kind
 of the pair (tools/pairs.ts, in a column to the east), a bay for every signature
 and kind of the dais to clear (tools/clears.ts, under the pairs), a bay for
 every signature of the statue's gaze (tools/gazes.ts, under the daises), a bay
-for every family of the odd one out, and a room where Odradek can be watched.
-Goals done there count and give letters like the WILDS' ones (so the Odradeks
-turn up, the first in the hall of waystones). The RESET in the map undoes the
-goals of this map only (their ids start with `goals-`), takes back their letters
-and reloads the map; the WILDS' goals are kept. It is linked by the "GOALS"
-portal room, past the DEBUG room along its bottom row. Regenerate it with
-`deno task generate-goals` (a few minutes: it draws and solves thousands of
-rings, bells, pairs, daises and statues; `--drafts N`, `--bell-drafts N`,
-`--pair-drafts N`, `--clear-drafts N` and `--gaze-drafts N` draw fewer extra
-ones).
+for every signature of the patrol's way (tools/patrols.ts, in a third column), a
+bay for every family of the odd one out, and a room where Odradek can be
+watched. Goals done there count and give letters like the WILDS' ones (so the
+Odradeks turn up, the first in the hall of waystones). The RESET in the map
+undoes the goals of this map only (their ids start with `goals-`), takes back
+their letters and reloads the map; the WILDS' goals are kept. It is linked by
+the "GOALS" portal room, past the DEBUG room along its bottom row. Regenerate it
+with `deno task generate-goals` (a few minutes: it draws and solves thousands of
+rings, bells, pairs, daises, statues and patrols' ways; `--drafts N`,
+`--bell-drafts N`, `--pair-drafts N`, `--clear-drafts N`, `--gaze-drafts N` and
+`--patrol-drafts N` draw fewer extra ones).
 
 # vscode extensions
 

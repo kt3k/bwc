@@ -68,6 +68,14 @@ import {
 } from "./rings.ts"
 import { arrange } from "./odd_ones.ts"
 import {
+  acceptPatrol,
+  draftPatrol,
+  type Patrol,
+  PATROL_AIMS,
+  PATROL_H,
+  PATROL_W,
+} from "./patrols.ts"
+import {
   acceptGaze,
   draftGaze,
   type Gaze,
@@ -138,7 +146,14 @@ import {
   CAVERN_W,
 } from "./generate_cavern.ts"
 
-type Spawn = { i: number; j: number; type: string; data?: unknown }
+type Spawn = {
+  i: number
+  j: number
+  type: string
+  data?: unknown
+  /** Which way an actor faces at first */
+  dir?: string
+}
 type Anchor = { x: number; y: number; name: string }
 type Plan = {
   seed: string
@@ -4904,6 +4919,127 @@ for (let round = 0; round < 50; round++) {
   }
   console.log(
     `statues' gazes: ${placed.length} placed (${drawn} drawn and ` +
+      "solved): " +
+      [...count].sort((a, b) => b[1] - a[1]).map(([s, k]) => `${s} ${k}`)
+        .join(", "),
+  )
+}
+// the patrols' ways (tools/patrols.ts, model/beacon.ts; ideas/
+// goal-types.md, 巡回の道を変える): out on the open land, a patrol walking
+// to and fro on a straight lane cut short by water (and bushes), and
+// further along the line a beacon only it can light. Drawn and solved
+// first, then placed as the rings are: the least placed signature first,
+// never one that a lane within 12 cells has already, the patch left
+// alone by what comes after. After the statues, so that everything
+// before stays where it was. Their own random numbers, so the rest of
+// the island stays as it was
+{
+  const rr = seed(`${plan.seed}/patrols`)
+  const COUNT = 8 * SCALE
+  /** Lanes drawn and solved, by signature */
+  const pool = new Map<string, Patrol[]>()
+  let drawn = 0
+  for (let n = 0; n < 160 * SCALE && drawn < 4 * COUNT; n++) {
+    const patrol = acceptPatrol(
+      draftPatrol(rr, PATROL_AIMS[n % PATROL_AIMS.length]),
+    )
+    if (!patrol) continue
+    const sig = sigName(patrol.signature)
+    if (!pool.has(sig)) pool.set(sig, [])
+    pool.get(sig)!.push(patrol)
+    drawn++
+  }
+  // the land walked to from the arrival
+  const reached = new Uint8Array(W * H)
+  {
+    const q = [idx(arrival.x, arrival.y)]
+    reached[q[0]] = 1
+    for (let k = 0; k < q.length; k++) {
+      const x = q[k] % W, y = (q[k] / W) | 0
+      for (const [dx, dy] of D4) {
+        const np = idx(x + dx, y + dy)
+        if (inside(x + dx, y + dy) && !reached[np] && walkable(np)) {
+          reached[np] = 1
+          q.push(np)
+        }
+      }
+    }
+  }
+  const inCove = (x: number, y: number) =>
+    x >= COVE_X0 - 4 && x < COVE_X0 + COVE_W + 4 && y >= COVE_Y0 - 4 &&
+    y < COVE_Y0 + COVE_H + 4
+  /** Open land under the whole patch: walked to, wild, nothing on it */
+  const fitsAt = (x0: number, y0: number) => {
+    for (let y = y0 - 1; y <= y0 + PATROL_H; y++) {
+      for (let x = x0 - 1; x <= x0 + PATROL_W; x++) {
+        if (!inside(x, y)) return false
+        const p = idx(x, y)
+        if (taken.has(p) || puzzleCells[p]) return false
+        const rim = x < x0 || y < y0 || x >= x0 + PATROL_W || y >= y0 + PATROL_H
+        if (rim) continue
+        if (!reached[p] || keepClear[p] || !isWild(terrain[p] as T)) {
+          return false
+        }
+        if (inCity(x, y) || inMassif(x, y) || inCove(x, y)) return false
+      }
+    }
+    return true
+  }
+  const placed: { x: number; y: number; sig: string }[] = []
+  const count = new Map<string, number>()
+  for (let n = 0; n < 4000 * SCALE && placed.length < COUNT; n++) {
+    const x0 = 2 + rr.randomInt(W - PATROL_W - 4)
+    const y0 = 2 + rr.randomInt(H - PATROL_H - 4)
+    const cx = x0 + (PATROL_W >> 1), cy = y0 + (PATROL_H >> 1)
+    if (placed.some((b) => Math.hypot(b.x - cx, b.y - cy) < 60)) continue
+    if (nodes.some((o) => Math.hypot(o.x - cx, o.y - cy) < 45)) continue
+    if (!fitsAt(x0, y0)) continue
+    // the least placed signature, none the same within 12 cells
+    const near = new Set(
+      placed.filter((b) => Math.hypot(b.x - cx, b.y - cy) <= 12).map((b) =>
+        b.sig
+      ),
+    )
+    const sig = [...pool.keys()]
+      .filter((s) => pool.get(s)!.length > 0 && !near.has(s))
+      .sort((a, b) => (count.get(a) ?? 0) - (count.get(b) ?? 0))[0]
+    if (!sig) break
+    const patrol = pool.get(sig)!.shift()!
+    const at = patrol.rows.join("").indexOf("L")
+    const id = `${x0 + at % PATROL_W}.${y0 + Math.floor(at / PATROL_W)}`
+    patrol.rows.forEach((row, dy) =>
+      [...row].forEach((c, dx) => {
+        const x = x0 + dx, y = y0 + dy
+        const p = idx(x, y)
+        puzzleCells[p] = 1
+        keepClear[p] = 1
+        if (c === "#") {
+          terrain[p] = terrain[p] === T.HILL ? T.ROCK : T.TREE
+        } else if (c === "w") terrain[p] = T.LAKE
+        else if (c === "i") terrain[p] = T.ICE
+        else if (c === "k") terrain[p] = T.BUSH
+        else if (c === "L") {
+          put(props, x, y, "patrol-beacon", {
+            id,
+            reward: [
+              OI + x0 + patrol.reward[0],
+              OJ + y0 + patrol.reward[1],
+            ],
+          })
+          blockingProp.add(p)
+        } else if (c === "J") {
+          if (put(actors, x, y, "patrol")) {
+            actors[actors.length - 1].dir = patrol.dir
+          }
+        }
+      })
+    )
+    for (const t of patrol.things) put(actors, x0 + t.x, y0 + t.y, t.kind)
+    placed.push({ x: cx, y: cy, sig })
+    count.set(sig, (count.get(sig) ?? 0) + 1)
+  }
+  console.log(
+    `patrols' ways: ${placed.length} placed (${drawn} drawn and ` +
       "solved): " +
       [...count].sort((a, b) => b[1] - a[1]).map(([s, k]) => `${s} ${k}`)
         .join(", "),

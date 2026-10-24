@@ -49,6 +49,27 @@
       "i": 4527,
       "j": 1542,
       "type": "chaser"
+    },
+    {
+      "i": 4479,
+      "j": 1508,
+      "type": "patrol",
+      "dir": "up"
+    },
+    {
+      "i": 4476,
+      "j": 1504,
+      "type": "stone"
+    },
+    {
+      "i": 4476,
+      "j": 1503,
+      "type": "boulder"
+    },
+    {
+      "i": 4469,
+      "j": 1503,
+      "type": "stone"
     }
   ],
   "items": [
@@ -802,6 +823,18 @@
       }
     },
     {
+      "i": 4479,
+      "j": 1502,
+      "type": "patrol-beacon",
+      "data": {
+        "id": "2479.1502",
+        "reward": [
+          4477,
+          1502
+        ]
+      }
+    },
+    {
       "i": 4570,
       "j": 1589,
       "type": "nest-jar-4"
@@ -912,13 +945,13 @@
     "wwwwwwwwwwwwwwwwwwwwwwwyyyyyyyyffkkfffffwwwww3333wwffffffyyyyyyyyyyyyyyyyyyyyyyyyyyyywwwwwwwwyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "wwwwwwwwwwwwwwwwwwwwwwwwyyyyyyfffffffffwwwwwww333333fffyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyyyyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "wwwwwwwwwwwwwwwwwwwwwwwwyyyyyyffffffffwwwwwwwww33333fyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyffywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyyyyyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "wwwwwwwwwwwwwwwwwwwwwwwwwyyyyyfffffffwwwwwwwwwwwww33yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyfffkffkyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyyfffffyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "wwwwwwwwwwwwwwwwwwwwwwwwwyyyyyfffffkwwwwwwwwwwwwwf33yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyffffffffkfyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyfJJfffffyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "wwwwwwwwwwwwwwwwwwwwwwwwwyyyyyykffwwwwwwwwwwwwwwwf33yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyffffffffffffffyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyffJJfkfffffyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "wwwwwwwwwwwwwwwwwwwwwwwwwwyyyyyywwwwwwwwwwwwwwwwwy33yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyfffffffffffffffffyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyykffffffffffffyyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "wwwwwwwwwwwwwwwwwwwwwwwwwwyyyyywwwwwwwwwwwwwwwwwwy33yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyffffffffkkfJJfffffkyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyfkfffJJffffkfffJJyyyyyywwwwwwwwwwwwwwwwwwwwwwwwww",
-    "wwwwwwwwwwwwwwwwwwwwwwwwwwyyyywwwwwwwwwwwwwwwwwwyy33yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyffffffffffffJJfffffkfyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyffffffJJffffkfffJJyyyyyyywwwwwwwwwwwwwwwwwwwwwwwww",
-    "wwwwwwwwwwwwwwwwwwwwwwwwwwyyyywwwwwwwwwwwwwwwwwwyy33333yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyfffffkkfffffffffffffffffJJywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyyfffffkkfffkfffffwwwwwwwwyyywwwwwwwwwwwwwwwwwwwwwwwww",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwyyyyyfffffffwwwwwwwwwwwww33yyyyyyyyyyyyyyyyyyyyyyyyyyywyyyyyyyyyyyyyyyyyyfffkffkyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyyfffffyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwyyyyyfffffkwwwwwwwwwwwwwf33yyyyyyyyyyyyyyyyyyyyyyyyyywyyyyyyyyyyyyyyyyyffffffffkfyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyfJJfffffyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwyyyyyykffwwwwwwwwwwwwwwwf33yyyyyyyyyyyyyyyyyyyyyJyyyyJyyyyyyyyyyyyyyffffffffffffffyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyffJJfkfffffyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwyyyyyywwwwwwwwwwwwwwwwwy33yyyyyyyyyyyyyyyyyyyyyyyyJyyyyyyyyyyyyyyfffffffffffffffffyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyykffffffffffffyyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwyyyyywwwwwwwwwwwwwwwwwwy33yyyyyyyyyyyyyyyyyyyyyyyyyyJyyyyyyyyyyffffffffkkfJJfffffkyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyfkfffJJffffkfffJJyyyyyywwwwwwwwwwwwwwwwwwwwwwwwww",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwyyyywwwwwwwwwwwwwwwwwwyy33yyyyyyyyyyyyyyyyyyyyyyyyyyJJyyyyyyyyffffffffffffJJfffffkfyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyffffffJJffffkfffJJyyyyyyywwwwwwwwwwwwwwwwwwwwwwwww",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwyyyywwwwwwwwwwwwwwwwwwyy33333yyyyyyyyyyyyyyJyyyyyyyyyyyyyyyfffffkkfffffffffffffffffJJywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyyfffffkkfffkfffffwwwwwwwwyyywwwwwwwwwwwwwwwwwwwwwwwww",
     "wwwwwwwwwwwwwwwwwwwwwwwwwwyyyywwwwwwwwwwwwwwwwwyff3333333yyyyyyyyyyyyyyyyyyyyyyfffffffffffffffffffffffJJfffffJJywwwwwwwwwwwwwwwwwwwwwwwwwwwwwyyyyyJJffffffffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "wwwwwwwwwwwwwwwwwwwwwwwwwwyyyywwwwwwwwwwwwwwwwwfkffff33333yyyyywwwwwyyyyyyyyyffffffffffffffffffffkffffJJfffffffyywwwwwwwwwwwwwwwwwwwwwwyyyyyyyyyyfJJfffffffffffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "wwwwwwwwwwwwwwwwwwwwwwwwwwyyyywwwwwwwwwwwwwwwwwffffffff3333yyyywwwwwwyyyyyyyfffJJffffkkfffkffffffkffffffffkffffyyywwwwwwwwwwwwwwwwwwwyyyyyyyyyyfffffkkfffffkkffffwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",

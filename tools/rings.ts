@@ -40,6 +40,9 @@
 //   E  a statue (tools/gazes.ts), looking straight at the sun-stone T in
 //      its row or column; done when nothing stands in the line between
 //      (a tree, a rock, an upright bush, a thing: water doesn't)
+//   J  a patrol (tools/patrols.ts), walking to and fro on the line to the
+//      beacon L in its row or column; done when it can walk up to the
+//      beacon: nothing in the way (water too, until filled)
 //
 // The simulator follows the game's rules (model/actor.ts: the boulder's
 // roll, the stone's shove, the ice, the player flattening a bush) and
@@ -149,8 +152,13 @@ class Sim {
   readonly bell: number
   /** The dais' cell (-1: none) */
   readonly dais: number
-  /** The cells the statue looks across, to its sun-stone (null: none) */
+  /**
+   * The cells the statue looks across, to its sun-stone, or the patrol
+   * walks along, to its beacon (null: neither)
+   */
   readonly sight: number[] | null
+  /** true if the line is a patrol's: water blocks it till filled */
+  readonly walkLine: boolean
   readonly rules: Rules
   constructor(layout: Layout, rules: Rules) {
     const w = layout.rows[0].length, h = layout.rows.length
@@ -160,7 +168,7 @@ class Sim {
     let waters = 0, bushes = 0
     for (let p = 0; p < w * h; p++) {
       const c = cells[p]
-      if ("#oOAYZET".includes(c)) {
+      if ("#oOAYZETL".includes(c)) {
         this.kind[p] = SOLID
       } else if (c === "w") {
         this.kind[p] = WATER
@@ -189,7 +197,9 @@ class Sim {
       : null
     this.bell = cells.indexOf("A")
     this.dais = cells.indexOf("D")
-    const eye = cells.indexOf("E"), sun = cells.indexOf("T")
+    this.walkLine = cells.includes("J")
+    const eye = cells.indexOf(this.walkLine ? "J" : "E")
+    const sun = cells.indexOf(this.walkLine ? "L" : "T")
     this.sight = null
     if (eye >= 0 && sun >= 0) {
       const ex = eye % w, ey = Math.floor(eye / w)
@@ -373,7 +383,8 @@ class Sim {
     if (this.dais >= 0) return this.thingAt(s.t, this.dais) < 0
     if (this.sight) {
       return this.sight.every((p) =>
-        !this.bush(s, p) && this.thingAt(s.t, p) < 0
+        !this.bush(s, p) && this.thingAt(s.t, p) < 0 &&
+        !(this.walkLine && this.water(s, p))
       )
     }
     if (this.slot < 0) return false

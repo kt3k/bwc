@@ -1,8 +1,9 @@
 // The GOALS debug map (block_10400.-10000), laid out: a bay for every
 // signature of the missing ring (tools/rings.ts), of the bell out of
 // reach (tools/bells.ts), of the pair (tools/pairs.ts), of the dais to
-// clear (tools/clears.ts), of the statue's gaze (tools/gazes.ts) and for
-// every family of the odd one out
+// clear (tools/clears.ts), of the statue's gaze (tools/gazes.ts), of
+// the patrol's way (tools/patrols.ts) and for every family of the odd one
+// out
 // (tools/odd_ones.ts), a room to watch Odradek in, and a reset that
 // undoes the goals of this map only (model/goal-reset.ts).
 // tools/generate_goals_map.ts draws the rings and bells and writes the block; this
@@ -26,13 +27,15 @@
 //   signature and what sits on it
 // - STATUES: bays as the rings', under the daises, a statue for every
 //   signature
+// - PATROLS: bays as the rings', in a third column (from PATROLS_X,
+//   PATROL_COLS to a row), a patrol's lane for every signature
 // - ODD ONES: bays of 13x13, ODD_COLS to a row, the arrangement in the
 //   middle, the way in and the signs as for the rings
 // - ODRADEK: a room with corners, beside the odd ones
 //
 // The goal ids all start with PREFIX ("goals-<signature>" for a ring and
-// for a bell and a statue, "goals-<signature>-<kind>" for a pair and a
-// dais,
+// for a bell, a statue and a patrol's beacon, "goals-<signature>-<kind>"
+// for a pair and a dais,
 // "goals-<family>"),
 // which is how the reset tells this map's goals from
 // the WILDS' (whose ids are their cells, "<x>.<y>").
@@ -49,6 +52,7 @@ import type { Bell } from "./bells.ts"
 import type { Pair } from "./pairs.ts"
 import type { Clear } from "./clears.ts"
 import type { Gaze } from "./gazes.ts"
+import type { Patrol } from "./patrols.ts"
 import { alikeType, unlikeType } from "../model/odd-families.ts"
 
 export const SIZE = 200
@@ -73,6 +77,8 @@ export const pairId = (sig: string, want: string) => `${PREFIX}${sig}-${want}`
 export const clearId = (sig: string, sits: string) => `${PREFIX}${sig}-${sits}`
 /** The statue id of a signature, e.g. "goals-push+sink" */
 export const gazeId = (sig: string) => `${PREFIX}${sig}`
+/** The beacon id of a signature, e.g. "goals-push+sink" */
+export const beaconId = (sig: string) => `${PREFIX}${sig}`
 /** The odd one's id of a family, e.g. "goals-tulip" */
 export const oddId = (family: string) => `${PREFIX}${family}`
 
@@ -146,6 +152,18 @@ export function gazeBay(
   }
 }
 
+/** The left of the patrols' column, east of the pairs' */
+export const PATROLS_X = PAIRS_X + RING_COLS * RING_PITCH_X + 4
+export const PATROL_COLS = 3
+
+/** The top left wall cell of the n-th patrol bay (as a ring bay) */
+export function patrolBay(n: number): { x: number; y: number } {
+  return {
+    x: PATROLS_X + (n % PATROL_COLS) * RING_PITCH_X,
+    y: RINGS_Y + 2 + Math.floor(n / PATROL_COLS) * RING_PITCH_Y,
+  }
+}
+
 /** The top of the odd ones' section, after the ring and bell bays */
 export const oddsY = (rings: number, bells: number) =>
   bellsY(rings) + 2 + Math.ceil(bells / RING_COLS) * RING_PITCH_Y + 1
@@ -183,8 +201,17 @@ export type GoalPair = Pair & { inWilds: boolean }
 export type GoalClear = Clear & { inWilds: boolean }
 /** A statue of the map: a statue and whether the WILDS have its signature */
 export type GoalGaze = Gaze & { inWilds: boolean }
+/** A patrol's lane of the map, and whether the WILDS have its signature */
+export type GoalPatrol = Patrol & { inWilds: boolean }
 
-export type Spawn = { i: number; j: number; type: string; data?: unknown }
+export type Spawn = {
+  i: number
+  j: number
+  type: string
+  data?: unknown
+  /** Which way an actor faces at first */
+  dir?: string
+}
 export type BlockJson = {
   i: number
   j: number
@@ -214,6 +241,8 @@ const PATCH_CELL: Record<string, string> = {
   D: "6",
   E: "6",
   T: "6",
+  J: "6",
+  L: "6",
 }
 const FLOOR = "0"
 const WALL = "1"
@@ -233,8 +262,8 @@ function oddPlace(a: Arrangement): string {
 }
 
 /**
- * Lays out the map: the rings, bells, pairs, daises and statues (in bay
- * order) and the odd ones
+ * Lays out the map: the rings, bells, pairs, daises, statues and patrols
+ * (in bay order) and the odd ones
  */
 export function buildGoalsMap(
   rings: readonly GoalRing[],
@@ -242,6 +271,7 @@ export function buildGoalsMap(
   pairs: readonly GoalPair[],
   clears: readonly GoalClear[],
   gazes: readonly GoalGaze[],
+  patrols: readonly GoalPatrol[],
   odds: readonly Arrangement[],
 ): BlockJson {
   const grid: string[][] = Array.from(
@@ -287,13 +317,15 @@ export function buildGoalsMap(
   const oddRows = Math.ceil(odds.length / ODD_COLS)
   /** The west part: the rings, bells and odd ones */
   const west = 3 + RING_COLS * RING_PITCH_X + 3
-  const width = PAIRS_X + RING_COLS * RING_PITCH_X + 3
+  const width = PATROLS_X + PATROL_COLS * RING_PITCH_X + 3
+  if (width >= SIZE - 1) throw new RangeError(`${width} columns: too wide`)
   const ODDS_Y = oddsY(rings.length, bells.length)
   const BELLS_Y = bellsY(rings.length)
   const height = Math.max(
     ODDS_Y + 2 + Math.max(oddRows, 2) * ODD_PITCH_Y,
     gazesY(pairs.length, clears.length) + 2 +
       Math.ceil(gazes.length / RING_COLS) * RING_PITCH_Y,
+    patrolBay(patrols.length - 1).y + RING_PITCH_Y,
   )
   if (height >= SIZE - 1) throw new RangeError(`${height} rows: too many bays`)
   rect(1, 1, width, height, FLOOR)
@@ -320,7 +352,8 @@ export function buildGoalsMap(
       `EVERY SIGNATURE (${bells.length}), A PAIR FOR EVERY SIGNATURE AND ` +
       `KIND (${pairs.length}, EAST), A DAIS TO CLEAR FOR EVERY SIGNATURE ` +
       `(${clears.length}, EAST), A STATUE FOR EVERY SIGNATURE ` +
-      `(${gazes.length}, EAST) AND AN ODD ONE FOR EVERY FAMILY ` +
+      `(${gazes.length}, EAST), A PATROL FOR EVERY SIGNATURE ` +
+      `(${patrols.length}, FAR EAST) AND AN ODD ONE FOR EVERY FAMILY ` +
       `(${odds.length}). GOALS DONE HERE COUNT, GIVE ` +
       "LETTERS AND LAST IN THE SAVE AS IN THE WILDS. THE RESET UNDOES THEM",
   )
@@ -571,6 +604,54 @@ export function buildGoalsMap(
     )
   })
 
+  // the patrols
+  letters(PATROLS_X - 1, RINGS_Y, "WATCH")
+  sign(
+    PATROLS_X + 5,
+    RINGS_Y,
+    "PATROLS: THE PATROL TURNS BACK AT WHAT IT BUMPS INTO. OPEN ITS WAY " +
+      "TO THE BEACON: ONLY THE PATROL CAN LIGHT IT",
+  )
+  patrols.forEach((patrol, n) => {
+    const { x, y } = patrolBay(n)
+    const px = x + 1, py = y + 1
+    const sig = sigName(patrol.signature)
+    const id = beaconId(sig)
+    const wx = px + patrol.start[0]
+    bay(x, y, x + RING_W + 1, y + RING_H + 1, wx)
+    patrol.rows.forEach((row, dy) =>
+      [...row].forEach((c, dx) => {
+        grid[py + dy][px + dx] = PATCH_CELL[c]
+        if (c === "L") {
+          prop(px + dx, py + dy, "patrol-beacon", {
+            id,
+            reward: [BI + px + patrol.reward[0], BJ + py + patrol.reward[1]],
+          })
+        } else if (c === "J") {
+          actors.push({
+            i: BI + px + dx,
+            j: BJ + py + dy,
+            type: "patrol",
+            dir: patrol.dir,
+          })
+        }
+      })
+    )
+    for (const t of patrol.things) actor(px + t.x, py + t.y, t.kind)
+    const bottom = y + RING_H + 1
+    wallSign(
+      wx - 2,
+      bottom,
+      `PATROL ${n + 1}: ${sig.toUpperCase()}. ${patrol.pushes} PUSHES` +
+        (patrol.inWilds ? "" : ". NOT IN THE WILDS (DRAWN HERE)"),
+    )
+    wallSign(
+      wx + 2,
+      bottom,
+      `SOLUTION, FROM THE CELL INSIDE THE WAY IN: ${patrol.solution}`,
+    )
+  })
+
   // the odd ones
   letters(2, ODDS_Y, "ODD")
   sign(
@@ -676,6 +757,17 @@ export function readRingBay(
 }
 
 /**
+ * Reads the n-th patrol bay of the block back into a patch, as
+ * readRingBay does. Also the beacon's id
+ */
+export function readPatrolBay(
+  block: BlockJson,
+  n: number,
+): { id: string; layout: Layout } | null {
+  return readBay(block, patrolBay(n))
+}
+
+/**
  * Reads the n-th statue bay of the block back into a patch, as
  * readRingBay does. Also the statue's id
  */
@@ -773,6 +865,10 @@ function readBay(
         id = (p.data as { id: string }).id
         row += "E"
       } else if (p?.type === "gaze-sun") row += "T"
+      else if (p?.type === "patrol-beacon") {
+        id = (p.data as { id: string }).id
+        row += "L"
+      } else if (a?.type === "patrol") row += "J"
       else if (p?.type === "pair-plinth") {
         id = (p.data as { id: string }).id
         row += "P"

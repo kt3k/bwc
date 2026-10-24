@@ -113,6 +113,7 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "clear-dais": { id: "debug-dais" },
   "gaze-statue": { id: "debug-gaze", dir: "down", to: [BI, BJ] },
   "gaze-sun": { id: "debug-gaze" },
+  "patrol-beacon": { id: "debug-beacon" },
   // undoes the goals above (their ids start with "debug")
   "goal-reset": {
     prefix: "debug",

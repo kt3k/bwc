@@ -296,6 +296,23 @@ prop(156, 85, "gaze-statue", {
 prop(163, 85, "gaze-sun", { id: "zoo-gaze" })
 actor(159, 85, "stone")
 
+// the patrol's way (model/beacon.ts): the patrol turns back at the
+// water; sink the stone in it through the gap below, and the patrol
+// walks on to the beacon and lights it
+sign(138, 87, "PATROL: OPEN ITS WAY TO THE BEACON")
+grid[90][140] = "1"
+for (let x = 141; x <= 148; x++) {
+  grid[89][x] = "1"
+  if (x !== 145) grid[91][x] = "1"
+}
+grid[90][145] = "w"
+prop(149, 90, "patrol-beacon", {
+  id: "zoo-beacon",
+  reward: [BI + 151, BJ + 93],
+})
+actor(141, 90, "patrol", "right")
+actor(145, 93, "stone")
+
 // Odradek (model/odradek.ts): in the corner of a small room, off to
 // another corner when you come near; talk to it from beside it
 sign(158, 56, "ODRADEK: IT WON'T BE CAUGHT")

@@ -60,6 +60,7 @@ import { BellPushed, stepBell } from "./bell.ts"
 import { stepPairPlinth, stepPairTwin } from "./pair.ts"
 import { stepClearDais } from "./clear.ts"
 import { stepGazeStatue, stepGazeSun } from "./gaze.ts"
+import { BeaconPushed, stepBeacon } from "./beacon.ts"
 import { OdradekDelegate } from "./odradek.ts"
 import { stepUnlike, UnlikePushed } from "./odd-one.ts"
 import { ODD_FAMILIES, unlikeType } from "./odd-families.ts"
@@ -924,6 +925,7 @@ export const ODD_PROP_PUSHED: Record<string, () => PushedDelegate> = {
   beehive: () => new BeehivePushed(),
   unlike: () => new UnlikePushed(),
   "goal-bell": () => new BellPushed(),
+  "patrol-beacon": () => new BeaconPushed(),
 }
 
 /** Per-frame behaviors of the oddity props, by type */
@@ -949,6 +951,7 @@ export const ODD_PROP_STEP: Record<
   "clear-dais": stepClearDais,
   "gaze-statue": stepGazeStatue,
   "gaze-sun": stepGazeSun,
+  "patrol-beacon": stepBeacon,
   ...Object.fromEntries(ODD_FAMILIES.map((f) => [unlikeType(f), stepUnlike])),
 }
 
