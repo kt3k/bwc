@@ -37,6 +37,9 @@
 //   Y  the twin plinth, holding a stone   Z  holding a boulder
 //   D  a dais (tools/clears.ts): a thing sits on it at the start; done
 //      when nothing is on it any more
+//   E  a statue (tools/gazes.ts), looking straight at the sun-stone T in
+//      its row or column; done when nothing stands in the line between
+//      (a tree, a rock, an upright bush, a thing: water doesn't)
 //
 // The simulator follows the game's rules (model/actor.ts: the boulder's
 // roll, the stone's shove, the ice, the player flattening a bush) and
@@ -146,6 +149,8 @@ class Sim {
   readonly bell: number
   /** The dais' cell (-1: none) */
   readonly dais: number
+  /** The cells the statue looks across, to its sun-stone (null: none) */
+  readonly sight: number[] | null
   readonly rules: Rules
   constructor(layout: Layout, rules: Rules) {
     const w = layout.rows[0].length, h = layout.rows.length
@@ -155,7 +160,7 @@ class Sim {
     let waters = 0, bushes = 0
     for (let p = 0; p < w * h; p++) {
       const c = cells[p]
-      if ("#oOAYZ".includes(c)) {
+      if ("#oOAYZET".includes(c)) {
         this.kind[p] = SOLID
       } else if (c === "w") {
         this.kind[p] = WATER
@@ -184,6 +189,26 @@ class Sim {
       : null
     this.bell = cells.indexOf("A")
     this.dais = cells.indexOf("D")
+    const eye = cells.indexOf("E"), sun = cells.indexOf("T")
+    this.sight = null
+    if (eye >= 0 && sun >= 0) {
+      const ex = eye % w, ey = Math.floor(eye / w)
+      const tx = sun % w, ty = Math.floor(sun / w)
+      if (ex === tx || ey === ty) {
+        const dx = Math.sign(tx - ex), dy = Math.sign(ty - ey)
+        this.sight = []
+        for (let x = ex + dx, y = ey + dy; x !== tx || y !== ty;) {
+          // (a rock or a tree blocks it for good: no line)
+          if (cells[y * w + x] === "#") {
+            this.sight = null
+            break
+          }
+          this.sight.push(y * w + x)
+          x += dx
+          y += dy
+        }
+      }
+    }
     this.rules = rules
   }
 
@@ -346,6 +371,11 @@ class Sim {
   done(s: State) {
     if (this.bell >= 0) return s.r !== undefined
     if (this.dais >= 0) return this.thingAt(s.t, this.dais) < 0
+    if (this.sight) {
+      return this.sight.every((p) =>
+        !this.bush(s, p) && this.thingAt(s.t, p) < 0
+      )
+    }
     if (this.slot < 0) return false
     const n = this.thingAt(s.t, this.slot)
     return n >= 0 && (!this.want || this.stone[n] === (this.want === "stone"))
@@ -354,7 +384,9 @@ class Sim {
   /** What did it: the thing in the gap, or the thing that rang the bell */
   doneBy(s: State): ThingKind {
     // (the dais: what sat on it)
-    if (this.dais >= 0) return this.stone[0] ? "stone" : "boulder"
+    if (this.dais >= 0 || this.sight) {
+      return this.stone[0] ? "stone" : "boulder"
+    }
     const n = this.bell >= 0 ? s.r! : this.thingAt(s.t, this.slot)
     return this.stone[n] ? "stone" : "boulder"
   }
@@ -398,7 +430,9 @@ export function search(
   } catch {
     return "limit"
   }
-  if (sim.slot < 0 && sim.bell < 0 && sim.dais < 0) return "none"
+  if (sim.slot < 0 && sim.bell < 0 && sim.dais < 0 && !sim.sight) {
+    return "none"
+  }
   // a state is where everything lies and the part the player is in
   type Config = { rep: Int16Array; members: Map<number, number[]> }
   const configs = new Map<string, Config>()

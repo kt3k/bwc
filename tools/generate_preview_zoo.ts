@@ -276,6 +276,26 @@ grid[78][172] = "k"
 prop(172, 77, "clear-dais", { id: "zoo-dais", reward: [BI + 175, BJ + 75] })
 actor(172, 77, "stone")
 
+// the statue's gaze (model/gaze.ts): the statue looks right at the
+// sun-stone along a walled line; push the stone out through the gap,
+// then flatten the bush
+sign(152, 82, "STATUE: CLEAR ITS LINE TO THE SUN-STONE")
+for (let x = 157; x <= 162; x++) {
+  if (x !== 159) {
+    grid[84][x] = "1"
+    grid[86][x] = "1"
+  }
+}
+grid[85][161] = "k"
+prop(156, 85, "gaze-statue", {
+  id: "zoo-gaze",
+  dir: "right",
+  to: [BI + 163, BJ + 85],
+  reward: [BI + 156, BJ + 88],
+})
+prop(163, 85, "gaze-sun", { id: "zoo-gaze" })
+actor(159, 85, "stone")
+
 // Odradek (model/odradek.ts): in the corner of a small room, off to
 // another corner when you come near; talk to it from beside it
 sign(158, 56, "ODRADEK: IT WON'T BE CAUGHT")

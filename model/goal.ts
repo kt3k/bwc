@@ -6,7 +6,8 @@
 // a key of its own, as soon as it is done (a whole ring: "ring.<id>",
 // model/ring.ts; an odd one out found: "odd.<id>", model/odd-one.ts; a
 // bell rung: "bell.<id>", model/bell.ts; a whole pair: "pair.<id>",
-// model/pair.ts; a clear dais: "clear.<id>", model/clear.ts),
+// model/pair.ts; a clear dais: "clear.<id>", model/clear.ts; a statue
+// that has seen: "gaze.<id>", model/gaze.ts),
 // so the count lasts in the save. A new kind of goal adds the test of
 // its key to DONE_KEYS and is counted too.
 //
@@ -19,6 +20,7 @@ import { isOddKey } from "./odd-one.ts"
 import { isBellKey } from "./bell.ts"
 import { isPairKey } from "./pair.ts"
 import { isClearKey } from "./clear.ts"
+import { isGazeKey } from "./gaze.ts"
 
 /** The tests of the keys the goal kinds record a goal done with */
 export const DONE_KEYS: readonly ((key: string) => boolean)[] = [
@@ -27,6 +29,7 @@ export const DONE_KEYS: readonly ((key: string) => boolean)[] = [
   isBellKey,
   isPairKey,
   isClearKey,
+  isGazeKey,
 ]
 
 /** true if the collected id records a goal done */

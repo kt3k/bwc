@@ -4203,16 +4203,53 @@
       "j": -9918,
       "type": "sign",
       "data": {
-        "text": "ALIKE-TULIP"
+        "text": "GAZE-STATUE (ID=DEBUG-GAZE, DIR=DOWN, TO=10000,-10000)"
       }
     },
     {
       "i": 10027,
       "j": -9918,
-      "type": "alike-tulip"
+      "type": "gaze-statue",
+      "data": {
+        "id": "debug-gaze",
+        "dir": "down",
+        "to": [
+          10000,
+          -10000
+        ]
+      }
     },
     {
       "i": 10029,
+      "j": -9918,
+      "type": "sign",
+      "data": {
+        "text": "GAZE-SUN (ID=DEBUG-GAZE)"
+      }
+    },
+    {
+      "i": 10030,
+      "j": -9918,
+      "type": "gaze-sun",
+      "data": {
+        "id": "debug-gaze"
+      }
+    },
+    {
+      "i": 10032,
+      "j": -9918,
+      "type": "sign",
+      "data": {
+        "text": "ALIKE-TULIP"
+      }
+    },
+    {
+      "i": 10033,
+      "j": -9918,
+      "type": "alike-tulip"
+    },
+    {
+      "i": 10035,
       "j": -9918,
       "type": "sign",
       "data": {
@@ -4220,7 +4257,7 @@
       }
     },
     {
-      "i": 10030,
+      "i": 10036,
       "j": -9918,
       "type": "unlike-tulip",
       "data": {
@@ -4228,61 +4265,32 @@
       }
     },
     {
-      "i": 10032,
-      "j": -9918,
+      "i": 10002,
+      "j": -9916,
       "type": "sign",
       "data": {
         "text": "ALIKE-TOADSTOOL"
       }
     },
     {
-      "i": 10033,
-      "j": -9918,
-      "type": "alike-toadstool"
-    },
-    {
-      "i": 10035,
-      "j": -9918,
-      "type": "sign",
-      "data": {
-        "text": "UNLIKE-TOADSTOOL (ID=DEBUG-TOADSTOOL)"
-      }
-    },
-    {
-      "i": 10036,
-      "j": -9918,
-      "type": "unlike-toadstool",
-      "data": {
-        "id": "debug-toadstool"
-      }
-    },
-    {
-      "i": 10002,
-      "j": -9916,
-      "type": "sign",
-      "data": {
-        "text": "ALIKE-STONEBIRD"
-      }
-    },
-    {
       "i": 10003,
       "j": -9916,
-      "type": "alike-stonebird"
+      "type": "alike-toadstool"
     },
     {
       "i": 10005,
       "j": -9916,
       "type": "sign",
       "data": {
-        "text": "UNLIKE-STONEBIRD (ID=DEBUG-STONEBIRD)"
+        "text": "UNLIKE-TOADSTOOL (ID=DEBUG-TOADSTOOL)"
       }
     },
     {
       "i": 10006,
       "j": -9916,
-      "type": "unlike-stonebird",
+      "type": "unlike-toadstool",
       "data": {
-        "id": "debug-stonebird"
+        "id": "debug-toadstool"
       }
     },
     {
@@ -4290,28 +4298,28 @@
       "j": -9916,
       "type": "sign",
       "data": {
-        "text": "ALIKE-MENHIR"
+        "text": "ALIKE-STONEBIRD"
       }
     },
     {
       "i": 10009,
       "j": -9916,
-      "type": "alike-menhir"
+      "type": "alike-stonebird"
     },
     {
       "i": 10011,
       "j": -9916,
       "type": "sign",
       "data": {
-        "text": "UNLIKE-MENHIR (ID=DEBUG-MENHIR)"
+        "text": "UNLIKE-STONEBIRD (ID=DEBUG-STONEBIRD)"
       }
     },
     {
       "i": 10012,
       "j": -9916,
-      "type": "unlike-menhir",
+      "type": "unlike-stonebird",
       "data": {
-        "id": "debug-menhir"
+        "id": "debug-stonebird"
       }
     },
     {
@@ -4319,28 +4327,28 @@
       "j": -9916,
       "type": "sign",
       "data": {
-        "text": "ALIKE-POST"
+        "text": "ALIKE-MENHIR"
       }
     },
     {
       "i": 10015,
       "j": -9916,
-      "type": "alike-post"
+      "type": "alike-menhir"
     },
     {
       "i": 10017,
       "j": -9916,
       "type": "sign",
       "data": {
-        "text": "UNLIKE-POST (ID=DEBUG-POST)"
+        "text": "UNLIKE-MENHIR (ID=DEBUG-MENHIR)"
       }
     },
     {
       "i": 10018,
       "j": -9916,
-      "type": "unlike-post",
+      "type": "unlike-menhir",
       "data": {
-        "id": "debug-post"
+        "id": "debug-menhir"
       }
     },
     {
@@ -4348,28 +4356,28 @@
       "j": -9916,
       "type": "sign",
       "data": {
-        "text": "ALIKE-CAIRN"
+        "text": "ALIKE-POST"
       }
     },
     {
       "i": 10021,
       "j": -9916,
-      "type": "alike-cairn"
+      "type": "alike-post"
     },
     {
       "i": 10023,
       "j": -9916,
       "type": "sign",
       "data": {
-        "text": "UNLIKE-CAIRN (ID=DEBUG-CAIRN)"
+        "text": "UNLIKE-POST (ID=DEBUG-POST)"
       }
     },
     {
       "i": 10024,
       "j": -9916,
-      "type": "unlike-cairn",
+      "type": "unlike-post",
       "data": {
-        "id": "debug-cairn"
+        "id": "debug-post"
       }
     },
     {
@@ -4377,28 +4385,28 @@
       "j": -9916,
       "type": "sign",
       "data": {
-        "text": "ALIKE-ARROWSTONE"
+        "text": "ALIKE-CAIRN"
       }
     },
     {
       "i": 10027,
       "j": -9916,
-      "type": "alike-arrowstone"
+      "type": "alike-cairn"
     },
     {
       "i": 10029,
       "j": -9916,
       "type": "sign",
       "data": {
-        "text": "UNLIKE-ARROWSTONE (ID=DEBUG-ARROWSTONE)"
+        "text": "UNLIKE-CAIRN (ID=DEBUG-CAIRN)"
       }
     },
     {
       "i": 10030,
       "j": -9916,
-      "type": "unlike-arrowstone",
+      "type": "unlike-cairn",
       "data": {
-        "id": "debug-arrowstone"
+        "id": "debug-cairn"
       }
     },
     {
@@ -4406,12 +4414,41 @@
       "j": -9916,
       "type": "sign",
       "data": {
-        "text": "WAYGATE (ID=DEBUG, NAME=DEBUG, I=10002, J=-9996)"
+        "text": "ALIKE-ARROWSTONE"
       }
     },
     {
       "i": 10033,
       "j": -9916,
+      "type": "alike-arrowstone"
+    },
+    {
+      "i": 10035,
+      "j": -9916,
+      "type": "sign",
+      "data": {
+        "text": "UNLIKE-ARROWSTONE (ID=DEBUG-ARROWSTONE)"
+      }
+    },
+    {
+      "i": 10036,
+      "j": -9916,
+      "type": "unlike-arrowstone",
+      "data": {
+        "id": "debug-arrowstone"
+      }
+    },
+    {
+      "i": 10002,
+      "j": -9914,
+      "type": "sign",
+      "data": {
+        "text": "WAYGATE (ID=DEBUG, NAME=DEBUG, I=10002, J=-9996)"
+      }
+    },
+    {
+      "i": 10003,
+      "j": -9914,
       "type": "waygate",
       "data": {
         "id": "DEBUG",
@@ -4421,16 +4458,16 @@
       }
     },
     {
-      "i": 10035,
-      "j": -9916,
+      "i": 10005,
+      "j": -9914,
       "type": "sign",
       "data": {
         "text": "LATCH-GATE (ID=DEBUG, DIR=UP)"
       }
     },
     {
-      "i": 10036,
-      "j": -9916,
+      "i": 10006,
+      "j": -9914,
       "type": "latch-gate",
       "data": {
         "id": "DEBUG",
@@ -4438,7 +4475,7 @@
       }
     },
     {
-      "i": 10002,
+      "i": 10008,
       "j": -9914,
       "type": "sign",
       "data": {
@@ -4446,41 +4483,9 @@
       }
     },
     {
-      "i": 10003,
-      "j": -9914,
-      "type": "rabbit-hole",
-      "data": {
-        "id": "sample"
-      }
-    },
-    {
-      "i": 10005,
-      "j": -9914,
-      "type": "sign",
-      "data": {
-        "text": "FOX-DEN (ID=SAMPLE)"
-      }
-    },
-    {
-      "i": 10006,
-      "j": -9914,
-      "type": "fox-den",
-      "data": {
-        "id": "sample"
-      }
-    },
-    {
-      "i": 10008,
-      "j": -9914,
-      "type": "sign",
-      "data": {
-        "text": "BEEHIVE (ID=SAMPLE)"
-      }
-    },
-    {
       "i": 10009,
       "j": -9914,
-      "type": "beehive",
+      "type": "rabbit-hole",
       "data": {
         "id": "sample"
       }
@@ -4490,11 +4495,43 @@
       "j": -9914,
       "type": "sign",
       "data": {
-        "text": "PEN-GATE (ID=SAMPLE, I0=0, J0=0, I1=0, J1=0, COUNT=99)"
+        "text": "FOX-DEN (ID=SAMPLE)"
       }
     },
     {
       "i": 10012,
+      "j": -9914,
+      "type": "fox-den",
+      "data": {
+        "id": "sample"
+      }
+    },
+    {
+      "i": 10014,
+      "j": -9914,
+      "type": "sign",
+      "data": {
+        "text": "BEEHIVE (ID=SAMPLE)"
+      }
+    },
+    {
+      "i": 10015,
+      "j": -9914,
+      "type": "beehive",
+      "data": {
+        "id": "sample"
+      }
+    },
+    {
+      "i": 10017,
+      "j": -9914,
+      "type": "sign",
+      "data": {
+        "text": "PEN-GATE (ID=SAMPLE, I0=0, J0=0, I1=0, J1=0, COUNT=99)"
+      }
+    },
+    {
+      "i": 10018,
       "j": -9914,
       "type": "pen-gate",
       "data": {
@@ -4507,7 +4544,7 @@
       }
     },
     {
-      "i": 10014,
+      "i": 10020,
       "j": -9914,
       "type": "sign",
       "data": {
@@ -4515,7 +4552,7 @@
       }
     },
     {
-      "i": 10015,
+      "i": 10021,
       "j": -9914,
       "type": "ferry",
       "data": {
@@ -4525,7 +4562,7 @@
       }
     },
     {
-      "i": 10017,
+      "i": 10023,
       "j": -9914,
       "type": "sign",
       "data": {
@@ -4533,7 +4570,7 @@
       }
     },
     {
-      "i": 10018,
+      "i": 10024,
       "j": -9914,
       "type": "post-box",
       "data": {
@@ -4547,7 +4584,7 @@
       }
     },
     {
-      "i": 10020,
+      "i": 10026,
       "j": -9914,
       "type": "sign",
       "data": {
@@ -4555,7 +4592,7 @@
       }
     },
     {
-      "i": 10021,
+      "i": 10027,
       "j": -9914,
       "type": "guide-sage",
       "data": {
@@ -4563,7 +4600,7 @@
       }
     },
     {
-      "i": 10023,
+      "i": 10029,
       "j": -9914,
       "type": "sign",
       "data": {
@@ -4571,7 +4608,7 @@
       }
     },
     {
-      "i": 10024,
+      "i": 10030,
       "j": -9914,
       "type": "guide-sailor",
       "data": {
@@ -4579,7 +4616,7 @@
       }
     },
     {
-      "i": 10026,
+      "i": 10032,
       "j": -9914,
       "type": "sign",
       "data": {
@@ -4587,7 +4624,7 @@
       }
     },
     {
-      "i": 10027,
+      "i": 10033,
       "j": -9914,
       "type": "guide-farmer",
       "data": {
@@ -4595,7 +4632,7 @@
       }
     },
     {
-      "i": 10029,
+      "i": 10035,
       "j": -9914,
       "type": "sign",
       "data": {
@@ -4603,7 +4640,7 @@
       }
     },
     {
-      "i": 10030,
+      "i": 10036,
       "j": -9914,
       "type": "guide-bard",
       "data": {
@@ -4611,16 +4648,16 @@
       }
     },
     {
-      "i": 10032,
-      "j": -9914,
+      "i": 10002,
+      "j": -9912,
       "type": "sign",
       "data": {
         "text": "TRADE-STALL (TOWN=DEBUG, GOOD=DEBRIS, COST=1, PRICES=[OBJECT OBJECT])"
       }
     },
     {
-      "i": 10033,
-      "j": -9914,
+      "i": 10003,
+      "j": -9912,
       "type": "trade-stall",
       "data": {
         "town": "DEBUG",
@@ -4630,23 +4667,23 @@
       }
     },
     {
-      "i": 10035,
-      "j": -9914,
+      "i": 10005,
+      "j": -9912,
       "type": "sign",
       "data": {
         "text": "PANE (SHARD=SHARD-SKY)"
       }
     },
     {
-      "i": 10036,
-      "j": -9914,
+      "i": 10006,
+      "j": -9912,
       "type": "pane",
       "data": {
         "shard": "shard-sky"
       }
     },
     {
-      "i": 10002,
+      "i": 10008,
       "j": -9912,
       "type": "sign",
       "data": {
@@ -4654,12 +4691,12 @@
       }
     },
     {
-      "i": 10003,
+      "i": 10009,
       "j": -9912,
       "type": "bed-head"
     },
     {
-      "i": 10005,
+      "i": 10011,
       "j": -9912,
       "type": "sign",
       "data": {
@@ -4667,12 +4704,12 @@
       }
     },
     {
-      "i": 10006,
+      "i": 10012,
       "j": -9912,
       "type": "bed-foot"
     },
     {
-      "i": 10008,
+      "i": 10014,
       "j": -9912,
       "type": "sign",
       "data": {
@@ -4680,12 +4717,12 @@
       }
     },
     {
-      "i": 10009,
+      "i": 10015,
       "j": -9912,
       "type": "bookshelf"
     },
     {
-      "i": 10011,
+      "i": 10017,
       "j": -9912,
       "type": "sign",
       "data": {
@@ -4693,12 +4730,12 @@
       }
     },
     {
-      "i": 10012,
+      "i": 10018,
       "j": -9912,
       "type": "painting"
     },
     {
-      "i": 10014,
+      "i": 10020,
       "j": -9912,
       "type": "sign",
       "data": {
@@ -4706,12 +4743,12 @@
       }
     },
     {
-      "i": 10015,
+      "i": 10021,
       "j": -9912,
       "type": "candles"
     },
     {
-      "i": 10017,
+      "i": 10023,
       "j": -9912,
       "type": "sign",
       "data": {
@@ -4719,12 +4756,12 @@
       }
     },
     {
-      "i": 10018,
+      "i": 10024,
       "j": -9912,
       "type": "globe"
     },
     {
-      "i": 10020,
+      "i": 10026,
       "j": -9912,
       "type": "sign",
       "data": {
@@ -4732,12 +4769,12 @@
       }
     },
     {
-      "i": 10021,
+      "i": 10027,
       "j": -9912,
       "type": "washtub"
     },
     {
-      "i": 10023,
+      "i": 10029,
       "j": -9912,
       "type": "sign",
       "data": {
@@ -4745,12 +4782,12 @@
       }
     },
     {
-      "i": 10024,
+      "i": 10030,
       "j": -9912,
       "type": "table-l"
     },
     {
-      "i": 10026,
+      "i": 10032,
       "j": -9912,
       "type": "sign",
       "data": {
@@ -4758,12 +4795,12 @@
       }
     },
     {
-      "i": 10027,
+      "i": 10033,
       "j": -9912,
       "type": "table-r"
     },
     {
-      "i": 10029,
+      "i": 10035,
       "j": -9912,
       "type": "sign",
       "data": {
@@ -4771,38 +4808,38 @@
       }
     },
     {
-      "i": 10030,
+      "i": 10036,
       "j": -9912,
       "type": "chair"
     },
     {
-      "i": 10032,
-      "j": -9912,
+      "i": 10002,
+      "j": -9910,
       "type": "sign",
       "data": {
         "text": "TOILET"
       }
     },
     {
-      "i": 10033,
-      "j": -9912,
+      "i": 10003,
+      "j": -9910,
       "type": "toilet"
     },
     {
-      "i": 10035,
-      "j": -9912,
+      "i": 10005,
+      "j": -9910,
       "type": "sign",
       "data": {
         "text": "STOOL-ROUND"
       }
     },
     {
-      "i": 10036,
-      "j": -9912,
+      "i": 10006,
+      "j": -9910,
       "type": "stool-round"
     },
     {
-      "i": 10002,
+      "i": 10008,
       "j": -9910,
       "type": "sign",
       "data": {
@@ -4810,12 +4847,12 @@
       }
     },
     {
-      "i": 10003,
+      "i": 10009,
       "j": -9910,
       "type": "dish-shelf"
     },
     {
-      "i": 10005,
+      "i": 10011,
       "j": -9910,
       "type": "sign",
       "data": {
@@ -4823,12 +4860,12 @@
       }
     },
     {
-      "i": 10006,
+      "i": 10012,
       "j": -9910,
       "type": "counter"
     },
     {
-      "i": 10008,
+      "i": 10014,
       "j": -9910,
       "type": "sign",
       "data": {
@@ -4836,12 +4873,12 @@
       }
     },
     {
-      "i": 10009,
+      "i": 10015,
       "j": -9910,
       "type": "stove"
     },
     {
-      "i": 10011,
+      "i": 10017,
       "j": -9910,
       "type": "sign",
       "data": {
@@ -4849,12 +4886,12 @@
       }
     },
     {
-      "i": 10012,
+      "i": 10018,
       "j": -9910,
       "type": "kettle"
     },
     {
-      "i": 10014,
+      "i": 10020,
       "j": -9910,
       "type": "sign",
       "data": {
@@ -4862,12 +4899,12 @@
       }
     },
     {
-      "i": 10015,
+      "i": 10021,
       "j": -9910,
       "type": "cauldron"
     },
     {
-      "i": 10017,
+      "i": 10023,
       "j": -9910,
       "type": "sign",
       "data": {
@@ -4875,12 +4912,12 @@
       }
     },
     {
-      "i": 10018,
+      "i": 10024,
       "j": -9910,
       "type": "desk"
     },
     {
-      "i": 10020,
+      "i": 10026,
       "j": -9910,
       "type": "sign",
       "data": {
@@ -4888,12 +4925,12 @@
       }
     },
     {
-      "i": 10021,
+      "i": 10027,
       "j": -9910,
       "type": "bathtub-l"
     },
     {
-      "i": 10023,
+      "i": 10029,
       "j": -9910,
       "type": "sign",
       "data": {
@@ -4901,12 +4938,12 @@
       }
     },
     {
-      "i": 10024,
+      "i": 10030,
       "j": -9910,
       "type": "bathtub-r"
     },
     {
-      "i": 10026,
+      "i": 10032,
       "j": -9910,
       "type": "sign",
       "data": {
@@ -4914,12 +4951,12 @@
       }
     },
     {
-      "i": 10027,
+      "i": 10033,
       "j": -9910,
       "type": "shower"
     },
     {
-      "i": 10029,
+      "i": 10035,
       "j": -9910,
       "type": "sign",
       "data": {
@@ -4927,38 +4964,38 @@
       }
     },
     {
-      "i": 10030,
+      "i": 10036,
       "j": -9910,
       "type": "sink"
     },
     {
-      "i": 10032,
-      "j": -9910,
+      "i": 10002,
+      "j": -9908,
       "type": "sign",
       "data": {
         "text": "MIRROR"
       }
     },
     {
-      "i": 10033,
-      "j": -9910,
+      "i": 10003,
+      "j": -9908,
       "type": "mirror"
     },
     {
-      "i": 10035,
-      "j": -9910,
+      "i": 10005,
+      "j": -9908,
       "type": "sign",
       "data": {
         "text": "TOWEL-RACK"
       }
     },
     {
-      "i": 10036,
-      "j": -9910,
+      "i": 10006,
+      "j": -9908,
       "type": "towel-rack"
     },
     {
-      "i": 10002,
+      "i": 10008,
       "j": -9908,
       "type": "sign",
       "data": {
@@ -4966,12 +5003,12 @@
       }
     },
     {
-      "i": 10003,
+      "i": 10009,
       "j": -9908,
       "type": "wardrobe"
     },
     {
-      "i": 10005,
+      "i": 10011,
       "j": -9908,
       "type": "sign",
       "data": {
@@ -4979,12 +5016,12 @@
       }
     },
     {
-      "i": 10006,
+      "i": 10012,
       "j": -9908,
       "type": "hearth"
     },
     {
-      "i": 10008,
+      "i": 10014,
       "j": -9908,
       "type": "sign",
       "data": {
@@ -4992,12 +5029,12 @@
       }
     },
     {
-      "i": 10009,
+      "i": 10015,
       "j": -9908,
       "type": "broom"
     },
     {
-      "i": 10011,
+      "i": 10017,
       "j": -9908,
       "type": "sign",
       "data": {
@@ -5005,12 +5042,12 @@
       }
     },
     {
-      "i": 10012,
+      "i": 10018,
       "j": -9908,
       "type": "window"
     },
     {
-      "i": 10014,
+      "i": 10020,
       "j": -9908,
       "type": "sign",
       "data": {
@@ -5018,7 +5055,7 @@
       }
     },
     {
-      "i": 10015,
+      "i": 10021,
       "j": -9908,
       "type": "rug"
     },

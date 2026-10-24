@@ -69,9 +69,24 @@
       "type": "boulder"
     },
     {
-      "i": 3903,
-      "j": 1612,
-      "type": "book"
+      "i": 3911,
+      "j": 1621,
+      "type": "stone"
+    },
+    {
+      "i": 3910,
+      "j": 1621,
+      "type": "stone"
+    },
+    {
+      "i": 3913,
+      "j": 1621,
+      "type": "stone"
+    },
+    {
+      "i": 3915,
+      "j": 1625,
+      "type": "boulder"
     },
     {
       "i": 3835,
@@ -89,19 +104,9 @@
       "type": "sheep"
     },
     {
-      "i": 3895,
-      "j": 1625,
-      "type": "spore"
-    },
-    {
       "i": 3876,
       "j": 1635,
       "type": "chick"
-    },
-    {
-      "i": 3905,
-      "j": 1638,
-      "type": "rabbit"
     },
     {
       "i": 3830,
@@ -114,14 +119,14 @@
       "type": "chick"
     },
     {
+      "i": 3889,
+      "j": 1643,
+      "type": "crow"
+    },
+    {
       "i": 3863,
       "j": 1653,
       "type": "cloud"
-    },
-    {
-      "i": 3899,
-      "j": 1656,
-      "type": "book"
     },
     {
       "i": 3916,
@@ -1041,6 +1046,31 @@
       }
     },
     {
+      "i": 3909,
+      "j": 1621,
+      "type": "gaze-statue",
+      "data": {
+        "id": "1909.1621",
+        "dir": "right",
+        "to": [
+          3915,
+          1621
+        ],
+        "reward": [
+          3907,
+          1621
+        ]
+      }
+    },
+    {
+      "i": 3915,
+      "j": 1621,
+      "type": "gaze-sun",
+      "data": {
+        "id": "1909.1621"
+      }
+    },
+    {
       "i": 3869,
       "j": 1602,
       "type": "pinata-tree"
@@ -1056,27 +1086,19 @@
       "type": "nest-jar-4"
     },
     {
+      "i": 3892,
+      "j": 1627,
+      "type": "balloon-rock"
+    },
+    {
       "i": 3838,
       "j": 1629,
       "type": "balloon-rock"
     },
     {
-      "i": 3891,
-      "j": 1638,
-      "type": "moon-shell"
-    },
-    {
-      "i": 3904,
-      "j": 1638,
-      "type": "rabbit-hole",
-      "data": {
-        "id": "1904.1638"
-      }
-    },
-    {
-      "i": 3883,
-      "j": 1651,
-      "type": "moon-shell"
+      "i": 3905,
+      "j": 1643,
+      "type": "self-statue"
     },
     {
       "i": 3823,
@@ -1090,6 +1112,14 @@
       "i": 3836,
       "j": 1655,
       "type": "moon-shell"
+    },
+    {
+      "i": 3894,
+      "j": 1656,
+      "type": "beehive",
+      "data": {
+        "id": "1894.1656"
+      }
     },
     {
       "i": 3849,
@@ -1295,15 +1325,15 @@
     "1111111111111111111111111111111111111pppppppppppppppppppppppppppppp1111111111111pppppppp1111ppppppppppppppppppppppppppkffffffffJJfffffkfffkffffffffffJJfffffffffffffffffffffffJJfJJffffffJJff66666666666",
     "1111111111111111111111111111111111111pppppppppppppppppppppppp1ppppp111111111111pppppp1pp111pppppppppppppppppppppppppppkffffffkffffffffkffffffffffkfffJJfffffffffffffffffkfffffJJffffffkffJJfkf6666666666",
     "11111111111111111111111111111111111111pppppppppppppppppppppppppppp111111111111pppppppppp111pppppppppppppppppppppppppppffkfffffffffJJffffffffffkffkfffffffffffffffkkfffffkffffffffffffffffffffff666666666",
-    "11111111111111111111111111111111111111pppppppppppppppppppppppppppp1111111111ppppppppppp111ppppppppppppppppppppppppppppffffffffffffJJfffffffffffffffffJJffffffffffffffkkffffffffffkffffffffffffff66666666",
-    "11111111111111111111111111111111111111pppppppppppppppppppppppppppp11111111ppppppppp1111111pppppppppppp1pppppppppppppppfffffffkfffffffffffkfffffffffffJJffJJfkkfkffffffffffffffkkffffffffkfffJJfff6666666",
+    "11111111111111111111111111111111111111pppppppppppppppppppppppppppp1111111111ppppppppppp111ppppppppppppppppppkpppppwpppffffffffffffJJfffffffffffffffffJJffffffffffffffkkffffffffffkffffffffffffff66666666",
+    "11111111111111111111111111111111111111pppppppppppppppppppppppppppp11111111ppppppppp1111111pppppppppppp1ppppp1pw11w1pppfffffffkfffffffffffkfffffffffffJJffJJfkkfkffffffffffffffkkffffffffkfffJJfff6666666",
     "11111111111111111111111111111111111111pppppppppppppppppppppppppppp1111111ppppppp1p11111111ppppppppppppppppppppppppppppffffJJffffffffffkfffffkffffffJJffffJJffffffffffffJJfffffffffffffffkfffJJfffk666666",
     "11111111111111111111111111111111111111ppppppppppppppppppppppppppp1111111ppppppppp1111111111pppppppppppppppppppppppppppffffJJffffkfffffffffffkffffffJJffffffffffffkkffffJJffkffffffffffkkffffffffff666666",
     "111111111111111111111111111111111111111pppppppppppppppppppppppppp1111111ppppppppp1111111111pppppppppppppppppppppppppppffkkffffffkffffffffffffffJJfffffffJJfffffffffffffffffkfffffffkffffffffffJJfff66666",
     "11111111111111111111111111111111111111pppppppppppppppppppppppppp111111111pppppppp1111111111ppppppppppppppppppppppppppppffffffJJffffffffffkfffffJJfffffffJJfffkffffffffJJffffffffffffffffffffffJJffff6666",
     "1111111111111111111111111111111111111pppppppppppppppppppppppppp11111111111pppppp11111111111ppppppppppppppppppppppppppppffffffJJffkfffffffkffffffffffffkkffffffffJJffffJJfffffffkfffffffffffffffffkff6666",
     "11111111111111111111111111111111111pppppppppppppppppppppppppppp1111111111111111111111111111pppppppppppppppppppppppppppppkffffffffkfffffffffffffffffffffffffkffffJJffkffffffffffkfffffkfffffkffkffkfff666",
-    "1111111111111111111111111111111111ppppppppppppppppp1pppppppppp11111111111111111111111111111pppppppppppppppppppppppppppppkffffffkkfffkkfffkffffffJJfkkfffffffffffffffkfffkkffkffffkkffkfffffkfffffffff666",
+    "1111111111111111111111111111111111ppppppppppppppppp1pppppppppp11111111111111111111111111111pppppppppppppppppppp1pppkppppkffffffkkfffkkfffkffffffJJfkkfffffffffffffffkfffkkffkffffkkffkfffffkfffffffff666",
     "111111111111111111111111111111111pppppppppppppppppppp11111111111111111111111111111111111111pppppppppppppppppppppppppppppfffffffffffffffffkffffffJJffffffkffffffffkfffffffffffffffffffffffffffffffffff666",
     "11111111111111111111111111111111ppppp1ppppppppppppp1111111111111111111111111111111111111111ppppppppppppppppppppppppppppppfffJJfffkffffkfffffffffffffffffkffffffffkfffffffffffffffffffkkfffffJJffffffff66",
     "11111111111111111111111111111111pppppppppppppppppp11111111111111111111111111111111111111111pppppppppppppppppppp1pppppppppfffJJfffffffffffffkfffffffffffffffffffkffffffkfffffffffffffffffffffJJffffkfff66",

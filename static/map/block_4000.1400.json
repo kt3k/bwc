@@ -59,6 +59,11 @@
       "type": "book"
     },
     {
+      "i": 4177,
+      "j": 1500,
+      "type": "boulder"
+    },
+    {
       "i": 4154,
       "j": 1402,
       "type": "snail"
@@ -194,19 +199,14 @@
       "type": "sheep"
     },
     {
-      "i": 4179,
-      "j": 1490,
-      "type": "fluff"
-    },
-    {
-      "i": 4162,
-      "j": 1494,
-      "type": "rabbit"
-    },
-    {
       "i": 4069,
       "j": 1496,
       "type": "piggy"
+    },
+    {
+      "i": 4159,
+      "j": 1496,
+      "type": "chick"
     },
     {
       "i": 4017,
@@ -229,11 +229,6 @@
       "type": "snail"
     },
     {
-      "i": 4175,
-      "j": 1503,
-      "type": "rabbit"
-    },
-    {
       "i": 4004,
       "j": 1506,
       "type": "piggy"
@@ -245,6 +240,11 @@
     },
     {
       "i": 4068,
+      "j": 1509,
+      "type": "snail"
+    },
+    {
+      "i": 4153,
       "j": 1509,
       "type": "snail"
     },
@@ -279,12 +279,17 @@
       "type": "spore"
     },
     {
-      "i": 4188,
+      "i": 4193,
       "j": 1515,
-      "type": "crow"
+      "type": "rabbit"
     },
     {
       "i": 4166,
+      "j": 1516,
+      "type": "piggy"
+    },
+    {
+      "i": 4179,
       "j": 1516,
       "type": "piggy"
     },
@@ -314,14 +319,14 @@
       "type": "sheep"
     },
     {
-      "i": 4179,
-      "j": 1528,
-      "type": "fluff"
-    },
-    {
       "i": 4164,
       "j": 1529,
       "type": "shadow"
+    },
+    {
+      "i": 4177,
+      "j": 1529,
+      "type": "snail"
     },
     {
       "i": 4135,
@@ -340,6 +345,11 @@
     },
     {
       "i": 4162,
+      "j": 1542,
+      "type": "book"
+    },
+    {
+      "i": 4177,
       "j": 1542,
       "type": "book"
     },
@@ -369,9 +379,14 @@
       "type": "cloud"
     },
     {
-      "i": 4005,
+      "i": 4003,
+      "j": 1581,
+      "type": "rabbit"
+    },
+    {
+      "i": 4002,
       "j": 1594,
-      "type": "piggy"
+      "type": "crow"
     },
     {
       "i": 4054,
@@ -1117,6 +1132,31 @@
       "type": "alike-tulip"
     },
     {
+      "i": 4173,
+      "j": 1500,
+      "type": "gaze-sun",
+      "data": {
+        "id": "2179.1500"
+      }
+    },
+    {
+      "i": 4179,
+      "j": 1500,
+      "type": "gaze-statue",
+      "data": {
+        "id": "2179.1500",
+        "dir": "left",
+        "to": [
+          4173,
+          1500
+        ],
+        "reward": [
+          4181,
+          1500
+        ]
+      }
+    },
+    {
       "i": 4124,
       "j": 1417,
       "type": "pinata-tree"
@@ -1257,38 +1297,22 @@
       "type": "pinata-tree"
     },
     {
-      "i": 4161,
-      "j": 1494,
-      "type": "rabbit-hole",
-      "data": {
-        "id": "2161.1494"
-      }
-    },
-    {
       "i": 4109,
       "j": 1500,
       "type": "pinata-tree"
     },
     {
-      "i": 4192,
+      "i": 4193,
       "j": 1502,
-      "type": "beehive",
-      "data": {
-        "id": "2192.1502"
-      }
+      "type": "self-statue"
     },
     {
-      "i": 4174,
-      "j": 1503,
+      "i": 4192,
+      "j": 1515,
       "type": "rabbit-hole",
       "data": {
-        "id": "2174.1503"
+        "id": "2192.1515"
       }
-    },
-    {
-      "i": 4153,
-      "j": 1507,
-      "type": "nest-jar-4"
     },
     {
       "i": 4030,
@@ -1332,14 +1356,6 @@
       "i": 4148,
       "j": 1540,
       "type": "drawer-tower"
-    },
-    {
-      "i": 4177,
-      "j": 1541,
-      "type": "beehive",
-      "data": {
-        "id": "2177.1541"
-      }
     },
     {
       "i": 4135,
@@ -1429,17 +1445,22 @@
       "type": "drawer-tower"
     },
     {
-      "i": 4005,
+      "i": 4002,
       "j": 1581,
-      "type": "nest-jar-4"
+      "type": "rabbit-hole",
+      "data": {
+        "id": "2002.1581"
+      }
     },
     {
-      "i": 4018,
+      "i": 4015,
       "j": 1587,
-      "type": "beehive",
-      "data": {
-        "id": "2018.1587"
-      }
+      "type": "packed-box"
+    },
+    {
+      "i": 4190,
+      "j": 1529,
+      "type": "nest-jar-4"
     },
     {
       "i": 4099,
@@ -1549,12 +1570,12 @@
     "pppppppppppppppppppppppppppppppppppp1111pppppppppppppppppppppppppppppppp1pppppppppppppppppppppppppppppppppppppppp666666666666666666666666666666666666666666336666JJ6666666666666666666666666666ppppppppp",
     "pppp1pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp66666ppppppppppppppppppppppppppppppppppp1ppppp6666666666666666666666666666666666666666663366666666666666666666666666666666JJppppppppp",
     "pppppppppppppp1ppppppppppppppppppppppppppppppppppppppppppppppppppp66666666ppppppppppppppppppppppppppppppppppppppp6666666666666666666666666666666666666666663366666666666666666666666666666666JJ6pppppppp",
-    "pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp1p66666666666666666pppppppppppppppppppppppppppppp666J666666666666666666666666666666666666663366666666666666666666666666666666666pppppppp",
-    "ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp66666666666666JJ6666ppppppppppppppppppppppppppppp66J666666666666666666666666666666666666663366666666666666666666666666666666666pppppppp",
-    "pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp666666666666666JJ66666pppppppppppppppppppppppppppp66666666666666666666666666666666666666666336666666666666666666666666666666666ppppppppp",
-    "ppppppppppppppppppppppppppppppppppppppppppppppppppppp1pppppp1p66666666666666666666666666ppppp6666ppppp1pppppppppp66666666666666666666666JJ66666666666666666336666666666666666666666666666666666ppppppppp",
-    "ppppppppppppppppppp1ppppppppppppppppppppppppppppppppppppppppJ6666666666666666666666666666666666666ppppppppppp1ppp66666666666666666666666666666666666666666633666666666666666666666666666666666pppppppppp",
-    "pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp66J66666666666666666666666666666666666666ppppppppppppppp6666666666J666666666JJ6666666666666666666336666666666666666666666666666666pppppppppppp",
+    "pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp1p66666666666666666pppppppppppppppppppppppppppppp666J6666666666666666666666666666666666666633666666666666666666J6JJ6666666666666pppppppp",
+    "ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp66666666666666JJ6666ppppppppppppppppppppppppppppp66J6666666666666666666666666666666666666633666666666666666666666k6666666666666pppppppp",
+    "pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp666666666666666JJ66666pppppppppppppppppppppppppppp6666666666666666666666666666666666666666633666666666666666666J666666666666666ppppppppp",
+    "ppppppppppppppppppppppppppppppppppppppppppppppppppppp1pppppp1p66666666666666666666666666ppppp6666ppppp1pppppppppp66666666666666666666666JJ666666666666666663366666666666666666J6666666666666666ppppppppp",
+    "ppppppppppppppppppp1ppppppppppppppppppppppppppppppppppppppppJ6666666666666666666666666666666666666ppppppppppp1ppp666666666666666666666666666666666666666666336666666666666666666666J6666666666pppppppppp",
+    "pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp66J66666666666666666666666666666666666666ppppppppppppppp6666666666J666666666JJ666666666666666666633666666666666666666666J666666666pppppppppppp",
     "ppppppppppppppppppppppppppppppppppppppppppppppppppppp666666666666666666666666666666666666666666pp66666666ppppppppp6666666666J666666666666666666666J666666663366666666666666666666666666J66pppppppppppppp",
     "pppppppppppppppppppppppppppp1pppppppppppppppppppp1p6666666666666666666666666666666666666666666pppp66666666pppppppp66666666666666666666666666666666J66666666336666666666666666666666666666ppppppppppppppp",
     "pppppppppppppppppppppppppppppppppppppppppppppppppp66666666J6666666666666666666666666666666666ppppp66666666ppppppppp6666666666666666666666666666666666666666336666666666666666666666666666pppppp1pppppppp",

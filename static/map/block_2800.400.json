@@ -146,9 +146,24 @@
       "type": "boulder"
     },
     {
-      "i": 2892,
-      "j": 400,
-      "type": "rabbit"
+      "i": 2869,
+      "j": 573,
+      "type": "boulder"
+    },
+    {
+      "i": 2869,
+      "j": 572,
+      "type": "boulder"
+    },
+    {
+      "i": 2867,
+      "j": 574,
+      "type": "boulder"
+    },
+    {
+      "i": 2867,
+      "j": 573,
+      "type": "boulder"
     },
     {
       "i": 2917,
@@ -156,19 +171,14 @@
       "type": "cloud"
     },
     {
-      "i": 2903,
-      "j": 413,
-      "type": "piggy"
+      "i": 2878,
+      "j": 406,
+      "type": "fluff"
     },
     {
-      "i": 2916,
+      "i": 2905,
       "j": 413,
-      "type": "spore"
-    },
-    {
-      "i": 2890,
-      "j": 416,
-      "type": "chick"
+      "type": "rabbit"
     },
     {
       "i": 2927,
@@ -316,14 +326,24 @@
       "type": "chick"
     },
     {
-      "i": 2883,
-      "j": 583,
-      "type": "book"
+      "i": 2887,
+      "j": 585,
+      "type": "snail"
     },
     {
       "i": 2992,
       "j": 586,
       "type": "snail"
+    },
+    {
+      "i": 2870,
+      "j": 589,
+      "type": "book"
+    },
+    {
+      "i": 2878,
+      "j": 557,
+      "type": "chick"
     }
   ],
   "items": [
@@ -1646,17 +1666,57 @@
       }
     },
     {
-      "i": 2891,
-      "j": 400,
-      "type": "rabbit-hole",
+      "i": 2869,
+      "j": 571,
+      "type": "gaze-statue",
       "data": {
-        "id": "891.400"
+        "id": "869.571",
+        "dir": "down",
+        "to": [
+          2869,
+          575
+        ],
+        "reward": [
+          2867,
+          571
+        ]
+      }
+    },
+    {
+      "i": 2869,
+      "j": 575,
+      "type": "gaze-sun",
+      "data": {
+        "id": "869.571"
       }
     },
     {
       "i": 2904,
       "j": 400,
       "type": "balloon-rock"
+    },
+    {
+      "i": 2891,
+      "j": 406,
+      "type": "pinata-tree"
+    },
+    {
+      "i": 2904,
+      "j": 413,
+      "type": "rabbit-hole",
+      "data": {
+        "id": "904.413"
+      }
+    },
+    {
+      "i": 2917,
+      "j": 413,
+      "type": "pinata-tree"
+    },
+    {
+      "i": 2890,
+      "j": 419,
+      "type": "moon-shell"
     },
     {
       "i": 2913,
@@ -1776,29 +1836,9 @@
       }
     },
     {
-      "i": 2858,
-      "j": 568,
-      "type": "moon-shell"
-    },
-    {
-      "i": 2871,
-      "j": 568,
-      "type": "drawer-tower"
-    },
-    {
       "i": 2968,
       "j": 571,
       "type": "pinata-tree"
-    },
-    {
-      "i": 2870,
-      "j": 581,
-      "type": "nest-jar-4"
-    },
-    {
-      "i": 2870,
-      "j": 594,
-      "type": "moon-shell"
     }
   ],
   "field": [
@@ -1974,9 +2014,9 @@
     "JJffffkffJJffffffffkffffffkfffffkffffffJJf66666666666666666666666666666666666JJ6666666666661111141111166666666666666666666666666666666666666666666666666ppp1pppppppppppp1ppppppppppppppppppppppppppppppp",
     "JJfffffffffffffJJffffkfffffffffffffffffJJff666666666666666666666666666666666666666666666666666663666666666666666666666JJ66666666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppp",
     "fffkkfffkffffffJJfffffffkkfffffffffffffffkf666J66666666666666666666666666666666666666666666666663666666666666666666666666666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "fffffffffffffkffffffffffffffffffkkfJJffffkf666J66666666666666666666666666666666666666666666666663666666666666666666666666666666666666666666666666666666ppppppppppppppppppppppppppppp1ppppppppppppppppppp",
-    "fkfffffffffffkffkffffffffffffJJffffJJffffff666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666p1ppppppppppppppppppppppppppppppppppppppppppppppp",
-    "ffffffkffffffffffffffffffffffJJffffffffffff66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppppp",
+    "fffffffffffffkffffffffffffffffffkkfJJffffkf666J6666666666666666666J6k6k66666666666666666666666663666666666666666666666666666666666666666666666666666666ppppppppppppppppppppppppppppp1ppppppppppppppppppp",
+    "fkfffffffffffkffkffffffffffffJJffffJJffffff6666666666666666666666666J6J66k66666666666666666666666666666666666666666666666666666666666666666666666666666p1ppppppppppppppppppppppppppppppppppppppppppppppp",
+    "ffffffkffffffffffffffffffffffJJffffffffffff6666666666666666666666666k6k6666666666666666666666666666666666666666666666666666666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppppp",
     "ffffffkffkffkfffffffkfffffkffffkkffffffJJff6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppppppppp",
     "fffJJfffffffkfffffffffffffffffffffffkffJJffkk6J6666666666666666666666666666666666666666666666666666666666666666666666666666JJ66666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppppppp",
     "fffJJfffffffffffkfffffffffffffffffffkfffffff66J66666666666666666666666666666666666666666666666666666666666666666fffkk666666JJ6666666666666666666666ppppppppppppppppppppppppppppppppppppppppppppp1ppppppp",

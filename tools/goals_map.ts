@@ -1,7 +1,8 @@
 // The GOALS debug map (block_10400.-10000), laid out: a bay for every
 // signature of the missing ring (tools/rings.ts), of the bell out of
 // reach (tools/bells.ts), of the pair (tools/pairs.ts), of the dais to
-// clear (tools/clears.ts) and for every family of the odd one out
+// clear (tools/clears.ts), of the statue's gaze (tools/gazes.ts) and for
+// every family of the odd one out
 // (tools/odd_ones.ts), a room to watch Odradek in, and a reset that
 // undoes the goals of this map only (model/goal-reset.ts).
 // tools/generate_goals_map.ts draws the rings and bells and writes the block; this
@@ -23,12 +24,15 @@
 //   wanted
 // - DAISES: bays as the rings', under the pairs, a dais for every
 //   signature and what sits on it
+// - STATUES: bays as the rings', under the daises, a statue for every
+//   signature
 // - ODD ONES: bays of 13x13, ODD_COLS to a row, the arrangement in the
 //   middle, the way in and the signs as for the rings
 // - ODRADEK: a room with corners, beside the odd ones
 //
 // The goal ids all start with PREFIX ("goals-<signature>" for a ring and
-// for a bell, "goals-<signature>-<kind>" for a pair and a dais,
+// for a bell and a statue, "goals-<signature>-<kind>" for a pair and a
+// dais,
 // "goals-<family>"),
 // which is how the reset tells this map's goals from
 // the WILDS' (whose ids are their cells, "<x>.<y>").
@@ -44,6 +48,7 @@ import type { Arrangement } from "./odd_ones.ts"
 import type { Bell } from "./bells.ts"
 import type { Pair } from "./pairs.ts"
 import type { Clear } from "./clears.ts"
+import type { Gaze } from "./gazes.ts"
 import { alikeType, unlikeType } from "../model/odd-families.ts"
 
 export const SIZE = 200
@@ -66,6 +71,8 @@ export const bellId = (sig: string) => `${PREFIX}${sig}`
 export const pairId = (sig: string, want: string) => `${PREFIX}${sig}-${want}`
 /** The dais id of a signature and what sits, e.g. "goals-roll+bush-boulder" */
 export const clearId = (sig: string, sits: string) => `${PREFIX}${sig}-${sits}`
+/** The statue id of a signature, e.g. "goals-push+sink" */
+export const gazeId = (sig: string) => `${PREFIX}${sig}`
 /** The odd one's id of a family, e.g. "goals-tulip" */
 export const oddId = (family: string) => `${PREFIX}${family}`
 
@@ -123,6 +130,22 @@ export function clearBay(pairs: number, n: number): { x: number; y: number } {
   }
 }
 
+/** The top of the statues' section, under the pairs and daises */
+export const gazesY = (pairs: number, clears: number) =>
+  clearsY(pairs) + 2 + Math.ceil(clears / RING_COLS) * RING_PITCH_Y + 1
+
+/** The top left wall cell of the n-th statue bay (as a ring bay) */
+export function gazeBay(
+  pairs: number,
+  clears: number,
+  n: number,
+): { x: number; y: number } {
+  return {
+    x: PAIRS_X + (n % RING_COLS) * RING_PITCH_X,
+    y: gazesY(pairs, clears) + 2 + Math.floor(n / RING_COLS) * RING_PITCH_Y,
+  }
+}
+
 /** The top of the odd ones' section, after the ring and bell bays */
 export const oddsY = (rings: number, bells: number) =>
   bellsY(rings) + 2 + Math.ceil(bells / RING_COLS) * RING_PITCH_Y + 1
@@ -158,6 +181,8 @@ export type GoalBell = Bell & { inWilds: boolean }
 export type GoalPair = Pair & { inWilds: boolean }
 /** A dais of the map: a dais and whether the WILDS have its signature */
 export type GoalClear = Clear & { inWilds: boolean }
+/** A statue of the map: a statue and whether the WILDS have its signature */
+export type GoalGaze = Gaze & { inWilds: boolean }
 
 export type Spawn = { i: number; j: number; type: string; data?: unknown }
 export type BlockJson = {
@@ -187,6 +212,8 @@ const PATCH_CELL: Record<string, string> = {
   Y: "6",
   Z: "6",
   D: "6",
+  E: "6",
+  T: "6",
 }
 const FLOOR = "0"
 const WALL = "1"
@@ -206,14 +233,15 @@ function oddPlace(a: Arrangement): string {
 }
 
 /**
- * Lays out the map: the rings, bells, pairs and daises (in bay order)
- * and the odd ones
+ * Lays out the map: the rings, bells, pairs, daises and statues (in bay
+ * order) and the odd ones
  */
 export function buildGoalsMap(
   rings: readonly GoalRing[],
   bells: readonly GoalBell[],
   pairs: readonly GoalPair[],
   clears: readonly GoalClear[],
+  gazes: readonly GoalGaze[],
   odds: readonly Arrangement[],
 ): BlockJson {
   const grid: string[][] = Array.from(
@@ -262,7 +290,11 @@ export function buildGoalsMap(
   const width = PAIRS_X + RING_COLS * RING_PITCH_X + 3
   const ODDS_Y = oddsY(rings.length, bells.length)
   const BELLS_Y = bellsY(rings.length)
-  const height = ODDS_Y + 2 + Math.max(oddRows, 2) * ODD_PITCH_Y
+  const height = Math.max(
+    ODDS_Y + 2 + Math.max(oddRows, 2) * ODD_PITCH_Y,
+    gazesY(pairs.length, clears.length) + 2 +
+      Math.ceil(gazes.length / RING_COLS) * RING_PITCH_Y,
+  )
   if (height >= SIZE - 1) throw new RangeError(`${height} rows: too many bays`)
   rect(1, 1, width, height, FLOOR)
   const box: [number, number, number, number] = [
@@ -287,7 +319,8 @@ export function buildGoalsMap(
     `GOALS MAP: A RING FOR EVERY SIGNATURE (${rings.length}), A BELL FOR ` +
       `EVERY SIGNATURE (${bells.length}), A PAIR FOR EVERY SIGNATURE AND ` +
       `KIND (${pairs.length}, EAST), A DAIS TO CLEAR FOR EVERY SIGNATURE ` +
-      `(${clears.length}, EAST) AND AN ODD ONE FOR EVERY FAMILY ` +
+      `(${clears.length}, EAST), A STATUE FOR EVERY SIGNATURE ` +
+      `(${gazes.length}, EAST) AND AN ODD ONE FOR EVERY FAMILY ` +
       `(${odds.length}). GOALS DONE HERE COUNT, GIVE ` +
       "LETTERS AND LAST IN THE SAVE AS IN THE WILDS. THE RESET UNDOES THEM",
   )
@@ -491,6 +524,53 @@ export function buildGoalsMap(
     )
   })
 
+  // the statues
+  const GAZES_Y = gazesY(pairs.length, clears.length)
+  letters(PAIRS_X - 1, GAZES_Y, "GAZE")
+  sign(
+    PAIRS_X + 4,
+    GAZES_Y,
+    "STATUES: THE STATUE SEES STRAIGHT AHEAD. CLEAR ITS LINE TO THE " +
+      "SUN-STONE: TREES, ROCKS, BUSHES, STONES AND BOULDERS BLOCK IT, " +
+      "WATER DOESN'T",
+  )
+  gazes.forEach((gaze, n) => {
+    const { x, y } = gazeBay(pairs.length, clears.length, n)
+    const px = x + 1, py = y + 1
+    const sig = sigName(gaze.signature)
+    const id = gazeId(sig)
+    const wx = px + gaze.start[0]
+    const cells = gaze.rows.join("")
+    const sun = cells.indexOf("T")
+    bay(x, y, x + RING_W + 1, y + RING_H + 1, wx)
+    gaze.rows.forEach((row, dy) =>
+      [...row].forEach((c, dx) => {
+        grid[py + dy][px + dx] = PATCH_CELL[c]
+        if (c === "E") {
+          prop(px + dx, py + dy, "gaze-statue", {
+            id,
+            dir: gaze.dir,
+            to: [BI + px + sun % RING_W, BJ + py + Math.floor(sun / RING_W)],
+            reward: [BI + px + gaze.reward[0], BJ + py + gaze.reward[1]],
+          })
+        } else if (c === "T") prop(px + dx, py + dy, "gaze-sun", { id })
+      })
+    )
+    for (const t of gaze.things) actor(px + t.x, py + t.y, t.kind)
+    const bottom = y + RING_H + 1
+    wallSign(
+      wx - 2,
+      bottom,
+      `STATUE ${n + 1}: ${sig.toUpperCase()}. ${gaze.pushes} PUSHES` +
+        (gaze.inWilds ? "" : ". NOT IN THE WILDS (DRAWN HERE)"),
+    )
+    wallSign(
+      wx + 2,
+      bottom,
+      `SOLUTION, FROM THE CELL INSIDE THE WAY IN: ${gaze.solution}`,
+    )
+  })
+
   // the odd ones
   letters(2, ODDS_Y, "ODD")
   sign(
@@ -596,6 +676,19 @@ export function readRingBay(
 }
 
 /**
+ * Reads the n-th statue bay of the block back into a patch, as
+ * readRingBay does. Also the statue's id
+ */
+export function readGazeBay(
+  block: BlockJson,
+  pairs: number,
+  clears: number,
+  n: number,
+): { id: string; layout: Layout } | null {
+  return readBay(block, gazeBay(pairs, clears, n))
+}
+
+/**
  * Reads the n-th dais bay of the block back into a patch, as
  * readRingBay does (the dais under its first thing). Also the dais' id
  */
@@ -676,7 +769,11 @@ function readBay(
         id = (p.data as { id: string }).id
         const a = at(block.actors, dx, dy)
         row += a?.type === "stone" ? "S" : a?.type === "boulder" ? "B" : "D"
-      } else if (p?.type === "pair-plinth") {
+      } else if (p?.type === "gaze-statue") {
+        id = (p.data as { id: string }).id
+        row += "E"
+      } else if (p?.type === "gaze-sun") row += "T"
+      else if (p?.type === "pair-plinth") {
         id = (p.data as { id: string }).id
         row += "P"
       } else if (p?.type === "pair-twin") {

@@ -2216,6 +2216,89 @@
         ]
       }
     },
+    "gaze-statue": {
+      "src": "../prop/gaze_down.png",
+      "canEnter": false,
+      "growth": {
+        "stages": [
+          "../prop/gaze_up.png",
+          "../prop/gaze_down.png",
+          "../prop/gaze_left.png",
+          "../prop/gaze_right.png",
+          "../prop/gaze_up_lit.png",
+          "../prop/gaze_down_lit.png",
+          "../prop/gaze_left_lit.png",
+          "../prop/gaze_right_lit.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "dir": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down",
+              "left",
+              "right"
+            ]
+          },
+          "to": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "reward": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "dir",
+          "to"
+        ]
+      }
+    },
+    "gaze-sun": {
+      "src": "../prop/gaze_sun.png",
+      "canEnter": false,
+      "growth": {
+        "stages": [
+          "../prop/gaze_sun.png",
+          "../prop/gaze_sun_lit.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
     "alike-tulip": {
       "src": "../prop/alike_tulip.png",
       "canEnter": false

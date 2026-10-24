@@ -2,7 +2,8 @@
 // tools/goals_map.ts): a ring for every signature tools/rings.ts makes,
 // a bell for every signature tools/bells.ts makes, a pair for every
 // signature and kind tools/pairs.ts makes, a dais to clear for every
-// signature and kind tools/clears.ts makes, an odd one for every family, Odradek's room and a reset that undoes the goals of this map
+// signature and kind tools/clears.ts makes, a statue for every signature
+// tools/gazes.ts makes, an odd one for every family, Odradek's room and a reset that undoes the goals of this map
 // only. It is linked from the start island by a
 // "GOALS" portal room, to the left of the DEBUG room.
 //
@@ -12,12 +13,13 @@
 // ring the WILDS place first; then more drafts with a seed of their own
 // (--drafts, 3000 by default; it takes some minutes) for the signatures
 // the WILDS don't have. The bays go by the number of rules, then by the
-// rules. Deterministic: the same rings every run. The bells, the pairs
-// and the daises the same way (--bell-drafts, --pair-drafts,
-// --clear-drafts, 1500 by default).
+// rules. Deterministic: the same rings every run. The bells, the pairs,
+// the daises and the statues the same way (--bell-drafts, --pair-drafts,
+// --clear-drafts, --gaze-drafts, 1500 by default).
 //
 // Usage: deno -A tools/generate_goals_map.ts [--drafts 3000]
 //   [--bell-drafts 1500] [--pair-drafts 1500] [--clear-drafts 1500]
+//   [--gaze-drafts 1500]
 import { parseArgs } from "@std/cli/parse-args"
 import { loadCatalog } from "../model/catalog.ts"
 import { ODD_FAMILIES } from "../model/odd-families.ts"
@@ -28,6 +30,7 @@ import { arrange } from "./odd_ones.ts"
 import { acceptBell, type Bell, BELL_AIMS, draftBell } from "./bells.ts"
 import { acceptPair, draftPair, type Pair, PAIR_AIMS } from "./pairs.ts"
 import { acceptClear, type Clear, CLEAR_AIMS, draftClear } from "./clears.ts"
+import { acceptGaze, draftGaze, type Gaze, GAZE_AIMS } from "./gazes.ts"
 import {
   ARRIVAL,
   BI,
@@ -36,18 +39,26 @@ import {
   buildGoalsMap,
   type GoalBell,
   type GoalClear,
+  type GoalGaze,
   type GoalPair,
   type GoalRing,
   type Spawn,
 } from "./goals_map.ts"
 
 const args = parseArgs(Deno.args, {
-  string: ["drafts", "bell-drafts", "pair-drafts", "clear-drafts"],
+  string: [
+    "drafts",
+    "bell-drafts",
+    "pair-drafts",
+    "clear-drafts",
+    "gaze-drafts",
+  ],
 })
 const EXTRA_DRAFTS = Number(args.drafts ?? 3000)
 const EXTRA_BELL_DRAFTS = Number(args["bell-drafts"] ?? 1500)
 const EXTRA_PAIR_DRAFTS = Number(args["pair-drafts"] ?? 1500)
 const EXTRA_CLEAR_DRAFTS = Number(args["clear-drafts"] ?? 1500)
+const EXTRA_GAZE_DRAFTS = Number(args["gaze-drafts"] ?? 1500)
 
 const catalog = await loadCatalog(
   new URL("../static/catalog/base.json", import.meta.url).href,
@@ -244,7 +255,46 @@ const clears = [...clearBySig.entries()]
   .sort((a, b) => bySignature([a[0], 0], [b[0], 0]) || (a[2] < b[2] ? -1 : 1))
   .map(([, c]) => c)
 
-const block = buildGoalsMap(rings, bells, pairs, clears, odds)
+// ---------------------------------------------------------------------
+// the statues
+
+const gazeBySig = new Map<string, GoalGaze>()
+const addGaze = (gaze: Gaze, inWilds: boolean) => {
+  const sig = sigName(gaze.signature)
+  if (!gazeBySig.has(sig)) gazeBySig.set(sig, { ...gaze, inWilds })
+}
+{
+  // the WILDS' pool: as tools/generate_wilds.ts draws it
+  const plan = JSON.parse(
+    await Deno.readTextFile(new URL("./wilds_plan.json", import.meta.url)),
+  ) as { seed: string; blocks: { w: number; h: number } }
+  const W = plan.blocks.w * 200, H = plan.blocks.h * 200
+  const SCALE = Math.max(1, Math.round((W * H) / (1600 * 1000)))
+  const COUNT = 8 * SCALE
+  const rr = seed(`${plan.seed}/gazes`)
+  let drawn = 0
+  for (let n = 0; n < 160 * SCALE && drawn < 4 * COUNT; n++) {
+    const gaze = acceptGaze(draftGaze(rr, GAZE_AIMS[n % GAZE_AIMS.length]))
+    if (!gaze) continue
+    addGaze(gaze, true)
+    drawn++
+  }
+  console.log(`the WILDS' statues: ${gazeBySig.size} signatures`)
+}
+{
+  // more, for the signatures the WILDS don't have
+  const rr = seed("goals/gazes")
+  for (let n = 0; n < EXTRA_GAZE_DRAFTS; n++) {
+    const gaze = acceptGaze(draftGaze(rr, GAZE_AIMS[n % GAZE_AIMS.length]))
+    if (gaze) addGaze(gaze, false)
+    if (n % 500 === 499) {
+      console.log(`${n + 1} more statue drafts: ${gazeBySig.size}`)
+    }
+  }
+}
+const gazes = [...gazeBySig.entries()].sort(bySignature).map(([, g]) => g)
+
+const block = buildGoalsMap(rings, bells, pairs, clears, gazes, odds)
 
 const fail = (...msg: unknown[]) => {
   console.error(...msg)
@@ -292,6 +342,8 @@ console.log(
     pairs.map((p) => `${sigName(p.signature)} ${p.want}`).join(", ") +
     `; ${clears.length} daises: ` +
     clears.map((c) => `${sigName(c.signature)} ${c.sits}`).join(", ") +
+    `; ${gazes.length} statues: ` +
+    gazes.map((g) => sigName(g.signature)).join(", ") +
     `; ${odds.length} odd ones)`,
 )
 
@@ -340,7 +392,9 @@ const additions: Spawn[] = [
     ...local(19, 23),
     type: "sign",
     data: {
-      text: "GOALS MAP: EVERY RING, BELL, PAIR, DAIS AND ODD ONE, AND A RESET",
+      text:
+        "GOALS MAP: EVERY RING, BELL, PAIR, DAIS, STATUE AND ODD ONE, AND A " +
+        "RESET",
     },
   },
   {
