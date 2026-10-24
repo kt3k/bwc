@@ -266,6 +266,16 @@ prop(160, 72, "pair-plinth", {
 actor(166, 72, "boulder")
 actor(160, 76, "stone")
 
+// the dais to clear (model/clear.ts): the stone sits in a nook, a push
+// from the way in jams it on the bush behind; flatten the bush from below
+// and push it out from behind
+sign(168, 74, "DAIS: GET THE STONE OFF IT")
+grid[77][171] = "1"
+grid[77][173] = "1"
+grid[78][172] = "k"
+prop(172, 77, "clear-dais", { id: "zoo-dais", reward: [BI + 175, BJ + 75] })
+actor(172, 77, "stone")
+
 // Odradek (model/odradek.ts): in the corner of a small room, off to
 // another corner when you come near; talk to it from beside it
 sign(158, 56, "ODRADEK: IT WON'T BE CAUGHT")

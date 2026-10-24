@@ -1,4 +1,5 @@
-// A field made of a patch of tools/rings.ts (a ring, a bell, a pair),
+// A field made of a patch of tools/rings.ts (a ring, a bell, a pair, a
+// dais),
 // with the game's real actors and props (model/actor.ts, model/prop.ts),
 // for the tests to play a solution in and compare it with the simulator
 // move by move (tools/rings.test.ts, bells.test.ts, pairs.test.ts).
@@ -34,6 +35,7 @@ const CELL_OF: Record<string, string> = {
   P: "0",
   Y: "0",
   Z: "0",
+  D: "0",
 }
 export const DIR_OF: Record<string, Dir> = {
   U: "up",

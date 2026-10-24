@@ -110,6 +110,7 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "goal-bell": { id: "debug-bell" },
   "pair-plinth": { id: "debug-pair", want: "stone" },
   "pair-twin": { id: "debug-pair", holds: "stone" },
+  "clear-dais": { id: "debug-dais" },
   // undoes the goals above (their ids start with "debug")
   "goal-reset": {
     prefix: "debug",

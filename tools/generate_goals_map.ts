@@ -1,7 +1,8 @@
 // Generates the GOALS debug map (block_10400.-10000, laid out by
 // tools/goals_map.ts): a ring for every signature tools/rings.ts makes,
 // a bell for every signature tools/bells.ts makes, a pair for every
-// signature and kind tools/pairs.ts makes, an odd one for every family, Odradek's room and a reset that undoes the goals of this map
+// signature and kind tools/pairs.ts makes, a dais to clear for every
+// signature and kind tools/clears.ts makes, an odd one for every family, Odradek's room and a reset that undoes the goals of this map
 // only. It is linked from the start island by a
 // "GOALS" portal room, to the left of the DEBUG room.
 //
@@ -11,11 +12,12 @@
 // ring the WILDS place first; then more drafts with a seed of their own
 // (--drafts, 3000 by default; it takes some minutes) for the signatures
 // the WILDS don't have. The bays go by the number of rules, then by the
-// rules. Deterministic: the same rings every run. The bells and the pairs
-// the same way (--bell-drafts, --pair-drafts, 1500 by default).
+// rules. Deterministic: the same rings every run. The bells, the pairs
+// and the daises the same way (--bell-drafts, --pair-drafts,
+// --clear-drafts, 1500 by default).
 //
 // Usage: deno -A tools/generate_goals_map.ts [--drafts 3000]
-//   [--bell-drafts 1500] [--pair-drafts 1500]
+//   [--bell-drafts 1500] [--pair-drafts 1500] [--clear-drafts 1500]
 import { parseArgs } from "@std/cli/parse-args"
 import { loadCatalog } from "../model/catalog.ts"
 import { ODD_FAMILIES } from "../model/odd-families.ts"
@@ -25,6 +27,7 @@ import { accept, AIMS, draft, type Ring, RULES, sigName } from "./rings.ts"
 import { arrange } from "./odd_ones.ts"
 import { acceptBell, type Bell, BELL_AIMS, draftBell } from "./bells.ts"
 import { acceptPair, draftPair, type Pair, PAIR_AIMS } from "./pairs.ts"
+import { acceptClear, type Clear, CLEAR_AIMS, draftClear } from "./clears.ts"
 import {
   ARRIVAL,
   BI,
@@ -32,17 +35,19 @@ import {
   type BlockJson,
   buildGoalsMap,
   type GoalBell,
+  type GoalClear,
   type GoalPair,
   type GoalRing,
   type Spawn,
 } from "./goals_map.ts"
 
 const args = parseArgs(Deno.args, {
-  string: ["drafts", "bell-drafts", "pair-drafts"],
+  string: ["drafts", "bell-drafts", "pair-drafts", "clear-drafts"],
 })
 const EXTRA_DRAFTS = Number(args.drafts ?? 3000)
 const EXTRA_BELL_DRAFTS = Number(args["bell-drafts"] ?? 1500)
 const EXTRA_PAIR_DRAFTS = Number(args["pair-drafts"] ?? 1500)
+const EXTRA_CLEAR_DRAFTS = Number(args["clear-drafts"] ?? 1500)
 
 const catalog = await loadCatalog(
   new URL("../static/catalog/base.json", import.meta.url).href,
@@ -193,7 +198,53 @@ const odds = (() => {
 // ---------------------------------------------------------------------
 // the block, checked
 
-const block = buildGoalsMap(rings, bells, pairs, odds)
+// ---------------------------------------------------------------------
+// the daises to clear (by signature and what sits on them)
+
+const clearBySig = new Map<string, GoalClear>()
+const addClear = (clear: Clear, inWilds: boolean) => {
+  const key = `${sigName(clear.signature)} ${clear.sits}`
+  if (!clearBySig.has(key)) clearBySig.set(key, { ...clear, inWilds })
+}
+{
+  // the WILDS' pool: as tools/generate_wilds.ts draws it
+  const plan = JSON.parse(
+    await Deno.readTextFile(new URL("./wilds_plan.json", import.meta.url)),
+  ) as { seed: string; blocks: { w: number; h: number } }
+  const W = plan.blocks.w * 200, H = plan.blocks.h * 200
+  const SCALE = Math.max(1, Math.round((W * H) / (1600 * 1000)))
+  const COUNT = 8 * SCALE
+  const rr = seed(`${plan.seed}/clears`)
+  let drawn = 0
+  for (let n = 0; n < 160 * SCALE && drawn < 4 * COUNT; n++) {
+    const clear = acceptClear(
+      draftClear(rr, CLEAR_AIMS[n % CLEAR_AIMS.length]),
+    )
+    if (!clear) continue
+    addClear(clear, true)
+    drawn++
+  }
+  console.log(`the WILDS' daises: ${clearBySig.size} signatures and kinds`)
+}
+{
+  // more, for the signatures the WILDS don't have
+  const rr = seed("goals/clears")
+  for (let n = 0; n < EXTRA_CLEAR_DRAFTS; n++) {
+    const clear = acceptClear(
+      draftClear(rr, CLEAR_AIMS[n % CLEAR_AIMS.length]),
+    )
+    if (clear) addClear(clear, false)
+    if (n % 500 === 499) {
+      console.log(`${n + 1} more dais drafts: ${clearBySig.size}`)
+    }
+  }
+}
+const clears = [...clearBySig.entries()]
+  .map(([key, c]) => [key.split(" ")[0], c, key] as const)
+  .sort((a, b) => bySignature([a[0], 0], [b[0], 0]) || (a[2] < b[2] ? -1 : 1))
+  .map(([, c]) => c)
+
+const block = buildGoalsMap(rings, bells, pairs, clears, odds)
 
 const fail = (...msg: unknown[]) => {
   console.error(...msg)
@@ -210,9 +261,16 @@ for (const a of block.actors) {
   if (!catalog.actors[a.type]) fail("unknown actor type:", a.type)
 }
 const occupied = new Set<string>()
+/** The daises: what sits on one is the one spawn let share its cell */
+const daises = new Set(
+  block.props.filter((p) => p.type === "clear-dais").map((p) =>
+    `${p.i}.${p.j}`
+  ),
+)
 for (const s of [...block.actors, ...block.items, ...block.props]) {
   const key = `${s.i}.${s.j}`
-  if (occupied.has(key)) fail("overlapping spawns at", key, s)
+  const sits = s.type === "clear-dais" && daises.has(key)
+  if (occupied.has(key) && !sits) fail("overlapping spawns at", key, s)
   occupied.add(key)
   const x = s.i - BI, y = s.j - BJ
   const cell = catalog.cells[block.field[y][x]]
@@ -232,6 +290,8 @@ console.log(
     bells.map((b) => sigName(b.signature)).join(", ") +
     `; ${pairs.length} pairs: ` +
     pairs.map((p) => `${sigName(p.signature)} ${p.want}`).join(", ") +
+    `; ${clears.length} daises: ` +
+    clears.map((c) => `${sigName(c.signature)} ${c.sits}`).join(", ") +
     `; ${odds.length} odd ones)`,
 )
 
@@ -280,7 +340,7 @@ const additions: Spawn[] = [
     ...local(19, 23),
     type: "sign",
     data: {
-      text: "GOALS MAP: EVERY RING, BELL, PAIR AND ODD ONE, AND A RESET",
+      text: "GOALS MAP: EVERY RING, BELL, PAIR, DAIS AND ODD ONE, AND A RESET",
     },
   },
   {
