@@ -11,7 +11,7 @@ import type {
   LoadOptions,
   Move,
 } from "./types.ts"
-import { DIRS } from "../util/dir.ts"
+import { DIRS, nextGrid } from "../util/dir.ts"
 import * as signal from "../util/signals.ts"
 import { countPopup, linePattern0 } from "./effect.ts"
 import { ActionQueue, type ItemAction } from "./action-queue.ts"
@@ -20,6 +20,9 @@ import { Palette, type PaletteColor } from "../util/palette.ts"
 import { collectLetter, collectShard } from "./oddities.ts"
 import { collectGlyph } from "./glyph.ts"
 import { REVEAL_FRAMES, revealPose } from "./goal-fx.ts"
+
+/** The frames a put item takes to come out of the one who put it */
+export const EMERGE_FRAMES = 16
 
 const fallbackImage = await fetch(
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAADRJREFUOE9jZKAQMFKon2FoGPAfzZsoribGC0PQALxORo92bGEwDAwgKXUTkw7wGjjwBgAAiwgIEW1Cnt4AAAAASUVORK5CYII=",
@@ -40,6 +43,9 @@ export class Item implements IItem {
   #followState: "following" | "waiting" | null = null
   /** Frames left of its reveal (a letter rising out of the ground) */
   #reveal = 0
+  /** Frames left of its coming out of the one who put it, and which way */
+  #emerge = 0
+  #emergeDir: Dir = "down"
   readonly #actionQueue = new ActionQueue<Item, ItemAction>(
     (_field, action) => {
       switch (action.type) {
@@ -210,14 +216,32 @@ export class Item implements IItem {
     return this.#image ?? fallbackImage
   }
 
+  /** How far it still is back toward the one who put it (pixels) */
+  get #emergeOffset(): number {
+    return Math.round(this.#emerge * CELL_SIZE / EMERGE_FRAMES)
+  }
+
   get x(): number {
-    return this.i * CELL_SIZE + (this.#move?.x ?? 0)
+    const [di] = nextGrid(0, 0, this.#emergeDir)
+    return this.i * CELL_SIZE + (this.#move?.x ?? 0) - di * this.#emergeOffset
   }
   get y(): number {
     const dy = this.#reveal > 0
       ? revealPose(REVEAL_FRAMES - this.#reveal).dy
       : 0
-    return this.j * CELL_SIZE + (this.#move?.y ?? 0) + dy
+    const [, dj] = nextGrid(0, 0, this.#emergeDir)
+    return this.j * CELL_SIZE + (this.#move?.y ?? 0) + dy -
+      dj * this.#emergeOffset
+  }
+
+  /**
+   * Starts its coming out of the one who put it: it slides out from that
+   * cell, a pixel a frame, put the given way (from there to here), and
+   * can't be picked up until it is out
+   */
+  startEmerge(dir: Dir, frames = EMERGE_FRAMES) {
+    this.#emerge = frames
+    this.#emergeDir = dir
   }
 
   /**
@@ -230,7 +254,7 @@ export class Item implements IItem {
 
   /** true while it is still being revealed: not to be picked up yet */
   get revealing(): boolean {
-    return this.#reveal > 0
+    return this.#reveal > 0 || this.#emerge > 0
   }
 
   /** The rows of its sprite shown while it rises out of the ground */
@@ -241,6 +265,7 @@ export class Item implements IItem {
 
   step(field: IField) {
     if (this.#reveal > 0) this.#reveal--
+    if (this.#emerge > 0) this.#emerge--
     if (!this.#move) {
       this.#actionQueue.process(this, field)
     }

@@ -87,6 +87,8 @@ export function putTool(actor: Actor, field: IField): boolean {
   const item = field.spawnItem(tool, fi, fj)
   if (!item) return true
   if (tool === "apple") signal.appleCount.update(signal.appleCount.get() - 1)
+  // it comes out of the player, a pixel a frame, onto the front cell
+  if (item instanceof Item) item.startEmerge(actor.dir)
   signal.playSound("blipSelect")
   putEffect(field, actor, fi, fj, item.def.color ?? Palette.white)
   return true

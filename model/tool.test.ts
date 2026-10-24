@@ -84,6 +84,27 @@ Deno.test("putTool", async (t) => {
     signal.appleCount.update(0)
   })
 
+  await t.step("the apple comes out of the player in 16 frames", () => {
+    signal.appleCount.update(1)
+    chooseTool("apple")
+    const me = new Actor(0, 0, def, "main")
+    me.setDir("right")
+    const { field, items } = makeField(me)
+    putTool(me, field)
+    const apple = items[0] as Item
+    // it starts on the player's cell, under the player
+    assertEquals([apple.x, apple.y], [0, 0])
+    assert(apple.revealing)
+    for (let n = 0; n < 8; n++) apple.step(field)
+    assertEquals([apple.x, apple.y], [8, 0])
+    for (let n = 0; n < 8; n++) apple.step(field)
+    // out on the front cell: it can be picked up now
+    assertEquals([apple.x, apple.y], [16, 0])
+    assert(!apple.revealing)
+    chooseTool(null)
+    signal.appleCount.update(0)
+  })
+
   await t.step("puts nothing without apples", () => {
     signal.appleCount.update(0)
     chooseTool("apple")
