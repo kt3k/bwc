@@ -1,8 +1,9 @@
 // The moment a goal is done (model/celebrate.ts, model/goal-fx.ts): the
-// hit stop holds the world still and lets go, the burst goes off once
-// (the sound and the message as it lets go), and the reward letter rises
-// slowly and can't be picked up until it has; laid again after a reload,
-// it just lies there
+// hit stop holds the world still under white noise (no shake) and lets
+// go, the five long lines go out in waves (the sound and the message as
+// it lets go), and the reward letter rises slowly a little way off and
+// can't be picked up until it has; laid again after a reload, it just
+// lies there, in the same place
 import { assert, assertEquals } from "@std/assert"
 import { Catalog } from "./catalog.ts"
 import { Actor, spawnActor } from "./actor.ts"
@@ -11,10 +12,13 @@ import { Prop } from "./prop.ts"
 import { PropSpawn } from "./field-block.ts"
 import { celebrateGoal } from "./celebrate.ts"
 import {
-  BURST_FRAMES,
   GlyphReveal,
   GOAL_HIT_STOP,
-  GoalBurst,
+  GOAL_LINE_GAP,
+  GOAL_LINE_WAVES,
+  GOAL_LINES,
+  GOAL_LINES_FRAMES,
+  GoalLines,
   REVEAL,
   REVEAL_DELAY,
   REVEAL_FRAMES,
@@ -50,6 +54,9 @@ function makeField() {
   const field = {
     time: 0,
     actorList: [] as unknown[],
+    canEnterStatic: () => true,
+    isWater: () => false,
+    props: { get: () => undefined },
     peekItems: (i: number, j: number) =>
       items.filter((t) => t.i === i && t.j === j) as IItem[],
     spawnItem: (type: string, i: number, j: number, id?: string) => {
@@ -83,6 +90,7 @@ const reset = () => {
   signal.message.update(null)
   juice.freeze = 0
   juice.shake = 0
+  juice.noise = 0
 }
 
 Deno.test("goal fx: the hit stop holds the world still for its frames, then lets go", () => {
@@ -95,29 +103,65 @@ Deno.test("goal fx: the hit stop holds the world still for its frames, then lets
   assertEquals(juice.freeze, 0)
 })
 
-Deno.test("goal fx: a goal done holds still, then bursts once with its message", () => {
+Deno.test("goal fx: a goal done holds still under white noise, no shake, then the lines go out with its message", () => {
   reset()
   const { field, effects, frame } = makeField()
   const sounds: string[] = []
   const off = signal.sound.subscribe((s) => s && sounds.push(s.name))
   celebrateGoal(field, 10, 10, "A GOAL")
+  assertEquals(GOAL_HIT_STOP, 32)
   assertEquals(juice.freeze, GOAL_HIT_STOP)
-  assert(juice.shake > GOAL_HIT_STOP)
+  // no shake; the white noise from this frame to the last one held
+  assertEquals(juice.shake, 0)
+  assertEquals(juice.noise, GOAL_HIT_STOP + 1)
   assertEquals(effects.length, 1)
-  assert(effects[0] instanceof GoalBurst)
+  const lines = effects[0] as GoalLines
+  assert(lines instanceof GoalLines)
   // in the same frame (the rest of the field's step): not yet
-  effects[0].step(field)
-  assertEquals((effects[0] as GoalBurst).f, 0)
-  // held still: nothing moves, no message, no sound yet
-  for (let k = 0; k < GOAL_HIT_STOP; k++) assert(!frame())
-  assertEquals((effects[0] as GoalBurst).f, 0)
+  lines.step(field)
+  assertEquals(lines.f, 0)
+  // held still: nothing moves, nothing on the goal cell (no white light),
+  // no message, no sound yet
+  for (let k = 0; k < GOAL_HIT_STOP; k++) {
+    assert(!frame())
+    assertEquals([...lines.boxes()], [])
+  }
+  assertEquals(lines.f, 0)
   assertEquals(signal.message.get(), null)
   assertEquals(sounds, [])
-  // let go: the message and the sound, once
+  // let go: the message and the sound, once, and the first five lines
+  // out of each side of the goal cell
   assert(frame())
   assertEquals(signal.message.get(), { text: "A GOAL" })
   assertEquals(sounds, ["powerUp"])
-  for (let k = 0; k < BURST_FRAMES + 5; k++) frame()
+  assertEquals(lines.waves, 1)
+  const first = [...lines.boxes()]
+  assertEquals(first.length, 5 * 4)
+  assert(first.every((b) => b.color === GOAL_LINE_WAVES[0]))
+  // the waves after it, GOAL_LINE_GAP frames apart
+  for (let k = 0; k < GOAL_LINE_GAP; k++) frame()
+  assertEquals(lines.waves, 2)
+  assertEquals([...lines.boxes()].length, 5 * 4 * 2)
+  // the lines go far (more than 3 cells out) and get long
+  let far = 0
+  let longest = 0
+  while (effects.length > 0 && lines.f < 500) {
+    for (const b of lines.boxes()) {
+      far = Math.max(
+        far,
+        Math.abs(b.x + b.w / 2 - 10.5 * 16),
+        Math.abs(b.y + b.h / 2 - 10.5 * 16),
+      )
+      longest = Math.max(longest, b.w, b.h)
+    }
+    frame()
+  }
+  assert(far > 3 * 16, `${far}`)
+  assertEquals(longest, GOAL_LINES.length)
+  assertEquals(lines.waves, GOAL_LINE_WAVES.length)
+  assertEquals(lines.f, GOAL_LINES_FRAMES)
+  // ~2 s, much longer than the pickup's lines (48 frames)
+  assert(GOAL_LINES_FRAMES > 100)
   assertEquals(sounds, ["powerUp"])
   assertEquals(effects, [])
   off()
@@ -200,10 +244,14 @@ Deno.test("goal fx: a ring made whole celebrates once; reloaded, its letter just
   }
   stepRingSlot(slot, field)
   assert(Item.isCollected(ringKey("R")))
-  assertEquals(effects.filter((e) => e instanceof GoalBurst).length, 1)
+  assertEquals(effects.filter((e) => e instanceof GoalLines).length, 1)
   assertEquals(effects.filter((e) => e instanceof GlyphReveal).length, 1)
   assertEquals(items.length, 1)
   assert(items[0].revealing)
+  // a little way off the ring
+  const [at] = items
+  const d = Math.max(Math.abs(at.i - 100), Math.abs(at.j))
+  assert(d >= 3 && d <= 4, `${d}`)
   // whole now: stepped on, it doesn't celebrate again
   for (let k = 0; k < 200; k++) {
     frame()
@@ -223,6 +271,8 @@ Deno.test("goal fx: a ring made whole celebrates once; reloaded, its letter just
     stepRingSlot(slot, second.field)
   }
   assertEquals(second.items.map((t) => t.id), [ringRewardKey("R")])
+  // in the same place as when the ring was made whole
+  assertEquals([second.items[0].i, second.items[0].j], [at.i, at.j])
   assert(!second.items[0].revealing)
   assertEquals(second.effects, [])
   assertEquals(juice.freeze, 0)
@@ -246,12 +296,16 @@ Deno.test("goal fx: the odd one found celebrates with its letter rising", () => 
   const me = new Actor(100, 1, catalog.actors["static"], "main")
   odd.onPushed({ type: "pushed", dir: "up", peakAt: 7, pusher: me }, field)
   assertEquals(juice.freeze, GOAL_HIT_STOP)
-  assertEquals(effects.filter((e) => e instanceof GoalBurst).length, 1)
+  assertEquals(juice.shake, 0)
+  assert(juice.noise > GOAL_HIT_STOP)
+  assertEquals(effects.filter((e) => e instanceof GoalLines).length, 1)
   assertEquals(items.map((t) => t.id), [oddRewardKey("T")])
   assert(items[0].revealing)
+  const d = Math.max(Math.abs(items[0].i - 100), Math.abs(items[0].j))
+  assert(d >= 3 && d <= 4, `${d}`)
   // bumped again: no more
   odd.onPushed({ type: "pushed", dir: "up", peakAt: 7, pusher: me }, field)
-  assertEquals(effects.filter((e) => e instanceof GoalBurst).length, 1)
+  assertEquals(effects.filter((e) => e instanceof GoalLines).length, 1)
   reset()
 })
 
@@ -259,7 +313,7 @@ Deno.test("goal fx: palette colors and whole pixels only, every frame", () => {
   const rand = seeded(7)
   const field = { time: 1 } as IField
   const fxs = [
-    new GoalBurst(3, 4, 0, undefined, rand),
+    new GoalLines(3, 4, 0),
     new GlyphReveal(3, 4, 0, undefined, rand),
   ]
   for (const fx of fxs) {

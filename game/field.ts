@@ -619,6 +619,9 @@ export class Field implements IField {
       !this.#actors.checkCollision(i, j) &&
       this.#props.canEnter(i, j)
   }
+  isCellLoaded(i: number, j: number): boolean {
+    return this.#getCell(i, j) !== undefined
+  }
   canEnterStatic(i: number, j: number): boolean {
     return (this.#getCell(i, j)?.canEnter ?? false) &&
       this.#props.canEnter(i, j)

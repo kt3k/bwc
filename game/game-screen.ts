@@ -161,7 +161,8 @@ export function GameScreen({ el, query }: Context) {
     entityLayer.drawIterableEntity(field.items.iter())
     entityLayer.drawIterableEntity(field.actors.iter())
     entityLayer.drawIterableColorBox(effects.filter((e) => !e.ground))
-    entityLayer.drawWhiteNoise()
+    entityLayer.drawWhiteNoise(juice.noise > 0)
+    if (juice.noise > 0) juice.noise--
 
     const time = field.time
 

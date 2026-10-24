@@ -89,6 +89,8 @@ export type IField = {
   canEnter(i: number, j: number): boolean
   /** can enter the cell without considering dynamic objects */
   canEnterStatic(i: number, j: number): boolean
+  /** true if the cell's block is loaded (its terrain is known) */
+  isCellLoaded?(i: number, j: number): boolean
   /** true if the cell is slippery (e.g. ice) */
   isSlippery(i: number, j: number): boolean
   /** true if the cell is water */
@@ -144,8 +146,9 @@ export type IField = {
 }
 
 /**
- * An effect of many boxes stepped as one (a burst, model/goal-fx.ts):
- * the boxes of this frame are drawn like the plain effects
+ * An effect of many boxes stepped as one (the lines of a goal done,
+ * model/goal-fx.ts): the boxes of this frame are drawn like the plain
+ * effects
  */
 export type IEffectGroup = IStepper & IFinishable & {
   boxes(): Iterable<IColorBox>

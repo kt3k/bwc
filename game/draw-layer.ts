@@ -51,23 +51,46 @@ export class DrawLayer {
     }
   }
 
-  drawWhiteNoise(): void {
-    if (this.#noiseCount > 0) {
+  /**
+   * The white noise: now and then (one frame in a thousand) a few frames
+   * of white streaks all over the screen; with `forced`, this frame for
+   * sure (a goal done holds the world still under it, util/juice.ts)
+   */
+  drawWhiteNoise(forced = false): void {
+    if (forced) {
+      // drawn below
+    } else if (this.#noiseCount > 0) {
       this.#noiseCount--
     } else if (Math.random() > 0.001) {
       return
     } else {
       this.#noiseCount = randomInt(6) + 1
     }
-    this.#canvasWrapper.ctx.fillStyle = Palette.white
-    for (const _ of Array(randomInt(500))) {
-      const i = randomInt(this.#canvasWrapper.width)
-      const j = randomInt(this.#canvasWrapper.height)
-      this.#canvasWrapper.ctx.fillRect(i, j, 4, 1)
-    }
+    drawNoise(
+      this.#canvasWrapper.ctx,
+      this.#canvasWrapper.width,
+      this.#canvasWrapper.height,
+    )
   }
 
   clear(): void {
     this.#canvasWrapper.clear()
+  }
+}
+
+/**
+ * A frame of the white noise over the w x h canvas: up to `most` white
+ * streaks, 4x1, anywhere (the effects lab draws it too, fewer on its
+ * smaller stage)
+ */
+export function drawNoise(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  most = 500,
+): void {
+  ctx.fillStyle = Palette.white
+  for (const _ of Array(randomInt(most))) {
+    ctx.fillRect(randomInt(w), randomInt(h), 4, 1)
   }
 }

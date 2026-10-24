@@ -2,7 +2,9 @@
 // the open land of the WILDS with one place empty, the gap (`ring-slot`),
 // round its heart (`ring-heart`); a stone lies near. Bring a stone or a
 // boulder to rest in the gap and the ring is whole: the stone settles
-// into it, the heart wakes and the reward appears beside the ring, once.
+// into it, the heart wakes and the reward appears a little way off the
+// ring, once (where: rewardCell, model/glyph.ts, from the cell by the
+// ring the map gives).
 // tools/rings.ts makes the rings and tools/generate_wilds.ts places them.
 //
 // The reward is an unreadable letter (model/glyph.ts), each ring its own:
@@ -16,7 +18,7 @@ import { CELL_SIZE } from "../util/constants.ts"
 import { saveProgress } from "../util/save.ts"
 import { goneActorKey } from "./actor.ts"
 import { celebrateGoal } from "./celebrate.ts"
-import { glyphOf, glyphType, layGlyph } from "./glyph.ts"
+import { glyphOf, glyphType, layGlyph, rewardCell } from "./glyph.ts"
 import { Item } from "./item.ts"
 import type { Prop } from "./prop.ts"
 import type { IActor, IField } from "./types.ts"
@@ -42,7 +44,10 @@ type SlotData = {
   id?: string
   /** What the ring is made of: "stone" (default) or "boulder" */
   kind?: string
-  /** Where the reward appears (world cell) */
+  /**
+   * The cell by the ring the reward is reached from (world cell); it
+   * comes up a little way off (rewardCell)
+   */
   reward?: [number, number]
 }
 const dataOf = (prop: Prop) => (prop.data ?? {}) as SlotData
@@ -69,7 +74,7 @@ export function stepRingSlot(prop: Prop, field: IField) {
   if (isWhole(id)) {
     if (prop.canEnter) prop.setOpen(false, false)
     prop.showStage(filledStage(data))
-    if (field.time % 30 === 0) layReward(field, data)
+    if (field.time % 30 === 0) layReward(field, prop, data)
     return
   }
   prop.showStage(0)
@@ -91,14 +96,16 @@ function fill(prop: Prop, field: IField, actor: IActor) {
   field.actors.remove(actor)
   prop.setOpen(false, false)
   prop.showStage(filledStage(data))
-  // the hit stop, the burst, and the letter coming up (model/celebrate.ts)
+  // the hit stop, the lines, and the letter coming up (model/celebrate.ts)
+  const rewardId = ringRewardKey(id)
+  const at = data.reward &&
+    (rewardCell(field, prop.i, prop.j, data.reward, rewardId) ?? data.reward)
   celebrateGoal(
     field,
     prop.i,
     prop.j,
     "THE RING IS WHOLE",
-    data.reward &&
-      { i: data.reward[0], j: data.reward[1], id: ringRewardKey(id) },
+    at && { i: at[0], j: at[1], id: rewardId },
   )
 }
 
@@ -106,10 +113,11 @@ function fill(prop: Prop, field: IField, actor: IActor) {
  * The reward by the ring, laid again (its place loaded again) unless it
  * was taken: it just lies there
  */
-function layReward(field: IField, data: SlotData) {
+function layReward(field: IField, prop: Prop, data: SlotData) {
   if (!data.id || !data.reward) return
-  const [i, j] = data.reward
-  layGlyph(field, i, j, ringRewardKey(data.id))
+  const id = ringRewardKey(data.id)
+  const at = rewardCell(field, prop.i, prop.j, data.reward, id)
+  if (at) layGlyph(field, at[0], at[1], id)
 }
 
 /** The heart wakes when the ring is whole */

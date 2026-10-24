@@ -79,6 +79,13 @@ export class EffectLine0 implements IColorBox, IFinishable, IStepper {
   }
 }
 
+/**
+ * The five lines out of the sides `dirs` of the cell (i, j): the game's
+ * generic burst (a thing picked up, put, pushed). The middle lines go
+ * faster (`baseSpeed + up to 2 * p0`); every line's tip goes about
+ * `16 * dist - length` px before it shrinks away. A line is `length` px
+ * long (a cell, unless given)
+ */
 export function linePattern0(
   dirs: readonly Dir[],
   i: number,
@@ -87,6 +94,7 @@ export function linePattern0(
   p0: number,
   dist: number,
   color: PaletteColor,
+  length: number = CELL_SIZE,
 ): EffectLine0[] {
   const baseX = i * CELL_SIZE
   const baseY = j * CELL_SIZE
@@ -117,7 +125,7 @@ export function linePattern0(
           offsetY + baseY + Math.min(dy * k, CELL_SIZE - 1),
           dir,
           color,
-          CELL_SIZE,
+          length,
           16 * dist / speed,
           speed,
         ),

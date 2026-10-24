@@ -5,7 +5,8 @@
 // other way, it is upside down, it has a crack, one stone too many. No
 // new rule: the trick is to notice. Bump into the odd one and it falls
 // in line with the others (the cracked stone splits open), and the
-// reward appears beside it, once. Bumping the others is bumping any
+// reward appears a little way off, once (where: rewardCell,
+// model/glyph.ts, from the cell by it the map gives). Bumping the others is bumping any
 // solid thing: nothing more.
 //
 // tools/odd_ones.ts makes the arrangements, tools/generate_wilds.ts
@@ -20,7 +21,7 @@
 // as it is found), and so does the letter once taken.
 import { saveProgress } from "../util/save.ts"
 import { celebrateGoal } from "./celebrate.ts"
-import { glyphOf, glyphType, layGlyph } from "./glyph.ts"
+import { glyphOf, glyphType, layGlyph, rewardCell } from "./glyph.ts"
 import { Item } from "./item.ts"
 import type { Prop, PushedDelegate } from "./prop.ts"
 import type { IField, PushedEvent } from "./types.ts"
@@ -49,7 +50,10 @@ export const oddRewardType = (id: string) =>
 
 type OddData = {
   id?: string
-  /** Where the reward appears (world cell) */
+  /**
+   * The cell by the odd one the reward is reached from (world cell); it
+   * comes up a little way off (rewardCell)
+   */
   reward?: [number, number]
 }
 const dataOf = (prop: Prop) => (prop.data ?? {}) as OddData
@@ -61,10 +65,11 @@ export const isFound = (id: string) => Item.isCollected(oddKey(id))
  * The reward by the odd one, laid again (its place loaded again) unless
  * it was taken: it just lies there
  */
-function layReward(field: IField, data: OddData) {
+function layReward(field: IField, prop: Prop, data: OddData) {
   if (!data.id || !data.reward) return
-  const [i, j] = data.reward
-  layGlyph(field, i, j, oddRewardKey(data.id))
+  const id = oddRewardKey(data.id)
+  const at = rewardCell(field, prop.i, prop.j, data.reward, id)
+  if (at) layGlyph(field, at[0], at[1], id)
 }
 
 /**
@@ -79,15 +84,16 @@ export class UnlikePushed implements PushedDelegate {
     Item.collect(oddKey(data.id))
     saveProgress()
     prop.showStage(1)
-    // the hit stop, the burst, and the letter coming up (model/celebrate.ts)
-    const id = data.id
+    // the hit stop, the lines, and the letter coming up (model/celebrate.ts)
+    const id = oddRewardKey(data.id)
+    const at = data.reward &&
+      (rewardCell(field, prop.i, prop.j, data.reward, id) ?? data.reward)
     celebrateGoal(
       field,
       prop.i,
       prop.j,
       "ONE OF A KIND",
-      data.reward &&
-        { i: data.reward[0], j: data.reward[1], id: oddRewardKey(id) },
+      at && { i: at[0], j: at[1], id },
     )
   }
 }
@@ -101,7 +107,7 @@ export function stepUnlike(prop: Prop, field: IField) {
   if (!data.id) return
   if (isFound(data.id)) {
     prop.showStage(1)
-    if (field.time % 30 === 0) layReward(field, data)
+    if (field.time % 30 === 0) layReward(field, prop, data)
     return
   }
   prop.showStage(0)

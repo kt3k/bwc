@@ -1,14 +1,18 @@
-// Draws the unreadable letters (model/glyph.ts): small clay tablets, each
-// with one strange sign cut into it, after the scripts nobody can read
-// (the Voynich manuscript, Linear A). The signs are not any real
-// script's: a few strokes each, hooks, loops, gallows and combs, so that
-// they look like writing and say nothing. Each sign is at most 6x8 and
-// sits in the middle of the tablet.
+// Draws the unreadable letters (model/glyph.ts): small slabs of dark
+// stone like the Rosetta Stone, each with one strange sign carved into
+// it, after the scripts nobody can read (the Voynich manuscript, Linear
+// A). The signs are not any real script's: a few strokes each, hooks,
+// loops, gallows and combs, so that they look like writing and say
+// nothing. Each sign is at most 6x8 and sits in the middle of the slab.
 //
-// The tablet is clay lit from the top left (orange1 / orange2 / orange3),
-// the top right corner chipped off, the cuts in orange4. The item rules
+// The slab is black stone, its top right corner broken off: a rim lit
+// from the top left (gray3) and in shade at the right and the bottom
+// (gray4), a few gray4 flecks in its black face (the speckled stone),
+// and the sign carved in pale gray (gray1). The item rules
 // (docs/art-guide.md) are applied here: the black outline and the gray2
-// ring outside it (tools/item_ring.ts).
+// ring outside it (tools/item_ring.ts), which is what shows the black
+// slab on the ground. The flecks and the shaded rim make gray4 its main
+// color (the pickup lines).
 //
 // Writes static/item/glyph-<n>.png for each sign, and adds the items to
 // the catalog. Then run `deno -A tools/item_colors.ts`.
@@ -24,12 +28,26 @@ const N = 16
 const INK: Record<string, PaletteColor | null> = {
   ".": null,
   K: Palette.black,
-  L: Palette.orange1,
-  B: Palette.orange2,
-  S: Palette.orange3,
+  L: Palette.gray3,
+  B: Palette.black,
+  S: Palette.gray4,
 }
+/** The carved sign */
+const CARVE = Palette.gray1
+/** The flecks of the stone, in its face (x, y), where the sign leaves room */
+const FLECKS: readonly [number, number][] = [
+  [4, 3],
+  [11, 4],
+  [5, 12],
+  [10, 12],
+  [4, 8],
+  [11, 8],
+  [4, 11],
+  [11, 12],
+]
+const FLECK = Palette.gray4
 
-/** The tablet: chipped at the top right, the cuts go in the B area */
+/** The slab: broken at the top right, the sign goes in the B area */
 const TABLET = [
   "................",
   "..KKKKKKKKKK....",
@@ -130,9 +148,11 @@ export function glyphSprite(n: number): Uint8Array {
   const x0 = FACE.x + Math.floor((FACE.w - w) / 2)
   const y0 = FACE.y + Math.floor((FACE.h - h) / 2)
   const px = TABLET.flatMap((row) => [...row].map((c) => INK[c]))
+  for (const [x, y] of FLECKS) px[y * N + x] = FLECK
   sign.forEach((row, y) =>
     [...row].forEach((c, x) => {
-      if (c === "#") px[(y0 + y) * N + x0 + x] = Palette.orange4
+      if (c !== "#") return
+      px[(y0 + y) * N + x0 + x] = CARVE
     })
   )
   const rgba = new Uint8Array(N * N * 4)
@@ -173,12 +193,13 @@ if (import.meta.main) {
     }
   }
   await Deno.writeTextFile(catalogPath, JSON.stringify(catalog, null, 2) + "\n")
-  // a preview sheet of all the signs, 4x, on white (for a look)
+  // a preview sheet of all the signs, 6x, on gray (for a look)
   const out = Deno.args[0]
   if (out) {
-    const S = 4, COLS = 8, ROWS = Math.ceil(GLYPH_COUNT / COLS)
+    const S = 6, COLS = 8, ROWS = Math.ceil(GLYPH_COUNT / COLS)
     const W = COLS * 18 * S, H = ROWS * 18 * S
-    const sheet = new Uint8Array(W * H * 4).fill(255)
+    const sheet = new Uint8Array(W * H * 4)
+    for (let k = 0; k < W * H; k++) sheet.set([0x6a, 0x6d, 0x6a, 255], k * 4)
     for (let n = 0; n < GLYPH_COUNT; n++) {
       const rgba = glyphSprite(n)
       const ox = (n % COLS) * 18 + 1, oy = Math.floor(n / COLS) * 18 + 1

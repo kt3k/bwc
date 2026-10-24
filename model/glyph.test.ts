@@ -11,6 +11,8 @@ import {
   glyphType,
   layGlyph,
   recordGlyph,
+  REWARD_DIST,
+  rewardCell,
 } from "./glyph.ts"
 import { ringRewardKey, ringRewardType } from "./ring.ts"
 import * as signal from "../util/signals.ts"
@@ -152,4 +154,130 @@ Deno.test("glyph: picking letters up records each by its id and sign", () => {
   // distinct rings, distinct letters
   assert(ringRewardKey("A") !== ringRewardKey("B"))
   reset()
+})
+
+/**
+ * A field of a map drawn in text round the goal `G` at (50, 50): `#` a
+ * wall, `~` water, `p` a prop, `?` not loaded, `.` open ground; the
+ * player at `me`
+ */
+function mapField(rows: string[], me: [number, number] = [50, 51]) {
+  const h = rows.length, w = rows[0].length
+  const gy = rows.findIndex((r) => r.includes("G"))
+  const gx = rows[gy].indexOf("G")
+  const at = (i: number, j: number) => rows[j - 50 + gy]?.[i - 50 + gx] ?? "?"
+  assert(w > 0 && h > 0)
+  return {
+    me: { i: me[0], j: me[1] },
+    isCellLoaded: (i: number, j: number) => at(i, j) !== "?",
+    canEnterStatic: (i: number, j: number) => ".~".includes(at(i, j)),
+    isWater: (i: number, j: number) => at(i, j) === "~",
+    props: {
+      get: (i: number, j: number) => "pG".includes(at(i, j)) ? {} : undefined,
+    },
+  } as unknown as IField
+}
+
+const OPEN = [
+  "...........",
+  "...........",
+  "...........",
+  "...........",
+  "...........",
+  ".....G.....",
+  "...........",
+  "...........",
+  "...........",
+  "...........",
+  "...........",
+]
+const king = ([i, j]: [number, number]) =>
+  Math.max(Math.abs(i - 50), Math.abs(j - 50))
+
+Deno.test("glyph: the letter comes up a few cells off the goal, the same place for the same id", () => {
+  const cells = new Set<string>()
+  for (
+    const id of ["odd.a.reward", "odd.b.reward", "ring.c.reward", "x", "y"]
+  ) {
+    const at = rewardCell(mapField(OPEN), 50, 50, [51, 51], id)
+    assert(at)
+    const d = king(at)
+    assert(d >= REWARD_DIST[0] && d <= REWARD_DIST[1], `${id} ${d}`)
+    // the same place every time, on another field too (after a reload)
+    assertEquals(rewardCell(mapField(OPEN), 50, 50, [51, 51], id), at)
+    cells.add(at.join())
+  }
+  // not all in one place
+  assert(cells.size > 1)
+})
+
+Deno.test("glyph: the letter's place is free and reached from the cell by the goal", () => {
+  // walls all round but for a pocket to the east, cut off by water to
+  // the north and a prop row to the south
+  const rows = [
+    "###########",
+    "###########",
+    "########...",
+    "####~~~~...",
+    "####.......",
+    "###.pGp....",
+    "####ppp....",
+    "####.......",
+    "###########",
+    "###########",
+    "###########",
+  ]
+  for (const id of ["a", "b", "c", "d", "e", "f", "g", "h"]) {
+    const field = mapField(rows)
+    const at = rewardCell(field, 50, 50, [51, 49], id)!
+    const d = king(at)
+    assert(d >= 3 && d <= 4, `${id} ${at}`)
+    assert(field.canEnterStatic(at[0], at[1]), `${id} ${at}`)
+    assert(!field.isWater(at[0], at[1]))
+    assert(!field.props.get(at[0], at[1]))
+    // west of the goal is walled off from where you stand
+    assert(at[0] > 50, `${id} ${at}`)
+  }
+})
+
+Deno.test("glyph: nothing far enough fits, the letter comes nearer; nothing at all, by the goal", () => {
+  const near = [
+    "###########",
+    "###########",
+    "###########",
+    "###.....###",
+    "###.....###",
+    "###..G..###",
+    "###.....###",
+    "###.....###",
+    "###########",
+    "###########",
+    "###########",
+  ]
+  const at = rewardCell(mapField(near), 50, 50, [51, 50], "n")!
+  assertEquals(king(at), 2)
+  const shut = [
+    "###########",
+    "###########",
+    "###########",
+    "###########",
+    "####...####",
+    "####.G.####",
+    "####...####",
+    "###########",
+    "###########",
+    "###########",
+    "###########",
+  ]
+  assertEquals(rewardCell(mapField(shut), 50, 50, [51, 50], "s"), [51, 50])
+})
+
+Deno.test("glyph: the letter's place waits for the place round the goal to load, and the player near", () => {
+  const rows = OPEN.map((r, j) => j === 0 ? "???????????" : r)
+  assertEquals(rewardCell(mapField(rows), 50, 50, [51, 51], "w"), null)
+  assertEquals(
+    rewardCell(mapField(OPEN, [80, 50]), 50, 50, [51, 51], "w"),
+    null,
+  )
+  assert(rewardCell(mapField(OPEN), 50, 50, [51, 51], "w"))
 })

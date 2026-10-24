@@ -1,7 +1,7 @@
 // The unreadable letters (読めない文字, ideas/goal-types.md ご褒美): the
-// reward of the goals. A letter is a small clay tablet with a sign on it
-// in a script nobody can read (after the Voynich manuscript and Linear
-// A). What they do is not decided yet: for now they are picked up, kept
+// reward of the goals. A letter is a small slab of black stone, like the
+// Rosetta Stone, with a sign carved on it in pale gray, in a script
+// nobody can read (after the Voynich manuscript and Linear A). What they do is not decided yet: for now they are picked up, kept
 // and counted (the counter under the minimap). They have nothing to do
 // with the signs.
 //
@@ -39,9 +39,14 @@ export function glyphOfType(type: string): number | null {
  * every sign)
  */
 export function glyphOf(id: string): number {
+  return hash(id) % GLYPH_COUNT
+}
+
+/** A hash of the string (FNV-1a, then mixed so the low bits spread too) */
+function hash(s: string): number {
   let h = 0x811c9dc5
-  for (let k = 0; k < id.length; k++) {
-    h ^= id.charCodeAt(k)
+  for (let k = 0; k < s.length; k++) {
+    h ^= s.charCodeAt(k)
     h = Math.imul(h, 0x01000193)
   }
   h ^= h >>> 16
@@ -49,7 +54,106 @@ export function glyphOf(id: string): number {
   h ^= h >>> 13
   h = Math.imul(h, 0xc2b2ae35)
   h ^= h >>> 16
-  return (h >>> 0) % GLYPH_COUNT
+  return h >>> 0
+}
+
+/**
+ * How far from the goal its letter comes up (cells, counted as a king
+ * moves): this far if it can, nearer if nothing fits
+ */
+export const REWARD_DIST = [3, 4] as const
+
+/**
+ * The letter's place is chosen only with the player at most this far
+ * from the goal (cells), when everything round the goal is loaded and
+ * awake
+ */
+const REWARD_ME_NEAR = 12
+
+/** The cells chosen so far, per field and letter id */
+const rewardCells = new WeakMap<IField, Map<string, [number, number]>>()
+
+/**
+ * Where the letter `id` of the goal at the cell (gi, gj) comes up: a
+ * cell REWARD_DIST away from the goal, on the same screen, that is free
+ * (walkable land, not water, no prop on it) and reached by walking from
+ * `near` (the cell by the goal the map gives, which can be walked to)
+ * within the square round the goal, and with no prop round it either
+ * (so it is not right by the ring or the arrangement). Which one of
+ * those is drawn from the id, so a goal's letter always comes up in the
+ * same place: done, and laid again once its place is loaded again. If
+ * nothing fits, a free cell nearer, and at last `near` itself. Only the
+ * terrain and the props count (not the things that move about), and
+ * once chosen it is kept for the field. null while the place round the
+ * goal isn't all loaded yet (ask again later)
+ */
+export function rewardCell(
+  field: IField,
+  gi: number,
+  gj: number,
+  near: readonly [number, number],
+  id: string,
+): [number, number] | null {
+  let chosen = rewardCells.get(field)
+  if (!chosen) rewardCells.set(field, chosen = new Map())
+  const known = chosen.get(id)
+  if (known) return known
+  const dist = (i: number, j: number) =>
+    Math.max(Math.abs(i - gi), Math.abs(j - gj))
+  // the player near: the props round the goal are all awake then
+  const me = field.me as IActor | undefined
+  if (me && dist(me.i, me.j) > REWARD_ME_NEAR) return null
+  const R = Math.max(REWARD_DIST[1], dist(near[0], near[1])) + 1
+  for (let j = gj - R; j <= gj + R; j++) {
+    for (let i = gi - R; i <= gi + R; i++) {
+      if (field.isCellLoaded && !field.isCellLoaded(i, j)) return null
+    }
+  }
+  const free = (i: number, j: number) =>
+    dist(i, j) <= R && !(i === gi && j === gj) &&
+    field.canEnterStatic(i, j) && !field.isWater(i, j) &&
+    !field.props.get(i, j)
+  const open = (i: number, j: number) => {
+    for (let dj = -1; dj <= 1; dj++) {
+      for (let di = -1; di <= 1; di++) {
+        if (field.props.get(i + di, j + dj)) return false
+      }
+    }
+    return true
+  }
+  // the cells walked to from `near`, round the goal
+  const reached: [number, number][] = []
+  const seen = new Set([`${near[0]},${near[1]}`])
+  const queue: [number, number][] = [[near[0], near[1]]]
+  while (queue.length) {
+    const [i, j] = queue.shift()!
+    if (free(i, j)) reached.push([i, j])
+    else if (i !== near[0] || j !== near[1]) continue
+    for (const [di, dj] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
+      const ni = i + di, nj = j + dj
+      const key = `${ni},${nj}`
+      if (seen.has(key) || !free(ni, nj)) continue
+      seen.add(key)
+      queue.push([ni, nj])
+    }
+  }
+  const [d0, d1] = REWARD_DIST
+  const tiers: ((i: number, j: number) => boolean)[] = [
+    (i, j) => dist(i, j) >= d0 && dist(i, j) <= d1 && open(i, j),
+    (i, j) => dist(i, j) >= d0 && dist(i, j) <= d1,
+    (i, j) => dist(i, j) >= 2 && dist(i, j) < d0 && open(i, j),
+    (i, j) => dist(i, j) >= 2 && dist(i, j) < d0,
+  ]
+  const rank = ([i, j]: [number, number]) => hash(`${id}/${i - gi},${j - gj}`)
+  let cell: [number, number] = [near[0], near[1]]
+  for (const tier of tiers) {
+    const fits = reached.filter(([i, j]) => tier(i, j))
+    if (fits.length === 0) continue
+    cell = fits.reduce((a, b) => rank(b) < rank(a) ? b : a)
+    break
+  }
+  chosen.set(id, cell)
+  return cell
 }
 
 /** true if the letter of the id has been taken */

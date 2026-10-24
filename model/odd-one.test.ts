@@ -61,6 +61,16 @@ class Sim {
   get field() {
     return this as unknown as IField
   }
+  canEnterStatic(i: number, j: number) {
+    return !this.props.get(i, j)
+  }
+  isWater() {
+    return false
+  }
+  props = {
+    get: (i: number, j: number) =>
+      j === 0 && i >= 100 && i < 105 ? this.row[i - 100] : undefined,
+  }
   effects = { add: () => {} }
   peekItems(i: number, j: number) {
     return this.items.filter((t) =>
@@ -106,11 +116,15 @@ Deno.test("odd one: the odd one bumped gives its letter, once", () => {
   assertEquals(sim.odd.growthState?.stage, 0)
   sim.bump(2)
   assert(Item.isCollected(oddKey("T")))
-  // fallen in line, the letter by it
+  // fallen in line, the letter a little way off, clear of the row
   assertEquals(sim.odd.growthState?.stage, 1)
-  assertEquals(sim.items, [
-    { id: oddRewardKey("T"), i: 103, j: -1, type: oddRewardType("T") },
-  ])
+  assertEquals(sim.items.length, 1)
+  const [letter] = sim.items
+  assertEquals(letter.id, oddRewardKey("T"))
+  assertEquals(letter.type, oddRewardType("T"))
+  const d = Math.max(Math.abs(letter.i - 102), Math.abs(letter.j))
+  assert(d >= 3 && d <= 4, `${d}`)
+  assert(Math.abs(letter.j) >= 2, "not by the row")
   // only once: bumped again, or the time passing
   sim.bump(2)
   sim.step(200)
@@ -140,12 +154,13 @@ Deno.test("odd one: a found one stays found after a reload", () => {
   first.bump(2)
   const saved = Item.serializeCollected()
 
-  // reloaded, the letter not taken yet: it lies there again
+  // reloaded, the letter not taken yet: it lies there again, in the
+  // same place
   Item.deserializeCollected(saved)
   const second = new Sim()
   second.step(60)
   assertEquals(second.odd.growthState?.stage, 1)
-  assertEquals(second.items.map((t) => t.id), [oddRewardKey("T")])
+  assertEquals(second.items, first.items)
 })
 
 Deno.test("odd one: a found one counts as a goal done (its letter doesn't)", () => {

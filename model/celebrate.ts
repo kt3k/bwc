@@ -1,12 +1,13 @@
 // A goal done (model/goal.ts), the moment of it, the same for every kind
-// of goal: the world holds still a moment (the hit stop, input held
-// too), the view shakes, and a burst goes off round the goal; the sound
-// and the message come as the hit stop lets go. The reward letter comes
-// up out of the ground beside it, slowly (model/goal-fx.ts has the
-// effects and their timings).
-import { hitStop, shake } from "../util/juice.ts"
+// of goal: the world holds still a while (the hit stop, input held too)
+// under the screen's white noise (no shake); as it lets go, the sound
+// and the message come and the game's five lines go out of the goal
+// cell, long and in waves. The reward letter comes up out of the ground
+// a little way off, slowly (model/goal-fx.ts has the effects and their
+// timings, model/glyph.ts the letter and where it comes up).
+import { hitStop, whiteNoise } from "../util/juice.ts"
 import * as signal from "../util/signals.ts"
-import { GOAL_HIT_STOP, GOAL_SHAKE, GoalBurst } from "./goal-fx.ts"
+import { GOAL_HIT_STOP, GoalLines } from "./goal-fx.ts"
 import { revealGlyph } from "./glyph.ts"
 import type { IField } from "./types.ts"
 
@@ -26,9 +27,10 @@ export function celebrateGoal(
   reward?: GoalReward,
 ): void {
   hitStop(GOAL_HIT_STOP)
-  shake(GOAL_HIT_STOP + GOAL_SHAKE)
+  // the noise from this frame (the goal done) to the last one held still
+  whiteNoise(GOAL_HIT_STOP + 1)
   field.effects.add(
-    new GoalBurst(i, j, field.time, () => {
+    new GoalLines(i, j, field.time, () => {
       signal.playSound("powerUp")
       signal.message.update({ text })
     }),

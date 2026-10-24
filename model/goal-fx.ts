@@ -1,7 +1,8 @@
-// The moment a goal is done (model/celebrate.ts): the world holds still a
-// moment (the hit stop), then a burst goes off round the goal, and the
-// reward letter (model/glyph.ts) comes up out of the ground beside it,
-// slowly, before it can be picked up.
+// The moment a goal is done (model/celebrate.ts): the world holds still
+// a while (the hit stop) under white noise (game/draw-layer.ts), then the
+// game's five lines go out of the goal cell to every side, long and slow,
+// wave after wave, and the reward letter (model/glyph.ts) comes up out
+// of the ground a little way off, slowly, before it can be picked up.
 //
 // Everything here keeps to the art rules (docs/art-guide.md): palette
 // colors only, whole pixels, no alpha and no fades. Things that go away
@@ -10,34 +11,47 @@
 // The timings are all here, in frames (60 a second).
 import { Palette, type PaletteColor } from "../util/palette.ts"
 import { CELL_SIZE } from "../util/constants.ts"
+import { DIRS } from "../util/dir.ts"
+import { type EffectLine0, linePattern0 } from "./effect.ts"
 import type { IColorBox, IEffectGroup, IField } from "./types.ts"
 
 // ---------------------------------------------------------------------
 // timings
 
-/** Frames the world holds still when a goal is done (~0.22 s) */
-export const GOAL_HIT_STOP = 13
-/** Frames the view shakes after the hit stop */
-export const GOAL_SHAKE = 12
-/** Frames the burst lasts after the hit stop (~0.67 s) */
-export const BURST_FRAMES = 40
-/** The burst: frames (after the hit stop) the goal cell flashes white */
-const FLASH_ON = new Set([1, 2, 5, 6, 9])
-/** The diamond wave: its first radius, speed (px/frame) and frames */
-const WAVE_START = 6
-const WAVE_SPEED = 3
-const WAVE_FRAMES = 20
-/** The square wave: its delay, first half side, speed and frames */
-const SQUARE_DELAY = 4
-const SQUARE_START = 10
-const SQUARE_SPEED = 2
-const SQUARE_FRAMES = 22
-/** The sparks of the burst: how many, how fast, how long */
-const SPARKS = 20
-const SPARK_SPEED = [2.4, 4.2] as const
-const SPARK_LIFE = [18, 34] as const
-const SPARK_DRAG = 0.9
-/** Sparks blink this many frames before they vanish */
+/**
+ * Frames the world holds still when a goal is done (~0.53 s); white
+ * noise is drawn over the screen all the while
+ */
+export const GOAL_HIT_STOP = 32
+/**
+ * The lines of a goal done: the game's five lines (linePattern0, as when
+ * a thing is picked up: speed 1, p0 0.7, dist 3, a cell long), longer,
+ * slower in the middle, going farther and living longer
+ */
+export const GOAL_LINES = {
+  /** the speed of the outer lines (px/frame) */
+  speed: 1,
+  /** how much faster each line toward the middle goes (px/frame) */
+  p0: 0.5,
+  /** how far they go (linePattern0's dist: the tips go 16 * dist - length) */
+  dist: 6,
+  /** the length of a line (px) */
+  length: 2 * CELL_SIZE,
+} as const
+/** The waves of lines, one color each, GOAL_LINE_GAP frames apart */
+export const GOAL_LINE_WAVES: readonly PaletteColor[] = [
+  Palette.white,
+  Palette.yellow1,
+  Palette.brown2,
+]
+/** Frames between the waves of lines */
+export const GOAL_LINE_GAP = 10
+/** Frames the slowest (outer) line of a wave lives */
+const LINE_LIFE = 16 * GOAL_LINES.dist / GOAL_LINES.speed
+/** Frames the lines last after the hit stop lets go (~2 s) */
+export const GOAL_LINES_FRAMES = (GOAL_LINE_WAVES.length - 1) * GOAL_LINE_GAP +
+  LINE_LIFE
+/** The sparks of the letter's reveal blink this many frames before they go */
 const SPARK_BLINK = 8
 
 /** Frames after the hit stop before the letter's reveal starts */
@@ -192,21 +206,6 @@ function sparkRing(
 }
 
 /**
- * The points of a diamond of radius r round (cx, cy), every 2px, in
- * order round it
- */
-function diamond(cx: number, cy: number, r: number): [number, number][] {
-  const pts: [number, number][] = []
-  for (let k = 0; k < r; k += 2) {
-    pts.push([cx + k, cy - r + k])
-    pts.push([cx + r - k, cy + k])
-    pts.push([cx - k, cy + r - k])
-    pts.push([cx - r + k, cy - k])
-  }
-  return pts
-}
-
-/**
  * A group stepped from the field: the step in the frame it was made in
  * is skipped (it is made during the field's step, and the hit stop
  * begins after it), so its first frame is the one held still
@@ -221,121 +220,73 @@ abstract class Group implements IEffectGroup {
   step(field: Pick<IField, "time">): void {
     if (field.time === this.#born) return
     this.f++
-    this.tick()
+    this.tick(field)
   }
-  abstract tick(): void
+  abstract tick(field: Pick<IField, "time">): void
   abstract boxes(): Iterable<IColorBox>
   abstract readonly finished: boolean
 }
 
 // ---------------------------------------------------------------------
-// the burst
+// the lines
 
 /**
- * The burst round the goal done at the cell (i, j). Held still in the
- * hit stop, the goal cell is white in a black frame with 4 rays; then
- * it flashes on and off, a diamond wave and a dashed square wave go out
- * (white, then pale yellow, then gold, thinning out), and sparks fly.
- * `onRelease` is called when the hit stop lets go (the sound and the
- * message go then)
+ * The lines out of the goal done at the cell (i, j): nothing of its own
+ * while the hit stop holds (the white noise is all), then, as it lets
+ * go, the game's five lines (linePattern0) go out of the cell's four
+ * sides, long and far (GOAL_LINES), in waves of the GOAL_LINE_WAVES
+ * colors one after another. `onRelease` is called when the hit stop
+ * lets go (the sound and the message go then)
  */
-export class GoalBurst extends Group {
-  readonly x: number
-  readonly y: number
-  readonly cx: number
-  readonly cy: number
-  #sparks: Spark[]
+export class GoalLines extends Group {
+  readonly i: number
+  readonly j: number
+  #lines: EffectLine0[] = []
   #onRelease?: () => void
-  constructor(
-    i: number,
-    j: number,
-    born: number,
-    onRelease?: () => void,
-    rand: Rand = Math.random,
-  ) {
+  constructor(i: number, j: number, born: number, onRelease?: () => void) {
     super(born)
-    this.x = i * CELL_SIZE
-    this.y = j * CELL_SIZE
-    this.cx = this.x + CELL_SIZE / 2
-    this.cy = this.y + CELL_SIZE / 2
+    this.i = i
+    this.j = j
     this.#onRelease = onRelease
-    this.#sparks = sparkRing(
-      this.cx,
-      this.cy,
-      SPARKS,
-      SPARK_SPEED,
-      SPARK_LIFE,
-      [Palette.white, Palette.yellow1, Palette.brown2, Palette.cyan1],
-      SPARK_DRAG,
-      rand,
+  }
+  /** How many waves have gone out so far */
+  get waves(): number {
+    if (this.f < 1) return 0
+    return Math.min(
+      GOAL_LINE_WAVES.length,
+      Math.floor((this.f - 1) / GOAL_LINE_GAP) + 1,
     )
   }
-  tick() {
+  tick(field: Pick<IField, "time">) {
     if (this.f === 1) this.#onRelease?.()
-    for (const s of this.#sparks) s.step()
+    const k = (this.f - 1) / GOAL_LINE_GAP
+    if (Number.isInteger(k) && k >= 0 && k < GOAL_LINE_WAVES.length) {
+      const { speed, p0, dist, length } = GOAL_LINES
+      this.#lines.push(
+        ...linePattern0(
+          DIRS,
+          this.i,
+          this.j,
+          speed,
+          p0,
+          dist,
+          GOAL_LINE_WAVES[k],
+          length,
+        ),
+      )
+    }
+    for (const line of this.#lines) line.step(field as IField)
+    this.#lines = this.#lines.filter((line) => !line.finished)
   }
   get finished(): boolean {
-    return this.f >= BURST_FRAMES
+    return this.waves === GOAL_LINE_WAVES.length && this.#lines.length === 0
   }
   *boxes(): Generator<IColorBox> {
-    const { x, y, cx, cy, f } = this
-    const S = CELL_SIZE
-    if (f === 0) {
-      // the impact, held still: a white cell in a black frame, 4 rays
-      yield* frame(x, y, S, S, Palette.black)
-      yield box(x, y, S, S, Palette.white)
-      for (
-        const [rx, ry, rw, rh] of [
-          [cx - 1, y - 9, 2, 6],
-          [cx - 1, y + S + 3, 2, 6],
-          [x - 9, cy - 1, 6, 2],
-          [x + S + 3, cy - 1, 6, 2],
-        ]
-      ) {
-        yield* frame(rx, ry, rw, rh, Palette.black)
-        yield box(rx, ry, rw, rh, Palette.white)
-      }
-      return
-    }
-    if (FLASH_ON.has(f)) yield box(x, y, S, S, Palette.white)
-    // the diamond wave
-    if (f <= WAVE_FRAMES) {
-      const r = WAVE_START + WAVE_SPEED * f
-      const color = f <= 5
-        ? Palette.white
-        : f <= 11
-        ? Palette.yellow1
-        : Palette.brown2
-      // thinning out: every other point, then every third
-      const keep = f <= 11 ? 1 : f <= 16 ? 2 : 3
-      for (const [n, [px, py]] of diamond(cx, cy, r).entries()) {
-        if ((n + f) % keep !== 0) continue
-        yield box(px, py, 2, 2, Palette.black)
-        yield box(px - 1, py - 1, 2, 2, color)
+    for (const line of this.#lines) {
+      if (line.w > 0 && line.h > 0) {
+        yield box(line.x, line.y, line.w, line.h, line.color)
       }
     }
-    // the dashed square wave
-    const g = f - SQUARE_DELAY
-    if (g >= 1 && g <= SQUARE_FRAMES) {
-      const s = SQUARE_START + SQUARE_SPEED * g
-      const color = g <= 7
-        ? Palette.brown2
-        : g <= 14
-        ? Palette.orange2
-        : Palette.orange3
-      // dashes of 3px every 6px, sliding round as it grows
-      const step = g <= 14 ? 6 : 12
-      for (let k = (g % 6) - s; k < s; k += step) {
-        const a = Math.max(k, -s)
-        const len = Math.min(k + 3, s) - a
-        if (len <= 0) continue
-        yield box(cx + a, cy - s, len, 1, color)
-        yield box(cx - a - len, cy + s, len, 1, color)
-        yield box(cx + s, cy + a, 1, len, color)
-        yield box(cx - s, cy - a - len, 1, len, color)
-      }
-    }
-    for (const spark of this.#sparks) yield* spark.boxes()
   }
 }
 

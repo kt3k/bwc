@@ -10,6 +10,10 @@ import { PropSpawn } from "./field-block.ts"
 import { ringKey, ringRewardKey, ringRewardType } from "./ring.ts"
 import type { IActor, IField, IItem } from "./types.ts"
 
+/** Cells from the gap, as a king moves */
+const fromGap = (t: { i: number; j: number }) =>
+  Math.max(Math.abs(t.i - 100), Math.abs(t.j - 0))
+
 const catalog = Catalog.fromJSON(
   [{
     src: "base.json",
@@ -22,7 +26,10 @@ const catalog = Catalog.fromJSON(
   "http://localhost/catalog/",
 )
 
-/** The gap at (100, 0), the heart above it, the reward cell at (102, 0) */
+/**
+ * The gap at (100, 0), the heart above it, the cell by the ring the
+ * reward is reached from at (102, 0) (it comes up 3 or 4 cells off)
+ */
 class Sim {
   time = 0
   actorList: IActor[] = []
@@ -127,9 +134,14 @@ Deno.test("ring: a stone pushed into the gap makes the ring whole, once", () => 
   assert(!sim.slot.canEnter)
   assertEquals(sim.slot.growthState?.stage, 1)
   assertEquals(sim.heart.growthState?.stage, 1)
-  assertEquals(sim.items, [
-    { id: ringRewardKey("R"), i: 102, j: 0, type: ringRewardType("R") },
-  ])
+  assertEquals(sim.items.length, 1)
+  const [reward] = sim.items
+  assertEquals(reward.id, ringRewardKey("R"))
+  assertEquals(reward.type, ringRewardType("R"))
+  // a little way off the ring, on open ground
+  const d = fromGap(reward)
+  assert(d >= 3 && d <= 4, `${d}`)
+  assert(sim.canEnterStatic(reward.i, reward.j))
   // only once
   sim.step(200)
   assertEquals(sim.items.length, 1)
@@ -152,15 +164,17 @@ Deno.test("ring: a whole ring stays whole after a reload", () => {
   first.step(2)
   assert(Item.isCollected(ringKey("R")))
   const saved = Item.serializeCollected()
+  const [laid] = first.items
 
-  // reloaded, the reward not taken yet: it lies there again
+  // reloaded, the reward not taken yet: it lies there again, in the
+  // same place (the ids go by the ring, the place by its id)
   Item.deserializeCollected(saved)
   const second = new Sim()
   second.step(60)
   assert(!second.slot.canEnter)
   assertEquals(second.slot.growthState?.stage, 1)
   assertEquals(second.heart.growthState?.stage, 1)
-  assertEquals(second.items.map((t) => t.id), [ringRewardKey("R")])
+  assertEquals(second.items, [laid])
 
   // taken, it doesn't come back
   Item.collect(ringRewardKey("R"))

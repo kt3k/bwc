@@ -22,11 +22,11 @@ import {
 import {
   GlyphReveal,
   GOAL_HIT_STOP,
-  GOAL_SHAKE,
-  GoalBurst,
+  GoalLines,
   REVEAL_FRAMES,
   revealPose,
 } from "../model/goal-fx.ts"
+import { drawNoise } from "./draw-layer.ts"
 import type { Dir, IField } from "../model/types.ts"
 import { isPaletteColor, Palette } from "../util/palette.ts"
 
@@ -701,24 +701,30 @@ function copyButton() {
 }
 
 // ---------------------------------------------------------------------
-// a goal done (model/goal-fx.ts): the hit stop, the burst and the letter
-// rising, as in the game (a row of tulips, the odd one found)
+// a goal done (model/goal-fx.ts): the hit stop under white noise, the
+// five long lines and the letter rising a little way off, as in the game
+// (a row of tulips, the odd one found)
 
 const GOAL_COLS = 11
 const GOAL_ROWS = 9
-/** The odd one, and where its letter comes up */
+/** The odd one, and where its letter comes up (3 cells off) */
 const GOAL_I = 5
 const GOAL_J = 6
-const LETTER_I = 7
-const LETTER_J = 5
+const LETTER_I = 8
+const LETTER_J = 3
+/** The white noise's streaks at most, for the stage (the game's 500 on 450x450) */
+const GOAL_NOISE = Math.round(
+  500 * GOAL_COLS * GOAL_ROWS * CELL * CELL / (450 * 450),
+)
 
 class GoalStage {
   readonly canvas = document.createElement("canvas")
   #g: CanvasRenderingContext2D
   #freeze = 0
-  #shake = 0
+  /** Frames left of the white noise */
+  #noise = 0
   #time = 0
-  #burst: GoalBurst | null = null
+  #lines: GoalLines | null = null
   #reveal: GlyphReveal | null = null
   /** Frames left of the letter's reveal; null: no letter yet */
   #letter: number | null = null
@@ -737,36 +743,33 @@ class GoalStage {
   }
   trigger() {
     this.#freeze = GOAL_HIT_STOP
-    this.#shake = GOAL_HIT_STOP + GOAL_SHAKE
-    this.#burst = new GoalBurst(GOAL_I, GOAL_J, this.#time)
+    this.#noise = GOAL_HIT_STOP + 1
+    this.#lines = new GoalLines(GOAL_I, GOAL_J, this.#time)
     this.#reveal = new GlyphReveal(LETTER_I, LETTER_J, this.#time)
     this.#letter = REVEAL_FRAMES
     this.#idle = 0
   }
   tick() {
     if (++this.#tick % this.slow !== 0) return
-    if (this.#shake > 0) this.#shake--
+    if (this.#noise > 0) this.#noise--
     if (this.#freeze > 0) {
       this.#freeze--
       return
     }
     this.#time++
     const field = { time: this.#time } as IField
-    this.#burst?.step(field)
+    this.#lines?.step(field)
     this.#reveal?.step(field)
-    if (this.#burst?.finished) this.#burst = null
+    if (this.#lines?.finished) this.#lines = null
     if (this.#reveal?.finished) this.#reveal = null
     if (this.#letter !== null && this.#letter > 0) this.#letter--
-    if (!this.#burst && !this.#reveal && ++this.#idle > 90) {
+    if (!this.#lines && !this.#reveal && ++this.#idle > 90) {
       this.#letter = null
       if (this.#idle > 120) this.trigger()
     }
   }
   draw() {
     const g = this.#g
-    const k = this.#shake % 4
-    const sx = this.#shake > 0 ? (k === 0 ? 1 : k === 2 ? -1 : 0) : 0
-    const sy = this.#shake > 0 ? (k === 1 ? 1 : k === 3 ? -1 : 0) : 0
     g.fillStyle = Palette.black
     g.fillRect(0, 0, this.canvas.width, this.canvas.height)
     const floor = images.get("./cell/floor0.png")
@@ -786,12 +789,12 @@ class GoalStage {
     }
     for (let j = 0; j < GOAL_ROWS; j++) {
       for (let i = 0; i < GOAL_COLS; i++) {
-        g.drawImage(floor, i * CELL + sx, j * CELL + sy)
+        g.drawImage(floor, i * CELL, j * CELL)
       }
     }
     for (let i = GOAL_I - 2; i <= GOAL_I + 2; i++) {
       const odd = i === GOAL_I && this.#letter === null
-      g.drawImage(odd ? unlike : alike, i * CELL + sx, GOAL_J * CELL + sy)
+      g.drawImage(odd ? unlike : alike, i * CELL, GOAL_J * CELL)
     }
     if (this.#letter !== null) {
       const pose = this.#letter > 0
@@ -804,19 +807,23 @@ class GoalStage {
           0,
           CELL,
           pose.rows,
-          LETTER_I * CELL + sx,
-          LETTER_J * CELL + pose.dy + sy,
+          LETTER_I * CELL,
+          LETTER_J * CELL + pose.dy,
           CELL,
           pose.rows,
         )
       }
     }
-    for (const fx of [this.#burst, this.#reveal]) {
+    for (const fx of [this.#lines, this.#reveal]) {
       if (!fx) continue
       for (const b of fx.boxes()) {
         g.fillStyle = b.color
-        g.fillRect(b.x + sx, b.y + sy, b.w, b.h)
+        g.fillRect(b.x, b.y, b.w, b.h)
       }
+    }
+    // the hit stop's white noise (the game's, game/draw-layer.ts)
+    if (this.#noise > 0) {
+      drawNoise(g, this.canvas.width, this.canvas.height, GOAL_NOISE)
     }
   }
 }
@@ -828,7 +835,7 @@ document.getElementById("goal")!.append(
     "p",
     "note",
     ink(
-      `ヒットストップ ${GOAL_HIT_STOP}f → 爆発 → 文字が地面から上がる (${REVEAL_FRAMES}f)。` +
+      `ヒットストップ ${GOAL_HIT_STOP}f (白いノイズ) → 5 本の長い線 → 少し離れて文字が地面から上がる (${REVEAL_FRAMES}f)。` +
         "クリックで再生。時間は model/goal-fx.ts の定数。",
       "ink-light",
     ),
