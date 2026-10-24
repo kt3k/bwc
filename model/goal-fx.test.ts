@@ -1,9 +1,10 @@
 // The moment a goal is done (model/celebrate.ts, model/goal-fx.ts): the
 // hit stop holds the world still under white noise (no shake) and lets
-// go, the five long lines go out in waves (the sound and the message as
-// it lets go), and the reward letter rises slowly a little way off and
-// can't be picked up until it has; laid again after a reload, it just
-// lies there, in the same place
+// go, the five white lines go out (the sound and the message as it lets
+// go), and when they are gone, a beat at a time, a bolt strikes the
+// letter's cell a little way off, leaves fall round it and the letter
+// rises, and it can't be picked up until it has; laid again after a
+// reload, it just lies there, in the same place
 import { assert, assertEquals } from "@std/assert"
 import { Catalog } from "./catalog.ts"
 import { Actor, spawnActor } from "./actor.ts"
@@ -12,18 +13,23 @@ import { Prop } from "./prop.ts"
 import { PropSpawn } from "./field-block.ts"
 import { celebrateGoal } from "./celebrate.ts"
 import {
+  BOLT_FRAMES,
+  boltPath,
   GlyphReveal,
   GOAL_HIT_STOP,
-  GOAL_LINE_GAP,
-  GOAL_LINE_WAVES,
+  GOAL_LINE_COLOR,
   GOAL_LINES,
   GOAL_LINES_FRAMES,
   GoalLines,
+  LEAF_FALL_FRAMES,
   REVEAL,
+  REVEAL_BEAT,
   REVEAL_DELAY,
   REVEAL_FRAMES,
   revealPose,
 } from "./goal-fx.ts"
+import { LEAF_COLORS } from "./leaf-wind.ts"
+import { Palette } from "../util/palette.ts"
 import { layGlyph, revealGlyph } from "./glyph.ts"
 import { ringKey, ringRewardKey, stepRingSlot } from "./ring.ts"
 import { oddRewardKey, unlikeType } from "./odd-one.ts"
@@ -134,19 +140,17 @@ Deno.test("goal fx: a goal done holds still under white noise, no shake, then th
   assert(frame())
   assertEquals(signal.message.get(), { text: "A GOAL" })
   assertEquals(sounds, ["powerUp"])
-  assertEquals(lines.waves, 1)
   const first = [...lines.boxes()]
   assertEquals(first.length, 5 * 4)
-  assert(first.every((b) => b.color === GOAL_LINE_WAVES[0]))
-  // the waves after it, GOAL_LINE_GAP frames apart
-  for (let k = 0; k < GOAL_LINE_GAP; k++) frame()
-  assertEquals(lines.waves, 2)
-  assertEquals([...lines.boxes()].length, 5 * 4 * 2)
-  // the lines go far (more than 3 cells out) and get long
+  // white only, one wave: never more than the five lines of each side
+  assertEquals(GOAL_LINE_COLOR, Palette.white)
   let far = 0
   let longest = 0
   while (effects.length > 0 && lines.f < 500) {
-    for (const b of lines.boxes()) {
+    const now = [...lines.boxes()]
+    assert(now.length <= 5 * 4)
+    assert(now.every((b) => b.color === Palette.white))
+    for (const b of now) {
       far = Math.max(
         far,
         Math.abs(b.x + b.w / 2 - 10.5 * 16),
@@ -156,12 +160,15 @@ Deno.test("goal fx: a goal done holds still under white noise, no shake, then th
     }
     frame()
   }
-  assert(far > 3 * 16, `${far}`)
+  // a little way out: the tips 2 to 3 cells off the cell's sides
+  assert(far > 2.5 * 16 && far <= 3.5 * 16, `${far}`)
+  // a little longer than a cell, shorter than two
   assertEquals(longest, GOAL_LINES.length)
-  assertEquals(lines.waves, GOAL_LINE_WAVES.length)
+  assert(GOAL_LINES.length > 16 && GOAL_LINES.length <= 20)
   assertEquals(lines.f, GOAL_LINES_FRAMES)
-  // ~2 s, much longer than the pickup's lines (48 frames)
-  assert(GOAL_LINES_FRAMES > 100)
+  // about a second (the 3 waves of before were ~2 s), longer than the
+  // pickup's lines (48 frames)
+  assert(GOAL_LINES_FRAMES >= 48 && GOAL_LINES_FRAMES <= 70)
   assertEquals(sounds, ["powerUp"])
   assertEquals(effects, [])
   off()
@@ -195,6 +202,95 @@ Deno.test("goal fx: the letter can't be picked up while it rises, and can after"
   assert(Item.isCollected(id))
   assertEquals(signal.glyphs.get().map((g) => g.id), [id])
   reset()
+})
+
+Deno.test("goal fx: after the lines, a beat at a time: the bolt, the leaves, the letter rising", () => {
+  const sounds: [string, number][] = []
+  const fx = new GlyphReveal(
+    5,
+    5,
+    0,
+    {
+      bolt: () => sounds.push(["bolt", fx.f]),
+      climax: () => sounds.push(["climax", fx.f]),
+    },
+    seeded(3),
+  )
+  const field = { time: 1 } as IField
+  // frames (after the hit stop) each part shows in
+  const bolt: number[] = []
+  const leaves: number[] = []
+  const rise: number[] = []
+  const shown: number[] = []
+  while (!fx.finished && fx.f < 1000) {
+    fx.step(field)
+    const f = fx.f
+    const boxes = [...fx.boxes()]
+    if (boxes.length > 0) shown.push(f)
+    const b = fx.bolt
+    if (b) {
+      bolt.push(f)
+      // from above the cell down into it, white or yellow1, edged black
+      assert(Math.min(...b.path.map(([, y]) => y)) < 5 * 16 - 16)
+      const [lx, ly] = b.path.at(-1)!
+      assert(lx >= 5 * 16 && lx < 6 * 16 && ly >= 5 * 16 && ly < 6 * 16)
+      assert(b.color === Palette.white || b.color === Palette.yellow1)
+      assert(boxes.some((x) => x.color === Palette.black))
+    }
+    const visible = fx.leaves.filter((l) => l.visible)
+    if (visible.length > 0) {
+      leaves.push(f)
+      for (const l of visible) {
+        assert(LEAF_COLORS.includes(l.color))
+        assert(l.w * l.h === 2)
+        // round the letter's cell, within two cells of it
+        assert(Math.abs(l.x - (5 * 16 + 8)) <= 2 * 16, `${l.x}`)
+        assert(Math.abs(l.y - (5 * 16 + 8)) <= 4 * 16, `${l.y}`)
+      }
+    }
+    if (revealPose(f).rows > 0) rise.push(f)
+  }
+  // the lines gone, then a beat
+  assertEquals(REVEAL_DELAY, GOAL_LINES_FRAMES)
+  assertEquals(shown[0], REVEAL_DELAY + REVEAL_BEAT)
+  // the bolt flickers (on and off) within its frames
+  assertEquals(bolt[0], REVEAL_DELAY + REVEAL_BEAT)
+  assert(bolt.at(-1)! < bolt[0] + BOLT_FRAMES)
+  assert(bolt.length < BOLT_FRAMES)
+  // a beat after it, the leaves; each gone at once, all within their frames
+  assertEquals(REVEAL.leaves[0], REVEAL.bolt[1] + REVEAL_BEAT)
+  assert(leaves[0] >= REVEAL_DELAY + REVEAL.leaves[0])
+  assert(leaves[0] <= REVEAL_DELAY + REVEAL.leaves[0] + 10)
+  assert(leaves.at(-1)! < REVEAL_DELAY + REVEAL.leaves[1])
+  // a beat after the leaves, the letter starts rising
+  assertEquals(REVEAL.rise[0], REVEAL.leaves[1] + REVEAL_BEAT)
+  assertEquals(rise[0], REVEAL_DELAY + REVEAL.rise[0])
+  assertEquals(REVEAL.leaves[1] - REVEAL.leaves[0], LEAF_FALL_FRAMES)
+  // the sounds: the crack as it strikes, the bell at the climax
+  assertEquals(sounds, [
+    ["bolt", REVEAL_DELAY + REVEAL.bolt[0]],
+    ["climax", REVEAL_DELAY + REVEAL.climax[0]],
+  ])
+  // pickable only when the climax is over
+  assertEquals(fx.f, REVEAL_FRAMES)
+  assertEquals(REVEAL_FRAMES, REVEAL_DELAY + REVEAL.climax[1])
+})
+
+Deno.test("goal fx: the bolt is one jagged line of pixels down onto the point", () => {
+  for (let n = 0; n < 20; n++) {
+    const path = boltPath(88, 92, seeded(n))
+    assertEquals(path.at(-1), [88, 92])
+    assertEquals(path[0][1], 92 - 40)
+    assert(Math.abs(path[0][0] - 88) <= 3)
+    for (let k = 1; k < path.length; k++) {
+      const [x0, y0] = path[k - 1]
+      const [x1, y1] = path[k]
+      // a pixel down, or a pixel to a side: never a gap
+      assertEquals(Math.abs(x1 - x0) + (y1 - y0), 1, `${n} ${k}`)
+    }
+    // it jogs to the sides
+    assert(new Set(path.map(([x]) => x)).size > 1)
+  }
 })
 
 Deno.test("goal fx: the letter rises out of the ground a row at a time, then hops", () => {
@@ -253,7 +349,7 @@ Deno.test("goal fx: a ring made whole celebrates once; reloaded, its letter just
   const d = Math.max(Math.abs(at.i - 100), Math.abs(at.j))
   assert(d >= 3 && d <= 4, `${d}`)
   // whole now: stepped on, it doesn't celebrate again
-  for (let k = 0; k < 200; k++) {
+  for (let k = 0; k < GOAL_HIT_STOP + REVEAL_FRAMES + 10; k++) {
     frame()
     stepRingSlot(slot, field)
   }

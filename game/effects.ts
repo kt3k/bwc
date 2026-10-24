@@ -22,7 +22,9 @@ import {
 import {
   GlyphReveal,
   GOAL_HIT_STOP,
+  GOAL_LINES_FRAMES,
   GoalLines,
+  REVEAL_BEAT,
   REVEAL_FRAMES,
   revealPose,
 } from "../model/goal-fx.ts"
@@ -702,8 +704,9 @@ function copyButton() {
 
 // ---------------------------------------------------------------------
 // a goal done (model/goal-fx.ts): the hit stop under white noise, the
-// five long lines and the letter rising a little way off, as in the game
-// (a row of tulips, the odd one found)
+// five white lines, then a little way off a bolt of lightning, falling
+// leaves and the letter rising, as in the game (a row of tulips, the odd
+// one found)
 
 const GOAL_COLS = 11
 const GOAL_ROWS = 9
@@ -835,7 +838,7 @@ document.getElementById("goal")!.append(
     "p",
     "note",
     ink(
-      `ヒットストップ ${GOAL_HIT_STOP}f (白いノイズ) → 5 本の長い線 → 少し離れて文字が地面から上がる (${REVEAL_FRAMES}f)。` +
+      `ヒットストップ ${GOAL_HIT_STOP}f (白いノイズ) → 白い 5 本の線 (${GOAL_LINES_FRAMES}f) → ${REVEAL_BEAT}f 後に少し離れたマスに小さな雷 → ${REVEAL_BEAT}f 後に落ち葉 → ${REVEAL_BEAT}f 後に文字が地面から上がる (取れるまで ${REVEAL_FRAMES}f)。` +
         "クリックで再生。時間は model/goal-fx.ts の定数。",
       "ink-light",
     ),

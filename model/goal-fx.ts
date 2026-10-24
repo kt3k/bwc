@@ -1,8 +1,10 @@
 // The moment a goal is done (model/celebrate.ts): the world holds still
 // a while (the hit stop) under white noise (game/draw-layer.ts), then the
-// game's five lines go out of the goal cell to every side, long and slow,
-// wave after wave, and the reward letter (model/glyph.ts) comes up out
-// of the ground a little way off, slowly, before it can be picked up.
+// game's five white lines go out of the goal cell to every side. When
+// they are gone, on the cell of the reward letter (model/glyph.ts) a
+// little way off, a beat at a time: a small bolt of lightning strikes,
+// a few leaves fall round it, and the letter comes up out of the ground
+// a row at a time, hops and sparkles, and only then can be picked up.
 //
 // Everything here keeps to the art rules (docs/art-guide.md): palette
 // colors only, whole pixels, no alpha and no fades. Things that go away
@@ -13,6 +15,7 @@ import { Palette, type PaletteColor } from "../util/palette.ts"
 import { CELL_SIZE } from "../util/constants.ts"
 import { DIRS } from "../util/dir.ts"
 import { type EffectLine0, linePattern0 } from "./effect.ts"
+import { EffectLeaf, LEAF_COLORS } from "./leaf-wind.ts"
 import type { IColorBox, IEffectGroup, IField } from "./types.ts"
 
 // ---------------------------------------------------------------------
@@ -25,8 +28,8 @@ import type { IColorBox, IEffectGroup, IField } from "./types.ts"
 export const GOAL_HIT_STOP = 32
 /**
  * The lines of a goal done: the game's five lines (linePattern0, as when
- * a thing is picked up: speed 1, p0 0.7, dist 3, a cell long), longer,
- * slower in the middle, going farther and living longer
+ * a thing is picked up: speed 1, p0 0.7, dist 3, a cell long), a little
+ * longer, slower in the middle, going a little farther
  */
 export const GOAL_LINES = {
   /** the speed of the outer lines (px/frame) */
@@ -34,57 +37,65 @@ export const GOAL_LINES = {
   /** how much faster each line toward the middle goes (px/frame) */
   p0: 0.5,
   /** how far they go (linePattern0's dist: the tips go 16 * dist - length) */
-  dist: 6,
+  dist: 4,
   /** the length of a line (px) */
-  length: 2 * CELL_SIZE,
+  length: 18,
 } as const
-/** The waves of lines, one color each, GOAL_LINE_GAP frames apart */
-export const GOAL_LINE_WAVES: readonly PaletteColor[] = [
-  Palette.white,
-  Palette.yellow1,
-  Palette.brown2,
-]
-/** Frames between the waves of lines */
-export const GOAL_LINE_GAP = 10
-/** Frames the slowest (outer) line of a wave lives */
-const LINE_LIFE = 16 * GOAL_LINES.dist / GOAL_LINES.speed
-/** Frames the lines last after the hit stop lets go (~2 s) */
-export const GOAL_LINES_FRAMES = (GOAL_LINE_WAVES.length - 1) * GOAL_LINE_GAP +
-  LINE_LIFE
+/** The color of the lines (one wave of them) */
+export const GOAL_LINE_COLOR: PaletteColor = Palette.white
+/** Frames the lines last after the hit stop lets go (the outer ones, ~1 s) */
+export const GOAL_LINES_FRAMES = 16 * GOAL_LINES.dist / GOAL_LINES.speed
 /** The sparks of the letter's reveal blink this many frames before they go */
 const SPARK_BLINK = 8
 
-/** Frames after the hit stop before the letter's reveal starts */
-export const REVEAL_DELAY = 12
 /**
- * The reveal of the letter, frames from its start: motes of light
- * gather to a point, a column of light goes up from it, the letter rises
- * out of the ground a row at a time, and at the climax it hops and
- * sparkles, then settles and can be picked up
+ * Frames after the hit stop before the letter's reveal starts: when the
+ * lines are gone
  */
-export const REVEAL = {
-  /** motes gather into the cell from round about */
-  converge: [0, 40],
-  /** the column of light */
-  beam: [36, 100],
-  /** the letter rises a row every RISE_STEP frames */
-  rise: [52, 100],
-  /** the sparkle burst and the hop */
-  climax: [100, 124],
-} as const
+export const REVEAL_DELAY = GOAL_LINES_FRAMES
+/** The pause before each beat of the reveal (the bolt, the leaves, the rise) */
+export const REVEAL_BEAT = 32
+/** Frames the bolt flickers on the cell */
+export const BOLT_FRAMES = 8
+/** Frames the scorch of the bolt stays on the cell (from the strike) */
+export const SCORCH_FRAMES = 24
+/** Frames the leaves fall (each lands, then is gone at once) */
+export const LEAF_FALL_FRAMES = 36
+/** How many leaves fall round the cell */
+export const FALLING_LEAVES = 8
 /** Frames per row of the letter rising out of the ground */
 export const RISE_STEP = 3
+/** Frames of the climax: the hop and the sparkles */
+export const CLIMAX_FRAMES = 24
+const BOLT_AT = REVEAL_BEAT
+const LEAVES_AT = BOLT_AT + BOLT_FRAMES + REVEAL_BEAT
+const RISE_AT = LEAVES_AT + LEAF_FALL_FRAMES + REVEAL_BEAT
+const CLIMAX_AT = RISE_AT + RISE_STEP * CELL_SIZE
+/**
+ * The reveal of the letter, frames from its start (the lines gone):
+ * a beat, a small bolt of lightning strikes the cell; a beat, a few
+ * leaves fall round it; a beat, the letter rises out of the ground a
+ * row at a time, and at the climax it hops and sparkles, then settles
+ * and can be picked up
+ */
+export const REVEAL = {
+  /** the bolt flickers on the cell */
+  bolt: [BOLT_AT, BOLT_AT + BOLT_FRAMES],
+  /** leaves fall round the cell */
+  leaves: [LEAVES_AT, LEAVES_AT + LEAF_FALL_FRAMES],
+  /** the letter rises a row every RISE_STEP frames */
+  rise: [RISE_AT, CLIMAX_AT],
+  /** the sparkle burst and the hop */
+  climax: [CLIMAX_AT, CLIMAX_AT + CLIMAX_FRAMES],
+} as const
 /** Frames from the goal done (after the hit stop) to the letter pickable */
 export const REVEAL_FRAMES = REVEAL_DELAY + REVEAL.climax[1]
 /** The hop at the climax: the letter's offset every HOP_STEP frames */
 const HOP = [-1, -2, -2, -1] as const
 const HOP_STEP = 3
-/** How many motes gather, and from how far */
-const MOTES = 12
-const MOTE_RADIUS = [44, 58] as const
-/** The column of light: its height, and how fast it goes up */
-const BEAM_HEIGHT = 72
-const BEAM_SPEED = 4
+/** The bolt: how high above the cell it comes from, and where it strikes */
+const BOLT_HEIGHT = 40
+const BOLT_STRIKE = 12
 
 // ---------------------------------------------------------------------
 // helpers
@@ -233,10 +244,9 @@ abstract class Group implements IEffectGroup {
 /**
  * The lines out of the goal done at the cell (i, j): nothing of its own
  * while the hit stop holds (the white noise is all), then, as it lets
- * go, the game's five lines (linePattern0) go out of the cell's four
- * sides, long and far (GOAL_LINES), in waves of the GOAL_LINE_WAVES
- * colors one after another. `onRelease` is called when the hit stop
- * lets go (the sound and the message go then)
+ * go, the game's five white lines (linePattern0) go out of the cell's
+ * four sides (GOAL_LINES). `onRelease` is called when the hit stop lets
+ * go (the sound and the message go then)
  */
 export class GoalLines extends Group {
   readonly i: number
@@ -249,37 +259,26 @@ export class GoalLines extends Group {
     this.j = j
     this.#onRelease = onRelease
   }
-  /** How many waves have gone out so far */
-  get waves(): number {
-    if (this.f < 1) return 0
-    return Math.min(
-      GOAL_LINE_WAVES.length,
-      Math.floor((this.f - 1) / GOAL_LINE_GAP) + 1,
-    )
-  }
   tick(field: Pick<IField, "time">) {
-    if (this.f === 1) this.#onRelease?.()
-    const k = (this.f - 1) / GOAL_LINE_GAP
-    if (Number.isInteger(k) && k >= 0 && k < GOAL_LINE_WAVES.length) {
+    if (this.f === 1) {
+      this.#onRelease?.()
       const { speed, p0, dist, length } = GOAL_LINES
-      this.#lines.push(
-        ...linePattern0(
-          DIRS,
-          this.i,
-          this.j,
-          speed,
-          p0,
-          dist,
-          GOAL_LINE_WAVES[k],
-          length,
-        ),
+      this.#lines = linePattern0(
+        DIRS,
+        this.i,
+        this.j,
+        speed,
+        p0,
+        dist,
+        GOAL_LINE_COLOR,
+        length,
       )
     }
     for (const line of this.#lines) line.step(field as IField)
     this.#lines = this.#lines.filter((line) => !line.finished)
   }
   get finished(): boolean {
-    return this.waves === GOAL_LINE_WAVES.length && this.#lines.length === 0
+    return this.f >= 1 && this.#lines.length === 0
   }
   *boxes(): Generator<IColorBox> {
     for (const line of this.#lines) {
@@ -318,29 +317,106 @@ export function revealPose(elapsed: number): RevealPose {
 }
 
 /**
+ * A jagged bolt of lightning from BOLT_HEIGHT px above the point
+ * (x, y) down to it: the pixels of its path, top to bottom, going down
+ * a few pixels at a time with a jog of 1 to 3 pixels to a side between,
+ * the last run straight down onto the point
+ */
+export function boltPath(
+  x: number,
+  y: number,
+  rand: Rand,
+): [number, number][] {
+  const out: [number, number][] = []
+  let px = x + Math.round(rand() * 6 - 3)
+  let py = y - BOLT_HEIGHT
+  let side = rand() < 0.5 ? -1 : 1
+  while (py < y) {
+    const run = Math.min(y - py, 3 + Math.floor(rand() * 3))
+    for (let k = 0; k < run; k++) out.push([px, py++])
+    if (py >= y) break
+    // a jog to a side; near the end, back over the point
+    const jog = y - py <= 6 ? x - px : side * (1 + Math.floor(rand() * 3))
+    for (let k = 0; k < Math.abs(jog); k++) {
+      px += Math.sign(jog)
+      out.push([px, py - 1])
+    }
+    side = -side
+  }
+  out.push([x, y])
+  return out
+}
+
+/**
+ * The leaves falling round the pixel (cx, cy) (the middle of the
+ * letter's cell): FALLING_LEAVES of the leaf wind's leaves (EffectLeaf,
+ * tumbling and swaying from side to side) going straight down onto the
+ * cells round it, one after another, each gone at once as it lands,
+ * all within LEAF_FALL_FRAMES
+ */
+export function fallingLeaves(
+  cx: number,
+  cy: number,
+  rand: Rand,
+): EffectLeaf[] {
+  return Array.from({ length: FALLING_LEAVES }, (_, n) => {
+    // where it lands: round the cell, a way each in turn
+    const a = (n / FALLING_LEAVES) * Math.PI * 2 + rand() * 0.5
+    const r = CELL_SIZE * (0.9 + rand() * 0.6)
+    const lx = Math.round(cx + Math.cos(a) * r)
+    const ly = Math.round(cy + Math.sin(a) * r)
+    const delay = Math.floor(rand() * 10)
+    const life = LEAF_FALL_FRAMES - delay - Math.floor(rand() * 6)
+    const vy = 0.5 + rand() * 0.3
+    return new EffectLeaf(
+      lx,
+      Math.round(ly - vy * life),
+      0,
+      vy,
+      LEAF_COLORS[n % LEAF_COLORS.length],
+      life,
+      delay,
+      Math.floor(rand() * 16),
+    )
+  })
+}
+
+/** The sounds of the reveal */
+export type RevealSounds = {
+  /** as the bolt strikes */
+  bolt?: () => void
+  /** at the climax */
+  climax?: () => void
+}
+
+/**
  * The reveal of the letter laid at the cell (i, j), round it (the
- * letter itself rises by its pose, see revealPose and Item): motes of
- * light gather into a point on the cell, a column of light goes up from
- * it, the ground line shimmers while the letter comes up out of it a
- * row at a time (chips of earth kicked aside), and at the climax a ring
- * of sparkles goes out, a white frame flashes round it and stars twinkle
- * at its corners. `onClimax` is called at the climax (a bell)
+ * letter itself rises by its pose, see revealPose and Item): after a
+ * beat, a small bolt of lightning strikes the cell (it flickers, a flash
+ * where it hits, a scorch left a while); after another, a few leaves
+ * fall round the cell, swaying, each gone at once as it lands; after
+ * another, the ground line shimmers while the letter comes up out of it
+ * a row at a time (chips of earth kicked aside), and at the climax a
+ * ring of sparkles goes out, a white frame flashes round it and stars
+ * twinkle at its corners
  */
 export class GlyphReveal extends Group {
   readonly x: number
   readonly y: number
   readonly cx: number
   readonly cy: number
-  #motes: { a: number; r: number; color: PaletteColor; size: number }[]
+  /** The two shapes of the bolt it flickers between */
+  #bolts: [number, number][][]
+  #leaves: EffectLeaf[]
   #sparks: Spark[] = []
   #chips: Spark[] = []
   #rand: Rand
-  #onClimax?: () => void
+  #sounds: RevealSounds
   constructor(
     i: number,
     j: number,
     born: number,
-    onClimax?: () => void,
+    sounds: RevealSounds = {},
     rand: Rand = Math.random,
   ) {
     super(born)
@@ -349,14 +425,13 @@ export class GlyphReveal extends Group {
     this.cx = this.x + CELL_SIZE / 2
     this.cy = this.y + CELL_SIZE / 2
     this.#rand = rand
-    this.#onClimax = onClimax
-    const colors = [Palette.white, Palette.yellow1, Palette.cyan1]
-    this.#motes = Array.from({ length: MOTES }, (_, n) => ({
-      a: (n / MOTES) * Math.PI * 2 + rand() * 0.2,
-      r: between(rand, MOTE_RADIUS),
-      color: colors[n % colors.length],
-      size: n % 2 === 0 ? 2 : 1,
-    }))
+    this.#sounds = sounds
+    const strike = this.y + BOLT_STRIKE
+    this.#bolts = [
+      boltPath(this.cx, strike, rand),
+      boltPath(this.cx, strike, rand),
+    ]
+    this.#leaves = fallingLeaves(this.cx, this.cy, rand)
   }
   /** Frames since the reveal started (negative while it waits) */
   get t(): number {
@@ -365,8 +440,28 @@ export class GlyphReveal extends Group {
   get floor(): number {
     return this.y + CELL_SIZE
   }
-  tick() {
+  /** The leaves still falling (none before their beat) */
+  get leaves(): readonly EffectLeaf[] {
+    return this.t >= REVEAL.leaves[0] ? this.#leaves : []
+  }
+  /** The bolt shown this frame and its color; null: none */
+  get bolt(): { path: [number, number][]; color: PaletteColor } | null {
+    const u = this.t - REVEAL.bolt[0]
+    if (u < 0 || u >= BOLT_FRAMES) return null
+    // on 2, off 1, the other shape on 2, off 1, on 1, off 1
+    const [a, b] = this.#bolts
+    if (u < 2) return { path: a, color: Palette.white }
+    if (u === 3 || u === 4) return { path: b, color: Palette.yellow1 }
+    if (u === 6) return { path: a, color: Palette.white }
+    return null
+  }
+  tick(field: Pick<IField, "time">) {
     const t = this.t
+    if (t === REVEAL.bolt[0]) this.#sounds.bolt?.()
+    if (t > REVEAL.leaves[0]) {
+      for (const leaf of this.#leaves) leaf.step(field as IField)
+      this.#leaves = this.#leaves.filter((leaf) => !leaf.finished)
+    }
     const [r0, r1] = REVEAL.rise
     // chips of earth kicked aside as it rises
     if (t >= r0 && t < r1 && (t - r0) % 6 === 0) {
@@ -387,7 +482,7 @@ export class GlyphReveal extends Group {
       }
     }
     if (t === REVEAL.climax[0]) {
-      this.#onClimax?.()
+      this.#sounds.climax?.()
       this.#sparks = sparkRing(
         this.cx,
         this.cy,
@@ -412,70 +507,38 @@ export class GlyphReveal extends Group {
   *boxes(): Generator<IColorBox> {
     const t = this.t
     if (t < 0) return
-    const { x, y, cx, cy } = this
+    const { x, y, cx } = this
     const S = CELL_SIZE
-    // motes gathering (faster and faster), each with a 1px tail
-    const [c0, c1] = REVEAL.converge
-    if (t < c1) {
-      const p = (t - c0) / (c1 - c0)
-      const q = Math.max(0, (t - 1 - c0) / (c1 - c0))
-      for (const m of this.#motes) {
-        const d = m.r * (1 - p * p)
-        const dp = m.r * (1 - q * q)
-        const mx = cx + Math.cos(m.a) * d
-        const my = cy + Math.sin(m.a) * d
-        const mx0 = mx - m.size / 2
-        const my0 = my - m.size / 2
-        yield box(mx0 + 1, my0 + 1, m.size, m.size, Palette.black)
-        yield box(mx0, my0, m.size, m.size, m.color)
-        yield box(
-          cx + Math.cos(m.a) * (d + dp) / 2,
-          cy + Math.sin(m.a) * (d + dp) / 2,
-          1,
-          1,
-          m.color,
-        )
-      }
-      // the point they gather to: blinks, then grows in whole steps
-      if (t >= 10 && t < 30 && (t >> 2) % 2 === 0) {
-        yield box(cx - 1, cy - 1, 2, 2, Palette.white)
-      } else if (t >= 30) {
-        yield box(cx - 2, cy - 2, 4, 4, Palette.white)
-      }
-    }
     const pose = revealPose(t + REVEAL_DELAY)
     const [r0, r1] = REVEAL.rise
-    // the flash where they meet
-    if (t >= c1 && t < c1 + 4) {
-      yield box(cx - 3, cy - 3, 6, 6, Palette.white)
+    // the scorch where the bolt struck, left a while
+    const u = t - REVEAL.bolt[0]
+    const sy = y + BOLT_STRIKE
+    if (u >= 0 && u < SCORCH_FRAMES) {
+      yield box(cx - 2, sy, 5, 1, Palette.gray4)
+      yield box(cx - 1, sy - 1, 3, 1, Palette.black)
+      yield box(cx - 3, sy + 1, 1, 1, Palette.black)
+      yield box(cx + 3, sy + 1, 1, 1, Palette.black)
     }
-    // the column of light, from the top of the rising letter up
-    const [b0, b1] = REVEAL.beam
-    if (t >= b0 && t < b1) {
-      const w = t < b0 + 4 ? 2 : t < b1 - 10 ? 6 : t < b1 - 5 ? 4 : 2
-      const bottom = t < r0 ? cy : this.floor - pose.rows
-      const top = Math.max(y + S - BEAM_HEIGHT, cy - BEAM_SPEED * (t - b0))
-      const h = bottom - top
-      if (h > 0) {
-        // a black edge on both sides, so it stands out on pale floors
-        if (h > 1) {
-          yield box(cx - w / 2 - 2, top + 1, 1, h - 1, Palette.black)
-          yield box(cx + w / 2 + 1, top + 1, 1, h - 1, Palette.black)
-        }
-        yield box(cx - w / 2, top, w, h, Palette.white)
-        if (t % 2 === 0 && h > 2) {
-          yield box(cx - w / 2 - 1, top + 2, 1, h - 2, Palette.yellow1)
-          yield box(cx + w / 2, top + 2, 1, h - 2, Palette.yellow1)
-        }
-        // light motes going up the column
-        for (let k = 0; k < 4; k++) {
-          const my = bottom - ((t * 3 + k * 18) % Math.max(1, h))
-          const mx = k % 2 === 0 ? cx - w / 2 - 3 : cx + w / 2 + 2
-          if (my > top) yield box(mx, my, 1, 2, Palette.yellow1)
-        }
-        // its top twinkles
-        if ((t >> 1) % 2 === 0) yield box(cx - 1, top - 3, 2, 2, Palette.white)
+    // the bolt: a white (or yellow1) core with a black edge all round
+    const bolt = this.bolt
+    if (bolt) {
+      for (const [px, py] of bolt.path) {
+        yield box(px - 1, py - 1, 3, 3, Palette.black)
       }
+      for (const [px, py] of bolt.path) yield box(px, py, 1, 1, bolt.color)
+    }
+    // the flash where it hits, its first 2 frames
+    if (u >= 0 && u < 2) {
+      yield box(cx - 3, sy, 7, 2, Palette.white)
+      yield box(cx - 5, sy + 1, 1, 1, Palette.yellow1)
+      yield box(cx + 5, sy + 1, 1, 1, Palette.yellow1)
+      yield box(cx - 4, sy - 2, 1, 1, Palette.yellow1)
+      yield box(cx + 4, sy - 2, 1, 1, Palette.yellow1)
+    }
+    // the leaves falling round the cell
+    for (const leaf of this.leaves) {
+      if (leaf.visible) yield box(leaf.x, leaf.y, leaf.w, leaf.h, leaf.color)
     }
     // the ground line shimmers while it rises (every other pixel)
     if (t >= r0 - 8 && t < r1) {
@@ -487,12 +550,12 @@ export class GlyphReveal extends Group {
     // the climax: a white frame flashes, stars twinkle at the corners
     const [k0] = REVEAL.climax
     if (t >= k0) {
-      const u = t - k0
-      if (u < 2 || (u >= 4 && u < 6)) {
+      const v = t - k0
+      if (v < 2 || (v >= 4 && v < 6)) {
         yield* frame(x, y + pose.dy, S, S, Palette.white)
       }
-      if (u < 20) {
-        const arm = (u >> 2) % 2 === 0 ? 1 : 2
+      if (v < 20) {
+        const arm = (v >> 2) % 2 === 0 ? 1 : 2
         for (
           const [sx, sy] of [
             [x - 2, y - 2],

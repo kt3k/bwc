@@ -178,8 +178,9 @@ export function layGlyph(
 
 /**
  * Gives the letter of the id as the reward of a goal just done: it is
- * laid at (i, j) as layGlyph does, but comes up out of the ground slowly
- * (model/goal-fx.ts) and can't be picked up until it has. Only for the
+ * laid at (i, j) as layGlyph does, but after a bolt of lightning and a
+ * few falling leaves comes up out of the ground slowly (model/goal-fx.ts)
+ * and can't be picked up until it has. Only for the
  * moment the goal is done: a letter laid again later (its place loaded
  * again, not taken yet) just lies there (layGlyph)
  */
@@ -193,7 +194,10 @@ export function revealGlyph(
   if (!item) return null
   item.startReveal?.(REVEAL_FRAMES)
   field.effects.add(
-    new GlyphReveal(i, j, field.time, () => signal.playSound("bell", 12)),
+    new GlyphReveal(i, j, field.time, {
+      bolt: () => signal.playSound("hitHurt"),
+      climax: () => signal.playSound("bell", 12),
+    }),
   )
   return item
 }

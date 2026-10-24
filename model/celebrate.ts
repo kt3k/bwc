@@ -1,10 +1,11 @@
 // A goal done (model/goal.ts), the moment of it, the same for every kind
 // of goal: the world holds still a while (the hit stop, input held too)
 // under the screen's white noise (no shake); as it lets go, the sound
-// and the message come and the game's five lines go out of the goal
-// cell, long and in waves. The reward letter comes up out of the ground
-// a little way off, slowly (model/goal-fx.ts has the effects and their
-// timings, model/glyph.ts the letter and where it comes up).
+// and the message come and the game's five white lines go out of the
+// goal cell. When they are gone, a little way off, a small bolt of
+// lightning strikes, a few leaves fall, and the reward letter comes up
+// out of the ground (model/goal-fx.ts has the effects and their timings,
+// model/glyph.ts the letter and where it comes up).
 import { hitStop, whiteNoise } from "../util/juice.ts"
 import * as signal from "../util/signals.ts"
 import { GOAL_HIT_STOP, GoalLines } from "./goal-fx.ts"
