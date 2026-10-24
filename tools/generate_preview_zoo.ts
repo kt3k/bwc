@@ -254,6 +254,18 @@ prop(172, 60, "goal-bell", { id: "zoo-bell", reward: [BI + 175, BJ + 63] })
 actor(172, 63, "stone")
 actor(172, 65, "boulder")
 
+// the pair (model/pair.ts): the twin holds a stone; the boulder rolls on
+// in a push but makes no pair, the stone below does
+sign(156, 69, "PAIR: PUT ON THE PLINTH THE SAME AS ITS TWIN HOLDS")
+prop(159, 72, "pair-twin", { id: "zoo-pair", holds: "stone" })
+prop(160, 72, "pair-plinth", {
+  id: "zoo-pair",
+  want: "stone",
+  reward: [BI + 163, BJ + 75],
+})
+actor(166, 72, "boulder")
+actor(160, 76, "stone")
+
 // Odradek (model/odradek.ts): in the corner of a small room, off to
 // another corner when you come near; talk to it from beside it
 sign(158, 56, "ODRADEK: IT WON'T BE CAUGHT")

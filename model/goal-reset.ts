@@ -4,13 +4,14 @@
 // one map only, and everything they left in the save:
 //
 // - the goals done and their letters: the collected ids "ring.<id>",
-//   "odd.<id>", "bell.<id>" and "<...>.reward" whose goal id starts with the map's
+//   "odd.<id>", "bell.<id>", "pair.<id>" and "<...>.reward" whose goal id starts with the map's
 //   prefix (the GOALS map names its goals "goals-...", the WILDS name
 //   theirs by their cell, "<x>.<y>", so they never match), and the
 //   letters held among them (signal.glyphs);
-// - what the goals took from the map: the stones gone into a gap
-//   ("gone.actor.<i>.<j>...") and anything broken, opened or picked up
-//   ("gone.<type>.<i>.<j>", "<i>.<j>.<type>") in the map's bounds.
+// - what the goals took from the map: the stones gone into a gap or
+//   onto a plinth ("gone.actor.<i>.<j>...") and anything broken, opened
+//   or picked up ("gone.<type>.<i>.<j>", "<i>.<j>.<type>") in the map's
+//   bounds.
 //
 // Then the page is loaded again at `to`, so the block comes back as it
 // was drawn (the stones in their places, the water and the bushes too).
@@ -31,9 +32,9 @@ export type GoalResetData = {
 
 /**
  * The goal kinds whose ids a reset matches (model/ring.ts, odd-one.ts,
- * bell.ts)
+ * bell.ts, pair.ts)
  */
-const GOAL_KINDS = ["ring", "odd", "bell"]
+const GOAL_KINDS = ["ring", "odd", "bell", "pair"]
 
 /** The cell a spawn-like collected id names, if any */
 function cellOf(id: string): [number, number] | null {

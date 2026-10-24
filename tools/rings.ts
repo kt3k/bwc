@@ -32,6 +32,9 @@
 //   @  where the player comes from (ground)
 //   A  a bell (tools/bells.ts): rung by a thing that bumps into it
 //      (the player's knock doesn't ring it)
+//   P  the empty plinth of a pair (tools/pairs.ts): a gap that takes
+//      only a thing of the kind its twin holds
+//   Y  the twin plinth, holding a stone   Z  holding a boulder
 //
 // The simulator follows the game's rules (model/actor.ts: the boulder's
 // roll, the stone's shove, the ice, the player flattening a bush) and
@@ -135,6 +138,8 @@ class Sim {
   readonly nbr: Int32Array[]
   readonly stone: boolean[]
   readonly slot: number
+  /** The kind the slot takes (a pair's plinth), null: any */
+  readonly want: ThingKind | null
   /** The bell's cell (-1: none) */
   readonly bell: number
   readonly rules: Rules
@@ -146,7 +151,7 @@ class Sim {
     let waters = 0, bushes = 0
     for (let p = 0; p < w * h; p++) {
       const c = cells[p]
-      if (c === "#" || c === "o" || c === "O" || c === "A") {
+      if ("#oOAYZ".includes(c)) {
         this.kind[p] = SOLID
       } else if (c === "w") {
         this.kind[p] = WATER
@@ -167,7 +172,12 @@ class Sim {
       return a
     })
     this.stone = layout.things.map((t) => t.kind === "stone")
-    this.slot = cells.indexOf("_")
+    this.slot = cells.includes("_") ? cells.indexOf("_") : cells.indexOf("P")
+    this.want = cells.includes("Y")
+      ? "stone"
+      : cells.includes("Z")
+      ? "boulder"
+      : null
     this.bell = cells.indexOf("A")
     this.rules = rules
   }
@@ -330,7 +340,9 @@ class Sim {
 
   done(s: State) {
     if (this.bell >= 0) return s.r !== undefined
-    return this.slot >= 0 && this.thingAt(s.t, this.slot) >= 0
+    if (this.slot < 0) return false
+    const n = this.thingAt(s.t, this.slot)
+    return n >= 0 && (!this.want || this.stone[n] === (this.want === "stone"))
   }
 
   /** What did it: the thing in the gap, or the thing that rang the bell */

@@ -1,6 +1,6 @@
 // The GOALS debug map (tools/generate_goals_map.ts, tools/goals_map.ts):
-// a bay for every ring signature and every bell signature, each
-// solvable and of the signature it is named for; a bay for every odd one
+// a bay for every ring signature, every bell signature and every pair
+// signature and kind, each solvable and of the signature it is named for; a bay for every odd one
 // family; the resets
 // scoped to the map; the portal to it on the start island
 import { assert, assertEquals } from "@std/assert"
@@ -13,11 +13,13 @@ import {
   oddId,
   PREFIX,
   readBellBay,
+  readPairBay,
   readRingBay,
   SIZE,
 } from "./goals_map.ts"
 import { MAX_PUSHES, MIN_PUSHES, sigName, signature, solve } from "./rings.ts"
 import { BELL_MAX_PUSHES, BELL_MIN_PUSHES } from "./bells.ts"
+import { PAIR_MAX_PUSHES, PAIR_MIN_PUSHES, wantOf, withWant } from "./pairs.ts"
 
 const read = async (name: string) =>
   JSON.parse(
@@ -26,6 +28,7 @@ const read = async (name: string) =>
 const block = await read(`block_${BI}.${BJ}.json`)
 const slots = block.props.filter((p) => p.type === "ring-slot")
 const bells = block.props.filter((p) => p.type === "goal-bell")
+const plinths = block.props.filter((p) => p.type === "pair-plinth")
 
 Deno.test("goals map: a ring for every signature, each solvable and of its signature", () => {
   // the WILDS have 13 signatures; the map has them and maybe more
@@ -79,6 +82,36 @@ Deno.test("goals map: a bell for every signature, each solvable and of its signa
     assertEquals(signs.length, 1)
     const text = (signs[0].data as { text: string }).text
     assert(text.includes(`${solved.pushes} PUSHES`), text)
+  }
+})
+
+Deno.test("goals map: a pair for every signature and kind, each solvable, its decoy too", () => {
+  assert(plinths.length >= 8, `${plinths.length} pairs`)
+  const ids = new Set<string>()
+  for (let n = 0; n < plinths.length; n++) {
+    const bay = readPairBay(block, n)
+    assert(bay, `pair bay ${n}`)
+    const { id, layout } = bay
+    assert(!ids.has(id), `${id} twice`)
+    ids.add(id)
+    const solved = solve(layout)
+    assert(solved, `${id} can't be solved`)
+    assert(
+      solved.pushes >= PAIR_MIN_PUSHES && solved.pushes <= PAIR_MAX_PUSHES,
+      id,
+    )
+    const want = wantOf(layout)
+    assertEquals(`${PREFIX}${sigName(signature(layout)!)}-${want}`, id)
+    // the other kind can be brought too, no harder
+    const other = solve(
+      withWant(layout, want === "stone" ? "boulder" : "stone"),
+    )
+    assert(other && other.pushes <= solved.pushes, id)
+    const signs = block.props.filter((p) =>
+      p.type === "sign" &&
+      (p.data as { text: string }).text.startsWith(`PAIR ${n + 1}: `)
+    )
+    assertEquals(signs.length, 1)
   }
 })
 

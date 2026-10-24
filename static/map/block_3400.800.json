@@ -101,6 +101,16 @@
       "type": "stone"
     },
     {
+      "i": 3593,
+      "j": 996,
+      "type": "boulder"
+    },
+    {
+      "i": 3591,
+      "j": 991,
+      "type": "stone"
+    },
+    {
       "i": 3559,
       "j": 803,
       "type": "piggy"
@@ -196,14 +206,14 @@
       "type": "crow"
     },
     {
-      "i": 3589,
-      "j": 982,
-      "type": "fluff"
-    },
-    {
       "i": 3488,
       "j": 993,
       "type": "book"
+    },
+    {
+      "i": 3406,
+      "j": 800,
+      "type": "shadow"
     },
     {
       "i": 3593,
@@ -214,11 +224,6 @@
       "i": 3439,
       "j": 969,
       "type": "spore"
-    },
-    {
-      "i": 3588,
-      "j": 995,
-      "type": "book"
     }
   ],
   "items": [
@@ -1234,6 +1239,28 @@
       }
     },
     {
+      "i": 3590,
+      "j": 993,
+      "type": "pair-twin",
+      "data": {
+        "id": "1591.993",
+        "holds": "boulder"
+      }
+    },
+    {
+      "i": 3591,
+      "j": 993,
+      "type": "pair-plinth",
+      "data": {
+        "id": "1591.993",
+        "want": "boulder",
+        "reward": [
+          3589,
+          993
+        ]
+      }
+    },
+    {
       "i": 3466,
       "j": 802,
       "type": "clock"
@@ -1571,13 +1598,13 @@
     "111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppppppppppppppppppppppppppppppppppppkkffJJffffffffkff66666ppppppppppppppppppppppppppppppp1ppppp666666666666666666666",
     "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppppppppppppppppppppppppppppppppffffffffffffffJJ666pppppppppp1pppppppppppppppppppppppppppp666666666666666666J6",
     "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppppppppppppppppppppppppppppppppfffffffffffffJJf6pp1ppppppppppppppppppppppppppppppppppppp66666666666666666666",
-    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppppppppppppppppppppppppppppppppffffJJfffffffff6pppppppppppppppppppppppppppppppppppppppp66666666666666666666",
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppppppppppppppppppppppppppppppppffffJJfffffffff6pppppppppppppppppppppppppppppppppppppppp6666666666666J666666",
     "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppppppppppppppppppppppppppppppppkfffJJfkfffffffppppppppppppppppppppppppppppppppppppppppp66666666666666666666",
-    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppppppppppppppppp1ppppppppp1ppppppppppkffffffkfffffkppppppppppppppppppppppppppppppppppppppppp666666666666666666666",
-    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppppppppppppppppppppppppppppppppppppp1pfffffffffffppkppppppppppppppppppppppppppppppppp1ppppppp666666666666666666666",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppppppppppppppppp1ppppppppp1ppppppppppkffffffkfffffkppppppppppppppppppppppppppppppppppppppppp66666666J666J66666666",
+    "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111ppppppppppppppppppppppppppppppppppppp1pfffffffffffppkppppppppppppppppppppppppppppppppp1ppppppp6666666J6666666666666",
     "111111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppppppp1ppppppppppppppppppppppppppppfffffffpp1ppppppppppppppppppppppppppppppp1pppppppppppp666666666666666666666",
     "11111111111111111111111111111111111111111111111111111111111111111111111111111111111ppppp1pppppppppppppppppppppppppppppppppppppppppppppppppppppppfkffpppppp1pppppppppppppppppppppp1p666666666666666666666",
     "1111111111111111111111111111111111111111111111111111111111111111111111111111111111pppppppppppppppppppppppppppppppppppppppppppppppppppppppppffffffffffffppppppppppppppppppppppppppp6666666666666666666666",
-    "111111111111111111111111111111111111111111111111111111111111111111111111111111111ppppppppppppppppppppppppppppppppppppppppppppppppp1ppppppffffffffffffkffppppppppppppppppppppppppp66666666666666666666666"
+    "111111111111111111111111111111111111111111111111111111111111111111111111111111111ppppppppppppppppppppppppppppppppppppppppppppppppp1ppppppffffffffffffkffppppppppppppppppppppppppp666666666666J66w6666666"
   ]
 }

@@ -150,6 +150,16 @@
       "type": "boulder"
     },
     {
+      "i": 10166,
+      "j": 10072,
+      "type": "boulder"
+    },
+    {
+      "i": 10160,
+      "j": 10076,
+      "type": "stone"
+    },
+    {
       "i": 10159,
       "j": 10058,
       "type": "odradek"
@@ -1149,6 +1159,36 @@
         "reward": [
           10175,
           10063
+        ]
+      }
+    },
+    {
+      "i": 10156,
+      "j": 10069,
+      "type": "sign",
+      "data": {
+        "text": "PAIR: PUT ON THE PLINTH THE SAME AS ITS TWIN HOLDS"
+      }
+    },
+    {
+      "i": 10159,
+      "j": 10072,
+      "type": "pair-twin",
+      "data": {
+        "id": "zoo-pair",
+        "holds": "stone"
+      }
+    },
+    {
+      "i": 10160,
+      "j": 10072,
+      "type": "pair-plinth",
+      "data": {
+        "id": "zoo-pair",
+        "want": "stone",
+        "reward": [
+          10163,
+          10075
         ]
       }
     },

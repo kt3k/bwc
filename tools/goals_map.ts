@@ -1,6 +1,7 @@
 // The GOALS debug map (block_10400.-10000), laid out: a bay for every
 // signature of the missing ring (tools/rings.ts), of the bell out of
-// reach (tools/bells.ts) and for every family of the odd one out
+// reach (tools/bells.ts), of the pair (tools/pairs.ts) and for every
+// family of the odd one out
 // (tools/odd_ones.ts), a room to watch Odradek in, and a reset that
 // undoes the goals of this map only (model/goal-reset.ts).
 // tools/generate_goals_map.ts draws the rings and bells and writes the block; this
@@ -17,12 +18,16 @@
 //   in the bottom wall either side of it: the signature and the pushes,
 //   and the solution. A walkway of 2 rows under each row of bays
 // - BELLS: bays as the rings', the 13x11 bell patch in walls
+// - PAIRS: bays as the rings', in a column of their own east of the
+//   rings and bells (from PAIRS_X), a pair for every signature and kind
+//   wanted
 // - ODD ONES: bays of 13x13, ODD_COLS to a row, the arrangement in the
 //   middle, the way in and the signs as for the rings
 // - ODRADEK: a room with corners, beside the odd ones
 //
 // The goal ids all start with PREFIX ("goals-<signature>" for a ring and
-// for a bell, "goals-<family>"), which is how the reset tells this map's goals from
+// for a bell, "goals-<signature>-<kind>" for a pair, "goals-<family>"),
+// which is how the reset tells this map's goals from
 // the WILDS' (whose ids are their cells, "<x>.<y>").
 import {
   type Layout,
@@ -34,6 +39,7 @@ import {
 } from "./rings.ts"
 import type { Arrangement } from "./odd_ones.ts"
 import type { Bell } from "./bells.ts"
+import type { Pair } from "./pairs.ts"
 import { alikeType, unlikeType } from "../model/odd-families.ts"
 
 export const SIZE = 200
@@ -52,6 +58,8 @@ export const PREFIX = "goals-"
 export const ringId = (sig: string) => `${PREFIX}${sig}`
 /** The bell id of a signature, e.g. "goals-roll+sink" */
 export const bellId = (sig: string) => `${PREFIX}${sig}`
+/** The pair id of a signature and kind, e.g. "goals-push+bush-stone" */
+export const pairId = (sig: string, want: string) => `${PREFIX}${sig}-${want}`
 /** The odd one's id of a family, e.g. "goals-tulip" */
 export const oddId = (family: string) => `${PREFIX}${family}`
 
@@ -86,6 +94,17 @@ export function bellBay(rings: number, n: number): { x: number; y: number } {
   }
 }
 
+/** The left of the pairs' column, east of the rings and bells */
+export const PAIRS_X = 3 + RING_COLS * RING_PITCH_X + 4
+
+/** The top left wall cell of the n-th pair bay (as a ring bay) */
+export function pairBay(n: number): { x: number; y: number } {
+  return {
+    x: PAIRS_X + (n % RING_COLS) * RING_PITCH_X,
+    y: RINGS_Y + 2 + Math.floor(n / RING_COLS) * RING_PITCH_Y,
+  }
+}
+
 /** The top of the odd ones' section, after the ring and bell bays */
 export const oddsY = (rings: number, bells: number) =>
   bellsY(rings) + 2 + Math.ceil(bells / RING_COLS) * RING_PITCH_Y + 1
@@ -117,6 +136,8 @@ export const FAMILY_TEXT: Record<string, string> = {
 export type GoalRing = Ring & { inWilds: boolean }
 /** A bell of the map: a bell and whether the WILDS have its signature */
 export type GoalBell = Bell & { inWilds: boolean }
+/** A pair of the map: a pair and whether the WILDS have its signature */
+export type GoalPair = Pair & { inWilds: boolean }
 
 export type Spawn = { i: number; j: number; type: string; data?: unknown }
 export type BlockJson = {
@@ -142,6 +163,9 @@ const PATCH_CELL: Record<string, string> = {
   O: "6",
   _: "6",
   A: "6",
+  P: "6",
+  Y: "6",
+  Z: "6",
 }
 const FLOOR = "0"
 const WALL = "1"
@@ -160,10 +184,14 @@ function oddPlace(a: Arrangement): string {
   return `THE ${nth(xs.indexOf(x))} ACROSS, THE ${nth(ys.indexOf(y))} DOWN`
 }
 
-/** Lays out the map: the rings and bells (in bay order) and the odd ones */
+/**
+ * Lays out the map: the rings, bells and pairs (in bay order) and the
+ * odd ones
+ */
 export function buildGoalsMap(
   rings: readonly GoalRing[],
   bells: readonly GoalBell[],
+  pairs: readonly GoalPair[],
   odds: readonly Arrangement[],
 ): BlockJson {
   const grid: string[][] = Array.from(
@@ -207,7 +235,9 @@ export function buildGoalsMap(
   }
 
   const oddRows = Math.ceil(odds.length / ODD_COLS)
-  const width = 3 + RING_COLS * RING_PITCH_X + 3
+  /** The west part: the rings, bells and odd ones */
+  const west = 3 + RING_COLS * RING_PITCH_X + 3
+  const width = PAIRS_X + RING_COLS * RING_PITCH_X + 3
   const ODDS_Y = oddsY(rings.length, bells.length)
   const BELLS_Y = bellsY(rings.length)
   const height = ODDS_Y + 2 + Math.max(oddRows, 2) * ODD_PITCH_Y
@@ -233,7 +263,8 @@ export function buildGoalsMap(
     8,
     2,
     `GOALS MAP: A RING FOR EVERY SIGNATURE (${rings.length}), A BELL FOR ` +
-      `EVERY SIGNATURE (${bells.length}) AND AN ODD ONE FOR EVERY FAMILY ` +
+      `EVERY SIGNATURE (${bells.length}), A PAIR FOR EVERY SIGNATURE AND ` +
+      `KIND (${pairs.length}, EAST) AND AN ODD ONE FOR EVERY FAMILY ` +
       `(${odds.length}). GOALS DONE HERE COUNT, GIVE ` +
       "LETTERS AND LAST IN THE SAVE AS IN THE WILDS. THE RESET UNDOES THEM",
   )
@@ -348,6 +379,52 @@ export function buildGoalsMap(
     )
   })
 
+  // the pairs
+  letters(PAIRS_X - 1, RINGS_Y, "PAIRS")
+  sign(
+    PAIRS_X + 5,
+    RINGS_Y,
+    "PAIRS: PUT THE SAME AS THE ONE PLINTH HOLDS ON THE OTHER. THE OTHER " +
+      "KIND LIES NEAR TOO, THE EASIER ONE TO BRING",
+  )
+  pairs.forEach((pair, n) => {
+    const { x, y } = pairBay(n)
+    const px = x + 1, py = y + 1
+    const sig = sigName(pair.signature)
+    const id = pairId(sig, pair.want)
+    const wx = px + pair.start[0]
+    bay(x, y, x + RING_W + 1, y + RING_H + 1, wx)
+    pair.rows.forEach((row, dy) =>
+      [...row].forEach((c, dx) => {
+        grid[py + dy][px + dx] = PATCH_CELL[c]
+        if (c === "P") {
+          prop(px + dx, py + dy, "pair-plinth", {
+            id,
+            want: pair.want,
+            reward: [BI + px + pair.reward[0], BJ + py + pair.reward[1]],
+          })
+        } else if (c === "Y" || c === "Z") {
+          prop(px + dx, py + dy, "pair-twin", { id, holds: pair.want })
+        }
+      })
+    )
+    for (const t of pair.things) actor(px + t.x, py + t.y, t.kind)
+    const bottom = y + RING_H + 1
+    wallSign(
+      wx - 2,
+      bottom,
+      `PAIR ${n + 1}: ${sig.toUpperCase()}. ${pair.pushes} PUSHES, ` +
+        `${pair.want === "boulder" ? "A BOULDER" : "A STONE"} MAKES THE ` +
+        `PAIR, THE OTHER KIND TAKES ${pair.decoy}` +
+        (pair.inWilds ? "" : ". NOT IN THE WILDS (DRAWN HERE)"),
+    )
+    wallSign(
+      wx + 2,
+      bottom,
+      `SOLUTION, FROM THE CELL INSIDE THE WAY IN: ${pair.solution}`,
+    )
+  })
+
   // the odd ones
   letters(2, ODDS_Y, "ODD")
   sign(
@@ -388,7 +465,7 @@ export function buildGoalsMap(
   {
     const x0 = 3 + ODD_COLS * ODD_PITCH_X + 2
     const y0 = ODDS_Y + 2
-    const x1 = width - 1
+    const x1 = west - 1
     const y1 = y0 + 2 * ODD_PITCH_Y - 3
     const wx = (x0 + x1) >> 1
     bay(x0, y0, x1, y1, wx)
@@ -453,6 +530,17 @@ export function readRingBay(
 }
 
 /**
+ * Reads the n-th pair bay of the block back into a patch, as
+ * readRingBay does. Also the pair's id
+ */
+export function readPairBay(
+  block: BlockJson,
+  n: number,
+): { id: string; layout: Layout } | null {
+  return readBay(block, pairBay(n))
+}
+
+/**
  * Reads the n-th bell bay of the block back into a patch, as
  * readRingBay does. Also the bell's id
  */
@@ -485,6 +573,11 @@ function readBay(
       } else if (p?.type === "goal-bell") {
         id = (p.data as { id: string }).id
         row += "A"
+      } else if (p?.type === "pair-plinth") {
+        id = (p.data as { id: string }).id
+        row += "P"
+      } else if (p?.type === "pair-twin") {
+        row += (p.data as { holds: string }).holds === "boulder" ? "Z" : "Y"
       } else if (p?.type === "ring-heart") row += "O"
       else if (p?.type === "ring-stone" || p?.type === "ring-boulder") {
         row += "o"

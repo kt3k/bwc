@@ -174,6 +174,16 @@
       "type": "boulder"
     },
     {
+      "i": 4275,
+      "j": 1598,
+      "type": "stone"
+    },
+    {
+      "i": 4277,
+      "j": 1593,
+      "type": "boulder"
+    },
+    {
       "i": 4232,
       "j": 1402,
       "type": "cloud"
@@ -342,11 +352,6 @@
       "i": 4246,
       "j": 1584,
       "type": "spore"
-    },
-    {
-      "i": 4259,
-      "j": 1587,
-      "type": "book"
     },
     {
       "i": 4230,
@@ -1772,6 +1777,28 @@
       "type": "alike-arrowstone"
     },
     {
+      "i": 4275,
+      "j": 1592,
+      "type": "pair-twin",
+      "data": {
+        "id": "2275.1593",
+        "holds": "stone"
+      }
+    },
+    {
+      "i": 4275,
+      "j": 1593,
+      "type": "pair-plinth",
+      "data": {
+        "id": "2275.1593",
+        "want": "stone",
+        "reward": [
+          4275,
+          1591
+        ]
+      }
+    },
+    {
       "i": 4219,
       "j": 1401,
       "type": "beehive",
@@ -2103,11 +2130,11 @@
     "666666666666666666666666666666666666666666666666666666666666666666666666JJ6666666ffffffffffffffffffffffffffffffffJJfffffffffJJffffffffffffffffffffyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "66666666666666666666666666666666666JJ66666666J66666666666666666666666666666666666ffffkkfffffkfffffffffffffJJffkffJJfffffffffffkfffffffffffffffffffyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "66666666666666666666666666666666666JJ66666666666666666666666666666666666666666666fffffffffffkffkkfffffkkffJJfffffffffJJfffffffkfffffffffffkffffffkfyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "66666J6666666666666666666666666666666666666666666666666666666666666666666666666666fffffffffffffffffffffffffffffffffffJJfffffffffkkfffffkkfkffffffffyyyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "66666J66666666666666666666666666JJ6666666666JJ6666666666666666666666666666666666666fffffffffffffffffffffffffffffffffffffkffkfffffffffffffffffffffffkkyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "66666666JJ6666666J66666666666666666666666666JJ6666666666666666666666666666666666666fkffffffffffffffffffffffffJJffffkkfffkffkfffffffffffffffkfffffffffffyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "66666666JJ66666666666666666666666666666666666666666666666666666666666666666666666666fffffJJfffffkkfffffffffffJJfJJfffffffffffffffffffffffffkfffffffffffffyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-    "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666ffffJJffkffffffffkffkffffffJJffffffffffJJfkkfffkffffffffffkfffffffJJffyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "66666J666666666666666666666666666666666666666666666666666666666666666666J666666666fffffffffffffffffffffffffffffffffffJJfffffffffkkfffffkkfkffffffffyyyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "66666J66666666666666666666666666JJ6666666666JJ6666666666666666666666k66666666666666fffffffffffffffffffffffffffffffffffffkffkfffffffffffffffffffffffkkyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "66666666JJ6666666J66666666666666666666666666JJ6666666666666666666666666J6JJ66666666fkffffffffffffffffffffffffJJffffkkfffkffkfffffffffffffffkfffffffffffyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "66666666JJ66666666666666666666666666666666666666666666666666666666666k66w66666666666fffffJJfffffkkfffffffffffJJfJJfffffffffffffffffffffffffkfffffffffffffyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "666666666666666666666666666666666666666666666666666666666666666666666666kkkkkk6666666ffffJJffkffffffffkffkffffffJJffffffffffJJfkkfffkffffffffffkfffffffJJffyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "66666666666666666666666666666666666666666666666666666666666666666666666666666666666666fJJffffkffffffffffffffffffffffffkfffffJJfffffffffffffffffffffffffJJfffyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "J666666666666666666J66666666666666666JJ666666666666666666JJ66JJ666666666666666666666666JJfffffffffffffffffffffffffffffkfffkkfffffffffffffffffffffffffffffffffyyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
     "6666JJ6666666666666J66666666666666666666666666666666JJ6666666JJ66666666666666666JJ6666666ffkfffffffffffffffffffffJJffffffffffffffffffffffffffffffffkffffffkffJJyyywwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",

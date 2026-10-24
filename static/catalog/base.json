@@ -2109,6 +2109,80 @@
         ]
       }
     },
+    "pair-plinth": {
+      "src": "../prop/pair_plinth.png",
+      "canEnter": true,
+      "growth": {
+        "stages": [
+          "../prop/pair_plinth.png",
+          "../prop/pair_stone_lit.png",
+          "../prop/pair_boulder_lit.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "want": {
+            "type": "string",
+            "enum": [
+              "stone",
+              "boulder"
+            ]
+          },
+          "reward": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "want"
+        ]
+      }
+    },
+    "pair-twin": {
+      "src": "../prop/pair_stone.png",
+      "canEnter": false,
+      "growth": {
+        "stages": [
+          "../prop/pair_stone.png",
+          "../prop/pair_boulder.png",
+          "../prop/pair_stone_lit.png",
+          "../prop/pair_boulder_lit.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "holds": {
+            "type": "string",
+            "enum": [
+              "stone",
+              "boulder"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "holds"
+        ]
+      }
+    },
     "alike-tulip": {
       "src": "../prop/alike_tulip.png",
       "canEnter": false

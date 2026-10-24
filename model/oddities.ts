@@ -57,6 +57,7 @@ import {
 import { PanePushed, stepPane } from "./pane.ts"
 import { stepRingHeart, stepRingSlot } from "./ring.ts"
 import { BellPushed, stepBell } from "./bell.ts"
+import { stepPairPlinth, stepPairTwin } from "./pair.ts"
 import { OdradekDelegate } from "./odradek.ts"
 import { stepUnlike, UnlikePushed } from "./odd-one.ts"
 import { ODD_FAMILIES, unlikeType } from "./odd-families.ts"
@@ -941,6 +942,8 @@ export const ODD_PROP_STEP: Record<
   "ring-slot": stepRingSlot,
   "ring-heart": stepRingHeart,
   "goal-bell": stepBell,
+  "pair-plinth": stepPairPlinth,
+  "pair-twin": stepPairTwin,
   ...Object.fromEntries(ODD_FAMILIES.map((f) => [unlikeType(f), stepUnlike])),
 }
 

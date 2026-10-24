@@ -51,6 +51,16 @@
       "type": "slipper"
     },
     {
+      "i": 2804,
+      "j": 762,
+      "type": "stone"
+    },
+    {
+      "i": 2808,
+      "j": 758,
+      "type": "boulder"
+    },
+    {
       "i": 2986,
       "j": 681,
       "type": "chick"
@@ -186,24 +196,14 @@
       "type": "snail"
     },
     {
-      "i": 2802,
-      "j": 768,
-      "type": "piggy"
-    },
-    {
       "i": 2844,
       "j": 768,
       "type": "shadow"
     },
     {
-      "i": 2815,
+      "i": 2822,
       "j": 769,
       "type": "book"
-    },
-    {
-      "i": 2829,
-      "j": 769,
-      "type": "rabbit"
     },
     {
       "i": 2857,
@@ -236,6 +236,11 @@
       "type": "spore"
     },
     {
+      "i": 2802,
+      "j": 776,
+      "type": "shadow"
+    },
+    {
       "i": 2983,
       "j": 778,
       "type": "snail"
@@ -251,19 +256,14 @@
       "type": "sheep"
     },
     {
-      "i": 2880,
+      "i": 2892,
       "j": 786,
-      "type": "book"
+      "type": "shadow"
     },
     {
-      "i": 2893,
-      "j": 786,
-      "type": "piggy"
-    },
-    {
-      "i": 2906,
+      "i": 2905,
       "j": 787,
-      "type": "crow"
+      "type": "snail"
     },
     {
       "i": 2988,
@@ -1336,6 +1336,28 @@
       "type": "alike-post"
     },
     {
+      "i": 2805,
+      "j": 757,
+      "type": "pair-twin",
+      "data": {
+        "id": "805.758",
+        "holds": "stone"
+      }
+    },
+    {
+      "i": 2805,
+      "j": 758,
+      "type": "pair-plinth",
+      "data": {
+        "id": "805.758",
+        "want": "stone",
+        "reward": [
+          2805,
+          756
+        ]
+      }
+    },
+    {
       "i": 2996,
       "j": 694,
       "type": "pinata-tree"
@@ -1451,30 +1473,24 @@
       "type": "nest-jar-4"
     },
     {
-      "i": 2828,
-      "j": 769,
-      "type": "rabbit-hole",
-      "data": {
-        "id": "828.769"
-      }
+      "i": 2840,
+      "j": 781,
+      "type": "drawer-tower"
     },
     {
-      "i": 2841,
-      "j": 781,
+      "i": 2853,
+      "j": 784,
       "type": "moon-shell"
     },
     {
-      "i": 2854,
+      "i": 2866,
       "j": 784,
-      "type": "packed-box"
+      "type": "self-statue"
     },
     {
-      "i": 2867,
-      "j": 784,
-      "type": "beehive",
-      "data": {
-        "id": "867.784"
-      }
+      "i": 2879,
+      "j": 786,
+      "type": "pinata-tree"
     },
     {
       "i": 2830,
@@ -1675,11 +1691,11 @@
     "6666666fffffffffffffJJfffffffffff66666666666666666666pppppppp6666666ppppp66666ppppppppppppppppppppppppppppppppppppppppJJfffkffppppppppppppppppppppppp1pppppppppppppppppppppppppppppppppppppp1pppp1pppppp",
     "66666666kffffkkfkfffJJffffJJffk6666666666666666666666pppppppp66666666pp6666666ppppppppppppppppppp1ppppppppppppppppppppfffffffppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
     "6666666666666666k6ffffffffJJ66k66666666666666666666666pppppp666666666666666666pppppppppppppppppppppppppppppppppppppppppffkfffppp1ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "6666666666666666666666666666666666J66666666666666666666ppppp6666JJ666666666666pppp1ppppppppppppppppppppppppppp1ppppppppffkffJJppppppppppppppppppppppppppppppppppppppppppppppppppppp1pppppppppppppppppppp",
-    "666666666666666666666666J6666J6666J666666666666666666666ppp66666666666666666666ppppppppppppppppppppppppppppppppppppppppfffffJJpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
-    "666666666666666666666666J666666666666666666666666666666666666666666J6666666666JJppppppppppp1ppppppppppppppppppppppppppppfffffppppppppppppppppppppp1ppppppppppppppppppp1ppppppppppppppppppppppppppppppppp",
+    "66666666666J6666666666666666666666J66666666666666666666ppppp6666JJ666666666666pppp1ppppppppppppppppppppppppppp1ppppppppffkffJJppppppppppppppppppppppppppppppppppppppppppppppppppppp1pppppppppppppppppppp",
+    "66k666666666666666666666J6666J6666J666666666666666666666ppp66666666666666666666ppppppppppppppppppppppppppppppppppppppppfffffJJpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+    "666wJ6666666666666666666J666666666666666666666666666666666666666666J6666666666JJppppppppppp1ppppppppppppppppppppppppppppfffffppppppppppppppppppppp1ppppppppppppppppppp1ppppppppppppppppppppppppppppppppp",
     "66666666666666666666666666666666666666JJ66666666666J66666666666666666666666666JJpppppppppppppppppppppppppppppppppppppppppfkkpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp66pp",
-    "666666666666666666666666666666666666666666666666666J66666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp6666p",
+    "666kkkkk6666J66666666666666666666666666666666666666J66666666666666666666666666666pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp6666p",
     "6666666666666666666666666666666666J6666666666666666666666666JJ66666666666666666666pppppppppppppppppppp1pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp1ppppppppppppppppppppppp1ppppppppp66666",
     "6666666666666666666666666666666J66J6666666666666666666666666JJ6666666666ppppp666666pppppppppppppppppppppppppppppppp1ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp1p66666",
     "66666666666666666J6666666666666J666666666666666666666666666666666666666ppppppp66666ppppppppppppppppppppppppppppppppppppppppppppppppp1pppp1ppppppppppppppppppppppppppppppppppppppppppppppppppppppppp66666",

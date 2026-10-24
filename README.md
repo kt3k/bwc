@@ -37,15 +37,16 @@ the catalog with `deno task generate-debug`.
 trying the goals: a bay for every signature of the missing ring (each a real
 ring drawn and solved by tools/rings.ts, the WILDS' own first, with signs naming
 the signature, the pushes and a solution), a bay for every signature of the bell
-out of reach (tools/bells.ts, the same way), a bay for every family of the odd
-one out, and a room where Odradek can be watched. Goals done there count and
-give letters like the WILDS' ones (so the Odradeks turn up, the first in the
+out of reach (tools/bells.ts, the same way), a bay for every signature and kind
+of the pair (tools/pairs.ts, in a column to the east), a bay for every family of
+the odd one out, and a room where Odradek can be watched. Goals done there count
+and give letters like the WILDS' ones (so the Odradeks turn up, the first in the
 hall of waystones). The RESET in the map undoes the goals of this map only
 (their ids start with `goals-`), takes back their letters and reloads the map;
 the WILDS' goals are kept. It is linked by the "GOALS" portal room, past the
 DEBUG room along its bottom row. Regenerate it with `deno task generate-goals`
-(a few minutes: it draws and solves thousands of rings and bells; `--drafts N`
-and `--bell-drafts N` draw fewer extra ones).
+(a few minutes: it draws and solves thousands of rings, bells and pairs;
+`--drafts N`, `--bell-drafts N` and `--pair-drafts N` draw fewer extra ones).
 
 # vscode extensions
 

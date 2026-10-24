@@ -1,7 +1,7 @@
 // Generates the GOALS debug map (block_10400.-10000, laid out by
 // tools/goals_map.ts): a ring for every signature tools/rings.ts makes,
-// a bell for every signature tools/bells.ts makes, an odd one for every
-// family, Odradek's room and a reset that undoes the goals of this map
+// a bell for every signature tools/bells.ts makes, a pair for every
+// signature and kind tools/pairs.ts makes, an odd one for every family, Odradek's room and a reset that undoes the goals of this map
 // only. It is linked from the start island by a
 // "GOALS" portal room, to the left of the DEBUG room.
 //
@@ -11,11 +11,11 @@
 // ring the WILDS place first; then more drafts with a seed of their own
 // (--drafts, 3000 by default; it takes some minutes) for the signatures
 // the WILDS don't have. The bays go by the number of rules, then by the
-// rules. Deterministic: the same rings every run. The bells the same way
-// (--bell-drafts, 1500 by default).
+// rules. Deterministic: the same rings every run. The bells and the pairs
+// the same way (--bell-drafts, --pair-drafts, 1500 by default).
 //
 // Usage: deno -A tools/generate_goals_map.ts [--drafts 3000]
-//   [--bell-drafts 1500]
+//   [--bell-drafts 1500] [--pair-drafts 1500]
 import { parseArgs } from "@std/cli/parse-args"
 import { loadCatalog } from "../model/catalog.ts"
 import { ODD_FAMILIES } from "../model/odd-families.ts"
@@ -24,6 +24,7 @@ import { seed } from "../util/random.ts"
 import { accept, AIMS, draft, type Ring, RULES, sigName } from "./rings.ts"
 import { arrange } from "./odd_ones.ts"
 import { acceptBell, type Bell, BELL_AIMS, draftBell } from "./bells.ts"
+import { acceptPair, draftPair, type Pair, PAIR_AIMS } from "./pairs.ts"
 import {
   ARRIVAL,
   BI,
@@ -31,13 +32,17 @@ import {
   type BlockJson,
   buildGoalsMap,
   type GoalBell,
+  type GoalPair,
   type GoalRing,
   type Spawn,
 } from "./goals_map.ts"
 
-const args = parseArgs(Deno.args, { string: ["drafts", "bell-drafts"] })
+const args = parseArgs(Deno.args, {
+  string: ["drafts", "bell-drafts", "pair-drafts"],
+})
 const EXTRA_DRAFTS = Number(args.drafts ?? 3000)
 const EXTRA_BELL_DRAFTS = Number(args["bell-drafts"] ?? 1500)
+const EXTRA_PAIR_DRAFTS = Number(args["pair-drafts"] ?? 1500)
 
 const catalog = await loadCatalog(
   new URL("../static/catalog/base.json", import.meta.url).href,
@@ -136,6 +141,48 @@ const addBell = (bell: Bell, inWilds: boolean) => {
 const bells = [...bellBySig.entries()].sort(bySignature).map(([, b]) => b)
 
 // ---------------------------------------------------------------------
+// the pairs (by signature and the kind wanted)
+
+const pairBySig = new Map<string, GoalPair>()
+const addPair = (pair: Pair, inWilds: boolean) => {
+  const key = `${sigName(pair.signature)} ${pair.want}`
+  if (!pairBySig.has(key)) pairBySig.set(key, { ...pair, inWilds })
+}
+{
+  // the WILDS' pool: as tools/generate_wilds.ts draws it
+  const plan = JSON.parse(
+    await Deno.readTextFile(new URL("./wilds_plan.json", import.meta.url)),
+  ) as { seed: string; blocks: { w: number; h: number } }
+  const W = plan.blocks.w * 200, H = plan.blocks.h * 200
+  const SCALE = Math.max(1, Math.round((W * H) / (1600 * 1000)))
+  const COUNT = 8 * SCALE
+  const rr = seed(`${plan.seed}/pairs`)
+  let drawn = 0
+  for (let n = 0; n < 160 * SCALE && drawn < 4 * COUNT; n++) {
+    const pair = acceptPair(draftPair(rr, PAIR_AIMS[n % PAIR_AIMS.length]))
+    if (!pair) continue
+    addPair(pair, true)
+    drawn++
+  }
+  console.log(`the WILDS' pairs: ${pairBySig.size} signatures and kinds`)
+}
+{
+  // more, for the signatures the WILDS don't have
+  const rr = seed("goals/pairs")
+  for (let n = 0; n < EXTRA_PAIR_DRAFTS; n++) {
+    const pair = acceptPair(draftPair(rr, PAIR_AIMS[n % PAIR_AIMS.length]))
+    if (pair) addPair(pair, false)
+    if (n % 500 === 499) {
+      console.log(`${n + 1} more pair drafts: ${pairBySig.size}`)
+    }
+  }
+}
+const pairs = [...pairBySig.entries()]
+  .map(([key, p]) => [key.split(" ")[0], p, key] as const)
+  .sort((a, b) => bySignature([a[0], 0], [b[0], 0]) || (a[2] < b[2] ? -1 : 1))
+  .map(([, p]) => p)
+
+// ---------------------------------------------------------------------
 // the odd ones
 
 const odds = (() => {
@@ -146,7 +193,7 @@ const odds = (() => {
 // ---------------------------------------------------------------------
 // the block, checked
 
-const block = buildGoalsMap(rings, bells, odds)
+const block = buildGoalsMap(rings, bells, pairs, odds)
 
 const fail = (...msg: unknown[]) => {
   console.error(...msg)
@@ -183,6 +230,8 @@ console.log(
     rings.map((r) => sigName(r.signature)).join(", ") +
     `; ${bells.length} bells: ` +
     bells.map((b) => sigName(b.signature)).join(", ") +
+    `; ${pairs.length} pairs: ` +
+    pairs.map((p) => `${sigName(p.signature)} ${p.want}`).join(", ") +
     `; ${odds.length} odd ones)`,
 )
 
@@ -230,7 +279,9 @@ const additions: Spawn[] = [
   {
     ...local(19, 23),
     type: "sign",
-    data: { text: "GOALS MAP: EVERY RING, BELL AND ODD ONE, AND A RESET" },
+    data: {
+      text: "GOALS MAP: EVERY RING, BELL, PAIR AND ODD ONE, AND A RESET",
+    },
   },
   {
     ...local(32, 27),

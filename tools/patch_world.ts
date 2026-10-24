@@ -1,7 +1,7 @@
-// A field made of a patch of tools/rings.ts (a ring, a bell), with the
-// game's real actors and props (model/actor.ts, model/prop.ts), for the
-// tests to play a solution in and compare it with the simulator move by
-// move (tools/rings.test.ts, tools/bells.test.ts).
+// A field made of a patch of tools/rings.ts (a ring, a bell, a pair),
+// with the game's real actors and props (model/actor.ts, model/prop.ts),
+// for the tests to play a solution in and compare it with the simulator
+// move by move (tools/rings.test.ts, bells.test.ts, pairs.test.ts).
 import { Catalog } from "../model/catalog.ts"
 import { Actor, spawnActor } from "../model/actor.ts"
 import { Prop } from "../model/prop.ts"
@@ -31,6 +31,9 @@ const CELL_OF: Record<string, string> = {
   O: "0",
   _: "0",
   A: "0",
+  P: "0",
+  Y: "0",
+  Z: "0",
 }
 export const DIR_OF: Record<string, Dir> = {
   U: "up",

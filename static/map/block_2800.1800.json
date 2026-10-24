@@ -2511,19 +2511,39 @@
       "type": "boulder"
     },
     {
-      "i": 2841,
-      "j": 1801,
-      "type": "crow"
+      "i": 2867,
+      "j": 1873,
+      "type": "boulder"
+    },
+    {
+      "i": 2871,
+      "j": 1877,
+      "type": "stone"
+    },
+    {
+      "i": 2851,
+      "j": 1814,
+      "type": "boulder"
+    },
+    {
+      "i": 2854,
+      "j": 1812,
+      "type": "stone"
+    },
+    {
+      "i": 2838,
+      "j": 1804,
+      "type": "rabbit"
     },
     {
       "i": 2836,
-      "j": 1814,
-      "type": "book"
+      "j": 1817,
+      "type": "sheep"
     },
     {
-      "i": 2862,
-      "j": 1822,
-      "type": "book"
+      "i": 2837,
+      "j": 1818,
+      "type": "sheep"
     },
     {
       "i": 2913,
@@ -2536,18 +2556,23 @@
       "type": "shadow"
     },
     {
-      "i": 2836,
-      "j": 1827,
+      "i": 2849,
+      "j": 1828,
       "type": "snail"
+    },
+    {
+      "i": 2862,
+      "j": 1828,
+      "type": "piggy"
+    },
+    {
+      "i": 2836,
+      "j": 1830,
+      "type": "crow"
     },
     {
       "i": 2819,
       "j": 1833,
-      "type": "fluff"
-    },
-    {
-      "i": 2862,
-      "j": 1835,
       "type": "fluff"
     },
     {
@@ -2561,14 +2586,14 @@
       "type": "rabbit"
     },
     {
-      "i": 2845,
-      "j": 1842,
-      "type": "sheep"
+      "i": 2849,
+      "j": 1841,
+      "type": "piggy"
     },
     {
-      "i": 2846,
-      "j": 1843,
-      "type": "sheep"
+      "i": 2862,
+      "j": 1841,
+      "type": "fluff"
     },
     {
       "i": 2817,
@@ -2581,16 +2606,6 @@
       "type": "piggy"
     },
     {
-      "i": 2858,
-      "j": 1848,
-      "type": "book"
-    },
-    {
-      "i": 2830,
-      "j": 1853,
-      "type": "shadow"
-    },
-    {
       "i": 2875,
       "j": 1853,
       "type": "shadow"
@@ -2601,14 +2616,24 @@
       "type": "book"
     },
     {
-      "i": 2885,
-      "j": 1866,
-      "type": "chick"
+      "i": 2830,
+      "j": 1856,
+      "type": "snail"
     },
     {
-      "i": 2898,
-      "j": 1870,
-      "type": "chick"
+      "i": 2888,
+      "j": 1866,
+      "type": "book"
+    },
+    {
+      "i": 2927,
+      "j": 1876,
+      "type": "book"
+    },
+    {
+      "i": 2940,
+      "j": 1876,
+      "type": "book"
     },
     {
       "i": 2801,
@@ -2621,44 +2646,19 @@
       "type": "spore"
     },
     {
-      "i": 2859,
-      "j": 1878,
-      "type": "crow"
-    },
-    {
-      "i": 2872,
-      "j": 1879,
-      "type": "fluff"
-    },
-    {
-      "i": 2885,
-      "j": 1879,
-      "type": "fluff"
-    },
-    {
       "i": 2833,
       "j": 1882,
       "type": "shadow"
     },
     {
-      "i": 2899,
+      "i": 2902,
       "j": 1883,
       "type": "rabbit"
     },
     {
-      "i": 2911,
+      "i": 2914,
       "j": 1888,
-      "type": "snail"
-    },
-    {
-      "i": 2924,
-      "j": 1889,
-      "type": "sheep"
-    },
-    {
-      "i": 2925,
-      "j": 1890,
-      "type": "sheep"
+      "type": "piggy"
     },
     {
       "i": 2813,
@@ -2671,14 +2671,29 @@
       "type": "rabbit"
     },
     {
-      "i": 2860,
-      "j": 1892,
+      "i": 2873,
+      "j": 1891,
       "type": "spore"
+    },
+    {
+      "i": 2886,
+      "j": 1892,
+      "type": "sheep"
+    },
+    {
+      "i": 2887,
+      "j": 1893,
+      "type": "sheep"
     },
     {
       "i": 2846,
       "j": 1904,
       "type": "shadow"
+    },
+    {
+      "i": 2859,
+      "j": 1904,
+      "type": "fluff"
     },
     {
       "i": 2979,
@@ -2746,13 +2761,13 @@
       "type": "fluff"
     },
     {
-      "i": 2992,
+      "i": 2872,
       "j": 1904,
-      "type": "snail"
+      "type": "spore"
     },
     {
-      "i": 2861,
-      "j": 1905,
+      "i": 2992,
+      "j": 1904,
       "type": "snail"
     }
   ],
@@ -4212,9 +4227,56 @@
       "type": "alike-post"
     },
     {
+      "i": 2871,
+      "j": 1875,
+      "type": "pair-plinth",
+      "data": {
+        "id": "871.1875",
+        "want": "boulder",
+        "reward": [
+          2871,
+          1873
+        ]
+      }
+    },
+    {
+      "i": 2872,
+      "j": 1875,
+      "type": "pair-twin",
+      "data": {
+        "id": "871.1875",
+        "holds": "boulder"
+      }
+    },
+    {
       "i": 2854,
-      "j": 1803,
-      "type": "pinata-tree"
+      "j": 1814,
+      "type": "pair-plinth",
+      "data": {
+        "id": "854.1814",
+        "want": "boulder",
+        "reward": [
+          2856,
+          1814
+        ]
+      }
+    },
+    {
+      "i": 2855,
+      "j": 1814,
+      "type": "pair-twin",
+      "data": {
+        "id": "854.1814",
+        "holds": "boulder"
+      }
+    },
+    {
+      "i": 2837,
+      "j": 1804,
+      "type": "rabbit-hole",
+      "data": {
+        "id": "837.1804"
+      }
     },
     {
       "i": 2880,
@@ -4225,11 +4287,6 @@
       "i": 2893,
       "j": 1807,
       "type": "balloon-rock"
-    },
-    {
-      "i": 2867,
-      "j": 1809,
-      "type": "self-statue"
     },
     {
       "i": 2906,
@@ -4250,29 +4307,14 @@
       "type": "self-statue"
     },
     {
-      "i": 2849,
-      "j": 1816,
-      "type": "moon-shell"
-    },
-    {
       "i": 2900,
       "j": 1824,
       "type": "clock"
     },
     {
-      "i": 2849,
-      "j": 1829,
-      "type": "nest-jar-4"
-    },
-    {
       "i": 2801,
       "j": 1834,
       "type": "pinata-tree"
-    },
-    {
-      "i": 2832,
-      "j": 1840,
-      "type": "drawer-tower"
     },
     {
       "i": 2875,
@@ -4291,17 +4333,14 @@
       }
     },
     {
+      "i": 2832,
+      "j": 1843,
+      "type": "self-statue"
+    },
+    {
       "i": 2843,
       "j": 1856,
       "type": "pinata-tree"
-    },
-    {
-      "i": 2872,
-      "j": 1866,
-      "type": "beehive",
-      "data": {
-        "id": "872.1866"
-      }
     },
     {
       "i": 2833,
@@ -4309,22 +4348,14 @@
       "type": "moon-shell"
     },
     {
-      "i": 2911,
+      "i": 2901,
+      "j": 1870,
+      "type": "clock"
+    },
+    {
+      "i": 2914,
       "j": 1875,
-      "type": "packed-box"
-    },
-    {
-      "i": 2924,
-      "j": 1876,
-      "type": "pinata-tree"
-    },
-    {
-      "i": 2937,
-      "j": 1876,
-      "type": "beehive",
-      "data": {
-        "id": "937.1876"
-      }
+      "type": "moon-shell"
     },
     {
       "i": 2800,
@@ -4335,12 +4366,25 @@
       }
     },
     {
-      "i": 2898,
+      "i": 2888,
+      "j": 1879,
+      "type": "beehive",
+      "data": {
+        "id": "888.1879"
+      }
+    },
+    {
+      "i": 2901,
       "j": 1883,
       "type": "rabbit-hole",
       "data": {
-        "id": "898.1883"
+        "id": "901.1883"
       }
+    },
+    {
+      "i": 2927,
+      "j": 1889,
+      "type": "clock"
     },
     {
       "i": 2940,
@@ -4356,18 +4400,13 @@
       }
     },
     {
-      "i": 2873,
-      "j": 1892,
-      "type": "nest-jar-4"
+      "i": 2860,
+      "j": 1891,
+      "type": "packed-box"
     },
     {
       "i": 2833,
       "j": 1895,
-      "type": "nest-jar-4"
-    },
-    {
-      "i": 2886,
-      "j": 1896,
       "type": "nest-jar-4"
     },
     {
@@ -4471,12 +4510,12 @@
     "ppppp1ppppppppppppwwp666666666666666666666666666666666666666666666666666666666666666ppppppppppppppppppp666666666666666666666666666666666666666336fffffffffffffffkffffkffffffffkfffffffkffffkffffffffffff",
     "ppppppppppppppppppwwp66666666666666666666666666666666666666666666666666666666666666666pppp1ppppppppppp666666666666666666666666666666666666666633ffffffffffffffffffffffffffkfffffffkfffkffffkffkffffffffk",
     "ppppppppppppppppppwwp666666666666666666666666666666666666666666666666666666666666666666pppppppppppppp666666666J66666666666666666JJ66666666666633fffffffkkfffffffffffffffffffffffffkfffffkkffffkffffkffff",
-    "ppppppppppppppppppww66666666666666666666666666666666666666666666666666666666666666666666666666ppppp66666666666J66666666666666JJ6JJ66666666666633ffffkkffffffffffffffJJfJJffffffffffffffffffkkffffffkffff",
-    "66ppppppppppppppppww66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666JJ666666666666666666666666633ffffffffffffJJffffffJJfJJffffJJffffkfffffffffffkffffffff",
-    "6666ppppppppppppppww6666666666666666666666666666JJ6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666633ffffffffffffJJffffkkfffffffffJJffffkfffffffffffkffffffff",
-    "666666pppppp6666ppww666666666666666666666666666666666666666666666J666666666666666666666666666666666666666666666666666666666666666666666666666633fffffffffffffffkkffffkffffJJffffffffffkfffkfffffffffffff",
-    "66666666666666666pww666666666666666666666666666666666666666666666J6666666666666666666666ppp6666666666666666J666666666666666666666666666J66666633ffffkffkfffffffffffffkffffJJfffJJfffffffffkffffkffkkffff",
-    "666666666666666666ww66666666666666666666666666666666666666666666666666666666666666666666ppp66666666666666666666666666666666666666666666666666633fffffffkfffkkffffffffffffffffffJJffffffffffffffkffffffff",
+    "ppppppppppppppppppww666666666666666666666666666666666666k6666666666666666666666666666666666666ppppp66666666666J66666666666666JJ6JJ66666666666633ffffkkffffffffffffffJJfJJffffffffffffffffffkkffffffkffff",
+    "66ppppppppppppppppww66666666666666666666666666666666w6666J666666666666666666666666666666666666666666666666666666666JJ666666666666666666666666633ffffffffffffJJffffffJJfJJffffJJffffkfffffffffffkffffffff",
+    "6666ppppppppppppppww6666666666666666666666666666JJ66w6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666633ffffffffffffJJffffkkfffffffffJJffffkfffffffffffkffffffff",
+    "666666pppppp6666ppww66666666666666666666666666666666w666666666666J666666666666666666666666666666666666666666666666666666666666666666666666666633fffffffffffffffkkffffkffffJJffffffffffkfffkfffffffffffff",
+    "66666666666666666pww66666666666666666666666666666666w6J6666666666J6666666666666666666666ppp6666666666666666J666666666666666666666666666J66666633ffffkffkfffffffffffffkffffJJfffJJfffffffffkffffkffkkffff",
+    "666666666666666666ww66666666666666666666666666666666w66666666666666666666666666666666666ppp66666666666666666666666666666666666666666666666666633fffffffkfffkkffffffffffffffffffJJffffffffffffffkffffffff",
     "666666666666666666ww6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666J66666666666666666633ffffffffffffffkffffffffkfffkfffffffkffffkfffff1pppffkfff",
     "wwwwwwwwwwwwwwwwwww6666666666666666666666666666666666J666666666666666666666666666666666666J66666666666666666666666666666666J66666666666666666633fffffffffffffffffffJJffkfffffffffffkffffkffffppppppfkfff",
     "wwwwwwwwwwwwwwwwwww6666666666666666666666666666666666J666666666666666666666666666666666666J66666666666666666666666666666666666666666666666666633ffkkffffkfffkffffffJJffffffffffkkffffkkffffffppppppppffp",
@@ -4533,12 +4572,12 @@
     "66666666666666666666666666666666666J6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666663366pppppppppppppppppppppppppppppppJJffffffffffkkfffffff",
     "66666666666666666666666666666666666J66666666666666666666666666666666666666666666666J6666666666666666666666666666666666666666666666666666666JJ66633666ppppppppppppppppppppppppppppppJJfffffffffffffffffff",
     "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666JJ6663366666pppp1pppppp1ppppppppppppppppfffffffJJffffffffJJff",
-    "66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666633666666pppppppppppppppppppppppppppkkfffffJJfkffkfffJJff",
-    "6666666666666666666666666666J6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666336666666ppppppppppppppp1ppppppppppffffkffffffffkfffffff",
+    "66666666666666666666666666666666666666666666666666666666666666666666k66666666666666666666666666666666666666666666666666666666666666666666666666633666666pppppppppppppppppppppppppppkkfffffJJfkffkfffJJff",
+    "6666666666666666666666666666J666666666666666666666666666666666666666666J666J66666666666666666666666666666666666666666666666666666666666666666666336666666ppppppppppppppp1ppppppppppffffkffffffffkfffffff",
     "6666666666666666666666666666J66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666663366666666pppppppppppppppppppppppppfffffffffffffffffffff",
-    "6666666666666666666666666666666JJ666666666666666666666666666666666666666666666666666666666666666666666666666J666666666666666666666666666666666663366666666fppppppppppppppppppppppppfffffffffffffffffJJff",
+    "6666666666666666666666666666666JJ666666666666666666666666666666666JJ666666k666666666666666666666666666666666J666666666666666666666666666666666663366666666fppppppppppppppppppppppppfffffffffffffffffJJff",
     "6666666666666666666666666666666JJ666666666666666666666666666666666666666666666666666666666666666666666666666J6666666666666666666666666666666666633666666666fppppppppppppppppppppppppfffffffkffffkfffJJfk",
-    "666666JJ666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666633666666666ffppppppppppppppppppppppppkfffffkffffffffffff",
+    "666666JJ666666666666666666666666666666666666666666666666666666666666666666w66666666666666666666666666666666666666666666666666666666666666666666633666666666ffppppppppppppppppppppppppkfffffkffffffffffff",
     "666666JJ666666666666JJ6666666666666666666666666666666666JJ6666666666666666666666666666666666666666666666666666666666666666666666666666666666666633666666666kffpppppppppppppppppppppppkffffffffffffJJffff",
     "666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666J66666666666666666666666336666666666fffppppppppppppppppppppppppffJJfffffffJJffff",
     "6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666f666666f666666666666666666666666666666666336666666666ffffppppp1pppppppppppppppp1pfJJfkfffffffffff",
