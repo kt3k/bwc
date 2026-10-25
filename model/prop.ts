@@ -1,6 +1,6 @@
 import { CELL_SIZE } from "../util/constants.ts"
 import { DIRS, nextGrid, opposite } from "../util/dir.ts"
-import { clearSave, recordBestTime } from "../util/save.ts"
+import { clearSave, recordBestTime, saveProgress } from "../util/save.ts"
 import * as signal from "../util/signals.ts"
 import { linePattern0 } from "./effect.ts"
 import { Item } from "./item.ts"
@@ -37,6 +37,16 @@ const fallbackImage = await fetch(
  * survive the deactivation of the props.
  */
 const growthStates = new Map<string, { stage: number; count: number }>()
+
+/**
+ * The collected-id key of a door the player has gone through (at the cell
+ * i, j, going `dir`): the door lets them back the other way
+ */
+export const passedKey = (i: number, j: number, dir: Dir) =>
+  `passed.${i}.${j}.${dir}`
+
+/** How long a door stays open for the player going back out (frames) */
+const DOOR_EXIT_FRAMES = 40
 
 /**
  * The positions of the pressure plates, keyed by group. Registered on
@@ -164,6 +174,8 @@ export class Prop implements IProp {
   #hidden = false
   /** The field time when a timer gate closes again */
   #openUntil: number | null = null
+  /** A door held open till then for the player going back out */
+  #exitUntil = 0
   /** Pixels above its cell while falling into place (see drop) */
   #fall = 0
   #onLand: (() => void) | null = null
@@ -502,9 +514,22 @@ export class Prop implements IProp {
           }
         }
         // Never closes on someone standing in the doorway
-        if (!occupied && field.actors.get(this.i, this.j).length > 0) {
+        const inDoorway = field.actors.get(this.i, this.j)
+        if (!occupied && inDoorway.length > 0) {
           occupied = true
         }
+        // The player in the doorway: the way through is kept (in the save),
+        // so the door lets them back out (onPushed) after a reload, or once
+        // what held its plate is gone
+        for (const a of inDoorway) {
+          if (a.id !== "main") continue
+          const key = passedKey(this.i, this.j, a.dir)
+          if (!Item.isCollected(key)) {
+            Item.collect(key)
+            saveProgress()
+          }
+        }
+        if (!occupied && field.time < this.#exitUntil) occupied = true
         if (occupied !== this.isOpen) {
           this.setOpen(occupied)
           if (occupied) {
@@ -607,6 +632,16 @@ export class Prop implements IProp {
   }
 
   onPushed(event: PushedEvent, field: IField): void {
+    // A shut door lets the player back out the way they came in
+    if (
+      this.def.type === "door" && !this.isOpen &&
+      event.pusher?.id === "main" &&
+      Item.isCollected(passedKey(this.i, this.j, opposite(event.dir)))
+    ) {
+      this.#exitUntil = field.time + DOOR_EXIT_FRAMES
+      this.setOpen(true)
+      signal.playSound("powerUp")
+    }
     this.#pushed?.onPushed(event, this, field)
   }
 

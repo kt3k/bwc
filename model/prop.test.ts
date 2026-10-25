@@ -1,8 +1,9 @@
-import { MOON_GATE_RANGE, Prop, resetSwitchStates } from "./prop.ts"
+import { MOON_GATE_RANGE, passedKey, Prop, resetSwitchStates } from "./prop.ts"
+import { Item } from "./item.ts"
 import { Actor } from "./actor.ts"
 import { PropSpawn } from "./field-block.ts"
 import type { ActorDefinition, PropDefinition } from "./catalog.ts"
-import type { IActor, IField } from "./types.ts"
+import type { Dir, IActor, IField } from "./types.ts"
 import { assert, assertEquals, assertFalse } from "@std/assert"
 
 const actorDef: ActorDefinition = {
@@ -254,6 +255,63 @@ Deno.test("door opens while a plate of the same group is occupied", () => {
   occupied.delete("5.5")
   door.step(field)
   assertFalse(door.canEnter)
+})
+
+Deno.test("door lets the player back out the way they came in", () => {
+  Item.deserializeCollected([])
+  const me = new Actor(9, 10, actorDef, "main", "up")
+  const occupied = new Set<string>()
+  const clock = { time: 0 }
+  const field = makeField(me, () => occupied, clock)
+  new Prop(null, 15, 15, plateDef, null, { group: "exit-room" })
+  const door = new Prop(null, 9, 9, doorDef, null, { group: "exit-room" })
+  const bump = (dir: Dir) =>
+    door.onPushed({ type: "pushed", dir, peakAt: 7, pusher: me }, field)
+  const tick = (n = 1) => {
+    for (let k = 0; k < n; k++) {
+      clock.time++
+      door.step(field)
+    }
+  }
+  // never been through: a bump either way does nothing
+  bump("up")
+  tick()
+  assertFalse(door.canEnter)
+  bump("down")
+  tick()
+  assertFalse(door.canEnter)
+  // the plate held, the player goes through, going up (the way is kept)
+  occupied.add("15.15")
+  tick()
+  assert(door.canEnter)
+  occupied.add("9.9")
+  me.setDir("up")
+  tick()
+  assert(Item.isCollected(passedKey(9, 9, "up")))
+  // gone on through; the plate let go: the door shuts behind
+  occupied.clear()
+  tick()
+  assertFalse(door.canEnter)
+  // (a reload: the same, the way kept in the save)
+  const back = new Prop(null, 9, 9, doorDef, null, { group: "exit-room" })
+  back.step(field)
+  assertFalse(back.canEnter)
+  // going back down: it opens, a while, and shuts again after
+  back.onPushed({ type: "pushed", dir: "down", peakAt: 7, pusher: me }, field)
+  assert(back.canEnter)
+  for (let k = 0; k < 20; k++) {
+    clock.time++
+    back.step(field)
+  }
+  assert(back.canEnter)
+  for (let k = 0; k < 60; k++) {
+    clock.time++
+    back.step(field)
+  }
+  assertFalse(back.canEnter)
+  // but not the other way, up: that wants the plate
+  back.onPushed({ type: "pushed", dir: "up", peakAt: 7, pusher: me }, field)
+  assertFalse(back.canEnter)
 })
 
 Deno.test("moon gate opens once a lantern within range is lit", () => {
