@@ -4811,9 +4811,9 @@ for (let round = 0; round < 50; round++) {
   )
 }
 // the statues' gazes (tools/gazes.ts, model/gaze.ts; ideas/
-// goal-types.md, 視線を通す): out on the open land, a stone head looking
-// straight at a sun-stone a few cells off, the line between cluttered
-// with stones, boulders and bushes. Drawn and solved first, then placed
+// goal-types.md, 視線を通す): out on the open land, a moai looking
+// straight at a wisteria trellis a few cells off, the line between
+// cluttered with stones, boulders and bushes. Drawn and solved first, then placed
 // as the rings are: the least placed signature first, never one that a
 // statue within 12 cells has already, the patch left alone by what comes
 // after. After the daises, so that everything before stays where it

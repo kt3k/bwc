@@ -1,11 +1,12 @@
-// The statue's gaze (ideas/goal-types.md, 視線を通す): a stone head on
-// the open land of the WILDS (`gaze-statue`) looking straight ahead at a
-// sun-stone a few cells off (`gaze-sun`), the line between cluttered.
+// The statue's gaze (ideas/goal-types.md, 視線を通す): a moai on the
+// open land of the WILDS (`gaze-statue`) looking straight ahead at a
+// wisteria trellis a few cells off (`gaze-sun`), the line between
+// cluttered.
 // One rule more: the statue sees straight ahead, and anything solid in
 // the line blocks it: a tree, a rock, an upright bush, a stone, a
 // boulder, a creature (water and the ground don't; the player doesn't).
-// Clear the line and the statue sees the sun-stone: its eyes and the
-// stone light up and the reward appears a little way off, once (where:
+// Clear the line and the statue sees the trellis: its eyes light up,
+// the wisteria bursts into white bloom and the reward appears a little way off, once (where:
 // rewardCell, model/glyph.ts, from the cell by the statue the map
 // gives). tools/gazes.ts makes the statues and tools/generate_wilds.ts
 // places them.
@@ -44,7 +45,7 @@ type StatueData = {
   id?: string
   /** Where it looks */
   dir?: Dir
-  /** The sun-stone's cell (world cell) */
+  /** The trellis's cell (world cell) */
   to?: [number, number]
   /**
    * The cell by the statue the reward is reached from (world cell); it
@@ -56,7 +57,7 @@ type StatueData = {
 /** The growth stage of a statue looking `dir` (then +4 once it has seen) */
 const STAGE: Record<Dir, number> = { up: 0, down: 1, left: 2, right: 3 }
 
-/** true if the statue of the id has seen its sun-stone */
+/** true if the statue of the id has seen its trellis */
 export const hasSeen = (id: string) => Item.isCollected(gazeKey(id))
 
 /** The statues that have seen their line blocked */
@@ -64,7 +65,7 @@ const blockedOnce = new WeakSet<Prop>()
 
 /**
  * true if nothing solid stands in the line from (i, j) looking `dir`, up
- * to the sun-stone at `to` (not counted)
+ * to the trellis at `to` (not counted)
  */
 export function lineClear(
   field: IField,
@@ -86,7 +87,7 @@ export function lineClear(
 
 /**
  * The statue: looking down its line every few frames; the first time
- * it sees the sun-stone (having seen the line blocked before), the goal
+ * it sees the trellis (having seen the line blocked before), the goal
  * is done. Once it has seen, its eyes are lit and its reward lies by it
  * until taken
  */
@@ -133,7 +134,7 @@ function layReward(field: IField, prop: Prop, data: StatueData) {
   if (at) layGlyph(field, at[0], at[1], id)
 }
 
-/** The sun-stone: lit once its statue has seen it */
+/** The wisteria trellis: in full bloom once its statue has seen it */
 export function stepGazeSun(prop: Prop, _field: IField) {
   const id = (prop.data as { id?: string } | undefined)?.id
   prop.showStage(id && hasSeen(id) ? 1 : 0)

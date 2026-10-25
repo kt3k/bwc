@@ -1,9 +1,9 @@
-// The statue's gaze (ideas/goal-types.md, 視線を通す): a statue on the
-// open land looking straight ahead at a sun-stone a few cells off, the
-// line between cluttered. One rule more: the statue sees straight
+// The statue's gaze (ideas/goal-types.md, 視線を通す): a statue (a moai)
+// on the open land looking straight ahead at a wisteria trellis a few
+// cells off, the line between cluttered. One rule more: the statue sees straight
 // ahead, and anything solid in the line blocks it (a tree, a rock, an
 // upright bush, a stone, a boulder; water and the ground don't). Clear
-// the line and the statue sees the sun-stone (model/gaze.ts). The trick
+// the line and the statue sees the trellis (model/gaze.ts). The trick
 // is in getting each thing out of the line: pushed out sideways where a
 // side is open (and a place to push from), sunk in a pool on the line,
 // crushed by a boulder that rolls on into the water, the bushes pushed
@@ -12,7 +12,7 @@
 //
 // A gaze is a patch of the map as a ring is (13x11, the outermost cells
 // open ground left as it was), drawn at random and solved by the ring's
-// simulator, which knows the statue ("E") and the sun-stone ("T"). Kept
+// simulator, which knows the statue ("E") and the trellis ("T"). Kept
 // are those that take 2 to 6 pushes with a signature beyond "push" and
 // "bush" alone.
 import {
@@ -77,7 +77,7 @@ export function draftGaze(
   const set = (x: number, y: number, c: string) => {
     if (inner(x, y) && g[y][x] === ".") g[y][x] = c
   }
-  // the statue and the sun-stone, len cells apart
+  // the statue and the trellis, len cells apart
   let ex = 0, ey = 0, d = 0, len = 0
   for (let n = 0; n < 100; n++) {
     d = randomInt(4)
@@ -87,7 +87,7 @@ export function draftGaze(
     if (inner(tx, ty) && ty < H - 2) break
   }
   const [dx, dy] = D4[d]
-  /** The k-th cell of the line (0: the statue, len: the sun-stone) */
+  /** The k-th cell of the line (0: the statue, len: the trellis) */
   const line = (k: number): [number, number] => [ex + dx * k, ey + dy * k]
   const side = (k: number, s: number): [number, number] => [
     ex + dx * k + dy * s,

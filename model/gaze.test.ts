@@ -1,6 +1,6 @@
 // The statue's gaze at runtime (model/gaze.ts): once nothing solid stands
 // in its line (having seen it blocked first), the statue sees the
-// sun-stone and gives its letter once, kept (in the save too); water and
+// trellis and gives its letter once, kept (in the save too); water and
 // the player don't block it
 import { assert, assertEquals } from "@std/assert"
 import { Catalog } from "./catalog.ts"
@@ -31,7 +31,7 @@ const catalog = Catalog.fromJSON(
 )
 
 /**
- * A statue at (100, 0) looking right at the sun-stone at (106, 0): a
+ * A statue at (100, 0) looking right at the trellis at (106, 0): a
  * pool at (102, 0), a bush at (104, 0) (flattened by `flat`), a stone at
  * (103, 0)
  */
@@ -98,7 +98,7 @@ class Sim {
   }
 }
 
-Deno.test("gaze: its props, the statue's eight looks and the sun-stone's two", () => {
+Deno.test("gaze: its props, the statue's eight looks and the trellis's two", () => {
   assertEquals(catalog.props["gaze-statue"].growth?.hrefs.length, 8)
   assertEquals(catalog.props["gaze-sun"].growth?.hrefs.length, 2)
   assert(!catalog.props["gaze-statue"].canEnter)

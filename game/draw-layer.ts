@@ -36,6 +36,23 @@ export class DrawLayer {
     }
   }
 
+  /**
+   * The entities from the back (up the screen) to the front, by where
+   * their feet are, each kept if any of its sprite shows: a sprite
+   * taller than its cell (a moai, a swelling balloon rock) stands on its
+   * cell and rises over the cell above, over what stands there, and
+   * under what stands in front of it
+   */
+  drawIterableEntityByDepth(iterable: Iterable<IEntity>): void {
+    const shown: IEntity[] = []
+    for (const obj of iterable) {
+      const { width, height } = obj.image()
+      const box = { x: obj.x, y: obj.y, w: width, h: height }
+      if (this.#viewScope.overlaps(box)) shown.push(obj)
+    }
+    for (const obj of byDepth(shown)) this.draw(obj)
+  }
+
   drawIterableColorBox(iterable: Iterable<IColorBox>): void {
     for (const obj of iterable) {
       if (obj.visible === false) continue
@@ -76,6 +93,15 @@ export class DrawLayer {
   clear(): void {
     this.#canvasWrapper.clear()
   }
+}
+
+/**
+ * The entities in the order to draw them, the back first: by the bottom
+ * edge of their sprites (their feet); those level keep their order
+ */
+export function byDepth<T extends IEntity>(objs: T[]): T[] {
+  const foot = (obj: T) => obj.y + obj.image().height
+  return objs.toSorted((a, b) => foot(a) - foot(b))
 }
 
 /**

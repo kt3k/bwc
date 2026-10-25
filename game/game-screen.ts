@@ -6,6 +6,7 @@ import { IdleMainActor, MoveEndMainActor } from "./main-character.ts"
 import { inputQueue } from "./ui/input.ts"
 import { DrawLayer } from "./draw-layer.ts"
 import { RectScope } from "../util/rect-scope.ts"
+import type { IProp } from "../model/types.ts"
 
 import { Field } from "./field.ts"
 import { Actor } from "../model/actor.ts"
@@ -157,9 +158,16 @@ export function GameScreen({ el, query }: Context) {
     entityLayer.clear()
     const effects = [...field.effects.iter()]
     entityLayer.drawIterableColorBox(effects.filter((e) => e.ground))
-    entityLayer.drawIterableEntity(field.props.iter())
+    const props = [...field.props.iter()]
+    const tall = (prop: IProp) => prop.image().height > CELL_SIZE
+    entityLayer.drawIterableEntity(props.filter((prop) => !tall(prop)))
     entityLayer.drawIterableEntity(field.items.iter())
-    entityLayer.drawIterableEntity(field.actors.iter())
+    // the actors and the props taller than a cell (a moai rising over
+    // the cell above) together, from the back to the front
+    entityLayer.drawIterableEntityByDepth([
+      ...props.filter(tall),
+      ...field.actors.iter(),
+    ])
     entityLayer.drawIterableColorBox(effects.filter((e) => !e.ground))
     entityLayer.drawWhiteNoise(juice.noise > 0)
     if (juice.noise > 0) juice.noise--
