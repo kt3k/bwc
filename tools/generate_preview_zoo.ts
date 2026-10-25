@@ -277,9 +277,9 @@ prop(172, 77, "clear-dais", { id: "zoo-dais", reward: [BI + 175, BJ + 75] })
 actor(172, 77, "stone")
 
 // the statue's gaze (model/gaze.ts): the statue looks right at the
-// trellis along a walled line; push the stone out through the gap,
+// legs along a walled line; push the stone out through the gap,
 // then flatten the bush
-sign(152, 82, "STATUE: CLEAR ITS LINE TO THE WISTERIA TRELLIS")
+sign(152, 82, "STATUE: CLEAR ITS LINE TO THE TRUNKLESS LEGS")
 for (let x = 157; x <= 162; x++) {
   if (x !== 159) {
     grid[84][x] = "1"

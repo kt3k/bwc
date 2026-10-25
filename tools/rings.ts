@@ -37,7 +37,7 @@
 //   Y  the twin plinth, holding a stone   Z  holding a boulder
 //   D  a dais (tools/clears.ts): a thing sits on it at the start; done
 //      when nothing is on it any more
-//   E  a statue (tools/gazes.ts), looking straight at the trellis T in
+//   E  a statue (tools/gazes.ts), looking straight at the legs T in
 //      its row or column; done when nothing stands in the line between
 //      (a tree, a rock, an upright bush, a thing: water doesn't)
 //   J  a patrol (tools/patrols.ts), walking to and fro on the line to the
@@ -153,7 +153,7 @@ class Sim {
   /** The dais' cell (-1: none) */
   readonly dais: number
   /**
-   * The cells the statue looks across, to its trellis, or the patrol
+   * The cells the statue looks across, to its legs, or the patrol
    * walks along, to its beacon (null: neither)
    */
   readonly sight: number[] | null

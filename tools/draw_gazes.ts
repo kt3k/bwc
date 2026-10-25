@@ -1,13 +1,16 @@
 // Draws the sprites of the statue's gaze (model/gaze.ts, tools/gazes.ts):
-// a moai, a long stone head on a narrow body standing on a low platform
-// (an ahu), seen from the front (looking down), from the back (looking
-// up) and from the side (looking left or right), its eyes dark in the
-// deep sockets under the heavy brow, then lit white once it has seen;
-// and the wisteria trellis it looks at, a small pergola with clusters of
-// flowers hanging from it, in full white bloom once seen. All in the
-// grays (docs/art-guide.md), as the other goals are.
+// a moai, only its great stone head, sunk to the chin in the ground
+// like the 🗿 (no neck, no body), seen from the front (looking down),
+// from the back (looking up) and from the side (looking left or right),
+// its eyes dark under the heavy brow, then lit white once it has seen;
+// and what it looks at, the rest of the king (Shelley's "Ozymandias",
+// 1818: "two vast and trunkless legs of stone" in the desert, the
+// shattered visage half sunk near them): the two legs broken off above
+// the knee standing on their pedestal, its inscription worn faint, then
+// shining white once seen. All in the grays (docs/art-guide.md), as the
+// other goals are.
 //
-// Both are taller than a cell (16x24 and 16x20): they stand on their
+// Both are taller than a cell (16x17 and 16x24): they stand on their
 // cell, centered, and rise over the cell above (Prop.x / Prop.y).
 //
 // Usage: deno -A tools/draw_gazes.ts
@@ -16,12 +19,12 @@ import { encodePng } from "./png.ts"
 
 const root = new URL("../static/", import.meta.url).pathname
 
-/** The statue's size: a cell wide, half a cell more tall */
+/** The statue's size: a cell wide, a pixel taller (its shadow) */
 export const STATUE_W = 16
-export const STATUE_H = 24
-/** The trellis's size: a cell wide, a little taller */
-export const TRELLIS_W = 16
-export const TRELLIS_H = 20
+export const STATUE_H = 17
+/** The legs' size: a cell wide, half a cell taller */
+export const LEGS_W = 16
+export const LEGS_H = 24
 
 const INK: Record<string, PaletteColor | null> = {
   ".": null,
@@ -59,164 +62,138 @@ async function write(path: string, rows: string[]) {
   console.log(path)
 }
 
-// The moai from the front: the long head, the brow over the deep
-// sockets ("e": an eye, dark, then lit white), the long nose, the long
-// upper lip, the pursed mouth, the jutting chin; the long ears either
-// side; the narrow body, the hands meeting over the belly; the ahu
+// The moai from the front, sunk to the chin, the light from the upper
+// left: the flat top of the head, the heavy brow over the eyes ("e": an
+// eye, dark, then lit white), the long nose, the pouting upper lip over
+// the mouth, the chin on the ground; the long ears either side; its
+// shadow on the ground under the chin
 const FRONT = [
-  "....KKKKKKKK....",
-  "...KW2222223K...",
-  "...KW2222223K...",
-  "..KKWWWWWWW3KK..",
-  ".K2K44423444K3K.",
-  ".K2K4ee23ee4K3K.",
-  ".K4K24423443K4K.",
-  ".K4KW22W3223K4K.",
-  ".K4KW22W3223K4K.",
-  ".K2KW2423423K3K.",
-  ".K2KW2244233K3K.",
-  "..KKW2222233KK..",
-  "...KW2222233K...",
-  "...KW24KK433K...",
-  "...KW2WWW233K...",
-  "...K44222244K...",
-  "...KK444444KK...",
-  "....KW22223K....",
-  "....K422224K....",
-  "....KW42243K....",
-  "....KW44443K....",
-  ".KKKKKKKKKKKKKK.",
-  ".K222422242223K.",
-  ".KKKKKKKKKKKKKK.",
+  "...KKKKKKKKKK...",
+  "..KW222222223K..",
+  "..KW222222223K..",
+  "..KWWWWWWWWW3K..",
+  ".KK4444444444KK.",
+  "K2K4ee4444ee4K3K",
+  "K2KW224W32223K3K",
+  "K2KW222W32223K3K",
+  "K2KW22WW33223K3K",
+  "K2KW224K4K223K3K",
+  "K2KW222222223K3K",
+  "K2KW2WWWWWW33K3K",
+  "K2KW2KKKKKK33K3K",
+  "K2KWWW2222333K3K",
+  ".KK3WWWWWWW33KK.",
+  "..KKKKKKKKKKKK..",
+  "..444444444444..",
 ]
-// from the back: the back of the head and the ears, the body with the
-// girdle carved round it
+// from the back: the back of the head and the ears, a ring carved on
+// it ("r": dark, then lit white), the nape over the ground
 const BACK = [
-  "....KKKKKKKK....",
-  "...KW2222223K...",
-  "...KW2222223K...",
-  "..KKW2222223KK..",
-  ".K2KW2222223K3K.",
-  ".K2KW2222223K3K.",
-  ".K4KW2222223K4K.",
-  ".K4KW2222233K4K.",
-  ".K4KW2222233K4K.",
-  ".K2KW2222233K3K.",
-  ".K2KW2222233K3K.",
-  "..KKW2222233KK..",
-  "...KW2222233K...",
-  "...KW2222233K...",
-  "...KW2222333K...",
-  "...K42222334K...",
-  "...KK444444KK...",
-  "....KW22223K....",
-  "....KW22223K....",
-  "....K444444K....",
-  "....KW2W223K....",
-  ".KKKKKKKKKKKKKK.",
-  ".K222422242223K.",
-  ".KKKKKKKKKKKKKK.",
+  "...KKKKKKKKKK...",
+  "..KW222222223K..",
+  "..KW222222223K..",
+  "..KW222222223K..",
+  ".KKW222222223KK.",
+  "K2KW222222223K3K",
+  "K2KW222222223K3K",
+  "K2KW222rr2223K3K",
+  "K2KW22r22r233K3K",
+  "K2KW22r22r233K3K",
+  "K2KW222rr2233K3K",
+  "K2KW222222233K3K",
+  "K2KW222222333K3K",
+  "K2KW222223333K3K",
+  ".KK4444444444KK.",
+  "..KKKKKKKKKKKK..",
+  "..444444444444..",
 ]
 // looking right: the flat back of the head, the long ear, the brow
-// standing out over the eye, the long straight nose, the upper lip, the
-// mouth pursed in, the chin out
+// standing out over the eye sunk under it, the long nose jutting out,
+// the pouting upper lip, the mouth pressed in, the chin out on the
+// ground; its shadow
 const SIDE = [
-  "....KKKKKKKK....",
-  "...KW2222222K...",
-  "...KW2222222K...",
-  "...KW2222222WK..",
-  "...KW244224eKK..",
-  "...KW2432222K...",
-  "...KW24322222K..",
-  "...KW24322222K..",
-  "...KW243222223K.",
-  "...KW243222223K.",
-  "...KW24322244KK.",
-  "...KW2442223K...",
-  "...KW22222223K..",
-  "...KW222222KK...",
-  "...KW22222223K..",
-  "...KW2222234KK..",
-  "...KK2224444K...",
-  "....KW222223K...",
-  "....KW243223K...",
-  "....KW244443K...",
-  "....KW222233K...",
-  ".KKKKKKKKKKKKKK.",
-  ".K222422242223K.",
-  ".KKKKKKKKKKKKKK.",
+  "..KKKKKKKKK.....",
+  ".KW22222222K....",
+  ".KW222222222K...",
+  ".KW22222222WWK..",
+  ".KW2222222WWW2K.",
+  ".KW24432244444K.",
+  ".KW243222KeeW3K.",
+  ".KW24322224W23K.",
+  ".KW243222224W23K",
+  ".KW243222224W23K",
+  ".KW243222224444K",
+  ".KW244422KKKKKK.",
+  ".KW2222222WWW3K.",
+  ".KW2222222KKKK..",
+  ".KW2222222WW3K..",
+  "..KKKKKKKKKKKK..",
+  "..444444444444..",
 ]
 
-function statue(rows: string[], lit: boolean, glow = false): string[] {
-  const out = rows.map((r) => r.replace(/e/g, lit ? "W" : "K"))
-  // from the back the eyes don't show: the top of the head shines
-  if (glow && lit) out[0] = out[0].replace(/K/g, "W")
-  if (out.length !== STATUE_H || out[0].length !== STATUE_W) {
+function statue(rows: string[], lit: boolean): string[] {
+  const out = rows.map((r) => r.replace(/[er]/g, lit ? "W" : "K"))
+  // from the back the eyes don't show: the ring shines, and the top of
+  // the head
+  if (lit && rows === BACK) out[0] = out[0].replace(/K/g, "W")
+  if (out.length !== STATUE_H || out.some((r) => r.length !== STATUE_W)) {
     throw new Error("the statue's size")
   }
   return out
 }
 const mirror = (rows: string[]) => rows.map((r) => [...r].reverse().join(""))
 
-// The wisteria trellis, seen from the front and a little above: the
-// leaves over its roof, the rafters showing through ("l": a leaf that
-// flowers white in bloom), the front beam, the two posts. The flowers
-// hang from the front beam (trellis())
-const TRELLIS = [
-  "..KKK..KKK..KK..",
-  ".K4l4KK434KK4l4K",
-  "K44234l4234l234K",
-  "K34244432443244K",
-  "K44244442444244K",
+// The two vast and trunkless legs of stone, striding to the right as
+// the kings' statues do, broken off above the knee: the jagged break
+// (white on top), the knee, the calf, the ankle, the foot; the front
+// leg over the back one
+const LEG = [
+  "..K.KK...",
+  ".KWKWWK..",
+  ".KWWW3K..",
+  ".KW443K..",
+  ".KW2223K.",
+  ".KW2233K.",
+  "KW2223K..",
+  "KW2223K..",
+  "KW2233K..",
+  ".KW233K..",
+  "..KW23K..",
+  "..KW23K..",
+  "..KW223K.",
+  ".KW22223K",
+  ".KW22233K",
+  ".K444444K",
+]
+// the pedestal under them: its top, its face with two lines of the
+// inscription ("i": worn faint, then shining white); its shadow
+const PEDESTAL = [
   "KKKKKKKKKKKKKKKK",
-  "KW2222222222223K",
+  "KWWWWWWWWWWWWW3K",
   "K44444444444444K",
+  "K2ii2ii2i2iii23K",
+  "K22222222222223K",
+  "K2i2iii2ii2i223K",
   "KKKKKKKKKKKKKKKK",
-  "K3K..........K3K",
-  "K3K..........K3K",
-  "K3K..........K3K",
-  "K3K..........K3K",
-  "K3K..........K3K",
-  "K3K..........K3K",
-  "K3K..........K3K",
-  "K3K..........K3K",
-  "K3K..........K3K",
-  "K4K..........K4K",
-  "KKK..........KKK",
+  "4444444444444444",
 ]
-/**
- * The flower clusters hanging from the front beam: where each starts
- * (its left), in bud (short, dark) and in bloom (long, white), each a
- * cone of flowers narrowing to its tip
- */
-const CLUSTERS: { x: number; bud: string[]; bloom: string[] }[] = [
-  { x: 3, bud: ["43", "3."], bloom: ["WW", "W3", "WW", "3W", ".W", ".2"] },
-  {
-    x: 6,
-    bud: ["34", "43", ".3"],
-    bloom: ["WW", "3W", "WW", "W3", "WW", "3W", "W.", "W.", "2."],
-  },
-  {
-    x: 9,
-    bud: ["43", "34"],
-    bloom: ["WW", "W3", "WW", "3W", "WW", ".W", ".2"],
-  },
-  { x: 12, bud: ["3"], bloom: ["W", "3", "W", "2"] },
-]
+/** Where the back leg and the front leg stand (their left) */
+const LEG_AT = [0, 7]
 
-/** The trellis: in bud (dark gray clusters), or in full white bloom */
-function trellis(bloom: boolean): string[] {
-  const g = TRELLIS.map((r) => [...r.replace(/l/g, bloom ? "W" : "3")])
-  for (const c of CLUSTERS) {
-    ;(bloom ? c.bloom : c.bud).forEach((row, k) =>
+/** The legs: the inscription worn faint, or shining white once seen */
+function legs(seen: boolean): string[] {
+  const g = LEG.map(() => [..."".padEnd(LEGS_W, ".")])
+  for (const x of LEG_AT) {
+    LEG.forEach((row, y) =>
       [...row].forEach((ink, dx) => {
-        if (ink !== ".") g[9 + k][c.x + dx] = ink
+        if (ink !== ".") g[y][x + dx] = ink
       })
     )
   }
-  const out = g.map((r) => r.join(""))
-  if (out.length !== TRELLIS_H || out[0].length !== TRELLIS_W) {
-    throw new Error("the trellis's size")
+  const out = [...g.map((r) => r.join("")), ...PEDESTAL]
+    .map((r) => r.replace(/i/g, seen ? "W" : "3"))
+  if (out.length !== LEGS_H || out.some((r) => r.length !== LEGS_W)) {
+    throw new Error("the legs' size")
   }
   return out
 }
@@ -224,10 +201,10 @@ function trellis(bloom: boolean): string[] {
 if (import.meta.main) {
   for (const lit of [false, true]) {
     const sfx = lit ? "_lit" : ""
-    await write(`prop/gaze_up${sfx}.png`, statue(BACK, lit, true))
+    await write(`prop/gaze_up${sfx}.png`, statue(BACK, lit))
     await write(`prop/gaze_down${sfx}.png`, statue(FRONT, lit))
     await write(`prop/gaze_left${sfx}.png`, mirror(statue(SIDE, lit)))
     await write(`prop/gaze_right${sfx}.png`, statue(SIDE, lit))
-    await write(`prop/gaze_sun${sfx}.png`, trellis(lit))
+    await write(`prop/gaze_sun${sfx}.png`, legs(lit))
   }
 }
