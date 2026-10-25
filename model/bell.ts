@@ -23,6 +23,7 @@ import { celebrateGoal } from "./celebrate.ts"
 import { linePattern0 } from "./effect.ts"
 import { glyphOf, glyphType, layGlyph, rewardCell } from "./glyph.ts"
 import { Item } from "./item.ts"
+import { circleBirds } from "./flock.ts"
 import type { Prop, PushedDelegate } from "./prop.ts"
 import type { IField, PushedEvent } from "./types.ts"
 
@@ -144,6 +145,9 @@ export function stepBell(prop: Prop, field: IField) {
   const data = dataOf(prop)
   if (!data.id) return
   const rung = isRung(data.id)
+  // birds wheel over a bell not yet rung (model/flock.ts)
+  const id = data.id
+  if (!rung) circleBirds(prop, field, () => isRung(id))
   const left = swinging.get(prop) ?? 0
   if (left > 0) {
     swinging.set(prop, left - 1)

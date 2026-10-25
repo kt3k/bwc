@@ -18,6 +18,7 @@ import { goneActorKey } from "./actor.ts"
 import { celebrateGoal } from "./celebrate.ts"
 import { glyphOf, glyphType, layGlyph, rewardCell } from "./glyph.ts"
 import { Item } from "./item.ts"
+import { circleBirds } from "./flock.ts"
 import type { Prop } from "./prop.ts"
 import type { IActor, IField } from "./types.ts"
 
@@ -96,6 +97,8 @@ export function stepFoldGate(prop: Prop, field: IField) {
     return
   }
   prop.showStage(0)
+  // birds wheel over a fold still empty (model/flock.ts)
+  circleBirds(prop, field, () => isFull(id))
   if (field.time % 10 !== 0) return
   const sheep = sheepIn(field, data)
   if (!sheep) return

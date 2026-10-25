@@ -344,6 +344,7 @@ enum T {
   RUNE, // the carved floor of a waystone's circle
   FENCE, // the fence of a sheep pen
   BUSH, // a low bush: pushed, it falls flat and lets you through
+  TRAIL, // a trodden trail off a road, flat stones in the grass
 }
 const CELL: Record<T, string> = {
   [T.SEA]: "w",
@@ -373,6 +374,7 @@ const CELL: Record<T, string> = {
   [T.RUNE]: "R",
   [T.FENCE]: "H",
   [T.BUSH]: "k",
+  [T.TRAIL]: "u",
 }
 /** The biomechanical wall kind (A-F) of each T.BIO cell */
 const bioChar = new Map<number, string>()
@@ -4260,6 +4262,17 @@ for (let round = 0; round < 50; round++) {
   }
   console.log(`ferries: ${routes} routes, ${boats} boats`)
 }
+// the goals near the roads (docs/playtest-2026-10-25.md): the goal
+// patches below are tried first within NEAR_ROAD cells of a road (most
+// of the tries), so that walking the roads you come by them; only then
+// anywhere. Each patch's way in is kept, for the trail to it from the
+// road (below, after them all)
+const NEAR_ROAD = 28
+/** true while a patch at (cx, cy) is still to be tried near a road */
+const awayFromRoads = (n: number, cx: number, cy: number) =>
+  n < 2400 * SCALE && distRoad[idx(cx, cy)] > NEAR_ROAD
+/** The goal patches' ways in (cells), for the trails */
+const goalEntries: number[] = []
 // the missing rings (tools/rings.ts, model/ring.ts; ideas/goal-types.md,
 // 欠けた輪): out on the open land, a ring of stones with one place empty
 // and a stone lying near, each with its own trick (its signature: the
@@ -4324,6 +4337,7 @@ for (let round = 0; round < 50; round++) {
     const x0 = 2 + rr.randomInt(W - RING_W - 4)
     const y0 = 2 + rr.randomInt(H - RING_H - 4)
     const cx = x0 + (RING_W >> 1), cy = y0 + (RING_H >> 1)
+    if (awayFromRoads(n, cx, cy)) continue
     if (placed.some((r) => Math.hypot(r.x - cx, r.y - cy) < 60)) continue
     if (nodes.some((o) => Math.hypot(o.x - cx, o.y - cy) < 45)) continue
     if (!fitsAt(x0, y0)) continue
@@ -4372,6 +4386,7 @@ for (let round = 0; round < 50; round++) {
       })
     )
     for (const t of ring.things) put(actors, x0 + t.x, y0 + t.y, t.kind)
+    goalEntries.push(idx(x0 + ring.start[0], y0 + ring.start[1]))
     placed.push({ x: cx, y: cy, sig })
     count.set(sig, (count.get(sig) ?? 0) + 1)
   }
@@ -4536,6 +4551,7 @@ for (let round = 0; round < 50; round++) {
     const x0 = 2 + rr.randomInt(W - BELL_W - 4)
     const y0 = 2 + rr.randomInt(H - BELL_H - 4)
     const cx = x0 + (BELL_W >> 1), cy = y0 + (BELL_H >> 1)
+    if (awayFromRoads(n, cx, cy)) continue
     if (placed.some((b) => Math.hypot(b.x - cx, b.y - cy) < 60)) continue
     if (nodes.some((o) => Math.hypot(o.x - cx, o.y - cy) < 45)) continue
     if (!fitsAt(x0, y0)) continue
@@ -4573,6 +4589,7 @@ for (let round = 0; round < 50; round++) {
       })
     )
     for (const t of bell.things) put(actors, x0 + t.x, y0 + t.y, t.kind)
+    goalEntries.push(idx(x0 + bell.start[0], y0 + bell.start[1]))
     placed.push({ x: cx, y: cy, sig })
     count.set(sig, (count.get(sig) ?? 0) + 1)
   }
@@ -4648,6 +4665,7 @@ for (let round = 0; round < 50; round++) {
     const x0 = 2 + rr.randomInt(W - PAIR_W - 4)
     const y0 = 2 + rr.randomInt(H - PAIR_H - 4)
     const cx = x0 + (PAIR_W >> 1), cy = y0 + (PAIR_H >> 1)
+    if (awayFromRoads(n, cx, cy)) continue
     if (placed.some((b) => Math.hypot(b.x - cx, b.y - cy) < 60)) continue
     if (nodes.some((o) => Math.hypot(o.x - cx, o.y - cy) < 45)) continue
     if (!fitsAt(x0, y0)) continue
@@ -4688,6 +4706,7 @@ for (let round = 0; round < 50; round++) {
       })
     )
     for (const t of pair.things) put(actors, x0 + t.x, y0 + t.y, t.kind)
+    goalEntries.push(idx(x0 + pair.start[0], y0 + pair.start[1]))
     placed.push({ x: cx, y: cy, sig })
     count.set(sig, (count.get(sig) ?? 0) + 1)
   }
@@ -4764,6 +4783,7 @@ for (let round = 0; round < 50; round++) {
     const x0 = 2 + rr.randomInt(W - CLEAR_W - 4)
     const y0 = 2 + rr.randomInt(H - CLEAR_H - 4)
     const cx = x0 + (CLEAR_W >> 1), cy = y0 + (CLEAR_H >> 1)
+    if (awayFromRoads(n, cx, cy)) continue
     if (placed.some((b) => Math.hypot(b.x - cx, b.y - cy) < 60)) continue
     if (nodes.some((o) => Math.hypot(o.x - cx, o.y - cy) < 45)) continue
     if (!fitsAt(x0, y0)) continue
@@ -4800,6 +4820,7 @@ for (let round = 0; round < 50; round++) {
       })
     )
     for (const t of clear.things) put(actors, x0 + t.x, y0 + t.y, t.kind)
+    goalEntries.push(idx(x0 + clear.start[0], y0 + clear.start[1]))
     placed.push({ x: cx, y: cy, sig })
     count.set(sig, (count.get(sig) ?? 0) + 1)
   }
@@ -4875,6 +4896,7 @@ for (let round = 0; round < 50; round++) {
     const x0 = 2 + rr.randomInt(W - GAZE_W - 4)
     const y0 = 2 + rr.randomInt(H - GAZE_H - 4)
     const cx = x0 + (GAZE_W >> 1), cy = y0 + (GAZE_H >> 1)
+    if (awayFromRoads(n, cx, cy)) continue
     if (placed.some((b) => Math.hypot(b.x - cx, b.y - cy) < 60)) continue
     if (nodes.some((o) => Math.hypot(o.x - cx, o.y - cy) < 45)) continue
     if (!fitsAt(x0, y0)) continue
@@ -4922,6 +4944,7 @@ for (let round = 0; round < 50; round++) {
       })
     )
     for (const t of gaze.things) put(actors, x0 + t.x, y0 + t.y, t.kind)
+    goalEntries.push(idx(x0 + gaze.start[0], y0 + gaze.start[1]))
     placed.push({ x: cx, y: cy, sig })
     count.set(sig, (count.get(sig) ?? 0) + 1)
   }
@@ -4999,6 +5022,7 @@ for (let round = 0; round < 50; round++) {
     const x0 = 2 + rr.randomInt(W - PATROL_W - 4)
     const y0 = 2 + rr.randomInt(H - PATROL_H - 4)
     const cx = x0 + (PATROL_W >> 1), cy = y0 + (PATROL_H >> 1)
+    if (awayFromRoads(n, cx, cy)) continue
     if (placed.some((b) => Math.hypot(b.x - cx, b.y - cy) < 60)) continue
     if (nodes.some((o) => Math.hypot(o.x - cx, o.y - cy) < 45)) continue
     if (!fitsAt(x0, y0)) continue
@@ -5043,6 +5067,7 @@ for (let round = 0; round < 50; round++) {
       })
     )
     for (const t of patrol.things) put(actors, x0 + t.x, y0 + t.y, t.kind)
+    goalEntries.push(idx(x0 + patrol.start[0], y0 + patrol.start[1]))
     placed.push({ x: cx, y: cy, sig })
     count.set(sig, (count.get(sig) ?? 0) + 1)
   }
@@ -5119,6 +5144,7 @@ for (let round = 0; round < 50; round++) {
     const x0 = 2 + rr.randomInt(W - FOLD_W - 4)
     const y0 = 2 + rr.randomInt(H - FOLD_H - 4)
     const cx = x0 + (FOLD_W >> 1), cy = y0 + (FOLD_H >> 1)
+    if (awayFromRoads(n, cx, cy)) continue
     if (placed.some((b) => Math.hypot(b.x - cx, b.y - cy) < 60)) continue
     if (nodes.some((o) => Math.hypot(o.x - cx, o.y - cy) < 45)) continue
     if (!fitsAt(x0, y0)) continue
@@ -5160,6 +5186,7 @@ for (let round = 0; round < 50; round++) {
       })
     )
     put(actors, x0 + fold.sheep[0], y0 + fold.sheep[1], "sheep")
+    goalEntries.push(idx(x0 + fold.start[0], y0 + fold.start[1]))
     placed.push({ x: cx, y: cy, sig })
     count.set(sig, (count.get(sig) ?? 0) + 1)
   }
@@ -5169,6 +5196,99 @@ for (let round = 0; round < 50; round++) {
       [...count].sort((a, b) => b[1] - a[1]).map(([s, k]) => `${s} ${k}`)
         .join(", "),
   )
+}
+// the trails (docs/playtest-2026-10-25.md): from each goal patch's way in,
+// a trodden trail of flat stones to the nearest road, the shortest walk
+// over open ground (up to TRAIL_MAX cells), so that walking the road you
+// see a trail go off it, and follow it if you like. No mark says where it
+// goes: some trails go off to other things (a wonder, an odd house of
+// things), about half as many as to the goals. Their own random numbers
+{
+  const rt = seed(`${plan.seed}/trails`)
+  const TRAIL_MAX = 40
+  const open = (q: number) =>
+    isWild(terrain[q] as T) && !taken.has(q) && !puzzleCells[q] &&
+    !blockingProp.has(q)
+  /** The walk from `from` to the nearest road (the road left out) */
+  const walkToRoad = (from: number): number[] | null => {
+    const back = new Map<number, number>([[from, -1]])
+    const depth = new Map<number, number>([[from, 0]])
+    const queue = [from]
+    for (let k = 0; k < queue.length; k++) {
+      const p = queue[k]
+      if (depth.get(p)! >= TRAIL_MAX) continue
+      const x = p % W, y = (p / W) | 0
+      for (const [dx, dy] of D4) {
+        const nx = x + dx, ny = y + dy
+        if (!inside(nx, ny)) continue
+        const q = idx(nx, ny)
+        if (back.has(q)) continue
+        if (roadCells.has(q)) {
+          const path: number[] = []
+          for (let c = p; c >= 0; c = back.get(c)!) path.push(c)
+          return path
+        }
+        if (!open(q)) continue
+        back.set(q, p)
+        depth.set(q, depth.get(p)! + 1)
+        queue.push(q)
+      }
+    }
+    return null
+  }
+  const tread = (path: number[]) => {
+    for (const p of path) {
+      if (!isWild(terrain[p] as T)) continue
+      terrain[p] = T.TRAIL
+      keepClear[p] = 1
+    }
+  }
+  let toGoals = 0
+  for (const entry of goalEntries) {
+    const path = walkToRoad(entry)
+    if (!path) continue
+    tread(path)
+    toGoals++
+  }
+  // and as many again by half to other things near the roads
+  const goalTypes = new Set([
+    "ring-slot",
+    "ring-heart",
+    "ring-stone",
+    "ring-boulder",
+    "goal-bell",
+    "pair-plinth",
+    "pair-twin",
+    "clear-dais",
+    "gaze-statue",
+    "gaze-sun",
+    "patrol-beacon",
+    "fold-gate",
+    "sign",
+  ])
+  const others = rt.shuffle(
+    props.filter((s) => {
+      if (goalTypes.has(s.type) || s.type.startsWith("alike-")) return false
+      if (s.type.startsWith("unlike-")) return false
+      const x = s.i - OI, y = s.j - OJ
+      if (!inside(x, y)) return false
+      const d = distRoad[idx(x, y)]
+      return d >= 8 && d <= 30 && isWild(terrain[idx(x, y)] as T)
+    }),
+  )
+  let toOthers = 0
+  for (const s of others) {
+    if (toOthers >= toGoals >> 1) break
+    const x = s.i - OI, y = s.j - OJ
+    // from a free cell beside it
+    const by = D4.map(([dx, dy]) => idx(x + dx, y + dy)).find((q) => open(q))
+    if (by === undefined) continue
+    const path = walkToRoad(by)
+    if (!path || path.length < 6) continue
+    tread(path)
+    toOthers++
+  }
+  console.log(`trails: ${toGoals} to goals, ${toOthers} to other things`)
 }
 // nothing empty (docs/playtest-2026-10-21.md, plan 2): wherever you
 // stand on the open land, something to touch is within sight (12
@@ -5443,6 +5563,7 @@ if (previewAt >= 0) {
     [T.RUNE]: Palette.violet2,
     [T.FENCE]: Palette.brown3,
     [T.BUSH]: Palette.green3,
+    [T.TRAIL]: Palette.gray1,
   }
   const rgba = new Uint8Array(W * H * 4)
   for (let p = 0; p < W * H; p++) {

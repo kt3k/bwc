@@ -27,6 +27,7 @@ import { saveProgress } from "../util/save.ts"
 import { celebrateGoal } from "./celebrate.ts"
 import { glyphOf, glyphType, layGlyph, rewardCell } from "./glyph.ts"
 import { Item } from "./item.ts"
+import { circleBirds } from "./flock.ts"
 import type { Prop } from "./prop.ts"
 import type { Dir, IField } from "./types.ts"
 
@@ -110,6 +111,8 @@ export function stepGazeStatue(prop: Prop, field: IField) {
     return
   }
   prop.showStage(STAGE[dir])
+  // birds wheel over a statue that hasn't seen (model/flock.ts)
+  circleBirds(prop, field, () => hasSeen(id))
   if (field.time % 4 !== 0) return
   if (!lineClear(field, prop.i, prop.j, dir, to)) {
     blockedOnce.add(prop)

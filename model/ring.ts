@@ -20,6 +20,7 @@ import { goneActorKey } from "./actor.ts"
 import { celebrateGoal } from "./celebrate.ts"
 import { glyphOf, glyphType, layGlyph, rewardCell } from "./glyph.ts"
 import { Item } from "./item.ts"
+import { circleBirds } from "./flock.ts"
 import type { Prop } from "./prop.ts"
 import type { IActor, IField } from "./types.ts"
 
@@ -121,7 +122,10 @@ function layReward(field: IField, prop: Prop, data: SlotData) {
 }
 
 /** The heart wakes when the ring is whole */
-export function stepRingHeart(prop: Prop, _field: IField) {
+export function stepRingHeart(prop: Prop, field: IField) {
   const id = (prop.data as { id?: string } | undefined)?.id
-  prop.showStage(id && isWhole(id) ? 1 : 0)
+  const whole = !!id && isWhole(id)
+  prop.showStage(whole ? 1 : 0)
+  // birds wheel over a ring not yet whole (model/flock.ts)
+  if (id && !whole) circleBirds(prop, field, () => isWhole(id))
 }

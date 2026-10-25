@@ -19,6 +19,7 @@ import * as signal from "../util/signals.ts"
 import { celebrateGoal } from "./celebrate.ts"
 import { glyphOf, glyphType, layGlyph, rewardCell } from "./glyph.ts"
 import { Item } from "./item.ts"
+import { circleBirds } from "./flock.ts"
 import type { Prop, PushedDelegate } from "./prop.ts"
 import type { IField, PushedEvent } from "./types.ts"
 
@@ -101,4 +102,7 @@ export function stepBeacon(prop: Prop, field: IField) {
     return
   }
   prop.showStage(0)
+  // birds wheel over a beacon not yet lit (model/flock.ts)
+  const id = data.id
+  circleBirds(prop, field, () => isLit(id))
 }

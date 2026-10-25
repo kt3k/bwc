@@ -23,6 +23,7 @@ import { goneActorKey } from "./actor.ts"
 import { celebrateGoal } from "./celebrate.ts"
 import { glyphOf, glyphType, layGlyph, rewardCell } from "./glyph.ts"
 import { Item } from "./item.ts"
+import { circleBirds } from "./flock.ts"
 import type { Prop } from "./prop.ts"
 import type { IActor, IField } from "./types.ts"
 
@@ -74,6 +75,8 @@ export function stepClearDais(prop: Prop, field: IField) {
     return
   }
   prop.showStage(0)
+  // birds wheel over a dais not yet clear (model/flock.ts)
+  circleBirds(prop, field, () => isClear(id))
   const here = field.actors.get(prop.i, prop.j).filter((a) => a.id !== "main")
   const seen = sitting.get(prop)
   if (!seen) {

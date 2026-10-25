@@ -21,6 +21,7 @@ import { goneActorKey } from "./actor.ts"
 import { celebrateGoal } from "./celebrate.ts"
 import { glyphOf, glyphType, layGlyph, rewardCell } from "./glyph.ts"
 import { Item } from "./item.ts"
+import { circleBirds } from "./flock.ts"
 import type { Prop } from "./prop.ts"
 import type { IActor, IField } from "./types.ts"
 
@@ -79,6 +80,8 @@ export function stepPairPlinth(prop: Prop, field: IField) {
     return
   }
   prop.showStage(0)
+  // birds wheel over a pair not yet whole (model/flock.ts)
+  circleBirds(prop, field, () => isWhole(id))
   for (const actor of field.actors.get(prop.i, prop.j)) {
     if (!atRest(actor)) continue
     if (actor.type === want) {
