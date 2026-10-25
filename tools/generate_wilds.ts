@@ -4828,7 +4828,11 @@ const goalEntries: number[] = []
         }
       })
     )
-    for (const t of clear.things) put(actors, x0 + t.x, y0 + t.y, t.kind)
+    // what sits on the dais shares its cell, which put would refuse
+    for (const t of clear.things) {
+      taken.add(idx(x0 + t.x, y0 + t.y))
+      actors.push({ i: OI + x0 + t.x, j: OJ + y0 + t.y, type: t.kind })
+    }
     goalEntries.push(idx(x0 + clear.start[0], y0 + clear.start[1]))
     placed.push({ x: cx, y: cy, sig })
     count.set(sig, (count.get(sig) ?? 0) + 1)
