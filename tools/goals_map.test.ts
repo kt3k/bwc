@@ -14,6 +14,7 @@ import {
   PREFIX,
   readBellBay,
   readClearBay,
+  readFoldBay,
   readGazeBay,
   readPairBay,
   readPatrolBay,
@@ -26,6 +27,7 @@ import { PAIR_MAX_PUSHES, PAIR_MIN_PUSHES, wantOf, withWant } from "./pairs.ts"
 import { CLEAR_MAX_PUSHES, CLEAR_MIN_PUSHES } from "./clears.ts"
 import { GAZE_MAX_PUSHES, GAZE_MIN_PUSHES } from "./gazes.ts"
 import { PATROL_MAX_PUSHES, PATROL_MIN_PUSHES } from "./patrols.ts"
+import { solveFold } from "./folds.ts"
 
 const read = async (name: string) =>
   JSON.parse(
@@ -38,6 +40,7 @@ const plinths = block.props.filter((p) => p.type === "pair-plinth")
 const daises = block.props.filter((p) => p.type === "clear-dais")
 const statues = block.props.filter((p) => p.type === "gaze-statue")
 const beacons = block.props.filter((p) => p.type === "patrol-beacon")
+const gates = block.props.filter((p) => p.type === "fold-gate")
 
 Deno.test("goals map: a ring for every signature, each solvable and of its signature", () => {
   // the WILDS have 13 signatures; the map has them and maybe more
@@ -197,6 +200,16 @@ Deno.test("goals map: a patrol for every signature, each solvable", () => {
       (p.data as { text: string }).text.startsWith(`PATROL ${n + 1}: `)
     )
     assertEquals(signs.length, 1)
+  }
+})
+
+Deno.test("goals map: stray sheep, each to be herded in", () => {
+  assertEquals(gates.length, 6)
+  for (let n = 0; n < gates.length; n++) {
+    const bay = readFoldBay(block, beacons.length, n)
+    assert(bay, `fold bay ${n}`)
+    assertEquals(bay.id, `${PREFIX}fold-${n + 1}`)
+    assert(solveFold(bay.layout).rounds < Infinity, bay.id)
   }
 })
 

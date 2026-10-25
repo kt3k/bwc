@@ -5,14 +5,14 @@
 //
 // - the goals done and their letters: the collected ids "ring.<id>",
 //   "odd.<id>", "bell.<id>", "pair.<id>", "clear.<id>", "gaze.<id>",
-//   "beacon.<id>" and "<...>.reward" whose goal id starts with the map's
+//   "beacon.<id>", "fold.<id>" and "<...>.reward" whose goal id starts with the map's
 //   prefix (the GOALS map names its goals "goals-...", the WILDS name
 //   theirs by their cell, "<x>.<y>", so they never match), and the
 //   letters held among them (signal.glyphs);
 // - what the goals took from the map: the stones gone into a gap, onto
-//   a plinth or off a dais ("gone.actor.<i>.<j>...") and anything
-//   broken, opened or picked up ("gone.<type>.<i>.<j>", "<i>.<j>.<type>")
-//   in the map's bounds.
+//   a plinth or off a dais, the sheep gone into a fold
+//   ("gone.actor.<i>.<j>...") and anything broken, opened or picked up
+//   ("gone.<type>.<i>.<j>", "<i>.<j>.<type>") in the map's bounds.
 //
 // Then the page is loaded again at `to`, so the block comes back as it
 // was drawn (the stones in their places, the water and the bushes too).
@@ -33,7 +33,7 @@ export type GoalResetData = {
 
 /**
  * The goal kinds whose ids a reset matches (model/ring.ts, odd-one.ts,
- * bell.ts, pair.ts, clear.ts, gaze.ts, beacon.ts)
+ * bell.ts, pair.ts, clear.ts, gaze.ts, beacon.ts, fold.ts)
  */
 const GOAL_KINDS = [
   "ring",
@@ -43,6 +43,7 @@ const GOAL_KINDS = [
   "clear",
   "gaze",
   "beacon",
+  "fold",
 ]
 
 /** The cell a spawn-like collected id names, if any */

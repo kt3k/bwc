@@ -2,8 +2,8 @@
 // signature of the missing ring (tools/rings.ts), of the bell out of
 // reach (tools/bells.ts), of the pair (tools/pairs.ts), of the dais to
 // clear (tools/clears.ts), of the statue's gaze (tools/gazes.ts), of
-// the patrol's way (tools/patrols.ts) and for every family of the odd one
-// out
+// the patrol's way (tools/patrols.ts), a few stray sheep (tools/folds.ts)
+// and for every family of the odd one out
 // (tools/odd_ones.ts), a room to watch Odradek in, and a reset that
 // undoes the goals of this map only (model/goal-reset.ts).
 // tools/generate_goals_map.ts draws the rings and bells and writes the block; this
@@ -29,6 +29,8 @@
 //   signature
 // - PATROLS: bays as the rings', in a third column (from PATROLS_X,
 //   PATROL_COLS to a row), a patrol's lane for every signature
+// - FOLDS: bays as the rings', under the patrols, two stray sheep of
+//   each length of herding (short, middling, long)
 // - ODD ONES: bays of 13x13, ODD_COLS to a row, the arrangement in the
 //   middle, the way in and the signs as for the rings
 // - ODRADEK: a room with corners, beside the odd ones
@@ -53,6 +55,7 @@ import type { Pair } from "./pairs.ts"
 import type { Clear } from "./clears.ts"
 import type { Gaze } from "./gazes.ts"
 import type { Patrol } from "./patrols.ts"
+import type { Fold, FoldLayout } from "./folds.ts"
 import { alikeType, unlikeType } from "../model/odd-families.ts"
 
 export const SIZE = 200
@@ -79,6 +82,8 @@ export const clearId = (sig: string, sits: string) => `${PREFIX}${sig}-${sits}`
 export const gazeId = (sig: string) => `${PREFIX}${sig}`
 /** The beacon id of a signature, e.g. "goals-push+sink" */
 export const beaconId = (sig: string) => `${PREFIX}${sig}`
+/** The fold id of the n-th fold, e.g. "goals-fold-1" */
+export const foldId = (n: number) => `${PREFIX}fold-${n + 1}`
 /** The odd one's id of a family, e.g. "goals-tulip" */
 export const oddId = (family: string) => `${PREFIX}${family}`
 
@@ -164,6 +169,18 @@ export function patrolBay(n: number): { x: number; y: number } {
   }
 }
 
+/** The top of the folds' section, under `patrols` patrol bays */
+export const foldsY = (patrols: number) =>
+  RINGS_Y + 2 + Math.ceil(patrols / PATROL_COLS) * RING_PITCH_Y + 1
+
+/** The top left wall cell of the n-th fold bay (as a ring bay) */
+export function foldBay(patrols: number, n: number): { x: number; y: number } {
+  return {
+    x: PATROLS_X + (n % PATROL_COLS) * RING_PITCH_X,
+    y: foldsY(patrols) + 2 + Math.floor(n / PATROL_COLS) * RING_PITCH_Y,
+  }
+}
+
 /** The top of the odd ones' section, after the ring and bell bays */
 export const oddsY = (rings: number, bells: number) =>
   bellsY(rings) + 2 + Math.ceil(bells / RING_COLS) * RING_PITCH_Y + 1
@@ -203,6 +220,8 @@ export type GoalClear = Clear & { inWilds: boolean }
 export type GoalGaze = Gaze & { inWilds: boolean }
 /** A patrol's lane of the map, and whether the WILDS have its signature */
 export type GoalPatrol = Patrol & { inWilds: boolean }
+/** A fold of the map, and whether it is from the WILDS' own */
+export type GoalFold = Fold & { inWilds: boolean }
 
 export type Spawn = {
   i: number
@@ -243,6 +262,8 @@ const PATCH_CELL: Record<string, string> = {
   T: "6",
   J: "6",
   L: "6",
+  f: "H",
+  G: "6",
 }
 const FLOOR = "0"
 const WALL = "1"
@@ -272,6 +293,7 @@ export function buildGoalsMap(
   clears: readonly GoalClear[],
   gazes: readonly GoalGaze[],
   patrols: readonly GoalPatrol[],
+  folds: readonly GoalFold[],
   odds: readonly Arrangement[],
 ): BlockJson {
   const grid: string[][] = Array.from(
@@ -326,6 +348,7 @@ export function buildGoalsMap(
     gazesY(pairs.length, clears.length) + 2 +
       Math.ceil(gazes.length / RING_COLS) * RING_PITCH_Y,
     patrolBay(patrols.length - 1).y + RING_PITCH_Y,
+    foldBay(patrols.length, folds.length - 1).y + RING_PITCH_Y,
   )
   if (height >= SIZE - 1) throw new RangeError(`${height} rows: too many bays`)
   rect(1, 1, width, height, FLOOR)
@@ -353,7 +376,8 @@ export function buildGoalsMap(
       `KIND (${pairs.length}, EAST), A DAIS TO CLEAR FOR EVERY SIGNATURE ` +
       `(${clears.length}, EAST), A STATUE FOR EVERY SIGNATURE ` +
       `(${gazes.length}, EAST), A PATROL FOR EVERY SIGNATURE ` +
-      `(${patrols.length}, FAR EAST) AND AN ODD ONE FOR EVERY FAMILY ` +
+      `(${patrols.length}, FAR EAST), STRAY SHEEP (${folds.length}, FAR ` +
+      `EAST) AND AN ODD ONE FOR EVERY FAMILY ` +
       `(${odds.length}). GOALS DONE HERE COUNT, GIVE ` +
       "LETTERS AND LAST IN THE SAVE AS IN THE WILDS. THE RESET UNDOES THEM",
   )
@@ -652,6 +676,52 @@ export function buildGoalsMap(
     )
   })
 
+  // the folds
+  const FOLDS_Y = foldsY(patrols.length)
+  letters(PATROLS_X - 1, FOLDS_Y, "FOLD")
+  sign(
+    PATROLS_X + 4,
+    FOLDS_Y,
+    "FOLDS: HERD THE SHEEP INTO THE FOLD. IT RUNS FROM YOU WITHIN THREE " +
+      "CELLS, STRAIGHT AWAY FIRST. COME AT IT FROM THE RIGHT SIDE",
+  )
+  folds.forEach((fold, n) => {
+    const { x, y } = foldBay(patrols.length, n)
+    const px = x + 1, py = y + 1
+    const id = foldId(n)
+    const wx = px + fold.start[0]
+    bay(x, y, x + RING_W + 1, y + RING_H + 1, wx)
+    fold.rows.forEach((row, dy) =>
+      [...row].forEach((c, dx) => {
+        grid[py + dy][px + dx] = PATCH_CELL[c]
+        if (c === "G") {
+          prop(px + dx, py + dy, "fold-gate", {
+            id,
+            i0: BI + px + fold.inside[0],
+            j0: BJ + py + fold.inside[1],
+            i1: BI + px + fold.inside[2],
+            j1: BJ + py + fold.inside[3],
+            reward: [BI + px + fold.reward[0], BJ + py + fold.reward[1]],
+          })
+        }
+      })
+    )
+    actor(px + fold.sheep[0], py + fold.sheep[1], "sheep")
+    const bottom = y + RING_H + 1
+    wallSign(
+      wx - 2,
+      bottom,
+      `FOLD ${n + 1}: THE SHEEP RUNS ${fold.herds} STEPS AT THE FEWEST. ` +
+        `${Math.round((1 - fold.angles) * 100)}% OF THE WAYS TO COME AT ` +
+        "IT LOSE IT" + (fold.inWilds ? "" : ". NOT IN THE WILDS (DRAWN HERE)"),
+    )
+    wallSign(
+      wx + 2,
+      bottom,
+      "IF IT RUNS OFF OR INTO A CORNER, THE RESET PUTS IT BACK",
+    )
+  })
+
   // the odd ones
   letters(2, ODDS_Y, "ODD")
   sign(
@@ -754,6 +824,64 @@ export function readRingBay(
   n: number,
 ): { id: string; layout: Layout } | null {
   return readBay(block, ringBay(n))
+}
+
+/**
+ * Reads the n-th fold bay of the block back (tools/folds.ts): the fold's
+ * patch and its id
+ */
+export function readFoldBay(
+  block: BlockJson,
+  patrols: number,
+  n: number,
+): { id: string; layout: FoldLayout } | null {
+  const { x, y } = foldBay(patrols, n)
+  const px = x + 1, py = y + 1
+  const at = (list: Spawn[], dx: number, dy: number) =>
+    list.find((s) => s.i === BI + px + dx && s.j === BJ + py + dy)
+  let id: string | null = null
+  let sheep: [number, number] = [0, 0]
+  let inside: [number, number, number, number] | null = null
+  const rows: string[] = []
+  for (let dy = 0; dy < RING_H; dy++) {
+    let row = ""
+    for (let dx = 0; dx < RING_W; dx++) {
+      const p = at(block.props, dx, dy)
+      if (at(block.actors, dx, dy)?.type === "sheep") sheep = [dx, dy]
+      if (p?.type === "fold-gate") {
+        const d = p.data as {
+          id: string
+          i0: number
+          j0: number
+          i1: number
+          j1: number
+        }
+        id = d.id
+        inside = [
+          d.i0 - BI - px,
+          d.j0 - BJ - py,
+          d.i1 - BI - px,
+          d.j1 - BJ - py,
+        ]
+        row += "G"
+        continue
+      }
+      const c = block.field[py + dy][px + dx]
+      row += c === "H" ? "f" : (PATCH_CHAR[c] ?? "#")
+    }
+    rows.push(row)
+  }
+  if (!id || !inside) return null
+  const [x0, y0, x1, y1] = inside
+  const marked = rows.map((row, ry) =>
+    [...row].map((c, rx) =>
+      rx >= x0 && rx <= x1 && ry >= y0 && ry <= y1 ? "P" : c
+    ).join("")
+  )
+  return {
+    id,
+    layout: { rows: marked, sheep, start: [RING_W >> 1, RING_H - 1] },
+  }
 }
 
 /**

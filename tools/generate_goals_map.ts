@@ -4,7 +4,8 @@
 // signature and kind tools/pairs.ts makes, a dais to clear for every
 // signature and kind tools/clears.ts makes, a statue for every signature
 // tools/gazes.ts makes, a patrol's lane for every signature
-// tools/patrols.ts makes, an odd one for every family, Odradek's room and a reset that undoes the goals of this map
+// tools/patrols.ts makes, two stray sheep of each length of herding
+// tools/folds.ts makes, an odd one for every family, Odradek's room and a reset that undoes the goals of this map
 // only. It is linked from the start island by a
 // "GOALS" portal room, to the left of the DEBUG room.
 //
@@ -33,6 +34,7 @@ import { acceptBell, type Bell, BELL_AIMS, draftBell } from "./bells.ts"
 import { acceptPair, draftPair, type Pair, PAIR_AIMS } from "./pairs.ts"
 import { acceptClear, type Clear, CLEAR_AIMS, draftClear } from "./clears.ts"
 import { acceptGaze, draftGaze, type Gaze, GAZE_AIMS } from "./gazes.ts"
+import { acceptFold, draftFold, type Fold, FOLD_AIMS } from "./folds.ts"
 import {
   acceptPatrol,
   draftPatrol,
@@ -47,6 +49,7 @@ import {
   buildGoalsMap,
   type GoalBell,
   type GoalClear,
+  type GoalFold,
   type GoalGaze,
   type GoalPair,
   type GoalPatrol,
@@ -348,6 +351,49 @@ const addPatrol = (patrol: Patrol, inWilds: boolean) => {
 }
 const patrols = [...patrolBySig.entries()].sort(bySignature).map(([, p]) => p)
 
+// ---------------------------------------------------------------------
+// the stray sheep: two of each length of herding
+
+const LENGTHS = ["short", "middling", "long"] as const
+const lengthOf = (f: Fold) =>
+  f.herds <= 4 ? "short" : f.herds <= 7 ? "middling" : "long"
+const foldsBy = new Map<string, GoalFold[]>(LENGTHS.map((l) => [l, []]))
+const addFold = (fold: Fold, inWilds: boolean) => {
+  const list = foldsBy.get(lengthOf(fold))!
+  if (list.length < 2) list.push({ ...fold, inWilds })
+}
+{
+  // the WILDS' pool: as tools/generate_wilds.ts draws it
+  const plan = JSON.parse(
+    await Deno.readTextFile(new URL("./wilds_plan.json", import.meta.url)),
+  ) as { seed: string; blocks: { w: number; h: number } }
+  const W = plan.blocks.w * 200, H = plan.blocks.h * 200
+  const SCALE = Math.max(1, Math.round((W * H) / (1600 * 1000)))
+  const COUNT = 8 * SCALE
+  const rr = seed(`${plan.seed}/folds`)
+  let drawn = 0
+  for (let n = 0; n < 160 * SCALE && drawn < 4 * COUNT; n++) {
+    const fold = acceptFold(draftFold(rr, FOLD_AIMS[n % FOLD_AIMS.length]))
+    if (!fold) continue
+    addFold(fold, true)
+    drawn++
+  }
+}
+{
+  // more, for the lengths the WILDS have too few of
+  const rr = seed("goals/folds")
+  for (
+    let n = 0;
+    n < 2000 && [...foldsBy.values()].some((l) => l.length < 2);
+    n++
+  ) {
+    const fold = acceptFold(draftFold(rr, FOLD_AIMS[n % FOLD_AIMS.length]))
+    if (fold) addFold(fold, false)
+  }
+}
+const folds = LENGTHS.flatMap((l) => foldsBy.get(l)!)
+console.log(`folds: ${folds.map((f) => f.herds).join(", ")} herds`)
+
 const block = buildGoalsMap(
   rings,
   bells,
@@ -355,6 +401,7 @@ const block = buildGoalsMap(
   clears,
   gazes,
   patrols,
+  folds,
   odds,
 )
 
@@ -456,8 +503,8 @@ const additions: Spawn[] = [
     ...local(19, 23),
     type: "sign",
     data: {
-      text: "GOALS MAP: EVERY RING, BELL, PAIR, DAIS, STATUE, PATROL AND ODD " +
-        "ONE, AND A RESET",
+      text: "GOALS MAP: EVERY RING, BELL, PAIR, DAIS, STATUE, PATROL, FOLD " +
+        "AND ODD ONE, AND A RESET",
     },
   },
   {

@@ -2333,6 +2333,55 @@
         ]
       }
     },
+    "fold-gate": {
+      "src": "../prop/pen_gate_open.png",
+      "canEnter": true,
+      "growth": {
+        "stages": [
+          "../prop/pen_gate_open.png",
+          "../prop/pen_gate_shut.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "i0": {
+            "type": "number"
+          },
+          "j0": {
+            "type": "number"
+          },
+          "i1": {
+            "type": "number"
+          },
+          "j1": {
+            "type": "number"
+          },
+          "reward": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "i0",
+          "j0",
+          "i1",
+          "j1"
+        ]
+      }
+    },
     "alike-tulip": {
       "src": "../prop/alike_tulip.png",
       "canEnter": false

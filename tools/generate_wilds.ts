@@ -68,6 +68,14 @@ import {
 } from "./rings.ts"
 import { arrange } from "./odd_ones.ts"
 import {
+  acceptFold,
+  draftFold,
+  type Fold,
+  FOLD_AIMS,
+  FOLD_H,
+  FOLD_W,
+} from "./folds.ts"
+import {
   acceptPatrol,
   draftPatrol,
   type Patrol,
@@ -5040,6 +5048,123 @@ for (let round = 0; round < 50; round++) {
   }
   console.log(
     `patrols' ways: ${placed.length} placed (${drawn} drawn and ` +
+      "solved): " +
+      [...count].sort((a, b) => b[1] - a[1]).map(([s, k]) => `${s} ${k}`)
+        .join(", "),
+  )
+}
+// the stray sheep (tools/folds.ts, model/fold.ts; ideas/goal-types.md,
+// 囲いに戻す): out on the open land, a small fold, empty, its gate open,
+// and a sheep grazing a few cells off, to be herded in. Drawn and solved
+// first (the herding as a game of two), then placed as the rings are:
+// the least placed length of herding first (short, middling, long), the
+// patch left alone by what comes after. After the patrols, so that
+// everything before stays where it was. Their own random numbers, so the
+// rest of the island stays as it was
+{
+  const rr = seed(`${plan.seed}/folds`)
+  const COUNT = 8 * SCALE
+  /** Folds drawn and solved, by the length of the herding */
+  const pool = new Map<string, Fold[]>()
+  const lengthOf = (f: Fold) =>
+    f.herds <= 4 ? "short" : f.herds <= 7 ? "middling" : "long"
+  let drawn = 0
+  for (let n = 0; n < 160 * SCALE && drawn < 4 * COUNT; n++) {
+    const fold = acceptFold(draftFold(rr, FOLD_AIMS[n % FOLD_AIMS.length]))
+    if (!fold) continue
+    const sig = lengthOf(fold)
+    if (!pool.has(sig)) pool.set(sig, [])
+    pool.get(sig)!.push(fold)
+    drawn++
+  }
+  // the land walked to from the arrival
+  const reached = new Uint8Array(W * H)
+  {
+    const q = [idx(arrival.x, arrival.y)]
+    reached[q[0]] = 1
+    for (let k = 0; k < q.length; k++) {
+      const x = q[k] % W, y = (q[k] / W) | 0
+      for (const [dx, dy] of D4) {
+        const np = idx(x + dx, y + dy)
+        if (inside(x + dx, y + dy) && !reached[np] && walkable(np)) {
+          reached[np] = 1
+          q.push(np)
+        }
+      }
+    }
+  }
+  const inCove = (x: number, y: number) =>
+    x >= COVE_X0 - 4 && x < COVE_X0 + COVE_W + 4 && y >= COVE_Y0 - 4 &&
+    y < COVE_Y0 + COVE_H + 4
+  /** Open land under the whole patch: walked to, wild, nothing on it */
+  const fitsAt = (x0: number, y0: number) => {
+    for (let y = y0 - 1; y <= y0 + FOLD_H; y++) {
+      for (let x = x0 - 1; x <= x0 + FOLD_W; x++) {
+        if (!inside(x, y)) return false
+        const p = idx(x, y)
+        if (taken.has(p) || puzzleCells[p]) return false
+        const rim = x < x0 || y < y0 || x >= x0 + FOLD_W || y >= y0 + FOLD_H
+        if (rim) continue
+        if (!reached[p] || keepClear[p] || !isWild(terrain[p] as T)) {
+          return false
+        }
+        if (inCity(x, y) || inMassif(x, y) || inCove(x, y)) return false
+      }
+    }
+    return true
+  }
+  const placed: { x: number; y: number; sig: string }[] = []
+  const count = new Map<string, number>()
+  for (let n = 0; n < 4000 * SCALE && placed.length < COUNT; n++) {
+    const x0 = 2 + rr.randomInt(W - FOLD_W - 4)
+    const y0 = 2 + rr.randomInt(H - FOLD_H - 4)
+    const cx = x0 + (FOLD_W >> 1), cy = y0 + (FOLD_H >> 1)
+    if (placed.some((b) => Math.hypot(b.x - cx, b.y - cy) < 60)) continue
+    if (nodes.some((o) => Math.hypot(o.x - cx, o.y - cy) < 45)) continue
+    if (!fitsAt(x0, y0)) continue
+    // the least placed signature, none the same within 12 cells
+    const near = new Set(
+      placed.filter((b) => Math.hypot(b.x - cx, b.y - cy) <= 12).map((b) =>
+        b.sig
+      ),
+    )
+    const sig = [...pool.keys()]
+      .filter((s) => pool.get(s)!.length > 0 && !near.has(s))
+      .sort((a, b) => (count.get(a) ?? 0) - (count.get(b) ?? 0))[0]
+    if (!sig) break
+    const fold = pool.get(sig)!.shift()!
+    const at = fold.rows.join("").indexOf("G")
+    const id = `${x0 + at % FOLD_W}.${y0 + Math.floor(at / FOLD_W)}`
+    fold.rows.forEach((row, dy) =>
+      [...row].forEach((c, dx) => {
+        const x = x0 + dx, y = y0 + dy
+        const p = idx(x, y)
+        puzzleCells[p] = 1
+        keepClear[p] = 1
+        if (c === "#") {
+          terrain[p] = terrain[p] === T.HILL ? T.ROCK : T.TREE
+        } else if (c === "w") terrain[p] = T.LAKE
+        else if (c === "i") terrain[p] = T.ICE
+        else if (c === "k") terrain[p] = T.BUSH
+        else if (c === "f") terrain[p] = T.FENCE
+        else if (c === "G") {
+          put(props, x, y, "fold-gate", {
+            id,
+            i0: OI + x0 + fold.inside[0],
+            j0: OJ + y0 + fold.inside[1],
+            i1: OI + x0 + fold.inside[2],
+            j1: OJ + y0 + fold.inside[3],
+            reward: [OI + x0 + fold.reward[0], OJ + y0 + fold.reward[1]],
+          })
+        }
+      })
+    )
+    put(actors, x0 + fold.sheep[0], y0 + fold.sheep[1], "sheep")
+    placed.push({ x: cx, y: cy, sig })
+    count.set(sig, (count.get(sig) ?? 0) + 1)
+  }
+  console.log(
+    `stray sheep: ${placed.length} placed (${drawn} drawn and ` +
       "solved): " +
       [...count].sort((a, b) => b[1] - a[1]).map(([s, k]) => `${s} ${k}`)
         .join(", "),

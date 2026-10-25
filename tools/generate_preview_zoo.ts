@@ -313,6 +313,25 @@ prop(149, 90, "patrol-beacon", {
 actor(141, 90, "patrol", "right")
 actor(145, 93, "stone")
 
+// the stray sheep (model/fold.ts): come at it from the east and it runs
+// west, through the gateway into the fold
+sign(116, 82, "FOLD: HERD THE SHEEP IN, FROM THE EAST")
+for (let y = 85; y <= 88; y++) {
+  for (let x = 119; x <= 122; x++) {
+    const edge = x === 119 || x === 122 || y === 85 || y === 88
+    if (edge && !(x === 122 && y === 86)) grid[y][x] = "H"
+  }
+}
+prop(122, 86, "fold-gate", {
+  id: "zoo-fold",
+  i0: BI + 120,
+  j0: BJ + 86,
+  i1: BI + 121,
+  j1: BJ + 87,
+  reward: [BI + 124, BJ + 89],
+})
+actor(126, 86, "sheep")
+
 // Odradek (model/odradek.ts): in the corner of a small room, off to
 // another corner when you come near; talk to it from beside it
 sign(158, 56, "ODRADEK: IT WON'T BE CAUGHT")

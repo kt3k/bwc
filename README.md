@@ -41,7 +41,8 @@ out of reach (tools/bells.ts, the same way), a bay for every signature and kind
 of the pair (tools/pairs.ts, in a column to the east), a bay for every signature
 and kind of the dais to clear (tools/clears.ts, under the pairs), a bay for
 every signature of the statue's gaze (tools/gazes.ts, under the daises), a bay
-for every signature of the patrol's way (tools/patrols.ts, in a third column), a
+for every signature of the patrol's way (tools/patrols.ts, in a third column),
+six stray sheep to herd into their folds (tools/folds.ts, under the patrols), a
 bay for every family of the odd one out, and a room where Odradek can be
 watched. Goals done there count and give letters like the WILDS' ones (so the
 Odradeks turn up, the first in the hall of waystones). The RESET in the map

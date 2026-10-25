@@ -8,7 +8,7 @@
 // bell rung: "bell.<id>", model/bell.ts; a whole pair: "pair.<id>",
 // model/pair.ts; a clear dais: "clear.<id>", model/clear.ts; a statue
 // that has seen: "gaze.<id>", model/gaze.ts; a beacon lit by its patrol:
-// "beacon.<id>", model/beacon.ts),
+// "beacon.<id>", model/beacon.ts; a full fold: "fold.<id>", model/fold.ts),
 // so the count lasts in the save. A new kind of goal adds the test of
 // its key to DONE_KEYS and is counted too.
 //
@@ -23,6 +23,7 @@ import { isPairKey } from "./pair.ts"
 import { isClearKey } from "./clear.ts"
 import { isGazeKey } from "./gaze.ts"
 import { isBeaconKey } from "./beacon.ts"
+import { isFoldKey } from "./fold.ts"
 
 /** The tests of the keys the goal kinds record a goal done with */
 export const DONE_KEYS: readonly ((key: string) => boolean)[] = [
@@ -33,6 +34,7 @@ export const DONE_KEYS: readonly ((key: string) => boolean)[] = [
   isClearKey,
   isGazeKey,
   isBeaconKey,
+  isFoldKey,
 ]
 
 /** true if the collected id records a goal done */
