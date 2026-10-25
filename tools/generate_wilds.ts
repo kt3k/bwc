@@ -352,7 +352,7 @@ const CELL: Record<T, string> = {
   [T.MEADOW]: "6",
   [T.FOREST]: "f",
   [T.HILL]: "p",
-  [T.ROCK]: "1",
+  [T.ROCK]: "1", // written by the way it joins (ROCK_CELLS)
   [T.RIVER]: "w",
   [T.LAKE]: "w",
   [T.ROAD]: "3", // floor2.png: tiles with a dotted edge, apart from the meadow
@@ -5601,15 +5601,38 @@ if (!ok) {
 // ---------------------------------------------------------------------
 // output: one json per block, the cavern stamped into the mountain
 
+/**
+ * The cells of the rocks by how each joins the rocks next to it, the mask
+ * n=1, e=2, s=4, w=8 (tools/draw_rocks.ts): 0 is a lone crag, the others
+ * the cells of an outcrop
+ */
+const ROCK_CELLS = "789GIKLMNOQTUVWX"
+
+/** true if (x, y) is rock (the mountain's, or the cavern's) */
+function isRock(x: number, y: number): boolean {
+  // off the world: the rock goes on, so no face shows at its edge
+  if (x < 0 || y < 0 || x >= W || y >= H) return true
+  const c = cityAt(x, y)
+  if (c && inCity(x, y)) return false
+  if (inCavern(x, y)) {
+    return cavern.grid[(y - CY0) * CAVERN_W + (x - CX0)] === "2"
+  }
+  return terrain[idx(x, y)] === T.ROCK
+}
+
+/** The rock cell at (x, y), by the rocks next to it */
+function rockCell(x: number, y: number): string {
+  const mask = (isRock(x, y - 1) ? 1 : 0) | (isRock(x + 1, y) ? 2 : 0) |
+    (isRock(x, y + 1) ? 4 : 0) | (isRock(x - 1, y) ? 8 : 0)
+  return ROCK_CELLS[mask]
+}
+
 /** The cell character at (x, y) */
 function cellAt(x: number, y: number): string {
   const c = cityAt(x, y)
   if (c && inCity(x, y)) return cityCell(c, x, y)
-  if (inCavern(x, y)) {
-    // the cavern's rock is the mountain's rock, so no seam shows
-    const c = cavern.grid[(y - CY0) * CAVERN_W + (x - CX0)]
-    return c === "2" ? CELL[T.ROCK] : c
-  }
+  if (isRock(x, y)) return rockCell(x, y)
+  if (inCavern(x, y)) return cavern.grid[(y - CY0) * CAVERN_W + (x - CX0)]
   const p = idx(x, y)
   return terrain[p] === T.BIO ? bioChar.get(p)! : CELL[terrain[p] as T]
 }

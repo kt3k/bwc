@@ -54,7 +54,7 @@ Deno.test("patrols: a lane cut by water wants a stone sunk from the side", () =>
 // the simulator against the game
 
 const props =
-  (patrol: Patrol, id: string, reward: [number, number]) => (c: string) =>
+  (_patrol: Patrol, id: string, reward: [number, number]) => (c: string) =>
     c === "L" ? { type: "patrol-beacon", data: { id, reward } } : null
 
 /**
