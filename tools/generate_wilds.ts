@@ -68,6 +68,15 @@ import {
 } from "./rings.ts"
 import { arrange } from "./odd_ones.ts"
 import {
+  acceptChain,
+  type Chain,
+  CHAIN_H,
+  CHAIN_W,
+  chainName,
+  draftChain,
+  givesOf,
+} from "./chains.ts"
+import {
   acceptFold,
   draftFold,
   type Fold,
@@ -5203,46 +5212,49 @@ const goalEntries: number[] = []
 // see a trail go off it, and follow it if you like. No mark says where it
 // goes: some trails go off to other things (a wonder, an odd house of
 // things), about half as many as to the goals. Their own random numbers
+/** The longest a trail goes (cells) */
+const TRAIL_MAX = 40
+/** Open ground a trail can go over */
+const trailOpen = (q: number) =>
+  isWild(terrain[q] as T) && !taken.has(q) && !puzzleCells[q] &&
+  !blockingProp.has(q)
+/** The walk from `from` to the nearest road (the road left out) */
+const walkToRoad = (from: number): number[] | null => {
+  const back = new Map<number, number>([[from, -1]])
+  const depth = new Map<number, number>([[from, 0]])
+  const queue = [from]
+  for (let k = 0; k < queue.length; k++) {
+    const p = queue[k]
+    if (depth.get(p)! >= TRAIL_MAX) continue
+    const x = p % W, y = (p / W) | 0
+    for (const [dx, dy] of D4) {
+      const nx = x + dx, ny = y + dy
+      if (!inside(nx, ny)) continue
+      const q = idx(nx, ny)
+      if (back.has(q)) continue
+      if (roadCells.has(q)) {
+        const path: number[] = []
+        for (let c = p; c >= 0; c = back.get(c)!) path.push(c)
+        return path
+      }
+      if (!trailOpen(q)) continue
+      back.set(q, p)
+      depth.set(q, depth.get(p)! + 1)
+      queue.push(q)
+    }
+  }
+  return null
+}
+/** Treads the trail: flat stones in the grass */
+const tread = (path: number[]) => {
+  for (const p of path) {
+    if (!isWild(terrain[p] as T)) continue
+    terrain[p] = T.TRAIL
+    keepClear[p] = 1
+  }
+}
 {
   const rt = seed(`${plan.seed}/trails`)
-  const TRAIL_MAX = 40
-  const open = (q: number) =>
-    isWild(terrain[q] as T) && !taken.has(q) && !puzzleCells[q] &&
-    !blockingProp.has(q)
-  /** The walk from `from` to the nearest road (the road left out) */
-  const walkToRoad = (from: number): number[] | null => {
-    const back = new Map<number, number>([[from, -1]])
-    const depth = new Map<number, number>([[from, 0]])
-    const queue = [from]
-    for (let k = 0; k < queue.length; k++) {
-      const p = queue[k]
-      if (depth.get(p)! >= TRAIL_MAX) continue
-      const x = p % W, y = (p / W) | 0
-      for (const [dx, dy] of D4) {
-        const nx = x + dx, ny = y + dy
-        if (!inside(nx, ny)) continue
-        const q = idx(nx, ny)
-        if (back.has(q)) continue
-        if (roadCells.has(q)) {
-          const path: number[] = []
-          for (let c = p; c >= 0; c = back.get(c)!) path.push(c)
-          return path
-        }
-        if (!open(q)) continue
-        back.set(q, p)
-        depth.set(q, depth.get(p)! + 1)
-        queue.push(q)
-      }
-    }
-    return null
-  }
-  const tread = (path: number[]) => {
-    for (const p of path) {
-      if (!isWild(terrain[p] as T)) continue
-      terrain[p] = T.TRAIL
-      keepClear[p] = 1
-    }
-  }
   let toGoals = 0
   for (const entry of goalEntries) {
     const path = walkToRoad(entry)
@@ -5281,7 +5293,9 @@ const goalEntries: number[] = []
     if (toOthers >= toGoals >> 1) break
     const x = s.i - OI, y = s.j - OJ
     // from a free cell beside it
-    const by = D4.map(([dx, dy]) => idx(x + dx, y + dy)).find((q) => open(q))
+    const by = D4.map(([dx, dy]) => idx(x + dx, y + dy)).find((q) =>
+      trailOpen(q)
+    )
     if (by === undefined) continue
     const path = walkToRoad(by)
     if (!path || path.length < 6) continue
@@ -5289,6 +5303,146 @@ const goalEntries: number[] = []
     toOthers++
   }
   console.log(`trails: ${toGoals} to goals, ${toOthers} to other things`)
+}
+// the chains of trades (tools/chains.ts, model/chain.ts; ideas/goal-
+// types.md, 連鎖させる): out on the open land, two or three travellers
+// sitting still, each with a picture of what they want over their head;
+// give one what they want and they give what the next one wants. Drawn
+// and solved first, then placed as the rings are: the least placed
+// signature (and length) first, never one that a chain within 12 cells
+// has already, the patch left alone by what comes after, near the roads
+// first and a trail trodden from its way in to the road. After the
+// trails, so that everything before stays where it was. Their own random
+// numbers, so the rest of the island stays as it was
+{
+  const rr = seed(`${plan.seed}/chains`)
+  const COUNT = 4 * SCALE
+  /** Chains drawn and solved, by signature and length */
+  const pool = new Map<string, Chain[]>()
+  let drawn = 0
+  for (let n = 0; n < 240 * SCALE && drawn < 4 * COUNT; n++) {
+    const chain = acceptChain(draftChain(rr))
+    if (!chain) continue
+    const sig = chainName(chain)
+    if (!pool.has(sig)) pool.set(sig, [])
+    pool.get(sig)!.push(chain)
+    drawn++
+  }
+  // the land walked to from the arrival
+  const reached = new Uint8Array(W * H)
+  {
+    const q = [idx(arrival.x, arrival.y)]
+    reached[q[0]] = 1
+    for (let k = 0; k < q.length; k++) {
+      const x = q[k] % W, y = (q[k] / W) | 0
+      for (const [dx, dy] of D4) {
+        const np = idx(x + dx, y + dy)
+        if (inside(x + dx, y + dy) && !reached[np] && walkable(np)) {
+          reached[np] = 1
+          q.push(np)
+        }
+      }
+    }
+  }
+  const inCove = (x: number, y: number) =>
+    x >= COVE_X0 - 4 && x < COVE_X0 + COVE_W + 4 && y >= COVE_Y0 - 4 &&
+    y < COVE_Y0 + COVE_H + 4
+  /** Open land under the whole patch: walked to, wild, nothing on it */
+  const fitsAt = (x0: number, y0: number) => {
+    for (let y = y0 - 1; y <= y0 + CHAIN_H; y++) {
+      for (let x = x0 - 1; x <= x0 + CHAIN_W; x++) {
+        if (!inside(x, y)) return false
+        const p = idx(x, y)
+        if (taken.has(p) || puzzleCells[p]) return false
+        const rim = x < x0 || y < y0 || x >= x0 + CHAIN_W || y >= y0 + CHAIN_H
+        if (rim) continue
+        if (!reached[p] || keepClear[p] || !isWild(terrain[p] as T)) {
+          return false
+        }
+        if (inCity(x, y) || inMassif(x, y) || inCove(x, y)) return false
+      }
+    }
+    return true
+  }
+  const placed: { x: number; y: number; sig: string }[] = []
+  const count = new Map<string, number>()
+  let trails = 0
+  for (let n = 0; n < 20000 * SCALE && placed.length < COUNT; n++) {
+    const x0 = 2 + rr.randomInt(W - CHAIN_W - 4)
+    const y0 = 2 + rr.randomInt(H - CHAIN_H - 4)
+    const cx = x0 + (CHAIN_W >> 1), cy = y0 + (CHAIN_H >> 1)
+    // (a bigger patch than the others: more tries, most of them by a road)
+    if (n < 12000 * SCALE && distRoad[idx(cx, cy)] > NEAR_ROAD) continue
+    if (placed.some((b) => Math.hypot(b.x - cx, b.y - cy) < 60)) continue
+    if (nodes.some((o) => Math.hypot(o.x - cx, o.y - cy) < 45)) continue
+    if (!fitsAt(x0, y0)) continue
+    // the least placed signature, none the same within 12 cells
+    const near = new Set(
+      placed.filter((b) => Math.hypot(b.x - cx, b.y - cy) <= 12).map((b) =>
+        b.sig
+      ),
+    )
+    const sig = [...pool.keys()]
+      .filter((s) => pool.get(s)!.length > 0 && !near.has(s))
+      .sort((a, b) => (count.get(a) ?? 0) - (count.get(b) ?? 0))[0]
+    if (!sig) break
+    const chain = pool.get(sig)!.shift()!
+    const [fx, fy] = chain.links[0].at
+    const id = `${x0 + fx}.${y0 + fy}`
+    const n0 = chain.links.length
+    chain.rows.forEach((row, dy) =>
+      [...row].forEach((c, dx) => {
+        const x = x0 + dx, y = y0 + dy
+        const p = idx(x, y)
+        puzzleCells[p] = 1
+        keepClear[p] = 1
+        if (c === "#") {
+          terrain[p] = terrain[p] === T.HILL ? T.ROCK : T.TREE
+        } else if (c === "w") terrain[p] = T.LAKE
+        else if (c === "i") terrain[p] = T.ICE
+        else if (c === "k") terrain[p] = T.BUSH
+        else if (c === "M") put(props, x, y, "chain-mat")
+        else if (c === "V") {
+          const k = chain.links.findIndex((l) =>
+            l.at[0] === dx && l.at[1] === dy
+          )
+          const link = chain.links[k]
+          const gives = givesOf(chain, k)
+          put(props, x, y, "chain-wanter", {
+            id,
+            k,
+            n: n0,
+            want: link.want,
+            dir: link.dir,
+            ...(gives ? { gives } : {}),
+            ...(k === n0 - 1
+              ? {
+                reward: [OI + x0 + chain.reward[0], OJ + y0 + chain.reward[1]],
+              }
+              : {}),
+          })
+          blockingProp.add(p)
+        }
+      })
+    )
+    for (const t of chain.things) {
+      put(actors, x0 + t.x, y0 + t.y, t.goods ?? t.kind)
+    }
+    // the trail from its way in to the road
+    const path = walkToRoad(idx(x0 + chain.start[0], y0 + chain.start[1]))
+    if (path) {
+      tread(path)
+      trails++
+    }
+    placed.push({ x: cx, y: cy, sig })
+    count.set(sig, (count.get(sig) ?? 0) + 1)
+  }
+  console.log(
+    `chains of trades: ${placed.length} placed (${drawn} drawn and ` +
+      `solved, ${trails} trails): ` +
+      [...count].sort((a, b) => b[1] - a[1]).map(([s, k]) => `${s} ${k}`)
+        .join(", "),
+  )
 }
 // nothing empty (docs/playtest-2026-10-21.md, plan 2): wherever you
 // stand on the open land, something to touch is within sight (12

@@ -2,7 +2,8 @@
 // signature of the missing ring (tools/rings.ts), of the bell out of
 // reach (tools/bells.ts), of the pair (tools/pairs.ts), of the dais to
 // clear (tools/clears.ts), of the statue's gaze (tools/gazes.ts), of
-// the patrol's way (tools/patrols.ts), a few stray sheep (tools/folds.ts)
+// the patrol's way (tools/patrols.ts), a few stray sheep (tools/folds.ts),
+// a few chains of trades (tools/chains.ts)
 // and for every family of the odd one out
 // (tools/odd_ones.ts), a room to watch Odradek in, and a reset that
 // undoes the goals of this map only (model/goal-reset.ts).
@@ -31,6 +32,9 @@
 //   PATROL_COLS to a row), a patrol's lane for every signature
 // - FOLDS: bays as the rings', under the patrols, two stray sheep of
 //   each length of herding (short, middling, long)
+// - CHAINS: bays of CHAIN_W x CHAIN_H in walls, CHAIN_COLS to a row,
+//   under the folds, a chain of trades for each of a few signatures and
+//   lengths (2 or 3 links)
 // - ODD ONES: bays of 13x13, ODD_COLS to a row, the arrangement in the
 //   middle, the way in and the signs as for the rings
 // - ODRADEK: a room with corners, beside the odd ones
@@ -56,6 +60,18 @@ import type { Clear } from "./clears.ts"
 import type { Gaze } from "./gazes.ts"
 import type { Patrol } from "./patrols.ts"
 import type { Fold, FoldLayout } from "./folds.ts"
+import {
+  type Chain,
+  CHAIN_H,
+  CHAIN_W,
+  type ChainLayout,
+  type ChainThing,
+  type Facing,
+  givesOf,
+  GOODS,
+  type Goods,
+  type Link,
+} from "./chains.ts"
 import { alikeType, unlikeType } from "../model/odd-families.ts"
 
 export const SIZE = 200
@@ -84,6 +100,9 @@ export const gazeId = (sig: string) => `${PREFIX}${sig}`
 export const beaconId = (sig: string) => `${PREFIX}${sig}`
 /** The fold id of the n-th fold, e.g. "goals-fold-1" */
 export const foldId = (n: number) => `${PREFIX}fold-${n + 1}`
+/** The id of a chain of trades, by its signature and length, e.g. "goals-chain-push+roll-2" */
+export const chainId = (sig: string, links: number) =>
+  `${PREFIX}chain-${sig}-${links}`
 /** The odd one's id of a family, e.g. "goals-tulip" */
 export const oddId = (family: string) => `${PREFIX}${family}`
 
@@ -181,6 +200,27 @@ export function foldBay(patrols: number, n: number): { x: number; y: number } {
   }
 }
 
+/** The top of the chains' section, under the folds */
+export const chainsY = (patrols: number, folds: number) =>
+  foldsY(patrols) + 2 + Math.ceil(folds / PATROL_COLS) * RING_PITCH_Y + 1
+
+export const CHAIN_COLS = 2
+/** A chain bay: the patch and its walls (shared with the neighbours) */
+export const CHAIN_PITCH_X = CHAIN_W + 1
+export const CHAIN_PITCH_Y = CHAIN_H + 2 + 2
+
+/** The top left wall cell of the n-th chain bay */
+export function chainBay(
+  patrols: number,
+  folds: number,
+  n: number,
+): { x: number; y: number } {
+  return {
+    x: PATROLS_X + (n % CHAIN_COLS) * CHAIN_PITCH_X,
+    y: chainsY(patrols, folds) + 2 + Math.floor(n / CHAIN_COLS) * CHAIN_PITCH_Y,
+  }
+}
+
 /** The top of the odd ones' section, after the ring and bell bays */
 export const oddsY = (rings: number, bells: number) =>
   bellsY(rings) + 2 + Math.ceil(bells / RING_COLS) * RING_PITCH_Y + 1
@@ -222,6 +262,8 @@ export type GoalGaze = Gaze & { inWilds: boolean }
 export type GoalPatrol = Patrol & { inWilds: boolean }
 /** A fold of the map, and whether it is from the WILDS' own */
 export type GoalFold = Fold & { inWilds: boolean }
+/** A chain of the map, and whether the WILDS have its signature and length */
+export type GoalChain = Chain & { inWilds: boolean }
 
 export type Spawn = {
   i: number
@@ -264,6 +306,8 @@ const PATCH_CELL: Record<string, string> = {
   L: "6",
   f: "H",
   G: "6",
+  V: "6",
+  M: "6",
 }
 const FLOOR = "0"
 const WALL = "1"
@@ -295,6 +339,7 @@ export function buildGoalsMap(
   patrols: readonly GoalPatrol[],
   folds: readonly GoalFold[],
   odds: readonly Arrangement[],
+  chains: readonly GoalChain[] = [],
 ): BlockJson {
   const grid: string[][] = Array.from(
     { length: SIZE },
@@ -349,6 +394,10 @@ export function buildGoalsMap(
       Math.ceil(gazes.length / RING_COLS) * RING_PITCH_Y,
     patrolBay(patrols.length - 1).y + RING_PITCH_Y,
     foldBay(patrols.length, folds.length - 1).y + RING_PITCH_Y,
+    chains.length === 0
+      ? 0
+      : chainBay(patrols.length, folds.length, chains.length - 1).y +
+        CHAIN_PITCH_Y,
   )
   if (height >= SIZE - 1) throw new RangeError(`${height} rows: too many bays`)
   rect(1, 1, width, height, FLOOR)
@@ -377,7 +426,8 @@ export function buildGoalsMap(
       `(${clears.length}, EAST), A STATUE FOR EVERY SIGNATURE ` +
       `(${gazes.length}, EAST), A PATROL FOR EVERY SIGNATURE ` +
       `(${patrols.length}, FAR EAST), STRAY SHEEP (${folds.length}, FAR ` +
-      `EAST) AND AN ODD ONE FOR EVERY FAMILY ` +
+      `EAST), CHAINS OF TRADES (${chains.length}, FAR EAST) AND AN ODD ` +
+      `ONE FOR EVERY FAMILY ` +
       `(${odds.length}). GOALS DONE HERE COUNT, GIVE ` +
       "LETTERS AND LAST IN THE SAVE AS IN THE WILDS. THE RESET UNDOES THEM",
   )
@@ -722,6 +772,71 @@ export function buildGoalsMap(
     )
   })
 
+  // the chains of trades
+  const CHAINS_Y = chainsY(patrols.length, folds.length)
+  if (chains.length > 0) {
+    letters(PATROLS_X - 1, CHAINS_Y, "CHAIN")
+    sign(
+      PATROLS_X + 5,
+      CHAINS_Y,
+      "CHAINS: BRING ONE WHAT THEY WANT, ON THE MAT IN FRONT OF THEM. " +
+        "THEY GIVE WHAT THE NEXT ONE WANTS. A JAR AND A SACK MOVE A CELL, " +
+        "A WHEEL AND A CASK ROLL",
+    )
+  }
+  chains.forEach((chain, n) => {
+    const { x, y } = chainBay(patrols.length, folds.length, n)
+    const px = x + 1, py = y + 1
+    const sig = sigName(chain.signature)
+    const id = chainId(sig, chain.links.length)
+    const wx = px + chain.start[0]
+    bay(x, y, x + CHAIN_W + 1, y + CHAIN_H + 1, wx)
+    chain.rows.forEach((row, dy) =>
+      [...row].forEach((c, dx) => {
+        grid[py + dy][px + dx] = PATCH_CELL[c]
+        if (c === "M") prop(px + dx, py + dy, "chain-mat")
+        else if (c === "V") {
+          const k = chain.links.findIndex((l) =>
+            l.at[0] === dx && l.at[1] === dy
+          )
+          const link = chain.links[k]
+          const gives = givesOf(chain, k)
+          const last = k === chain.links.length - 1
+          prop(px + dx, py + dy, "chain-wanter", {
+            id,
+            k,
+            n: chain.links.length,
+            want: link.want,
+            dir: link.dir,
+            ...(gives ? { gives } : {}),
+            ...(last
+              ? {
+                reward: [BI + px + chain.reward[0], BJ + py + chain.reward[1]],
+              }
+              : {}),
+          })
+        }
+      })
+    )
+    for (const t of chain.things) actor(px + t.x, py + t.y, t.goods ?? t.kind)
+    const bottom = y + CHAIN_H + 1
+    wallSign(
+      wx - 2,
+      bottom,
+      `CHAIN ${n + 1}: ${sig.toUpperCase()}, ${chain.links.length} LINKS. ` +
+        `${chain.pushes} PUSHES (${chain.linkPushes.join(", ")} A LINK ` +
+        "FROM A FRESH PLACE). " +
+        chain.links.map((l) => l.want.toUpperCase()).join(", THEN ") +
+        (chain.inWilds ? "" : ". NOT IN THE WILDS (DRAWN HERE)"),
+    )
+    wallSign(
+      wx + 2,
+      bottom,
+      `SOLUTION, FROM THE CELL INSIDE THE WAY IN, LINK AFTER LINK: ` +
+        chain.solution,
+    )
+  })
+
   // the odd ones
   letters(2, ODDS_Y, "ODD")
   sign(
@@ -881,6 +996,65 @@ export function readFoldBay(
   return {
     id,
     layout: { rows: marked, sheep, start: [RING_W >> 1, RING_H - 1] },
+  }
+}
+
+/**
+ * Reads the n-th chain bay of the block back (tools/chains.ts): the
+ * chain's patch, its things and links, and its id
+ */
+export function readChainBay(
+  block: BlockJson,
+  patrols: number,
+  folds: number,
+  n: number,
+): { id: string; layout: ChainLayout } | null {
+  const { x, y } = chainBay(patrols, folds, n)
+  const px = x + 1, py = y + 1
+  const at = (list: Spawn[], dx: number, dy: number) =>
+    list.find((s) => s.i === BI + px + dx && s.j === BJ + py + dy)
+  let id: string | null = null
+  const rows: string[] = []
+  const things: ChainThing[] = []
+  const links: (Link & { k: number })[] = []
+  for (let dy = 0; dy < CHAIN_H; dy++) {
+    let row = ""
+    for (let dx = 0; dx < CHAIN_W; dx++) {
+      const p = at(block.props, dx, dy)
+      const a = at(block.actors, dx, dy)
+      const c = PATCH_CHAR[block.field[py + dy][px + dx]] ?? "#"
+      if (p?.type === "chain-wanter") {
+        const d = p.data as { id: string; k: number; want: Goods; dir: Facing }
+        id = d.id
+        links.push({ at: [dx, dy], dir: d.dir, want: d.want, k: d.k })
+        row += "V"
+        continue
+      }
+      row += p?.type === "chain-mat" ? "M" : c
+      if (a?.type === "stone" || a?.type === "boulder") {
+        things.push({ kind: a.type, x: dx, y: dy })
+      } else if (a && (GOODS as readonly string[]).includes(a.type)) {
+        const goods = a.type as Goods
+        things.push({
+          kind: goods === "jar" || goods === "sack" ? "stone" : "boulder",
+          x: dx,
+          y: dy,
+          goods,
+        })
+      }
+    }
+    rows.push(row)
+  }
+  if (!id) return null
+  links.sort((a, b) => a.k - b.k)
+  return {
+    id,
+    layout: {
+      rows,
+      things,
+      start: [CHAIN_W >> 1, CHAIN_H - 1],
+      links: links.map(({ at, dir, want }) => ({ at, dir, want })),
+    },
   }
 }
 

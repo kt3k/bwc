@@ -332,6 +332,33 @@ prop(122, 86, "fold-gate", {
 })
 actor(126, 86, "sheep")
 
+// the chain of trades (model/chain.ts): the first wants the jar behind
+// the bush and gives a wheel; the second wants the wheel, rolled along
+// the row once the stone below fills the water on the way
+sign(97, 82, "CHAIN: BRING EACH ONE WHAT THEY WANT, ON THEIR MAT")
+prop(100, 86, "chain-wanter", {
+  id: "zoo-chain",
+  k: 0,
+  n: 2,
+  want: "jar",
+  gives: "wheel",
+  dir: "down",
+})
+prop(100, 87, "chain-mat")
+grid[89][100] = "k"
+actor(100, 90, "jar")
+prop(108, 87, "chain-wanter", {
+  id: "zoo-chain",
+  k: 1,
+  n: 2,
+  want: "wheel",
+  dir: "left",
+  reward: [BI + 108, BJ + 90],
+})
+prop(107, 87, "chain-mat")
+grid[87][104] = "w"
+actor(104, 90, "stone")
+
 // Odradek (model/odradek.ts): in the corner of a small room, off to
 // another corner when you come near; talk to it from beside it
 sign(158, 56, "ODRADEK: IT WON'T BE CAUGHT")

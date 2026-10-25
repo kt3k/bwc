@@ -62,6 +62,7 @@ import { stepClearDais } from "./clear.ts"
 import { stepGazeStatue, stepGazeSun } from "./gaze.ts"
 import { BeaconPushed, stepBeacon } from "./beacon.ts"
 import { stepFoldGate } from "./fold.ts"
+import { stepChainWanter } from "./chain.ts"
 import { OdradekDelegate } from "./odradek.ts"
 import { stepUnlike, UnlikePushed } from "./odd-one.ts"
 import { ODD_FAMILIES, unlikeType } from "./odd-families.ts"
@@ -954,6 +955,7 @@ export const ODD_PROP_STEP: Record<
   "gaze-sun": stepGazeSun,
   "patrol-beacon": stepBeacon,
   "fold-gate": stepFoldGate,
+  "chain-wanter": stepChainWanter,
   ...Object.fromEntries(ODD_FAMILIES.map((f) => [unlikeType(f), stepUnlike])),
 }
 

@@ -10,17 +10,25 @@ import { Item } from "./item.ts"
 import { oddKey, oddRewardKey } from "./odd-one.ts"
 import { goneKey } from "./prop.ts"
 import { ringKey, ringRewardKey } from "./ring.ts"
+import { chainKey, chainRewardKey, linkKey } from "./chain.ts"
 
 const MAP = {
   prefix: "goals-",
   box: [10400, -10000, 10599, -9801] as [number, number, number, number],
 }
 
-/** The ids of the GOALS map: two goals, a letter, a stone gone, a coin */
+/**
+ * The ids of the GOALS map: three goals (a chain with its links given),
+ * two letters, a stone gone, a coin
+ */
 const MAP_IDS = [
   ringKey("goals-roll+sink"),
   ringRewardKey("goals-roll+sink"),
   oddKey("goals-tulip"),
+  chainKey("goals-chain-push+roll-2"),
+  linkKey("goals-chain-push+roll-2", 0),
+  linkKey("goals-chain-push+roll-2", 1),
+  chainRewardKey("goals-chain-push+roll-2"),
   goneActorKey("10410.-9985.stone.-.-"),
   goneKey("crate", 10420, -9900),
   "10405.-9990.coin",
@@ -31,6 +39,8 @@ const OTHER_IDS = [
   ringRewardKey("3120.955"),
   oddKey("2950.410"),
   oddRewardKey("2950.410"),
+  chainKey("3300.700"),
+  linkKey("3300.700", 0),
   // the debug map's own goals
   ringKey("debug"),
   oddKey("debug-tulip"),
@@ -56,8 +66,8 @@ Deno.test("goal reset: undoes the map's goals and letters, nothing else", () => 
   assertEquals(resetGoals(MAP), MAP_IDS.length)
   for (const id of MAP_IDS) assert(!Item.isCollected(id), id)
   for (const id of OTHER_IDS) assert(Item.isCollected(id), id)
-  // the two goals of the map no longer count (Odradek goes with them)
-  assertEquals(goalsDone(), before - 2)
+  // the three goals of the map no longer count (Odradek goes with them)
+  assertEquals(goalsDone(), before - 3)
   assertEquals(signal.glyphs.get().map((g) => g.id), [
     ringRewardKey("3120.955"),
     oddRewardKey("2950.410"),

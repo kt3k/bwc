@@ -5,7 +5,9 @@
 // signature and kind tools/clears.ts makes, a statue for every signature
 // tools/gazes.ts makes, a patrol's lane for every signature
 // tools/patrols.ts makes, two stray sheep of each length of herding
-// tools/folds.ts makes, an odd one for every family, Odradek's room and a reset that undoes the goals of this map
+// tools/folds.ts makes, a few chains of trades tools/chains.ts makes (up
+// to CHAINS_PER_LENGTH of 2 links and as many of 3, a signature each), an
+// odd one for every family, Odradek's room and a reset that undoes the goals of this map
 // only. It is linked from the start island by a
 // "GOALS" portal room, to the left of the DEBUG room.
 //
@@ -18,11 +20,11 @@
 // rules. Deterministic: the same rings every run. The bells, the pairs,
 // the daises, the statues and the patrols the same way (--bell-drafts,
 // --pair-drafts, --clear-drafts, --gaze-drafts, --patrol-drafts, 1500 by
-// default).
+// default), the chains too (--chain-drafts, 300 by default).
 //
 // Usage: deno -A tools/generate_goals_map.ts [--drafts 3000]
 //   [--bell-drafts 1500] [--pair-drafts 1500] [--clear-drafts 1500]
-//   [--gaze-drafts 1500] [--patrol-drafts 1500]
+//   [--gaze-drafts 1500] [--patrol-drafts 1500] [--chain-drafts 300]
 import { parseArgs } from "@std/cli/parse-args"
 import { loadCatalog } from "../model/catalog.ts"
 import { ODD_FAMILIES } from "../model/odd-families.ts"
@@ -35,6 +37,7 @@ import { acceptPair, draftPair, type Pair, PAIR_AIMS } from "./pairs.ts"
 import { acceptClear, type Clear, CLEAR_AIMS, draftClear } from "./clears.ts"
 import { acceptGaze, draftGaze, type Gaze, GAZE_AIMS } from "./gazes.ts"
 import { acceptFold, draftFold, type Fold, FOLD_AIMS } from "./folds.ts"
+import { acceptChain, type Chain, chainName, draftChain } from "./chains.ts"
 import {
   acceptPatrol,
   draftPatrol,
@@ -48,6 +51,7 @@ import {
   type BlockJson,
   buildGoalsMap,
   type GoalBell,
+  type GoalChain,
   type GoalClear,
   type GoalFold,
   type GoalGaze,
@@ -65,6 +69,7 @@ const args = parseArgs(Deno.args, {
     "clear-drafts",
     "gaze-drafts",
     "patrol-drafts",
+    "chain-drafts",
   ],
 })
 const EXTRA_DRAFTS = Number(args.drafts ?? 3000)
@@ -73,6 +78,7 @@ const EXTRA_PAIR_DRAFTS = Number(args["pair-drafts"] ?? 1500)
 const EXTRA_CLEAR_DRAFTS = Number(args["clear-drafts"] ?? 1500)
 const EXTRA_GAZE_DRAFTS = Number(args["gaze-drafts"] ?? 1500)
 const EXTRA_PATROL_DRAFTS = Number(args["patrol-drafts"] ?? 1500)
+const EXTRA_CHAIN_DRAFTS = Number(args["chain-drafts"] ?? 300)
 
 const catalog = await loadCatalog(
   new URL("../static/catalog/base.json", import.meta.url).href,
@@ -394,6 +400,54 @@ const addFold = (fold: Fold, inWilds: boolean) => {
 const folds = LENGTHS.flatMap((l) => foldsBy.get(l)!)
 console.log(`folds: ${folds.map((f) => f.herds).join(", ")} herds`)
 
+// the chains of trades: the first of each signature and length, the
+// WILDS' own first (the same seed and draws as tools/generate_wilds.ts),
+// then more drafts of their own; a few of each length
+const CHAINS_PER_LENGTH = 4
+const chainBySig = new Map<string, GoalChain>()
+const addChain = (chain: Chain, inWilds: boolean) => {
+  const key = chainName(chain)
+  if (!chainBySig.has(key)) chainBySig.set(key, { ...chain, inWilds })
+}
+{
+  const plan = JSON.parse(
+    await Deno.readTextFile(new URL("./wilds_plan.json", import.meta.url)),
+  ) as { seed: string; blocks: { w: number; h: number } }
+  const W = plan.blocks.w * 200, H = plan.blocks.h * 200
+  const SCALE = Math.max(1, Math.round((W * H) / (1600 * 1000)))
+  const COUNT = 4 * SCALE
+  const rr = seed(`${plan.seed}/chains`)
+  let drawn = 0
+  for (let n = 0; n < 240 * SCALE && drawn < 4 * COUNT; n++) {
+    const chain = acceptChain(draftChain(rr))
+    if (!chain) continue
+    addChain(chain, true)
+    drawn++
+  }
+  console.log(`the WILDS' chains: ${chainBySig.size} signatures and lengths`)
+}
+{
+  const rr = seed("goals/chains")
+  for (let n = 0; n < EXTRA_CHAIN_DRAFTS; n++) {
+    const chain = acceptChain(draftChain(rr))
+    if (chain) addChain(chain, false)
+  }
+}
+const chains = [2, 3].flatMap((length) =>
+  [...chainBySig.entries()]
+    .filter(([, c]) => c.links.length === length)
+    .map(([key, c]) => [key.split(" ")[0], c] as const)
+    // the WILDS' own first, then by the rules
+    .sort((a, b) =>
+      Number(b[1].inWilds) - Number(a[1].inWilds) ||
+      bySignature([a[0], 0], [b[0], 0])
+    )
+    .slice(0, CHAINS_PER_LENGTH)
+    .sort((a, b) => bySignature([a[0], 0], [b[0], 0]))
+    .map(([, c]) => c)
+)
+console.log(`chains: ${chains.map(chainName).join(", ")}`)
+
 const block = buildGoalsMap(
   rings,
   bells,
@@ -403,6 +457,7 @@ const block = buildGoalsMap(
   patrols,
   folds,
   odds,
+  chains,
 )
 
 const fail = (...msg: unknown[]) => {
@@ -455,6 +510,8 @@ console.log(
     gazes.map((g) => sigName(g.signature)).join(", ") +
     `; ${patrols.length} patrols: ` +
     patrols.map((p) => sigName(p.signature)).join(", ") +
+    `; ${chains.length} chains: ` +
+    chains.map(chainName).join(", ") +
     `; ${odds.length} odd ones)`,
 )
 
@@ -503,8 +560,8 @@ const additions: Spawn[] = [
     ...local(19, 23),
     type: "sign",
     data: {
-      text: "GOALS MAP: EVERY RING, BELL, PAIR, DAIS, STATUE, PATROL, FOLD " +
-        "AND ODD ONE, AND A RESET",
+      text: "GOALS MAP: EVERY RING, BELL, PAIR, DAIS, STATUE, PATROL, FOLD, " +
+        "CHAIN AND ODD ONE, AND A RESET",
     },
   },
   {

@@ -433,6 +433,22 @@
       "pushed": "shove",
       "src": "../actor/stone/"
     },
+    "jar": {
+      "pushed": "shove",
+      "src": "../actor/jar/"
+    },
+    "sack": {
+      "pushed": "shove",
+      "src": "../actor/sack/"
+    },
+    "wheel": {
+      "pushed": "roll",
+      "src": "../actor/wheel/"
+    },
+    "cask": {
+      "pushed": "roll",
+      "src": "../actor/cask/"
+    },
     "ghost": {
       "idle": "ghost",
       "src": "../actor/ghost/"
@@ -2528,6 +2544,98 @@
           "j1"
         ]
       }
+    },
+    "chain-wanter": {
+      "src": "../prop/chain_down_jar.png",
+      "canEnter": false,
+      "growth": {
+        "stages": [
+          "../prop/chain_up_jar.png",
+          "../prop/chain_up_sack.png",
+          "../prop/chain_up_wheel.png",
+          "../prop/chain_up_cask.png",
+          "../prop/chain_up.png",
+          "../prop/chain_down_jar.png",
+          "../prop/chain_down_sack.png",
+          "../prop/chain_down_wheel.png",
+          "../prop/chain_down_cask.png",
+          "../prop/chain_down.png",
+          "../prop/chain_left_jar.png",
+          "../prop/chain_left_sack.png",
+          "../prop/chain_left_wheel.png",
+          "../prop/chain_left_cask.png",
+          "../prop/chain_left.png",
+          "../prop/chain_right_jar.png",
+          "../prop/chain_right_sack.png",
+          "../prop/chain_right_wheel.png",
+          "../prop/chain_right_cask.png",
+          "../prop/chain_right.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "k": {
+            "type": "number"
+          },
+          "n": {
+            "type": "number"
+          },
+          "want": {
+            "type": "string",
+            "enum": [
+              "jar",
+              "sack",
+              "wheel",
+              "cask"
+            ]
+          },
+          "gives": {
+            "type": "string",
+            "enum": [
+              "jar",
+              "sack",
+              "wheel",
+              "cask"
+            ]
+          },
+          "dir": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down",
+              "left",
+              "right"
+            ]
+          },
+          "reward": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "k",
+          "n",
+          "want",
+          "dir"
+        ]
+      }
+    },
+    "chain-mat": {
+      "src": "../prop/chain_mat.png",
+      "canEnter": true
     },
     "alike-tulip": {
       "src": "../prop/alike_tulip.png",

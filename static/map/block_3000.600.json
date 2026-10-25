@@ -76,6 +76,11 @@
       "type": "sheep"
     },
     {
+      "i": 3072,
+      "j": 759,
+      "type": "cask"
+    },
+    {
       "i": 3132,
       "j": 609,
       "type": "book"
@@ -289,11 +294,6 @@
       "i": 3092,
       "j": 759,
       "type": "rabbit"
-    },
-    {
-      "i": 3076,
-      "j": 762,
-      "type": "spore"
     },
     {
       "i": 3123,
@@ -1351,6 +1351,45 @@
       }
     },
     {
+      "i": 3066,
+      "j": 760,
+      "type": "chain-wanter",
+      "data": {
+        "id": "1066.760",
+        "k": 0,
+        "n": 2,
+        "want": "cask",
+        "dir": "right",
+        "gives": "wheel"
+      }
+    },
+    {
+      "i": 3067,
+      "j": 760,
+      "type": "chain-mat"
+    },
+    {
+      "i": 3068,
+      "j": 763,
+      "type": "chain-mat"
+    },
+    {
+      "i": 3068,
+      "j": 764,
+      "type": "chain-wanter",
+      "data": {
+        "id": "1066.760",
+        "k": 1,
+        "n": 2,
+        "want": "wheel",
+        "dir": "up",
+        "reward": [
+          3066,
+          764
+        ]
+      }
+    },
+    {
       "i": 3079,
       "j": 600,
       "type": "beehive",
@@ -1795,11 +1834,11 @@
     "pppppppppppppppppp6666666666666fkffkfffkkffkkfffffkfffffffJJffpppppppppppppppppppppppppppppppppppppppppp6HHHHH66J66666666666666666666666666666666666666666666666666666JJ666666666666666fffffffffffffffkf",
     "ppppppppppppp7pppp6666666666666fkfffffffffffffffffkfffffffJJffpppppppppppppppppppppppppppppppppppppppppp6H666H66JJ6666666666666666666666666666666666666666666666666666JJ666666666666666fffkkffffffffffff",
     "pppppppppppppppppp6666666666666fffffffffffffffffkfffffffffffffpppppppppppppppppppppppppppppppppppppppppp6H666H666666666666666666666666666666666666666666666666666666666666666666666666fffffffffffkffffff",
-    "ppppppppppppppppppp666666666666ffffffffffffffkkfkffffffffffkfppppppppppppppppppppppppppppppppppppppppppp6HH6HH666666666666666666666666666666666666666666666666666666666666666666666666ffffffffJJffffkkfk",
+    "ppppppppppppppppppp666666666666ffffffffffffffkkfkffffffffffkfppppppppkkppppp7ppppppppppppppppppppppppppp6HH6HH666666666666666666666666666666666666666666666666666666666666666666666666ffffffffJJffffkkfk",
     "ppppppppppppppppppp666666J666666kkfffffkfffffffffffffffffffkpppppppppppppppppppppppppppppppppppppppppppp66666J66666666666666666666666666666666666666666666666666666666666666666666666fffffffffJJfffffffk",
-    "ppppppppppppppppppp6666666666666fffffffkffffffffffffffffffppppppppppppppppppppppppppppppppppp7pppppppppp66666666666666JJ66666666J666666666666666666666666666666666666666666666666666fffffffkkfffkfffffff",
-    "6pppppppppppppppppp6666JJ66666666fffkffffkfffffkffffffffffpppppppppppppppppppppppppppppppppppppppppppppp66666666666666666666666666666666666666666666666666666666666666666666666666JJfkffffffffffffffffff",
-    "6pppppppppppppppppp6666JJ666666666ffkffffkfffffffffffffkkfpppppppppppppppppppppppppppppppppppppppppppppp6666666666666666666666666666666666666666666666666666666666666666666666666fJJfffffffffffffffkkfff",
+    "ppppppppppppppppppp6666666666666fffffffkffffffffffffffffffpppppppppppkkpppppppppppppppppppppp7pppppppppp66666666666666JJ66666666J666666666666666666666666666666666666666666666666666fffffffkkfffkfffffff",
+    "6pppppppppppppppppp6666JJ66666666fffkffffkfffffkffffffffffpppppppppkkkpppp7ppppppppppppppppppppppppppppp66666666666666666666666666666666666666666666666666666666666666666666666666JJfkffffffffffffffffff",
+    "6pppppppppppppppppp6666JJ666666666ffkffffkfffffffffffffkkfpppppp7ppppppppppppppppppppppppppppppppppppppp6666666666666666666666666666666666666666666666666666666666666666666666666fJJfffffffffffffffkkfff",
     "67ppppppppppppppppp6666666666666666fffffffffffffffffffffffppppppppppppppppppppppppppppppppppppppppppppppp66666666666666666666666666666666666666666666666666666666666666666J66666ffffffffffffffffffffffff",
     "6pppppppppppppppppp6666666666666666666fffffffffffffkfffffffpppppppppppppppppppppppppppppppppppppppppppppp6666666666666666666666666JJ66666666666666666666666666666666666666J666fffkkfffffJJfffffffffffffk",
     "ppppppppppppppppppp66666666666666666666ffkkfffffkfffffffffkfppppppppppppppppppppppppp7ppppppppppppppppppp6666666666666666666666666JJ66666666666666666666666666666666666666666fffffffffffJJfffffkkffffffk",

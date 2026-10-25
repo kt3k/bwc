@@ -43,6 +43,8 @@
 //   J  a patrol (tools/patrols.ts), walking to and fro on the line to the
 //      beacon L in its row or column; done when it can walk up to the
 //      beacon: nothing in the way (water too, until filled)
+//   V  one who wants a thing (tools/chains.ts), sitting still: the gap
+//      in front of them takes only the thing they want (Layout.give)
 //
 // The simulator follows the game's rules (model/actor.ts: the boulder's
 // roll, the stone's shove, the ice, the player flattening a bush) and
@@ -62,6 +64,11 @@ export type Layout = {
   things: Thing[]
   /** Where the player comes from */
   start: [number, number]
+  /**
+   * The one thing (its index in `things`) the gap takes, if only one
+   * does: what one who wants it wants (tools/chains.ts)
+   */
+  give?: number
 }
 
 export type Ring = Layout & {
@@ -148,6 +155,8 @@ class Sim {
   readonly slot: number
   /** The kind the slot takes (a pair's plinth), null: any */
   readonly want: ThingKind | null
+  /** The one thing the slot takes (one who wants it), -1: any */
+  readonly give: number
   /** The bell's cell (-1: none) */
   readonly bell: number
   /** The dais' cell (-1: none) */
@@ -168,7 +177,7 @@ class Sim {
     let waters = 0, bushes = 0
     for (let p = 0; p < w * h; p++) {
       const c = cells[p]
-      if ("#oOAYZETL".includes(c)) {
+      if ("#oOAYZETLV".includes(c)) {
         this.kind[p] = SOLID
       } else if (c === "w") {
         this.kind[p] = WATER
@@ -195,6 +204,7 @@ class Sim {
       : cells.includes("Z")
       ? "boulder"
       : null
+    this.give = layout.give ?? -1
     this.bell = cells.indexOf("A")
     this.dais = cells.indexOf("D")
     this.walkLine = cells.includes("J")
@@ -389,7 +399,8 @@ class Sim {
     }
     if (this.slot < 0) return false
     const n = this.thingAt(s.t, this.slot)
-    return n >= 0 && (!this.want || this.stone[n] === (this.want === "stone"))
+    return n >= 0 && (this.give < 0 || n === this.give) &&
+      (!this.want || this.stone[n] === (this.want === "stone"))
   }
 
   /** What did it: the thing in the gap, or the thing that rang the bell */

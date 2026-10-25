@@ -1,5 +1,5 @@
 // A field made of a patch of tools/rings.ts (a ring, a bell, a pair, a
-// dais, a statue, a patrol's lane, a fold),
+// dais, a statue, a patrol's lane, a fold, a chain of trades),
 // with the game's real actors and props (model/actor.ts, model/prop.ts),
 // for the tests to play a solution in and compare it with the simulator
 // move by move (tools/rings.test.ts, bells.test.ts, pairs.test.ts).
@@ -42,6 +42,8 @@ const CELL_OF: Record<string, string> = {
   L: "0",
   f: "H",
   G: "0",
+  V: "0",
+  M: "0",
 }
 export const DIR_OF: Record<string, Dir> = {
   U: "up",
@@ -53,6 +55,8 @@ export const DIR_OF: Record<string, Dir> = {
 /** A prop of the patch: its type and data, by the patch's character */
 export type PropOf = (
   c: string,
+  x: number,
+  y: number,
 ) => { type: string; data?: unknown } | null
 
 /** A field made of a patch, with the game's actors and props */
@@ -73,7 +77,7 @@ export class World {
     this.cells = layout.rows.map((r) => [...r].map((c) => CELL_OF[c]))
     layout.rows.forEach((row, y) =>
       [...row].forEach((c, x) => {
-        const p = propOf(c)
+        const p = propOf(c, x, y)
         if (!p) return
         const prop = Prop.fromSpawn(
           new PropSpawn(ox + x, oy + y, catalog.props[p.type], p.data),
@@ -82,7 +86,12 @@ export class World {
       })
     )
     this.things = layout.things.map((t, n) =>
-      spawnActor(`thing${n}`, ox + t.x, oy + t.y, catalog.actors[t.kind])
+      spawnActor(
+        `thing${n}`,
+        ox + t.x,
+        oy + t.y,
+        catalog.actors[(t as { goods?: string }).goods ?? t.kind],
+      )
     )
     this.me = new Actor(
       ox + layout.start[0],
@@ -157,6 +166,17 @@ export class World {
     const item = { id: id ?? `item${this.items.length}`, i, j, type }
     this.items.push(item)
     return item as unknown as IItem
+  }
+  /** A thing laid on the field (by one of a chain of trades) */
+  spawnActor(type: string, i: number, j: number, _dir: Dir) {
+    const actor = spawnActor(
+      `${i}.${j}.${type}.${this.actorList.length}`,
+      i,
+      j,
+      catalog.actors[type],
+    )
+    this.actorList.push(actor)
+    return actor
   }
   colorCell() {}
   step() {

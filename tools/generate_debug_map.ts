@@ -115,6 +115,7 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "gaze-sun": { id: "debug-gaze" },
   "patrol-beacon": { id: "debug-beacon" },
   "fold-gate": { id: "debug-fold", i0: BI, j0: BJ, i1: BI, j1: BJ },
+  "chain-wanter": { id: "debug-chain", k: 0, n: 1, want: "jar", dir: "down" },
   // undoes the goals above (their ids start with "debug")
   "goal-reset": {
     prefix: "debug",

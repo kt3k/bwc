@@ -10,9 +10,11 @@ import {
   BI,
   BJ,
   type BlockJson,
+  chainId,
   oddId,
   PREFIX,
   readBellBay,
+  readChainBay,
   readClearBay,
   readFoldBay,
   readGazeBay,
@@ -28,6 +30,7 @@ import { CLEAR_MAX_PUSHES, CLEAR_MIN_PUSHES } from "./clears.ts"
 import { GAZE_MAX_PUSHES, GAZE_MIN_PUSHES } from "./gazes.ts"
 import { PATROL_MAX_PUSHES, PATROL_MIN_PUSHES } from "./patrols.ts"
 import { solveFold } from "./folds.ts"
+import { acceptChain, solveChain } from "./chains.ts"
 
 const read = async (name: string) =>
   JSON.parse(
@@ -41,6 +44,10 @@ const daises = block.props.filter((p) => p.type === "clear-dais")
 const statues = block.props.filter((p) => p.type === "gaze-statue")
 const beacons = block.props.filter((p) => p.type === "patrol-beacon")
 const gates = block.props.filter((p) => p.type === "fold-gate")
+const lastWanters = block.props.filter((p) => {
+  const d = p.data as { k?: number; n?: number } | undefined
+  return p.type === "chain-wanter" && d?.k === d!.n! - 1
+})
 
 Deno.test("goals map: a ring for every signature, each solvable and of its signature", () => {
   // the WILDS have 13 signatures; the map has them and maybe more
@@ -211,6 +218,32 @@ Deno.test("goals map: stray sheep, each to be herded in", () => {
     assertEquals(bay.id, `${PREFIX}fold-${n + 1}`)
     assert(solveFold(bay.layout).rounds < Infinity, bay.id)
   }
+})
+
+Deno.test("goals map: chains of trades of 2 and 3 links, each solvable, of its signature", () => {
+  assert(lastWanters.length >= 4, `${lastWanters.length} chains`)
+  const ids = new Set<string>()
+  const lengths = new Set<number>()
+  for (let n = 0; n < lastWanters.length; n++) {
+    const bay = readChainBay(block, beacons.length, gates.length, n)
+    assert(bay, `chain bay ${n}`)
+    const { id, layout } = bay
+    assert(!ids.has(id), `${id} twice`)
+    ids.add(id)
+    lengths.add(layout.links.length)
+    const chain = acceptChain(layout)
+    assert(chain, `${id} isn't a good chain`)
+    assertEquals(chainId(sigName(chain.signature), layout.links.length), id)
+    assert(solveChain(layout), id)
+    const signs = block.props.filter((p) =>
+      p.type === "sign" &&
+      (p.data as { text: string }).text.startsWith(`CHAIN ${n + 1}: `)
+    )
+    assertEquals(signs.length, 1)
+    const text = (signs[0].data as { text: string }).text
+    assert(text.includes(`${chain.pushes} PUSHES`), text)
+  }
+  assertEquals(lengths.size, 2)
 })
 
 Deno.test("goals map: an odd one for every family", () => {
