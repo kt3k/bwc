@@ -1,7 +1,7 @@
-// The moment a goal is done (model/celebrate.ts, model/goal-fx.ts): the
-// hit stop holds the world still under white noise (no shake) and lets
-// go, the five white lines go out (the sound and the message as it lets
-// go), and when they are gone, a beat at a time, a bolt strikes the
+// The moment a goal is done (model/celebrate.ts, model/goal-fx.ts): a
+// delay under white noise (the world goes on: no hit stop, no shake),
+// then the five white lines go out (the sound and the message with
+// them), and when they are gone, a beat at a time, a bolt strikes the
 // letter's cell a little way off, leaves fall round it and the letter
 // rises, and it can't be picked up until it has; laid again after a
 // reload, it just lies there, in the same place
@@ -20,7 +20,7 @@ import {
   CLIMAX_LINES,
   FALLING_LEAF_COLORS,
   GlyphReveal,
-  GOAL_HIT_STOP,
+  GOAL_DELAY,
   GOAL_LINE_COLOR,
   GOAL_LINES,
   GOAL_LINES_FRAMES,
@@ -112,34 +112,35 @@ Deno.test("goal fx: the hit stop holds the world still for its frames, then lets
   assertEquals(juice.freeze, 0)
 })
 
-Deno.test("goal fx: a goal done holds still under white noise, no shake, then the lines go out with its message", () => {
+Deno.test("goal fx: a goal done waits a while under white noise (the world goes on, no hit stop, no shake), then the lines go out with its message", () => {
   reset()
   const { field, effects, frame } = makeField()
   const sounds: string[] = []
   const off = signal.sound.subscribe((s) => s && sounds.push(s.name))
   celebrateGoal(field, 10, 10, "A GOAL")
-  assertEquals(GOAL_HIT_STOP, 32)
-  assertEquals(juice.freeze, GOAL_HIT_STOP)
-  // no shake; the white noise from this frame to the last one held
+  assertEquals(GOAL_DELAY, 32)
+  // no hit stop, no shake; the white noise from this frame to the end of
+  // the delay
+  assertEquals(juice.freeze, 0)
   assertEquals(juice.shake, 0)
-  assertEquals(juice.noise, GOAL_HIT_STOP + 1)
+  assertEquals(juice.noise, GOAL_DELAY + 1)
   assertEquals(effects.length, 1)
   const lines = effects[0] as GoalLines
   assert(lines instanceof GoalLines)
   // in the same frame (the rest of the field's step): not yet
   lines.step(field)
   assertEquals(lines.f, 0)
-  // held still: nothing moves, nothing on the goal cell (no white light),
-  // no message, no sound yet
-  for (let k = 0; k < GOAL_HIT_STOP; k++) {
-    assert(!frame())
+  // the delay: the world goes on, nothing on the goal cell (no white
+  // light), no message, no sound yet
+  for (let k = 0; k < GOAL_DELAY; k++) {
+    assert(frame())
     assertEquals([...lines.boxes()], [])
   }
-  assertEquals(lines.f, 0)
+  assertEquals(lines.f, GOAL_DELAY)
   assertEquals(signal.message.get(), null)
   assertEquals(sounds, [])
-  // let go: the message and the sound, once, and the first five lines
-  // out of each side of the goal cell
+  // the delay over: the message and the sound, once, and the first five
+  // lines out of each side of the goal cell
   assert(frame())
   assertEquals(signal.message.get(), { text: "A GOAL" })
   assertEquals(sounds, ["powerUp"])
@@ -168,7 +169,7 @@ Deno.test("goal fx: a goal done holds still under white noise, no shake, then th
   // a little longer than a cell, shorter than two
   assertEquals(longest, GOAL_LINES.length)
   assert(GOAL_LINES.length > 16 && GOAL_LINES.length <= 20)
-  assertEquals(lines.f, GOAL_LINES_FRAMES)
+  assertEquals(lines.f, GOAL_DELAY + GOAL_LINES_FRAMES)
   // about a second (the 3 waves of before were ~2 s), longer than the
   // pickup's lines (48 frames)
   assert(GOAL_LINES_FRAMES >= 48 && GOAL_LINES_FRAMES <= 70)
@@ -220,7 +221,7 @@ Deno.test("goal fx: after the lines, a beat at a time: the bolt thrice, the leav
     seeded(3),
   )
   const field = { time: 1 } as IField
-  // frames (after the hit stop) each part shows in
+  // frames (after the goal done) each part shows in
   const bolt: number[] = []
   const leaves: number[] = []
   const rise: number[] = []
@@ -262,8 +263,8 @@ Deno.test("goal fx: after the lines, a beat at a time: the bolt thrice, the leav
       if (lines.length > 0) climaxLines.push(f)
     }
   }
-  // the lines gone, then a beat
-  assertEquals(REVEAL_DELAY, GOAL_LINES_FRAMES)
+  // the delay and the lines gone, then a beat
+  assertEquals(REVEAL_DELAY, GOAL_DELAY + GOAL_LINES_FRAMES)
   assertEquals(shown[0], REVEAL_DELAY + REVEAL_BEAT)
   // the bolt strikes three times, a beat after each, flickering (on and
   // off) within its frames each time
@@ -387,7 +388,7 @@ Deno.test("goal fx: a ring made whole celebrates once; reloaded, its letter just
   // whole now: stepped on, it doesn't celebrate again
   for (
     let k = 0;
-    k < GOAL_HIT_STOP + REVEAL_FRAMES + 16 * CLIMAX_LINES.dist + 10;
+    k < REVEAL_FRAMES + 16 * CLIMAX_LINES.dist + 10;
     k++
   ) {
     frame()
@@ -431,9 +432,9 @@ Deno.test("goal fx: the odd one found celebrates with its letter rising", () => 
   )
   const me = new Actor(100, 1, catalog.actors["static"], "main")
   odd.onPushed({ type: "pushed", dir: "up", peakAt: 7, pusher: me }, field)
-  assertEquals(juice.freeze, GOAL_HIT_STOP)
+  assertEquals(juice.freeze, 0)
   assertEquals(juice.shake, 0)
-  assert(juice.noise > GOAL_HIT_STOP)
+  assert(juice.noise > GOAL_DELAY)
   assertEquals(effects.filter((e) => e instanceof GoalLines).length, 1)
   assertEquals(items.map((t) => t.id), [oddRewardKey("T")])
   assert(items[0].revealing)

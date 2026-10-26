@@ -1,14 +1,13 @@
 // A goal done (model/goal.ts), the moment of it, the same for every kind
-// of goal: the world holds still a while (the hit stop, input held too)
-// under the screen's white noise (no shake); as it lets go, the sound
-// and the message come and the game's five white lines go out of the
-// goal cell. When they are gone, a little way off, a small bolt of
+// of goal: a short delay under the screen's white noise (the world goes
+// on, no hit stop and no shake); after it, the sound and the message come
+// and the game's five white lines go out of the goal cell. When they are gone, a little way off, a small bolt of
 // lightning strikes, a few leaves fall, and the reward letter comes up
 // out of the ground (model/goal-fx.ts has the effects and their timings,
 // model/glyph.ts the letter and where it comes up).
-import { hitStop, whiteNoise } from "../util/juice.ts"
+import { whiteNoise } from "../util/juice.ts"
 import * as signal from "../util/signals.ts"
-import { GOAL_HIT_STOP, GoalLines } from "./goal-fx.ts"
+import { GOAL_DELAY, GoalLines } from "./goal-fx.ts"
 import { revealGlyph } from "./glyph.ts"
 import type { IField } from "./types.ts"
 
@@ -27,9 +26,8 @@ export function celebrateGoal(
   text: string,
   reward?: GoalReward,
 ): void {
-  hitStop(GOAL_HIT_STOP)
-  // the noise from this frame (the goal done) to the last one held still
-  whiteNoise(GOAL_HIT_STOP + 1)
+  // the noise from this frame (the goal done) to the end of the delay
+  whiteNoise(GOAL_DELAY + 1)
   field.effects.add(
     new GoalLines(i, j, field.time, () => {
       signal.playSound("powerUp")
