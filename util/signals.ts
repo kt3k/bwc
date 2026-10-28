@@ -113,3 +113,11 @@ export const centerGrid10 = centerGrid.map(({ i, j }) => ({
 }))
 
 export const currentBlock = new Signal<FieldBlock | null>(null)
+/**
+ * The blocks loaded around the player, looked up by a world cell; a new
+ * one each time more are loaded (the minimap draws the land around the
+ * player from them)
+ */
+export const fieldBlocks = new Signal<
+  { blockAt(i: number, j: number): FieldBlock | undefined } | null
+>(null)

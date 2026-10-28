@@ -105,6 +105,7 @@ export function GameScreen({ el, query }: Context) {
   const loadBlocks = () => {
     field.checkBlockLoad(field.me.i, field.me.j, viewScope).then(() => {
       signals.currentBlock.update(field.currentBlock())
+      signals.fieldBlocks.update({ blockAt: (i, j) => field.blockAt(i, j) })
     }).catch((e) => {
       console.error("Failed to load blocks", e)
     })

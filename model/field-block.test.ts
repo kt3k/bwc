@@ -92,11 +92,11 @@ Deno.test("FieldBlock names the room at a cell, smallest room first", () => {
   assertEquals(block.roomAt(-296, 468)?.id, "R8A")
   assertEquals(block.roomAt(-296, 477)?.id, "R8") // below room A
   assertEquals(block.roomAt(-297, 468), undefined)
-  // local coordinates in the label, "<block>-<room>" when in a room
-  assertEquals(block.placeLabel(-290, 470), "B1F-R8A 110,70")
-  assertEquals(block.placeLabel(-399, 401), "B1F 1,1")
+  // world coordinates in the label, "<block>-<room>" when in a room
+  assertEquals(block.placeLabel(-290, 470), "B1F-R8A -290,470")
+  assertEquals(block.placeLabel(-399, 401), "B1F -399,401")
   // names and rooms survive the editor's round trip
-  assertEquals(block.clone().placeLabel(-290, 470), "B1F-R8A 110,70")
+  assertEquals(block.clone().placeLabel(-290, 470), "B1F-R8A -290,470")
 
   const unnamed = new FieldBlock(
     new BlockMap("file:///block_0.200.json", {
@@ -107,7 +107,8 @@ Deno.test("FieldBlock names the room at a cell, smallest room first", () => {
       rooms: undefined,
     }, new Catalog([])),
   )
-  assertEquals(unnamed.placeLabel(12, 240), "0.200 12,40")
+  // no block id for a block without a name
+  assertEquals(unnamed.placeLabel(12, 240), "12,240")
 })
 
 Deno.test("BlockMap leaves out the spawns its catalog doesn't know", () => {

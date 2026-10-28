@@ -2,7 +2,8 @@ import { createImageDataForRange } from "../model/field-block.ts"
 
 addEventListener("message", (event) => {
   const start = performance.now()
-  const { cells, imgMap, i, j, gridWidth, gridHeight, field } = event.data
+  const { cells, imgMap, i, j, gridWidth, gridHeight, field, belowCasts } =
+    event.data
   const imageData = createImageDataForRange(
     i,
     j,
@@ -11,6 +12,7 @@ addEventListener("message", (event) => {
     cells,
     imgMap,
     field,
+    belowCasts,
   )
   console.log("Canvas worker: Image data prepared", {
     i,

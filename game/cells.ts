@@ -69,7 +69,7 @@ function patch(
     for (let i = 0; i < PATCH_W; i++) {
       const c = j < below ? cell : floor!
       const south = j + 1 < below ? cell : floor
-      drawCell(wrapper, i, j, c, imgMap, south)
+      drawCell(wrapper, i, j, c, imgMap, south ? !!south.casts : undefined)
     }
   }
   return canvas

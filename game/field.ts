@@ -571,6 +571,12 @@ export class Field implements IField {
   async #addBlock(block: FieldBlock) {
     console.log("adding district i", block.i, "j", block.j, "id", block.id)
     this.#blocks[block.id] = block
+    // the walls on the bottom row of a block take their base edge from the
+    // block below, so no seam shows between them
+    const below = this.#blocks[`${block.i}.${block.j + BLOCK_SIZE}`]
+    if (below) block.setBelow(below.topCasts())
+    const above = this.#blocks[`${block.i}.${block.j - BLOCK_SIZE}`]
+    if (above) above.setBelow(block.topCasts())
     const canvas = block.canvas
     this.#blockElements[block.id] = canvas
     this.#el.appendChild(canvas)
@@ -590,6 +596,11 @@ export class Field implements IField {
       throw Error("Block not found")
     }
     return block
+  }
+
+  /** The loaded block the world cell is in, if any */
+  blockAt(i: number, j: number): FieldBlock | undefined {
+    return this.#getBlockOrNull(i, j)
   }
 
   #getBlockOrNull(i: number, j: number): FieldBlock | undefined {

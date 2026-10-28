@@ -434,15 +434,16 @@ function renderRange(
   cells: Record<string, CellDefinition>,
   imgMap: Record<string, ImageBitmap>,
   field: string[],
+  belowCasts?: readonly boolean[],
 ) {
   for (let ii = 0; ii < width; ii++) {
     for (let jj = 0; jj < height; jj++) {
       const [localI, localJ] = g2l(i + ii, j + jj)
       const cell = cells[field[localJ][localI]]
-      const south = localJ < BLOCK_SIZE - 1
-        ? cells[field[localJ + 1][localI]]
-        : undefined
-      drawCell(wrapper, i + ii, j + jj, cell, imgMap, south)
+      const southCasts = localJ < BLOCK_SIZE - 1
+        ? !!cells[field[localJ + 1][localI]]?.casts
+        : belowCasts?.[localI]
+      drawCell(wrapper, i + ii, j + jj, cell, imgMap, southCasts)
     }
   }
 }
@@ -455,13 +456,24 @@ export function createImageDataForRange(
   cells: Record<string, CellDefinition>,
   imgMap: Record<string, ImageBitmap>,
   field: string[],
+  belowCasts?: readonly boolean[],
 ): ImageData {
   const canvas = new OffscreenCanvas(
     CELL_SIZE * BLOCK_SIZE,
     CELL_SIZE * BLOCK_SIZE,
   )
   const wrapper = new CanvasWrapper(canvas)
-  renderRange(wrapper, i, j, gridWidth, gridHeight, cells, imgMap, field)
+  renderRange(
+    wrapper,
+    i,
+    j,
+    gridWidth,
+    gridHeight,
+    cells,
+    imgMap,
+    field,
+    belowCasts,
+  )
   return canvas.getContext("2d")!.getImageData(
     CELL_SIZE * i,
     CELL_SIZE * j,
@@ -490,6 +502,8 @@ export class FieldBlock {
   #canvasWrapper: CanvasWrapper | undefined
   #assetsReady = false
   readonly #chunks: Record<string, boolean | "loading"> = {}
+  /** Which cells of the row below the block are walls, once known */
+  #belowCasts: readonly boolean[] | undefined
   readonly config: BlockConfig
 
   constructor(map: BlockMap) {
@@ -569,8 +583,15 @@ export class FieldBlock {
    */
   placeLabel(i: number, j: number): string {
     const room = this.roomAt(i, j)
-    const name = room ? `${this.name}-${room.id}` : this.name
-    return `${name} ${modulo(i, BLOCK_SIZE)},${modulo(j, BLOCK_SIZE)}`
+    // the world's own coordinates, and no block id for a block without a
+    // name: nothing on screen tells where one block ends and the next one
+    // begins
+    const name = this.#map.name === undefined
+      ? room?.id
+      : room
+      ? `${this.#map.name}-${room.id}`
+      : this.#map.name
+    return name ? `${name} ${i},${j}` : `${i},${j}`
   }
 
   get url(): string {
@@ -653,9 +674,42 @@ export class FieldBlock {
    */
   drawCellTo(wrapper: CanvasWrapper, i: number, j: number) {
     const cell = this.getCell(i, j)
-    const [, localJ] = g2l(i, j)
-    const south = localJ < BLOCK_SIZE - 1 ? this.getCell(i, j + 1) : undefined
-    drawCell(wrapper, i, j, cell, this.imgMap, south)
+    const [localI, localJ] = g2l(i, j)
+    const southCasts = localJ < BLOCK_SIZE - 1
+      ? !!this.getCell(i, j + 1)?.casts
+      : this.#belowCasts?.[localI]
+    drawCell(wrapper, i, j, cell, this.imgMap, southCasts)
+  }
+
+  /**
+   * Which cells of the row just below the block (the top row of the block
+   * below) are walls, once that block is loaded: the walls on this block's
+   * bottom row get their base edge from it, so no seam shows where one
+   * block meets the next. The bottom row is drawn again where it is drawn
+   * already
+   */
+  setBelow(casts: readonly boolean[]) {
+    this.#belowCasts = casts
+    const l = BLOCK_SIZE / BLOCK_CHUNK_SIZE - 1
+    for (let k = 0; k < BLOCK_SIZE / BLOCK_CHUNK_SIZE; k++) {
+      if (this.#chunks[`${k}.${l}`] === true) this.#redrawBottomRow(k)
+    }
+  }
+
+  /** Which cells of the block's top row are walls (for the block above) */
+  topCasts(): boolean[] {
+    return Array.from(
+      { length: BLOCK_SIZE },
+      (_, x) => !!this.getCell(this.#i + x, this.#j)?.casts,
+    )
+  }
+
+  /** Draws again the bottom row of the cells of the chunk column k */
+  #redrawBottomRow(k: number) {
+    const j = this.#j + BLOCK_SIZE - 1
+    for (let x = 0; x < BLOCK_CHUNK_SIZE; x++) {
+      this.redrawCell(this.#i + k * BLOCK_CHUNK_SIZE + x, j)
+    }
   }
 
   renderAll(canvas = this.canvas) {
@@ -668,6 +722,7 @@ export class FieldBlock {
       this.#map.catalog.cells,
       this.imgMap,
       this.field,
+      this.#belowCasts,
     )
   }
 
@@ -702,6 +757,7 @@ export class FieldBlock {
     this.#chunks[chunkKey] = "loading"
     const render = Promise.withResolvers<void>()
     const worker = new Worker("./canvas-worker.js")
+    const sentBelow = this.#belowCasts
     worker.onmessage = (event) => {
       const { imageData } = event.data
       const offsetX = k * BLOCK_CHUNK_SIZE * CELL_SIZE
@@ -714,6 +770,13 @@ export class FieldBlock {
       worker.terminate()
       render.resolve()
       this.#chunks[chunkKey] = true
+      // the block below came in while it was being drawn
+      if (
+        l === BLOCK_SIZE / BLOCK_CHUNK_SIZE - 1 &&
+        sentBelow !== this.#belowCasts
+      ) {
+        this.#redrawBottomRow(k)
+      }
       removeOverlay()
     }
     worker.onerror = (e) => {
@@ -733,6 +796,7 @@ export class FieldBlock {
       gridWidth: BLOCK_CHUNK_SIZE,
       gridHeight: BLOCK_CHUNK_SIZE,
       field: this.field,
+      belowCasts: sentBelow,
     })
     await render.promise
     return

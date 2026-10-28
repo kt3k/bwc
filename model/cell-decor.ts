@@ -241,7 +241,8 @@ function drawMark(
  * @param i world grid column
  * @param j world grid row
  * @param imgMap the block's image map (base images and variants)
- * @param south the cell below, when known, for the base edge of walls
+ * @param southCasts whether the cell below is a wall, when known, for the
+ *   base edge of walls
  */
 export function drawCell(
   wrapper: CanvasWrapper,
@@ -249,7 +250,7 @@ export function drawCell(
   j: number,
   cell: CellDefinition,
   imgMap: Record<string, ImageBitmap>,
-  south?: CellDefinition,
+  southCasts?: boolean,
 ): void {
   const x = modulo(i, BLOCK_SIZE) * CELL_SIZE
   const y = modulo(j, BLOCK_SIZE) * CELL_SIZE
@@ -273,7 +274,7 @@ export function drawCell(
       }
     }
   }
-  if (cell.casts && south && !south.casts) {
+  if (cell.casts && southCasts === false) {
     for (const [px, py] of edgePixels()) {
       wrapper.drawRect(x + px, y + py, 1, 1, EDGE_COLOR)
     }
