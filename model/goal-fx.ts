@@ -23,11 +23,17 @@ import type { IColorBox, IEffectGroup, IField } from "./types.ts"
 // timings
 
 /**
- * Frames between the goal done and the sound, the message and the lines
- * (~0.53 s): the world goes on (no hit stop), white noise is drawn over
- * the screen all the while
+ * Frames after the goal done before the white noise (~0.27 s): nothing
+ * yet, the world goes on (no hit stop)
  */
-export const GOAL_DELAY = 32
+export const GOAL_PAUSE = 16
+/** Frames of the white noise over the screen, after the pause */
+export const GOAL_NOISE = 8
+/**
+ * Frames between the goal done and the sound, the message and the lines
+ * (~0.4 s): the pause, then the white noise
+ */
+export const GOAL_DELAY = GOAL_PAUSE + GOAL_NOISE
 /**
  * The lines of a goal done: the game's five lines (linePattern0, as when
  * a thing is picked up: speed 1, p0 0.7, dist 3, a cell long), a little
@@ -268,23 +274,32 @@ abstract class Group implements IEffectGroup {
 
 /**
  * The lines out of the goal done at the cell (i, j): nothing of its own
- * for the delay (the white noise is all), then the game's five white
- * lines (linePattern0) go out of the cell's four sides (GOAL_LINES).
- * `onRelease` is called when the delay is over (the sound and the
- * message go then)
+ * for the delay, then the game's five white lines (linePattern0) go out
+ * of the cell's four sides (GOAL_LINES). `onNoise` is called after the
+ * pause (the white noise starts then, for GOAL_NOISE frames), `onRelease`
+ * when the delay is over (the sound and the message go then)
  */
 export class GoalLines extends Group {
   readonly i: number
   readonly j: number
   #lines: EffectLine0[] = []
   #onRelease?: () => void
-  constructor(i: number, j: number, born: number, onRelease?: () => void) {
+  #onNoise?: () => void
+  constructor(
+    i: number,
+    j: number,
+    born: number,
+    onRelease?: () => void,
+    onNoise?: () => void,
+  ) {
     super(born)
     this.i = i
     this.j = j
     this.#onRelease = onRelease
+    this.#onNoise = onNoise
   }
   tick(field: Pick<IField, "time">) {
+    if (this.f === GOAL_PAUSE + 1) this.#onNoise?.()
     if (this.f === GOAL_DELAY + 1) {
       this.#onRelease?.()
       const { speed, p0, dist, length } = GOAL_LINES

@@ -24,6 +24,8 @@ import {
   GOAL_LINE_COLOR,
   GOAL_LINES,
   GOAL_LINES_FRAMES,
+  GOAL_NOISE,
+  GOAL_PAUSE,
   GoalLines,
   LEAF_FALL_FRAMES,
   REVEAL,
@@ -112,18 +114,18 @@ Deno.test("goal fx: the hit stop holds the world still for its frames, then lets
   assertEquals(juice.freeze, 0)
 })
 
-Deno.test("goal fx: a goal done waits a while under white noise (the world goes on, no hit stop, no shake), then the lines go out with its message", () => {
+Deno.test("goal fx: a goal done pauses, then a moment of white noise (the world goes on, no hit stop, no shake), then the lines go out with its message", () => {
   reset()
   const { field, effects, frame } = makeField()
   const sounds: string[] = []
   const off = signal.sound.subscribe((s) => s && sounds.push(s.name))
   celebrateGoal(field, 10, 10, "A GOAL")
-  assertEquals(GOAL_DELAY, 32)
-  // no hit stop, no shake; the white noise from this frame to the end of
-  // the delay
+  assertEquals([GOAL_PAUSE, GOAL_NOISE], [16, 8])
+  assertEquals(GOAL_DELAY, GOAL_PAUSE + GOAL_NOISE)
+  // no hit stop, no shake, and no noise yet (the pause first)
   assertEquals(juice.freeze, 0)
   assertEquals(juice.shake, 0)
-  assertEquals(juice.noise, GOAL_DELAY + 1)
+  assertEquals(juice.noise, 0)
   assertEquals(effects.length, 1)
   const lines = effects[0] as GoalLines
   assert(lines instanceof GoalLines)
@@ -131,11 +133,20 @@ Deno.test("goal fx: a goal done waits a while under white noise (the world goes 
   lines.step(field)
   assertEquals(lines.f, 0)
   // the delay: the world goes on, nothing on the goal cell (no white
-  // light), no message, no sound yet
-  for (let k = 0; k < GOAL_DELAY; k++) {
+  // light), no message, no sound yet; the noise only after the pause
+  // (shown while juice.noise > 0, counted down after each frame as
+  // game/game-screen.ts does)
+  const noisy: number[] = []
+  for (let k = 1; k <= GOAL_DELAY; k++) {
     assert(frame())
     assertEquals([...lines.boxes()], [])
+    if (juice.noise > 0) noisy.push(k)
+    if (juice.noise > 0) juice.noise--
   }
+  assertEquals(
+    noisy,
+    Array.from({ length: GOAL_NOISE }, (_, n) => GOAL_PAUSE + 1 + n),
+  )
   assertEquals(lines.f, GOAL_DELAY)
   assertEquals(signal.message.get(), null)
   assertEquals(sounds, [])
@@ -434,7 +445,8 @@ Deno.test("goal fx: the odd one found celebrates with its letter rising", () => 
   odd.onPushed({ type: "pushed", dir: "up", peakAt: 7, pusher: me }, field)
   assertEquals(juice.freeze, 0)
   assertEquals(juice.shake, 0)
-  assert(juice.noise > GOAL_DELAY)
+  // the noise comes after the pause
+  assertEquals(juice.noise, 0)
   assertEquals(effects.filter((e) => e instanceof GoalLines).length, 1)
   assertEquals(items.map((t) => t.id), [oddRewardKey("T")])
   assert(items[0].revealing)

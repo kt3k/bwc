@@ -21,8 +21,9 @@ import {
 } from "../model/break-fx.ts"
 import {
   GlyphReveal,
-  GOAL_DELAY,
   GOAL_LINES_FRAMES,
+  GOAL_NOISE as GOAL_NOISE_FRAMES,
+  GOAL_PAUSE,
   GoalLines,
   REVEAL_BEAT,
   REVEAL_FRAMES,
@@ -744,8 +745,13 @@ class GoalStage {
     this.canvas.addEventListener("click", () => this.trigger())
   }
   trigger() {
-    this.#noise = GOAL_DELAY + 1
-    this.#lines = new GoalLines(GOAL_I, GOAL_J, this.#time)
+    this.#lines = new GoalLines(
+      GOAL_I,
+      GOAL_J,
+      this.#time,
+      undefined,
+      () => this.#noise = GOAL_NOISE_FRAMES,
+    )
     this.#reveal = new GlyphReveal(LETTER_I, LETTER_J, this.#time)
     this.#letter = REVEAL_FRAMES
     this.#idle = 0
@@ -832,7 +838,7 @@ document.getElementById("goal")!.append(
     "p",
     "note",
     ink(
-      `${GOAL_DELAY}f の間 (白いノイズ、世界は止まらない) → 白い 5 本の線 (${GOAL_LINES_FRAMES}f) → ${REVEAL_BEAT}f 後に少し離れたマスに小さな雷 (${REVEAL_BEAT}f おきに 3 回) → ${REVEAL_BEAT}f 後に落ち葉 → ${REVEAL_BEAT}f 後に文字が地面から上がり、跳ねて 5 本の線 (取れるまで ${REVEAL_FRAMES}f)。` +
+      `${GOAL_PAUSE}f 待って ${GOAL_NOISE_FRAMES}f 白いノイズ (世界は止まらない) → 白い 5 本の線 (${GOAL_LINES_FRAMES}f) → ${REVEAL_BEAT}f 後に少し離れたマスに小さな雷 (${REVEAL_BEAT}f おきに 3 回) → ${REVEAL_BEAT}f 後に落ち葉 → ${REVEAL_BEAT}f 後に文字が地面から上がり、跳ねて 5 本の線 (取れるまで ${REVEAL_FRAMES}f)。` +
         "クリックで再生。時間は model/goal-fx.ts の定数。",
       "ink-light",
     ),
