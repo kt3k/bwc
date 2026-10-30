@@ -1,6 +1,6 @@
-// The moment a goal is done (model/celebrate.ts, model/goal-fx.ts): a
-// delay under white noise (the world goes on: no hit stop, no shake),
-// then the five white lines go out (the sound and the message with
+// The moment a goal is done (model/celebrate.ts, model/goal-fx.ts): at
+// once (the world goes on: no hit stop, no shake, no white noise), the
+// five white lines go out (the sound and the message with
 // them), and when they are gone, a beat at a time, a bolt strikes the
 // letter's cell a little way off, leaves fall round it and the letter
 // rises, and it can't be picked up until it has; laid again after a
@@ -20,12 +20,9 @@ import {
   CLIMAX_LINES,
   FALLING_LEAF_COLORS,
   GlyphReveal,
-  GOAL_DELAY,
   GOAL_LINE_COLOR,
   GOAL_LINES,
   GOAL_LINES_FRAMES,
-  GOAL_NOISE,
-  GOAL_PAUSE,
   GoalLines,
   LEAF_FALL_FRAMES,
   REVEAL,
@@ -114,15 +111,13 @@ Deno.test("goal fx: the hit stop holds the world still for its frames, then lets
   assertEquals(juice.freeze, 0)
 })
 
-Deno.test("goal fx: a goal done pauses, then a moment of white noise (the world goes on, no hit stop, no shake), then the lines go out with its message", () => {
+Deno.test("goal fx: a goal done sends the lines out at once with its message (no pause, no white noise, no hit stop, no shake)", () => {
   reset()
   const { field, effects, frame } = makeField()
   const sounds: string[] = []
   const off = signal.sound.subscribe((s) => s && sounds.push(s.name))
   celebrateGoal(field, 10, 10, "A GOAL")
-  assertEquals([GOAL_PAUSE, GOAL_NOISE], [16, 8])
-  assertEquals(GOAL_DELAY, GOAL_PAUSE + GOAL_NOISE)
-  // no hit stop, no shake, and no noise yet (the pause first)
+  // no hit stop, no shake, no white noise
   assertEquals(juice.freeze, 0)
   assertEquals(juice.shake, 0)
   assertEquals(juice.noise, 0)
@@ -132,27 +127,12 @@ Deno.test("goal fx: a goal done pauses, then a moment of white noise (the world 
   // in the same frame (the rest of the field's step): not yet
   lines.step(field)
   assertEquals(lines.f, 0)
-  // the delay: the world goes on, nothing on the goal cell (no white
-  // light), no message, no sound yet; the noise only after the pause
-  // (shown while juice.noise > 0, counted down after each frame as
-  // game/game-screen.ts does)
-  const noisy: number[] = []
-  for (let k = 1; k <= GOAL_DELAY; k++) {
-    assert(frame())
-    assertEquals([...lines.boxes()], [])
-    if (juice.noise > 0) noisy.push(k)
-    if (juice.noise > 0) juice.noise--
-  }
-  assertEquals(
-    noisy,
-    Array.from({ length: GOAL_NOISE }, (_, n) => GOAL_PAUSE + 1 + n),
-  )
-  assertEquals(lines.f, GOAL_DELAY)
   assertEquals(signal.message.get(), null)
   assertEquals(sounds, [])
-  // the delay over: the message and the sound, once, and the first five
+  // the next frame: the message and the sound, once, and the first five
   // lines out of each side of the goal cell
   assert(frame())
+  assertEquals(juice.noise, 0)
   assertEquals(signal.message.get(), { text: "A GOAL" })
   assertEquals(sounds, ["powerUp"])
   const first = [...lines.boxes()]
@@ -180,7 +160,7 @@ Deno.test("goal fx: a goal done pauses, then a moment of white noise (the world 
   // a little longer than a cell, shorter than two
   assertEquals(longest, GOAL_LINES.length)
   assert(GOAL_LINES.length > 16 && GOAL_LINES.length <= 20)
-  assertEquals(lines.f, GOAL_DELAY + GOAL_LINES_FRAMES)
+  assertEquals(lines.f, GOAL_LINES_FRAMES)
   // about a second (the 3 waves of before were ~2 s), longer than the
   // pickup's lines (48 frames)
   assert(GOAL_LINES_FRAMES >= 48 && GOAL_LINES_FRAMES <= 70)
@@ -274,8 +254,8 @@ Deno.test("goal fx: after the lines, a beat at a time: the bolt thrice, the leav
       if (lines.length > 0) climaxLines.push(f)
     }
   }
-  // the delay and the lines gone, then a beat
-  assertEquals(REVEAL_DELAY, GOAL_DELAY + GOAL_LINES_FRAMES)
+  // the lines gone, then a beat
+  assertEquals(REVEAL_DELAY, GOAL_LINES_FRAMES)
   assertEquals(shown[0], REVEAL_DELAY + REVEAL_BEAT)
   // the bolt strikes three times, a beat after each, flickering (on and
   // off) within its frames each time
@@ -445,7 +425,7 @@ Deno.test("goal fx: the odd one found celebrates with its letter rising", () => 
   odd.onPushed({ type: "pushed", dir: "up", peakAt: 7, pusher: me }, field)
   assertEquals(juice.freeze, 0)
   assertEquals(juice.shake, 0)
-  // the noise comes after the pause
+  // no white noise
   assertEquals(juice.noise, 0)
   assertEquals(effects.filter((e) => e instanceof GoalLines).length, 1)
   assertEquals(items.map((t) => t.id), [oddRewardKey("T")])

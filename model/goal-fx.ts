@@ -1,6 +1,5 @@
-// The moment a goal is done (model/celebrate.ts): a delay under white
-// noise (game/draw-layer.ts; the world goes on, no hit stop), then the
-// game's five white lines go out of the goal cell to every side. When
+// The moment a goal is done (model/celebrate.ts): at once (the world goes
+// on, no hit stop, no white noise), the game's five white lines go out of the goal cell to every side. When
 // they are gone, on the cell of the reward letter (model/glyph.ts) a
 // little way off, a beat at a time: a small bolt of lightning strikes,
 // three times over, a few gray leaves fall round it, and the letter comes
@@ -23,18 +22,6 @@ import type { IColorBox, IEffectGroup, IField } from "./types.ts"
 // timings
 
 /**
- * Frames after the goal done before the white noise (~0.27 s): nothing
- * yet, the world goes on (no hit stop)
- */
-export const GOAL_PAUSE = 16
-/** Frames of the white noise over the screen, after the pause */
-export const GOAL_NOISE = 8
-/**
- * Frames between the goal done and the sound, the message and the lines
- * (~0.4 s): the pause, then the white noise
- */
-export const GOAL_DELAY = GOAL_PAUSE + GOAL_NOISE
-/**
  * The lines of a goal done: the game's five lines (linePattern0, as when
  * a thing is picked up: speed 1, p0 0.7, dist 3, a cell long), a little
  * longer, slower in the middle, going a little farther
@@ -51,16 +38,16 @@ export const GOAL_LINES = {
 } as const
 /** The color of the lines (one wave of them) */
 export const GOAL_LINE_COLOR: PaletteColor = Palette.white
-/** Frames the lines last after the delay (the outer ones, ~1 s) */
+/** Frames the lines last (the outer ones, ~1 s) */
 export const GOAL_LINES_FRAMES = 16 * GOAL_LINES.dist / GOAL_LINES.speed
 /** The sparks of the letter's reveal blink this many frames before they go */
 const SPARK_BLINK = 8
 
 /**
- * Frames after the goal done before the letter's reveal starts: the delay,
- * then the lines till they are gone
+ * Frames after the goal done before the letter's reveal starts: the lines
+ * till they are gone
  */
-export const REVEAL_DELAY = GOAL_DELAY + GOAL_LINES_FRAMES
+export const REVEAL_DELAY = GOAL_LINES_FRAMES
 /** The pause before each beat of the reveal (the bolt, the leaves, the rise) */
 export const REVEAL_BEAT = 32
 /** Frames the bolt flickers on the cell, each strike */
@@ -273,34 +260,24 @@ abstract class Group implements IEffectGroup {
 // the lines
 
 /**
- * The lines out of the goal done at the cell (i, j): nothing of its own
- * for the delay, then the game's five white lines (linePattern0) go out
- * of the cell's four sides (GOAL_LINES). `onNoise` is called after the
- * pause (the white noise starts then, for GOAL_NOISE frames), `onRelease`
- * when the delay is over (the sound and the message go then)
+ * The lines out of the goal done at the cell (i, j): right after it, the
+ * game's five white lines (linePattern0) go out of the cell's four sides
+ * (GOAL_LINES). `onRelease` is called as they go out (the sound and the
+ * message go then)
  */
 export class GoalLines extends Group {
   readonly i: number
   readonly j: number
   #lines: EffectLine0[] = []
   #onRelease?: () => void
-  #onNoise?: () => void
-  constructor(
-    i: number,
-    j: number,
-    born: number,
-    onRelease?: () => void,
-    onNoise?: () => void,
-  ) {
+  constructor(i: number, j: number, born: number, onRelease?: () => void) {
     super(born)
     this.i = i
     this.j = j
     this.#onRelease = onRelease
-    this.#onNoise = onNoise
   }
   tick(field: Pick<IField, "time">) {
-    if (this.f === GOAL_PAUSE + 1) this.#onNoise?.()
-    if (this.f === GOAL_DELAY + 1) {
+    if (this.f === 1) {
       this.#onRelease?.()
       const { speed, p0, dist, length } = GOAL_LINES
       this.#lines = linePattern0(
@@ -318,7 +295,7 @@ export class GoalLines extends Group {
     this.#lines = this.#lines.filter((line) => !line.finished)
   }
   get finished(): boolean {
-    return this.f > GOAL_DELAY && this.#lines.length === 0
+    return this.f >= 1 && this.#lines.length === 0
   }
   *boxes(): Generator<IColorBox> {
     for (const line of this.#lines) {
@@ -342,7 +319,7 @@ export type RevealPose = {
 
 /**
  * The pose of the letter `elapsed` frames after the goal was done
- * (counting the delay and the lines before the reveal starts)
+ * (counting the lines before the reveal starts)
  */
 export function revealPose(elapsed: number): RevealPose {
   const t = elapsed - REVEAL_DELAY

@@ -22,14 +22,11 @@ import {
 import {
   GlyphReveal,
   GOAL_LINES_FRAMES,
-  GOAL_NOISE as GOAL_NOISE_FRAMES,
-  GOAL_PAUSE,
   GoalLines,
   REVEAL_BEAT,
   REVEAL_FRAMES,
   revealPose,
 } from "../model/goal-fx.ts"
-import { drawNoise } from "./draw-layer.ts"
 import type { Dir, IField } from "../model/types.ts"
 import { isPaletteColor, Palette } from "../util/palette.ts"
 
@@ -704,8 +701,7 @@ function copyButton() {
 }
 
 // ---------------------------------------------------------------------
-// a goal done (model/goal-fx.ts): a delay under white noise, the
-// five white lines, then a little way off a bolt of lightning three
+// a goal done (model/goal-fx.ts): the five white lines at once, then a little way off a bolt of lightning three
 // times, falling leaves and the letter rising, as in the game (a row of
 // tulips, the odd one found)
 
@@ -716,16 +712,10 @@ const GOAL_I = 5
 const GOAL_J = 6
 const LETTER_I = 8
 const LETTER_J = 3
-/** The white noise's streaks at most, for the stage (the game's 500 on 450x450) */
-const GOAL_NOISE = Math.round(
-  500 * GOAL_COLS * GOAL_ROWS * CELL * CELL / (450 * 450),
-)
 
 class GoalStage {
   readonly canvas = document.createElement("canvas")
   #g: CanvasRenderingContext2D
-  /** Frames left of the white noise */
-  #noise = 0
   #time = 0
   #lines: GoalLines | null = null
   #reveal: GlyphReveal | null = null
@@ -745,20 +735,13 @@ class GoalStage {
     this.canvas.addEventListener("click", () => this.trigger())
   }
   trigger() {
-    this.#lines = new GoalLines(
-      GOAL_I,
-      GOAL_J,
-      this.#time,
-      undefined,
-      () => this.#noise = GOAL_NOISE_FRAMES,
-    )
+    this.#lines = new GoalLines(GOAL_I, GOAL_J, this.#time)
     this.#reveal = new GlyphReveal(LETTER_I, LETTER_J, this.#time)
     this.#letter = REVEAL_FRAMES
     this.#idle = 0
   }
   tick() {
     if (++this.#tick % this.slow !== 0) return
-    if (this.#noise > 0) this.#noise--
     this.#time++
     const field = { time: this.#time } as IField
     this.#lines?.step(field)
@@ -824,10 +807,6 @@ class GoalStage {
         g.fillRect(b.x, b.y, b.w, b.h)
       }
     }
-    // the delay's white noise (the game's, game/draw-layer.ts)
-    if (this.#noise > 0) {
-      drawNoise(g, this.canvas.width, this.canvas.height, GOAL_NOISE)
-    }
   }
 }
 
@@ -838,7 +817,7 @@ document.getElementById("goal")!.append(
     "p",
     "note",
     ink(
-      `${GOAL_PAUSE}f 待って ${GOAL_NOISE_FRAMES}f 白いノイズ (世界は止まらない) → 白い 5 本の線 (${GOAL_LINES_FRAMES}f) → ${REVEAL_BEAT}f 後に少し離れたマスに小さな雷 (${REVEAL_BEAT}f おきに 3 回) → ${REVEAL_BEAT}f 後に落ち葉 → ${REVEAL_BEAT}f 後に文字が地面から上がり、跳ねて 5 本の線 (取れるまで ${REVEAL_FRAMES}f)。` +
+      `すぐに白い 5 本の線 (${GOAL_LINES_FRAMES}f) → ${REVEAL_BEAT}f 後に少し離れたマスに小さな雷 (${REVEAL_BEAT}f おきに 3 回) → ${REVEAL_BEAT}f 後に落ち葉 → ${REVEAL_BEAT}f 後に文字が地面から上がり、跳ねて 5 本の線 (取れるまで ${REVEAL_FRAMES}f)。` +
         "クリックで再生。時間は model/goal-fx.ts の定数。",
       "ink-light",
     ),
