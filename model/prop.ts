@@ -361,6 +361,17 @@ export class Prop implements IProp {
     return !!this.#image
   }
 
+  /**
+   * The sprite shown now (its catalog path), or null while hidden: what
+   * the text playtest harness describes (game/playtest-hook.ts)
+   */
+  get shownSrc(): string | null {
+    if (this.#hidden) return null
+    const stages = this.def.growth?.stages
+    const state = this.growthState
+    return stages && state ? stages[state.stage] ?? this.def.src : this.def.src
+  }
+
   image(): ImageBitmap {
     if (this.#motion instanceof MotionBreak) {
       return this.#motion.image()

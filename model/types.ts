@@ -152,6 +152,11 @@ export type IField = {
  */
 export type IEffectGroup = IStepper & IFinishable & {
   boxes(): Iterable<IColorBox>
+  /**
+   * What it looks like, in words (the text playtest harness,
+   * game/playtest-hook.ts); unnamed effects show as flecks of color
+   */
+  readonly look?: string
 }
 
 /** The implementor of 'step' function */

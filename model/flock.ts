@@ -50,6 +50,7 @@ class Box implements IColorBox {
 
 /** The flock over one goal */
 export class Flock implements IEffectGroup {
+  readonly look = "a small black bird flying"
   #time = 0
   #gone = false
   /** The frame the goal was done (they fly off from it); null: wheeling */

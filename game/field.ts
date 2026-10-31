@@ -48,6 +48,11 @@ class FieldEffects implements IStepper {
     this.#effects.add(effect)
   }
 
+  /** The effects on now (the groups as they are) */
+  all(): Iterable<FieldEffect> {
+    return this.#effects
+  }
+
   /** The boxes to draw this frame (a group gives its boxes) */
   *iter(): Generator<IColorBox> {
     for (const effect of this.#effects) {

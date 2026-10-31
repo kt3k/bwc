@@ -273,6 +273,7 @@ abstract class Group implements IEffectGroup {
  * goes then, for GOAL_NOISE frames)
  */
 export class GoalLines extends Group {
+  readonly look = "white lines shooting out"
   readonly i: number
   readonly j: number
   #lines: EffectLine0[] = []

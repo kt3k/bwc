@@ -16,6 +16,7 @@ import { loadRumors } from "../model/rumor.ts"
 import { loadOdradekHomes } from "../model/odradek.ts"
 import { leafWind } from "../model/leaf-wind.ts"
 import { loadWaystones } from "../model/waystone.ts"
+import { installPlaytestHook } from "./playtest-hook.ts"
 
 const parseGridPosition = (hash: string) => {
   const m = hash.match(/#(-?\d+),(-?\d+)/)
@@ -196,6 +197,13 @@ export function GameScreen({ el, query }: Context) {
     }
   })
   loop.start()
+  // the text playtest harness' way in, with ?playtest only
+  // (start doesn't return till the loop stops: not awaited)
+  installPlaytestHook(field, viewScope, () => {
+    loop.stop()
+  }, () => {
+    loop.start()
+  })
 
   const reset = (i: number, j: number) => {
     loop.stop()
