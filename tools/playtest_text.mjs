@@ -200,12 +200,19 @@ async function run(page, stepsArg, looks, shotsDir, errors, image) {
         let stuck = 0
         for (let k = 0; k < n; k++) {
           const before = (await view(page)).me
+          // held as a person holds it: till the step is taken (the player
+          // may be busy a moment, pushed or bouncing), or ~0.6 s
           await page.keyboard.down(KEY[cmd])
-          await page.waitForTimeout(60)
+          let v
+          for (let t = 0; t < 12; t++) {
+            await page.waitForTimeout(50)
+            v = await view(page)
+            if (v.me.i !== before.i || v.me.j !== before.j) break
+          }
           await page.keyboard.up(KEY[cmd])
-          await page.waitForTimeout(260)
+          await page.waitForTimeout(200)
           await texts()
-          const v = await view(page)
+          v = await view(page)
           if (v.me.i === before.i && v.me.j === before.j) {
             stuck++
             // tell once what's in the way, then stop trying
