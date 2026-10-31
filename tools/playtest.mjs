@@ -25,14 +25,17 @@ if (!name) {
 }
 const base = `${process.env.PLAYTEST_DIR ?? "/tmp/bwc-playtest"}/`
 const ctx = await chromium.launchPersistentContext(`${base}profiles/${name}`, {
-  executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
   viewport: { width: 420, height: 520 },
+  // another Chromium than the one Playwright brings, if need be
+  ...(process.env.PLAYTEST_CHROME
+    ? { executablePath: process.env.PLAYTEST_CHROME }
+    : {}),
 })
 const page = ctx.pages()[0] ?? await ctx.newPage()
 const errors = []
 page.on("pageerror", (e) => errors.push(e.message))
 await page.goto(`http://localhost:8000/${start ? `#${start}` : ""}`)
-await page.waitForTimeout(4000)
+await page.waitForTimeout(6000)
 const shotsDir = `${base}shots/${name}`
 await import("node:fs").then((fs) =>
   fs.mkdirSync(shotsDir, { recursive: true })

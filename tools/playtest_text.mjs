@@ -242,6 +242,18 @@ async function run(page, stepsArg, looks, shotsDir, errors) {
 
 const view = (page) => page.evaluate(() => globalThis.__playtest.view())
 
+/** The palette's color names (util/palette.ts), for the flecks */
+const COLOR_NAMES = Object.fromEntries(
+  [
+    ...fs.readFileSync(new URL("../util/palette.ts", import.meta.url), "utf8")
+      .matchAll(/^\s+([a-z]+)\d*: "(#[0-9a-f]{6})"/gm),
+  ]
+    .map(([, name, hex]) => [hex, name]),
+)
+/** An effect's words: its look, or "a fleck of <color>" */
+const effectWords = (look) =>
+  look.replace(/#[0-9a-f]{6}/, (hex) => COLOR_NAMES[hex] ?? "color")
+
 // ---------------------------------------------------------------------
 // the screen in text
 
@@ -320,7 +332,9 @@ function render(v, looks) {
     for (const [key, w] of shared) {
       const [i, j] = key.split(",").map(Number)
       lines.push(
-        `  ${rel(i, v.me.i)},${rel(j, v.me.j)}: ${w.join(", under it ")}`,
+        `  ${rel(i, v.me.i)},${rel(j, v.me.j)}: ${
+          [...w].reverse().join(", under it ")
+        }`,
       )
     }
   }
@@ -332,7 +346,7 @@ function render(v, looks) {
     }
     lines.push("in the air / on the ground just now:")
     for (const [look, cells] of byLook) {
-      lines.push(`  ${looks.effects?.[look] ?? look}: ${cells.join(" ")}`)
+      lines.push(`  ${effectWords(look)}: ${cells.join(" ")}`)
     }
   }
   return lines.join("\n")
@@ -391,7 +405,7 @@ function motion(views, looks) {
   for (const [look, cells] of flying) {
     if (cells.size > 1) {
       lines.push(
-        `  seen moving: ${looks.effects?.[look] ?? look}, over ${
+        `  seen moving: ${effectWords(look)}, over ${
           [...cells].slice(0, 12).join(" ")
         }`,
       )
@@ -449,8 +463,16 @@ async function status(page, v) {
   const s = await page.evaluate(() => ({
     save: JSON.parse(localStorage.getItem("bwc-save-v1") ?? "{}"),
     place: document.querySelector(".js-place-text")?.textContent ?? "",
-    space: document.querySelector(".js-space-action")?.dataset?.action ?? "",
+    space: document.querySelector(".js-space-hint img")?.alt ?? "",
   }))
+  // the picture beside SPACE at the bottom of the screen, in words
+  const SPACE = {
+    JUMP: "an arrow pointing up",
+    DIG: "a small spade over a mound",
+    APPLE: "an apple",
+    FISH: "a fish",
+  }
   return `you: ${v.me.i},${v.me.j}  coins: ${s.save.coinCount ?? 0}  ` +
-    `apples: ${s.save.appleCount ?? 0}  place: ${s.place}`
+    `apples: ${s.save.appleCount ?? 0}  place: ${s.place}\n` +
+    `the picture beside SPACE: ${SPACE[s.space] ?? "none"}`
 }
