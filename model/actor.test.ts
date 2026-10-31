@@ -115,6 +115,33 @@ Deno.test("IdleDelegateChase", async (t) => {
     assertEquals(signal.appleCount.get(), 4)
     signal.appleCount.update(0)
   })
+
+  await t.step("doesn't bump into the player again within the cooldown", () => {
+    const me = new Actor(1, 0, actorDef, "main")
+    const chaser = new Actor(0, 0, actorDef, "npc", "down", 1, null, null)
+    let time = 0
+    const field = {
+      ...makeField(me),
+      get time() {
+        return time
+      },
+    }
+    const chase = new IdleDelegateChase()
+    const bumps: string[] = []
+    const tryMove = chaser.tryMove.bind(chaser)
+    chaser.tryMove = (type, dir, f) => {
+      bumps.push(dir)
+      return tryMove(type, dir, f)
+    }
+    chase.onIdle(chaser, field)
+    assertEquals(bumps, ["right"])
+    // beside the player, every moment of the cooldown: no bump
+    for (time = 1; time < 180; time++) chase.onIdle(chaser, field)
+    assertEquals(bumps, ["right"])
+    // the cooldown over: it bumps again
+    chase.onIdle(chaser, field)
+    assertEquals(bumps, ["right", "right"])
+  })
 })
 
 Deno.test("Actor keeps sliding on slippery cells at 4x speed", () => {

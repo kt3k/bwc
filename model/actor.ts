@@ -1121,8 +1121,12 @@ export class IdleDelegateWander implements IdleDelegate {
 /**
  * Chases the main character when it comes within the given range
  * (manhattan distance). On contact, it steals an apple from the player
- * with a cooldown. An apple lying in range draws it away from the
- * player: it eats it and sits there, full, for a while (the bait).
+ * with a cooldown, and it doesn't bump into the player again until the
+ * cooldown is over: bumped every moment, the player was knocked back on
+ * and on and couldn't move, pinned against a rock
+ * (docs/playtest-2026-11-01.md). An apple lying in range draws it away
+ * from the player: it eats it and sits there, full, for a while (the
+ * bait).
  */
 export class IdleDelegateChase implements IdleDelegate {
   /** The chase range in manhattan distance */
@@ -1184,6 +1188,8 @@ export class IdleDelegateChase implements IdleDelegate {
       if (!isContact && !field.canEnterStatic(ni, nj)) {
         continue
       }
+      // bumped a moment ago: waits beside the player
+      if (isContact && field.time < this.#stealDisabledUntil) return
       // Bouncing into the player knocks it back via the onPushed path
       actor.tryMove("go", dir, field)
       if (isContact && field.time >= this.#stealDisabledUntil) {
