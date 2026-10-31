@@ -4,6 +4,10 @@
 // area. Unlike the preview zoo, the lists are derived from the catalog
 // itself, so a newly added spawn type shows up here automatically.
 //
+// To the right of it, walled off and reached by a portal at the top, the
+// GROUPS area: the puzzles run by finite groups (ideas/groups.md), each
+// in a bay of its own, with a RESET to play them again.
+//
 // It also links the block from the start island: a "DEBUG" portal room
 // is carved to the left of the start corridor (mirroring the tutorial
 // portal room on the right).
@@ -12,6 +16,18 @@
 import { loadCatalog } from "../model/catalog.ts"
 import { validate } from "../util/json-schema.ts"
 import { ODD_FAMILIES, unlikeType } from "../model/odd-families.ts"
+import {
+  type Arrangement,
+  type Cycles,
+  isIdentity,
+  MIRROR,
+  MURAL_POSE,
+  poseStage,
+  pullAll,
+  same,
+  tokenAt,
+  TURN,
+} from "../model/group.ts"
 
 const SIZE = 200
 const BI = 10000
@@ -22,7 +38,13 @@ const ARRIVAL = { i: 2, j: 4 }
 /** The start position of the game (see game/game-screen.ts) */
 const START = { i: -9964, j: -9981 }
 
-type Spawn = { i: number; j: number; type: string; data?: unknown }
+type Spawn = {
+  i: number
+  j: number
+  type: string
+  dir?: string
+  data?: unknown
+}
 
 const catalog = await loadCatalog(
   new URL("../static/catalog/base.json", import.meta.url).href,
@@ -116,6 +138,12 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "patrol-beacon": { id: "debug-beacon" },
   "fold-gate": { id: "debug-fold", i0: BI, j0: BJ, i1: BI, j1: BJ },
   "chain-wanter": { id: "debug-chain", k: 0, n: 1, want: "jar", dir: "down" },
+  // the parts of the group puzzles (the GROUPS area has them at work)
+  "group-lever": { group: "debug-group", cycles: [[0, 1]] },
+  "group-stone": { group: "debug-group", place: 0 },
+  "group-moai": { group: "debug-moai" },
+  "group-door": { group: "debug-group", id: "debug-group", target: [1, 0] },
+  "group-bell": { group: "debug-group" },
   // undoes the goals above (their ids start with "debug")
   "goal-reset": {
     prefix: "debug",
@@ -509,6 +537,397 @@ rect(1, HOMES_Y + 4, 60, HOMES_Y + 17, "6")
 }
 
 // ---------------------------------------------------------------------
+// the GROUPS area (ideas/groups.md, model/group-lever.ts): puzzles run by
+// finite groups, each in a walled bay of its own, to the right of the
+// rest of the map and walled off from it (reached by the portal at the
+// top). Each bay has a sign with its one rule below it and, for
+// debugging, a sign with its group and a solution. A door's target is
+// made from its solution, so every door can be opened
+
+/** The top left of the GROUPS area and where the player lands in it */
+const GX = 106
+const GY = 2
+const GROUPS_ARRIVAL = { i: GX + 3, j: GY + 3 }
+/** The area's bounds (local, inclusive), the floor round the bays */
+const GROUPS_BOX = [GX - 1, GY - 1, GX + 62, GY + 44] as const
+/** The goal ids of the area start with this (the RESET's prefix) */
+const GROUPS_PREFIX = "groups-"
+
+rect(GROUPS_BOX[0], GROUPS_BOX[1], GROUPS_BOX[2], GROUPS_BOX[3], "0")
+letters(GX, GY, "GROUPS")
+sign(
+  GX + 7,
+  GY,
+  "GROUPS: PUZZLES RUN BY FINITE GROUPS. A LEVER SWAPS OR TURNS THE STONES IT IS TIED TO. MATCH THE MURAL",
+)
+prop(30, 4, "portal", { i: BI + GROUPS_ARRIVAL.i, j: BJ + GROUPS_ARRIVAL.j })
+sign(31, 4, "PORTAL: TO THE GROUPS (PUZZLES RUN BY FINITE GROUPS)")
+prop(GX, GY + 3, "portal", { i: BI + 29, j: BJ + 4 })
+sign(GX + 1, GY + 3, "PORTAL: BACK TO THE DEBUG MAP")
+prop(GROUPS_ARRIVAL.i, GROUPS_ARRIVAL.j, "portal-out")
+prop(GX + 6, GY + 3, "goal-reset", {
+  prefix: GROUPS_PREFIX,
+  box: [
+    BI + GROUPS_BOX[0],
+    BJ + GROUPS_BOX[1],
+    BI + GROUPS_BOX[2],
+    BJ + GROUPS_BOX[3],
+  ],
+  to: [BI + GROUPS_ARRIVAL.i, BJ + GROUPS_ARRIVAL.j],
+})
+sign(GX + 7, GY + 3, "RESET: THE GROUP PUZZLES BACK AS NEW, TO PLAY AGAIN")
+
+/** A bay: (x, y) its top left wall, open at the bottom middle */
+type Bay = { x: number; y: number; w: number; h: number; group: string }
+/**
+ * Walls a bay in, with its rule sign and its debug sign below it. The
+ * group's id is the bay's (the stones and levers of a bay are its own)
+ */
+function bay(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  name: string,
+  rule: string,
+  debug: string,
+): Bay {
+  rect(x, y, x + w - 1, y + h - 1, "1")
+  rect(x + 1, y + 1, x + w - 2, y + h - 2, "0")
+  const mid = x + Math.floor(w / 2)
+  rect(mid - 1, y + h - 1, mid + 1, y + h - 1, "0")
+  sign(x + 1, y + h, rule)
+  sign(x + w - 2, y + h, `DEBUG: ${debug}`)
+  return { x, y, w, h, group: `${GROUPS_PREFIX}${name}` }
+}
+
+/** The levers of a bay, by name: where things go, and their look */
+type LeverSpec = { cycles: Cycles; look: number }
+const SWAP = 0, TURNS = 1, MIRRORS = 2, FLAT = 3
+
+const lever = (b: Bay, dx: number, dy: number, name: string, l: LeverSpec) =>
+  prop(b.x + dx, b.y + dy, "group-lever", {
+    group: b.group,
+    cycles: l.cycles,
+    name,
+    look: l.look,
+  })
+const stoneAt = (b: Bay, dx: number, dy: number, place: number) =>
+  prop(b.x + dx, b.y + dy, "group-stone", { group: b.group, place })
+
+/**
+ * The door in the bay's top right corner, a vault behind it where its
+ * letter comes up. Its target is its solution's word pulled from e
+ */
+function door(b: Bay, solution: Cycles[]): Arrangement {
+  const target = pullAll(solution)
+  if (isIdentity(target)) throw new Error(`${b.group}: the target is e`)
+  const vx = b.x + b.w - 2, vy = b.y + 1
+  rect(vx - 1, vy, vx - 1, vy, "1")
+  prop(vx, vy + 1, "group-door", {
+    group: b.group,
+    id: b.group,
+    target,
+    reward: [BI + vx, BJ + vy],
+  })
+  return target
+}
+
+/** The mural tiles of a target of stones, at the places' cells */
+const muralOf = (
+  b: Bay,
+  target: Arrangement,
+  cells: readonly [number, number][],
+) =>
+  cells.forEach(([dx, dy], place) =>
+    prop(b.x + dx, b.y + dy, "group-mural", { show: tokenAt(target, place) })
+  )
+
+/** A row of stones 2 apart from (dx, dy), the levers between them */
+const rowCells = (dx: number, dy: number, n: number) =>
+  [...Array(n).keys()].map((k) => [dx + 2 * k, dy] as [number, number])
+
+// row A: the stones (S3, S4), the turning Moai (Z4, D4), the bell
+const ROW_A = GY + 6
+{
+  // 1. three standing stones: S3
+  const b = bay(
+    GX,
+    ROW_A,
+    11,
+    9,
+    "s3",
+    "THREE STONES. THE LEFT LEVER SWAPS THE LEFT PAIR, THE RIGHT ONE THE RIGHT PAIR. SET THEM AS THE MURAL",
+    "S3 (6 STATES). SOLUTION: LEFT, THEN RIGHT. RIGHT THEN LEFT IS NOT IT: THE ORDER MATTERS",
+  )
+  const l = { cycles: [[0, 1]], look: SWAP },
+    r = { cycles: [[1, 2]], look: SWAP }
+  const target = door(b, [l.cycles, r.cycles])
+  if (same(target, pullAll([r.cycles, l.cycles]))) {
+    throw new Error("S3 commutes")
+  }
+  muralOf(b, target, rowCells(2, 1, 3))
+  rowCells(2, 3, 3).forEach(([dx, dy], place) => stoneAt(b, dx, dy, place))
+  lever(b, 3, 4, "l", l)
+  lever(b, 5, 4, "r", r)
+}
+{
+  // 2. four standing stones: S4
+  const b = bay(
+    GX + 12,
+    ROW_A,
+    13,
+    9,
+    "s4",
+    "FOUR STONES. EACH LEVER SWAPS THE TWO STONES EITHER SIDE OF IT. SET THEM AS THE MURAL",
+    "S4 (24 STATES). THE MURAL IS THE ROW REVERSED. SOLUTION: 1 2 3 1 2 1 (LEVERS LEFT TO RIGHT), 6 SWAPS",
+  )
+  const swaps = [0, 1, 2].map((k) => ({ cycles: [[k, k + 1]], look: SWAP }))
+  const [s1, s2, s3] = swaps.map((s) => s.cycles)
+  const target = door(b, [s1, s2, s3, s1, s2, s1])
+  muralOf(b, target, rowCells(2, 1, 4))
+  rowCells(2, 3, 4).forEach(([dx, dy], place) => stoneAt(b, dx, dy, place))
+  swaps.forEach((s, k) => lever(b, 3 + 2 * k, 4, `s${k + 1}`, s))
+}
+{
+  // 3a. the turning Moai: Z4
+  const b = bay(
+    GX + 26,
+    ROW_A,
+    11,
+    9,
+    "z4",
+    "THE MOAI. THE LEVER TURNS IT A QUARTER, CLOCKWISE. TURN IT TO LOOK AS ON THE MURAL",
+    "Z4 (4 STATES, THE TURN HAS ORDER 4). SOLUTION: TURN TWICE",
+  )
+  const turn = { cycles: TURN, look: TURNS }
+  const target = door(b, [TURN, TURN])
+  prop(b.x + 4, b.y + 1, "group-mural", {
+    show: MURAL_POSE + poseStage(target),
+  })
+  prop(b.x + 4, b.y + 3, "group-moai", { group: b.group })
+  lever(b, 4, 5, "t", turn)
+}
+{
+  // 3b. the turning and mirrored Moai: D4
+  const b = bay(
+    GX + 38,
+    ROW_A,
+    11,
+    9,
+    "d4",
+    "THE MOAI AGAIN. ONE LEVER TURNS IT, ONE MIRRORS IT LEFT TO RIGHT (THE RING IN ITS RIGHT EAR SHOWS WHICH). LOOK AS ON THE MURAL",
+    "D4 (8 STATES, R^4 = S^2 = E, SRS = R^-1). SOLUTION: MIRROR, THEN TURN. TURN THEN MIRROR LOOKS RIGHT",
+  )
+  const target = door(b, [MIRROR, TURN])
+  prop(b.x + 4, b.y + 1, "group-mural", {
+    show: MURAL_POSE + poseStage(target),
+  })
+  prop(b.x + 4, b.y + 3, "group-moai", { group: b.group })
+  lever(b, 3, 5, "t", { cycles: TURN, look: TURNS })
+  lever(b, 5, 5, "m", { cycles: MIRROR, look: MIRRORS })
+}
+{
+  // 7. the identity bell: orders
+  const b = bay(
+    GX + 50,
+    ROW_A,
+    11,
+    9,
+    "bell",
+    "THE BELL RINGS WHEN THE STONES ARE BACK AS THEY BEGAN. THE SWAP: AFTER 2. THE TURN: AFTER 3. RING IT USING BOTH",
+    "ORDERS IN S3: SWAP 2, TURN 3, SWAP+TURN 2. SOLUTION: SWAP, TURN, SWAP, TURN",
+  )
+  rowCells(2, 3, 3).forEach(([dx, dy], place) => stoneAt(b, dx, dy, place))
+  lever(b, 3, 5, "s", { cycles: [[0, 1]], look: SWAP })
+  lever(b, 5, 5, "c", { cycles: [[0, 1, 2]], look: TURNS })
+  prop(b.x + 8, b.y + 2, "group-bell", {
+    group: b.group,
+    id: b.group,
+    need: ["s", "c"],
+    reward: [BI + b.x + 8, BJ + b.y + 4],
+  })
+}
+
+// row B: the same four states (Z4, Z2xZ2), the patrol's clock, the
+// boulders' words
+const ROW_B = ROW_A + 12
+{
+  // 4. same four states, different rooms
+  const square = [[5, 2], [6, 2], [5, 3], [6, 3]] as [number, number][]
+  const mural = [[2, 1], [3, 1], [2, 2], [3, 2]] as [number, number][]
+  const a = bay(
+    GX,
+    ROW_B,
+    11,
+    9,
+    "z4-dial",
+    "FOUR STONES, ONE DIAL: IT TURNS THEM ROUND THE SQUARE. 4 STATES. SET THEM AS THE MURAL",
+    "Z4: EVERY STATE IS SOME TURNS OF THE DIAL (ORDER 4). SOLUTION: DIAL TWICE",
+  )
+  const dial = { cycles: [[0, 1, 3, 2]], look: TURNS }
+  muralOf(a, door(a, [dial.cycles, dial.cycles]), mural)
+  square.forEach(([dx, dy], place) => stoneAt(a, dx, dy, place))
+  lever(a, 5, 5, "d", dial)
+
+  const b = bay(
+    GX + 12,
+    ROW_B,
+    11,
+    9,
+    "z2xz2",
+    "THE SAME FOUR STONES, TWO TOGGLES: LEFT FOR RIGHT, TOP FOR BOTTOM. 4 STATES TOO. SET THEM AS THE MURAL",
+    "Z2xZ2: EVERY LEVER AND STATE UNDOES ITSELF, NOTHING HAS ORDER 4. SOLUTION: BOTH TOGGLES, EITHER ORDER",
+  )
+  const cols = { cycles: [[0, 1], [2, 3]], look: SWAP }
+  const rows = { cycles: [[0, 2], [1, 3]], look: SWAP }
+  muralOf(b, door(b, [cols.cycles, rows.cycles]), mural)
+  square.forEach(([dx, dy], place) => stoneAt(b, dx, dy, place))
+  lever(b, 5, 5, "x", cols)
+  lever(b, 6, 5, "y", rows)
+}
+{
+  // 5. the patrol's clock: it pulls the levers at both ends of its lane,
+  // swapping the left pair and back; pull yours at the right moment
+  const b = bay(
+    GX + 24,
+    ROW_B,
+    13,
+    10,
+    "clock",
+    "THE WATCH PULLS A LEVER AT EACH END OF ITS WALK: THE LEFT PAIR SWAPS, AND BACK. YOURS SWAPS THE RIGHT PAIR. WHEN YOU PULL IT MATTERS",
+    "S3 WITH A CLOCK OF ORDER 2. SOLUTION: PULL WHILE THE LEFT PAIR IS SWAPPED, THEN WAIT ONE TICK (A B A = C B A)",
+  )
+  const a = { cycles: [[0, 1]], look: SWAP }
+  const own = { cycles: [[1, 2]], look: SWAP }
+  // the lane along the top, walled from the rest
+  rect(b.x + 1, b.y + 2, b.x + 8, b.y + 2, "1")
+  rect(b.x + 8, b.y + 1, b.x + 8, b.y + 1, "1")
+  lever(b, 1, 1, "a", a)
+  lever(b, 7, 1, "a", a)
+  actors.push({
+    i: BI + b.x + 4,
+    j: BJ + b.y + 1,
+    type: "patrol",
+    dir: "right",
+  })
+  const target = door(b, [a.cycles, own.cycles, a.cycles])
+  muralOf(b, target, rowCells(3, 3, 3))
+  rowCells(3, 5, 3).forEach(([dx, dy], place) => stoneAt(b, dx, dy, place))
+  lever(b, 6, 6, "b", own)
+}
+{
+  // 6. the boulders' words: each lane's boulder rolls over flat levers in
+  // its order; which lanes, in which order, is the word
+  const b = bay(
+    GX + 38,
+    ROW_B,
+    15,
+    13,
+    "words",
+    "PUSH A BOULDER ALONG ITS LANE: IT PULLS THE FLAT LEVERS IT ROLLS OVER, IN ORDER. A: THE LEFT PAIR, B: THE RIGHT PAIR",
+    "S3 IN WORDS. LANES: TOP A B, MIDDLE B A, BOTTOM B. SOLUTION: BOTTOM THEN TOP, OR MIDDLE THEN BOTTOM (B A B)",
+  )
+  const a: Cycles = [[0, 1]], bb: Cycles = [[1, 2]]
+  const flat = (dx: number, dy: number, name: string, cycles: Cycles) =>
+    prop(b.x + dx, b.y + dy, "group-lever", {
+      group: b.group,
+      cycles,
+      name,
+      look: FLAT,
+      over: true,
+    })
+  // the lanes, walled from each other; the way along their left ends
+  for (const dy of [4, 6, 8, 10]) {
+    rect(b.x + 2, b.y + dy, b.x + 9, b.y + dy, "1")
+  }
+  rect(b.x + 9, b.y + 4, b.x + 9, b.y + 10, "1")
+  const lanes: [string, Cycles][][] = [
+    [["a", a], ["b", bb]],
+    [["b", bb], ["a", a]],
+    [["b", bb]],
+  ]
+  lanes.forEach((word, n) => {
+    const dy = 5 + 2 * n
+    actor(b.x + 2, b.y + dy, "boulder")
+    word.forEach(([name, cycles], k) =>
+      flat(word.length === 1 ? 5 : 4 + 2 * k, dy, name, cycles)
+    )
+  })
+  const target = door(b, [bb, a, bb])
+  muralOf(b, target, rowCells(3, 1, 3))
+  rowCells(3, 3, 3).forEach(([dx, dy], place) => stoneAt(b, dx, dy, place))
+}
+
+// row C: the odd group out. S3 as stones, D3 as a triangle turned and
+// flipped, Z6 as a ring of six on a dial: knock on the odd one's plaque
+const ROW_C = ROW_B + 15
+{
+  const ODD = `${GROUPS_PREFIX}odd`
+  const plaque = (b: Bay, odd: boolean) =>
+    prop(b.x + 8, b.y + 3, "group-mural", {
+      id: ODD,
+      odd,
+      ...(odd ? { reward: [BI + b.x + 8, BJ + b.y + 5] } : {}),
+    })
+  const debug =
+    "S3 ~= D3 (6 STATES, NOT COMMUTATIVE, ORDERS 1 2 3). Z6 COMMUTES AND ITS DIAL HAS ORDER 6. SOLUTION: THE RING'S PLAQUE"
+  const s3 = bay(
+    GX,
+    ROW_C,
+    11,
+    9,
+    "odd-s3",
+    "THREE ROOMS, THREE GROUPS. TWO ARE THE SAME GROUP IN DISGUISE. KNOCK ON THE PLAQUE OF THE ODD ONE OUT. HERE: TWO SWAPS",
+    debug,
+  )
+  rowCells(2, 3, 3).forEach(([dx, dy], place) => stoneAt(s3, dx, dy, place))
+  lever(s3, 3, 4, "l", { cycles: [[0, 1]], look: SWAP })
+  lever(s3, 5, 4, "r", { cycles: [[1, 2]], look: SWAP })
+  plaque(s3, false)
+
+  const d3 = bay(
+    GX + 12,
+    ROW_C,
+    11,
+    9,
+    "odd-d3",
+    "HERE: A TRIANGLE OF STONES, TURNED A THIRD, OR FLIPPED LEFT FOR RIGHT",
+    debug,
+  )
+  // the corners clockwise: the top, the bottom right, the bottom left
+  for (const [dx, dy, place] of [[4, 2, 0], [5, 4, 1], [3, 4, 2]]) {
+    stoneAt(d3, dx, dy, place)
+  }
+  lever(d3, 3, 6, "t", { cycles: [[0, 1, 2]], look: TURNS })
+  lever(d3, 5, 6, "f", { cycles: [[1, 2]], look: MIRRORS })
+  plaque(d3, false)
+
+  const z6 = bay(
+    GX + 24,
+    ROW_C,
+    11,
+    9,
+    "odd-z6",
+    "HERE: A RING OF SIX STONES ON A DIAL, EACH PULL ONE PLACE ROUND",
+    debug,
+  )
+  // the ring clockwise: the top row left to right, the bottom right to left
+  for (
+    const [dx, dy, place] of [
+      [3, 2, 0],
+      [4, 2, 1],
+      [5, 2, 2],
+      [5, 3, 3],
+      [4, 3, 4],
+      [3, 3, 5],
+    ]
+  ) stoneAt(z6, dx, dy, place)
+  lever(z6, 4, 5, "d", { cycles: [[0, 1, 2, 3, 4, 5]], look: TURNS })
+  plaque(z6, true)
+}
+
+// ---------------------------------------------------------------------
 // checks
 
 for (const [type, def] of Object.entries(catalog.props)) {
@@ -524,7 +943,7 @@ for (const list of [actors, items, props]) {
   for (const s of list) {
     const li = s.i - BI
     const lj = s.j - BJ
-    if (li < 1 || li > width || lj < 1 || lj > height) {
+    if (li < 1 || li > SIZE - 2 || lj < 1 || lj > SIZE - 2) {
       console.error("spawn out of the floor:", s)
       Deno.exit(1)
     }

@@ -48,7 +48,7 @@ function picture(rows: string[]): (PaletteColor | null)[] {
   })
 }
 
-async function write(path: string, rows: string[]) {
+export async function write(path: string, rows: string[]) {
   const w = rows[0].length, h = rows.length
   const rgba = new Uint8Array(w * h * 4)
   picture(rows).forEach((c, k) => {
@@ -67,7 +67,7 @@ async function write(path: string, rows: string[]) {
 // eye, dark, then lit white), the long nose, the pouting upper lip over
 // the mouth, the chin on the ground; the long ears either side; its
 // shadow on the ground under the chin
-const FRONT = [
+export const FRONT = [
   "...KKKKKKKKKK...",
   "..KW222222223K..",
   "..KW222222223K..",
@@ -88,7 +88,7 @@ const FRONT = [
 ]
 // from the back: the back of the head and the ears, a ring carved on
 // it ("r": dark, then lit white), the nape over the ground
-const BACK = [
+export const BACK = [
   "...KKKKKKKKKK...",
   "..KW222222223K..",
   "..KW222222223K..",
@@ -111,7 +111,7 @@ const BACK = [
 // standing out over the eye sunk under it, the long nose jutting out,
 // the pouting upper lip, the mouth pressed in, the chin out on the
 // ground; its shadow
-const SIDE = [
+export const SIDE = [
   "..KKKKKKKKK.....",
   ".KW22222222K....",
   ".KW222222222K...",

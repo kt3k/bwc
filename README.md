@@ -31,7 +31,11 @@ image, its properties, and the maps that use it.
 `http://localhost:8000/#10002,-9996` is the debug map: every actor / item / prop
 of the catalog listed at once with a labeled sign. It is also linked by the
 "DEBUG" portal to the left of the start corridor. Regenerate it after changing
-the catalog with `deno task generate-debug`.
+the catalog with `deno task generate-debug`. To its right, walled off and
+reached by its "TO THE GROUPS" portal (or `#10109,-9995`), the GROUPS area:
+puzzles run by finite groups (S3, S4, Z4, D4, Z2xZ2, Z6, ...) built from a few
+parts, levers that swap or turn standing stones and a Moai, a mural and a door
+(ideas/groups.md).
 
 `http://localhost:8000/#10402,-9996` is the GOALS map (block_10400.-10000), for
 trying the goals: a bay for every signature of the missing ring (each a real

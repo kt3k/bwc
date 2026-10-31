@@ -2637,6 +2637,238 @@
       "src": "../prop/chain_mat.png",
       "canEnter": true
     },
+    "group-lever": {
+      "src": "../prop/group_lever_swap_0.png",
+      "canEnter": false,
+      "pushed": "group-lever",
+      "growth": {
+        "stages": [
+          "../prop/group_lever_swap_0.png",
+          "../prop/group_lever_swap_1.png",
+          "../prop/group_lever_turn_0.png",
+          "../prop/group_lever_turn_1.png",
+          "../prop/group_lever_mirror_0.png",
+          "../prop/group_lever_mirror_1.png",
+          "../prop/group_lever_flat_0.png",
+          "../prop/group_lever_flat_1.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string"
+          },
+          "cycles": {
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "look": {
+            "type": "number"
+          },
+          "over": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "group",
+          "cycles"
+        ]
+      }
+    },
+    "group-stone": {
+      "src": "../prop/group_stone_0.png",
+      "canEnter": false,
+      "growth": {
+        "stages": [
+          "../prop/group_stone_0.png",
+          "../prop/group_stone_1.png",
+          "../prop/group_stone_2.png",
+          "../prop/group_stone_3.png",
+          "../prop/group_stone_4.png",
+          "../prop/group_stone_5.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string"
+          },
+          "place": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "group",
+          "place"
+        ]
+      }
+    },
+    "group-moai": {
+      "src": "../prop/group_moai_down.png",
+      "canEnter": false,
+      "growth": {
+        "stages": [
+          "../prop/group_moai_up.png",
+          "../prop/group_moai_up_m.png",
+          "../prop/group_moai_right.png",
+          "../prop/group_moai_right_m.png",
+          "../prop/group_moai_down.png",
+          "../prop/group_moai_down_m.png",
+          "../prop/group_moai_left.png",
+          "../prop/group_moai_left_m.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "group"
+        ]
+      }
+    },
+    "group-door": {
+      "src": "../prop/group_door.png",
+      "canEnter": false,
+      "growth": {
+        "stages": [
+          "../prop/group_door.png",
+          "../prop/group_door_open.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "target": {
+            "type": "array"
+          },
+          "reward": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "required": [
+          "group",
+          "id",
+          "target"
+        ]
+      }
+    },
+    "group-bell": {
+      "src": "../prop/goal_bell.png",
+      "canEnter": false,
+      "growth": {
+        "stages": [
+          "../prop/goal_bell.png",
+          "../prop/goal_bell_left.png",
+          "../prop/goal_bell_right.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "need": {
+            "type": "array"
+          },
+          "reward": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "required": [
+          "group"
+        ]
+      }
+    },
+    "group-mural": {
+      "src": "../prop/group_mural_0.png",
+      "canEnter": false,
+      "pushed": "group-mural",
+      "growth": {
+        "stages": [
+          "../prop/group_mural_0.png",
+          "../prop/group_mural_1.png",
+          "../prop/group_mural_2.png",
+          "../prop/group_mural_3.png",
+          "../prop/group_mural_4.png",
+          "../prop/group_mural_5.png",
+          "../prop/group_mural_pose_0.png",
+          "../prop/group_mural_pose_1.png",
+          "../prop/group_mural_pose_2.png",
+          "../prop/group_mural_pose_3.png",
+          "../prop/group_mural_pose_4.png",
+          "../prop/group_mural_pose_5.png",
+          "../prop/group_mural_pose_6.png",
+          "../prop/group_mural_pose_7.png",
+          "../prop/group_mural_plaque.png",
+          "../prop/group_mural_plaque_lit.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "show": {
+            "type": "number"
+          },
+          "id": {
+            "type": "string"
+          },
+          "odd": {
+            "type": "boolean"
+          },
+          "reward": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        }
+      }
+    },
     "alike-tulip": {
       "src": "../prop/alike_tulip.png",
       "canEnter": false

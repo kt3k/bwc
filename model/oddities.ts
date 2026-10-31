@@ -65,6 +65,17 @@ import { stepFoldGate } from "./fold.ts"
 import { stepChainWanter } from "./chain.ts"
 import { OdradekDelegate } from "./odradek.ts"
 import { stepUnlike, UnlikePushed } from "./odd-one.ts"
+import {
+  GroupLeverPushed,
+  GroupMuralPushed,
+  initGroupLever,
+  stepGroupBell,
+  stepGroupDoor,
+  stepGroupLever,
+  stepGroupMoai,
+  stepGroupMural,
+  stepGroupStone,
+} from "./group-lever.ts"
 import { ODD_FAMILIES, unlikeType } from "./odd-families.ts"
 import type { Actor } from "./actor.ts"
 
@@ -928,6 +939,8 @@ export const ODD_PROP_PUSHED: Record<string, () => PushedDelegate> = {
   unlike: () => new UnlikePushed(),
   "goal-bell": () => new BellPushed(),
   "patrol-beacon": () => new BeaconPushed(),
+  "group-lever": () => new GroupLeverPushed(),
+  "group-mural": () => new GroupMuralPushed(),
 }
 
 /** Per-frame behaviors of the oddity props, by type */
@@ -956,6 +969,12 @@ export const ODD_PROP_STEP: Record<
   "patrol-beacon": stepBeacon,
   "fold-gate": stepFoldGate,
   "chain-wanter": stepChainWanter,
+  "group-lever": stepGroupLever,
+  "group-stone": stepGroupStone,
+  "group-moai": stepGroupMoai,
+  "group-door": stepGroupDoor,
+  "group-bell": stepGroupBell,
+  "group-mural": stepGroupMural,
   ...Object.fromEntries(ODD_FAMILIES.map((f) => [unlikeType(f), stepUnlike])),
 }
 
@@ -971,6 +990,7 @@ export const ODD_PROP_INIT: Record<string, (prop: Prop) => void> = {
     resetStage(prop)
     prop.setOpen(false, false)
   },
+  "group-lever": initGroupLever,
 }
 
 function resetStage(prop: Prop) {
