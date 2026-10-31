@@ -252,6 +252,19 @@ export class Item implements IItem {
     this.#reveal = frames
   }
 
+  /**
+   * Risen with the player standing on it (got there while it was coming
+   * up): picked up then, as if walked onto, instead of only on stepping
+   * off and back on
+   */
+  #takeIfStoodOn(field: IField) {
+    const me = field.me as IActor | undefined
+    if (!me || me.i !== this.i || me.j !== this.j) return
+    // at rest on the cell, not passing over it
+    if (me.x !== me.i * CELL_SIZE || me.y !== me.j * CELL_SIZE) return
+    collectAll(me, field, field.peekItems(me.i, me.j))
+  }
+
   /** true while it is still being revealed: not to be picked up yet */
   get revealing(): boolean {
     return this.#reveal > 0 || this.#emerge > 0
@@ -264,7 +277,10 @@ export class Item implements IItem {
   }
 
   step(field: IField) {
-    if (this.#reveal > 0) this.#reveal--
+    if (this.#reveal > 0) {
+      this.#reveal--
+      if (this.#reveal === 0) this.#takeIfStoodOn(field)
+    }
     if (this.#emerge > 0) this.#emerge--
     if (!this.#move) {
       this.#actionQueue.process(this, field)
@@ -345,7 +361,7 @@ interface CollectDelegate {
  * taken, "xN" pops up over the cell.
  */
 export function collectAll(
-  actor: Actor,
+  actor: IActor,
   field: IField,
   all: readonly IItem[],
 ): void {

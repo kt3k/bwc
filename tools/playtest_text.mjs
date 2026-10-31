@@ -82,7 +82,9 @@ async function client() {
       process.exit(1)
     }
   }
-  process.stdout.write(await post({ steps: stepsArg }))
+  // tools/playtest.mjs: the same open game, a screenshot instead of the map
+  const image = process.env.PLAYTEST_MODE === "image"
+  process.stdout.write(await post({ steps: stepsArg, image }))
 }
 
 // ---------------------------------------------------------------------
@@ -141,7 +143,9 @@ async function daemon() {
       return quit()
     }
     try {
-      res.end(await run(page, msg.steps ?? "", looks, shotsDir, errors))
+      res.end(
+        await run(page, msg.steps ?? "", looks, shotsDir, errors, !!msg.image),
+      )
     } catch (e) {
       res.end(`(harness error: ${e.message})\n`)
     }
@@ -164,7 +168,7 @@ const KEY = {
 }
 
 /** Runs the steps with the world going, then holds it still and tells */
-async function run(page, stepsArg, looks, shotsDir, errors) {
+async function run(page, stepsArg, looks, shotsDir, errors, image) {
   const out = []
   const said = []
   const seenSaid = new Set()
@@ -205,7 +209,7 @@ async function run(page, stepsArg, looks, shotsDir, errors) {
           if (v.me.i === before.i && v.me.j === before.j) {
             stuck++
             // tell once what's in the way, then stop trying
-            if (stuck === 1) out.push(blocked(v, cmd, k, n, looks))
+            if (stuck === 1 && !image) out.push(blocked(v, cmd, k, n, looks))
             if (stuck >= 2) break
           } else stuck = 0
           if (k % 3 === 2) views.push(v)
@@ -225,7 +229,12 @@ async function run(page, stepsArg, looks, shotsDir, errors) {
           await texts()
           await snap()
         }
-      } else if (cmd === "map") wantMap = true
+      } else if (cmd === "map" && image) {
+        // the minimap tapped: opens big / closes, as on the screen
+        await page.locator(".js-minimap").click()
+        await page.waitForTimeout(300)
+      } else if (cmd === "shot" && image) out.push(await shoot(page, shotsDir))
+      else if (cmd === "map") wantMap = true
       else if (cmd === "look") wantLook = true
       else out.push(`(unknown step ${s})`)
     }
@@ -236,21 +245,33 @@ async function run(page, stepsArg, looks, shotsDir, errors) {
     await page.evaluate(() => globalThis.__playtest.pause())
   }
   const now = views[views.length - 1]
+  if (image) {
+    // what the player sees: what was said and the screenshot, no more
+    out.push(said.length ? said.join("\n") : "nothing said")
+    out.push(await shoot(page, shotsDir))
+    out.push(await status(page, now, image))
+    if (errors.length) out.push(`page errors: ${errors.splice(0).join(" | ")}`)
+    return out.join("\n\n") + "\n"
+  }
   out.push(render(now, looks))
   out.push(said.length ? said.join("\n") : "nothing said")
   out.push(motion(views, looks))
   if (wantMap) out.push(await minimap(page))
-  if (wantLook) {
-    const path = `${shotsDir}/${Date.now() % 100000}.png`
-    await page.screenshot({ path })
-    out.push(`screenshot: ${path}`)
-  }
+  if (wantLook) out.push(await shoot(page, shotsDir))
   out.push(await status(page, now))
   if (errors.length) out.push(`page errors: ${errors.splice(0).join(" | ")}`)
   return out.join("\n\n") + "\n"
 }
 
 const view = (page) => page.evaluate(() => globalThis.__playtest.view())
+
+let shotNo = 0
+/** A screenshot, its path to tell */
+async function shoot(page, shotsDir) {
+  const path = `${shotsDir}/${Date.now() % 100000}-${shotNo++}.png`
+  await page.screenshot({ path })
+  return `screenshot: ${path} (look at it)`
+}
 
 const STEP = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }
 
@@ -525,7 +546,7 @@ async function minimap(page) {
   ].join("\n")
 }
 
-async function status(page, v) {
+async function status(page, v, image = false) {
   const s = await page.evaluate(() => ({
     save: JSON.parse(localStorage.getItem("bwc-save-v1") ?? "{}"),
     place: document.querySelector(".js-place-text")?.textContent ?? "",
@@ -538,7 +559,11 @@ async function status(page, v) {
     APPLE: "an apple",
     FISH: "a fish",
   }
-  return `you: ${v.me.i},${v.me.j}  coins: ${s.save.coinCount ?? 0}  ` +
-    `apples: ${s.save.appleCount ?? 0}  place: ${s.place}\n` +
-    `the picture beside SPACE: ${SPACE[s.space] ?? "none"}`
+  const line = `position: ${v.me.i},${v.me.j}  coins: ${
+    s.save.coinCount ?? 0
+  }  apples: ${s.save.appleCount ?? 0}  place: ${s.place}`
+  // the image players see the SPACE picture themselves
+  return image
+    ? line
+    : `${line}\nthe picture beside SPACE: ${SPACE[s.space] ?? "none"}`
 }

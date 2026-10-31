@@ -209,6 +209,26 @@ Deno.test("goal fx: the letter can't be picked up while it rises, and can after"
   reset()
 })
 
+Deno.test("goal fx: the letter rises under the player standing on it: taken as it settles", () => {
+  reset()
+  const { field, items, frame } = makeField()
+  const me = new Actor(5, 5, catalog.actors["static"], "main")
+  Object.assign(field, { me })
+  const id = ringRewardKey("B")
+  const item = revealGlyph(field, 5, 5, id)
+  assert(item)
+  // got there while it was coming up: not taken yet
+  for (let k = 0; k < REVEAL_FRAMES - 1; k++) frame()
+  assertEquals(items.length, 1)
+  assert(!Item.isCollected(id))
+  // it settles with the player still on it: taken, as if walked onto
+  frame()
+  assertEquals(items, [])
+  assert(Item.isCollected(id))
+  assertEquals(signal.message.get()?.text, "AN UNREADABLE LETTER")
+  reset()
+})
+
 Deno.test("goal fx: after the lines, a beat at a time: the bolt thrice, the leaves, the letter rising", () => {
   const sounds: [string, number][] = []
   const fx = new GlyphReveal(
