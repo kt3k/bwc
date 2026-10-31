@@ -1,7 +1,7 @@
 // The moment a goal is done (model/celebrate.ts, model/goal-fx.ts): at
-// once (the world goes on: no hit stop, no shake, no white noise), the
-// five white lines go out (the sound and the message with
-// them), and when they are gone, a beat at a time, a bolt strikes the
+// once (the world goes on: no hit stop, no shake), the five white lines
+// go out (the sound and the message with them; a moment of white noise a
+// little after), and when they are gone, a beat at a time, a bolt strikes the
 // letter's cell a little way off, leaves fall round it and the letter
 // rises, and it can't be picked up until it has; laid again after a
 // reload, it just lies there, in the same place
@@ -23,6 +23,8 @@ import {
   GOAL_LINE_COLOR,
   GOAL_LINES,
   GOAL_LINES_FRAMES,
+  GOAL_NOISE,
+  GOAL_NOISE_AT,
   GoalLines,
   LEAF_FALL_FRAMES,
   REVEAL,
@@ -111,13 +113,13 @@ Deno.test("goal fx: the hit stop holds the world still for its frames, then lets
   assertEquals(juice.freeze, 0)
 })
 
-Deno.test("goal fx: a goal done sends the lines out at once with its message (no pause, no white noise, no hit stop, no shake)", () => {
+Deno.test("goal fx: a goal done sends the lines out at once with its message (no pause, no hit stop, no shake), and a moment of white noise a little after", () => {
   reset()
   const { field, effects, frame } = makeField()
   const sounds: string[] = []
   const off = signal.sound.subscribe((s) => s && sounds.push(s.name))
   celebrateGoal(field, 10, 10, "A GOAL")
-  // no hit stop, no shake, no white noise
+  // no hit stop, no shake, no white noise yet
   assertEquals(juice.freeze, 0)
   assertEquals(juice.shake, 0)
   assertEquals(juice.noise, 0)
@@ -141,7 +143,12 @@ Deno.test("goal fx: a goal done sends the lines out at once with its message (no
   assertEquals(GOAL_LINE_COLOR, Palette.white)
   let far = 0
   let longest = 0
+  // the white noise (shown while juice.noise > 0, counted down after each
+  // frame as game/game-screen.ts does), by the frame since the goal done
+  const noisy: number[] = []
   while (effects.length > 0 && lines.f < 500) {
+    if (juice.noise > 0) noisy.push(lines.f)
+    if (juice.noise > 0) juice.noise--
     const now = [...lines.boxes()]
     assert(now.length <= 5 * 4)
     assert(now.every((b) => b.color === Palette.white))
@@ -161,6 +168,9 @@ Deno.test("goal fx: a goal done sends the lines out at once with its message (no
   assertEquals(longest, GOAL_LINES.length)
   assert(GOAL_LINES.length > 16 && GOAL_LINES.length <= 20)
   assertEquals(lines.f, GOAL_LINES_FRAMES)
+  // 32 frames after the lines go out (frame 1), 4 frames of white noise
+  assertEquals([GOAL_NOISE_AT, GOAL_NOISE], [32, 4])
+  assertEquals(noisy, [33, 34, 35, 36])
   // about a second (the 3 waves of before were ~2 s), longer than the
   // pickup's lines (48 frames)
   assert(GOAL_LINES_FRAMES >= 48 && GOAL_LINES_FRAMES <= 70)
@@ -425,7 +435,7 @@ Deno.test("goal fx: the odd one found celebrates with its letter rising", () => 
   odd.onPushed({ type: "pushed", dir: "up", peakAt: 7, pusher: me }, field)
   assertEquals(juice.freeze, 0)
   assertEquals(juice.shake, 0)
-  // no white noise
+  // no white noise yet (it comes a while after the lines go out)
   assertEquals(juice.noise, 0)
   assertEquals(effects.filter((e) => e instanceof GoalLines).length, 1)
   assertEquals(items.map((t) => t.id), [oddRewardKey("T")])

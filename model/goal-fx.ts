@@ -38,6 +38,12 @@ export const GOAL_LINES = {
 } as const
 /** The color of the lines (one wave of them) */
 export const GOAL_LINE_COLOR: PaletteColor = Palette.white
+/**
+ * Frames after the lines go out before a moment of white noise over the
+ * screen (game/draw-layer.ts), and how many frames it lasts
+ */
+export const GOAL_NOISE_AT = 32
+export const GOAL_NOISE = 4
 /** Frames the lines last (the outer ones, ~1 s) */
 export const GOAL_LINES_FRAMES = 16 * GOAL_LINES.dist / GOAL_LINES.speed
 /** The sparks of the letter's reveal blink this many frames before they go */
@@ -263,20 +269,30 @@ abstract class Group implements IEffectGroup {
  * The lines out of the goal done at the cell (i, j): right after it, the
  * game's five white lines (linePattern0) go out of the cell's four sides
  * (GOAL_LINES). `onRelease` is called as they go out (the sound and the
- * message go then)
+ * message go then), `onNoise` GOAL_NOISE_AT frames later (the white noise
+ * goes then, for GOAL_NOISE frames)
  */
 export class GoalLines extends Group {
   readonly i: number
   readonly j: number
   #lines: EffectLine0[] = []
   #onRelease?: () => void
-  constructor(i: number, j: number, born: number, onRelease?: () => void) {
+  #onNoise?: () => void
+  constructor(
+    i: number,
+    j: number,
+    born: number,
+    onRelease?: () => void,
+    onNoise?: () => void,
+  ) {
     super(born)
     this.i = i
     this.j = j
     this.#onRelease = onRelease
+    this.#onNoise = onNoise
   }
   tick(field: Pick<IField, "time">) {
+    if (this.f === 1 + GOAL_NOISE_AT) this.#onNoise?.()
     if (this.f === 1) {
       this.#onRelease?.()
       const { speed, p0, dist, length } = GOAL_LINES
