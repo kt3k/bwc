@@ -192,13 +192,23 @@ async function run(page, stepsArg, looks, shotsDir, errors) {
     for (const s of stepsArg.split(/\s+/).filter(Boolean)) {
       const [cmd, arg] = s.split(":")
       if (KEY[cmd]) {
-        for (let k = 0; k < Number(arg ?? 1); k++) {
+        const n = Number(arg ?? 1)
+        let stuck = 0
+        for (let k = 0; k < n; k++) {
+          const before = (await view(page)).me
           await page.keyboard.down(KEY[cmd])
           await page.waitForTimeout(60)
           await page.keyboard.up(KEY[cmd])
           await page.waitForTimeout(260)
           await texts()
-          if (k % 3 === 2) await snap()
+          const v = await view(page)
+          if (v.me.i === before.i && v.me.j === before.j) {
+            stuck++
+            // tell once what's in the way, then stop trying
+            if (stuck === 1) out.push(blocked(v, cmd, k, n, looks))
+            if (stuck >= 2) break
+          } else stuck = 0
+          if (k % 3 === 2) views.push(v)
         }
       } else if (cmd === "space") {
         await page.keyboard.press("Space")
@@ -242,6 +252,27 @@ async function run(page, stepsArg, looks, shotsDir, errors) {
 
 const view = (page) => page.evaluate(() => globalThis.__playtest.view())
 
+const STEP = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }
+
+/** Walking stopped: what is in front */
+function blocked(v, cmd, k, n, looks) {
+  const [dx, dy] = STEP[cmd]
+  const i = v.me.i + dx, j = v.me.j + dy
+  const things = [
+    ...v.actors.filter((a) => a.i === i && a.j === j).map((a) =>
+      lookOf(looks, "actors", a.what)
+    ),
+    ...v.props.filter((p) => p.i === i && p.j === j).map((p) =>
+      lookOf(looks, "props", p.what)
+    ),
+  ]
+  const c = v.cells[j - v.j0]?.[i - v.i0]
+  const ground = looks.cells[v.cellSrc[c]]?.look ?? "something"
+  const what = things.length ? things.join(", on ") : ground
+  return `(walking ${cmd}, step ${k + 1} of ${n} didn't move you: ` +
+    `in front of you is ${what})`
+}
+
 /** The palette's color names (util/palette.ts), for the flecks */
 const COLOR_NAMES = Object.fromEntries(
   [
@@ -270,6 +301,12 @@ const SYMBOLS = "abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ0123456789"
   .split("")
 
 /**
+ * The letter of each look, kept for the player's whole game, so the same
+ * sheep is the same letter from call to call
+ */
+const symOf = new Map()
+
+/**
  * The grid, its key, and the things that share a cell. Terrain takes a
  * character of its own kind (tools/playtest_looks.json, cells: sym);
  * every distinct thing on top a letter, the same look the same letter
@@ -295,10 +332,11 @@ function render(v, looks) {
       terrain.get(sym).add(words)
     }
   }
-  const symOf = new Map()
   const at = new Map()
+  const shown = new Set()
   const put = (i, j, words) => {
     if (!symOf.has(words)) symOf.set(words, SYMBOLS[symOf.size] ?? "+")
+    shown.add(words)
     const key = `${i},${j}`
     if (!at.has(key)) at.set(key, [])
     at.get(key).push(words)
@@ -317,6 +355,18 @@ function render(v, looks) {
         rel(v.i0, v.me.i)
       }, the top edge y=${rel(v.j0, v.me.j)}):`,
   )
+  // the x of every fifth column above the grid
+  const ruler = Array(W + 6).fill(" ")
+  for (let x = 0; x < W; x++) {
+    const n = v.i0 + x - v.me.i
+    if (n % 5 !== 0) continue
+    const label = `${n > 0 ? "+" : ""}${n}`
+    const at0 = 5 + x - (label.length - 1)
+    if (ruler.slice(at0 - 1, at0 + label.length).every((c) => c === " ")) {
+      for (let k = 0; k < label.length; k++) ruler[at0 + k] = label[k]
+    }
+  }
+  lines.push(ruler.join("").trimEnd())
   for (let y = 0; y < H; y++) {
     lines.push(`${rel(v.j0 + y, v.me.j).padStart(4)} ${grid[y].join("")}`)
   }
@@ -325,8 +375,14 @@ function render(v, looks) {
   for (const [sym, words] of terrain) {
     lines.push(`  ${sym} ${[...words].join(" / ")}`)
   }
-  for (const [words, sym] of symOf) lines.push(`  ${sym} ${words}`)
-  const shared = [...at].filter(([, w]) => w.length > 1)
+  for (const [words, sym] of symOf) {
+    if (shown.has(words)) lines.push(`  ${sym} ${words}`)
+  }
+  const under = at.get(`${v.me.i},${v.me.j}`)
+  if (under) lines.push(`you stand on: ${under.join(", ")}`)
+  const shared = [...at].filter(([key, w]) =>
+    w.length > 1 && key !== `${v.me.i},${v.me.j}`
+  )
   if (shared.length) {
     lines.push("on the same cell (the one on top is shown):")
     for (const [key, w] of shared) {
@@ -345,8 +401,18 @@ function render(v, looks) {
       byLook.get(e.look).push(`${rel(e.i, v.me.i)},${rel(e.j, v.me.j)}`)
     }
     lines.push("in the air / on the ground just now:")
+    const flecks = []
     for (const [look, cells] of byLook) {
-      lines.push(`  ${effectWords(look)}: ${cells.join(" ")}`)
+      if (look.startsWith("a fleck of ")) flecks.push([look, cells])
+      else lines.push(`  ${effectWords(look)}: ${cells.slice(0, 8).join(" ")}`)
+    }
+    if (flecks.length) {
+      const colors = [...new Set(flecks.map(([l]) => effectWords(l).slice(11)))]
+      const cells = flecks.flatMap(([, c]) => c)
+      lines.push(
+        `  small flecks of ${colors.join(", ")} (${cells.length} cells, ` +
+          `around ${cells.slice(0, 4).join(" ")})`,
+      )
     }
   }
   return lines.join("\n")
