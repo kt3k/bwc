@@ -2869,6 +2869,96 @@
         }
       }
     },
+    "cayley-gate": {
+      "src": "../prop/cayley_gate.png",
+      "canEnter": false,
+      "growth": {
+        "stages": [
+          "../prop/cayley_gate.png",
+          "../prop/cayley_gate_open.png",
+          "../prop/cayley_gate_e.png",
+          "../prop/cayley_gate_e_open.png",
+          "../prop/cayley_gate_target.png",
+          "../prop/cayley_gate_target_open.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "el": {
+            "type": "number"
+          },
+          "alcove": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "mark": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "room",
+          "group",
+          "el",
+          "alcove"
+        ]
+      }
+    },
+    "cayley-lever": {
+      "src": "../prop/group_lever_turn_0.png",
+      "canEnter": false,
+      "pushed": "cayley-lever",
+      "growth": {
+        "stages": [
+          "../prop/group_lever_swap_0.png",
+          "../prop/group_lever_swap_1.png",
+          "../prop/group_lever_turn_0.png",
+          "../prop/group_lever_turn_1.png",
+          "../prop/group_lever_mirror_0.png",
+          "../prop/group_lever_mirror_1.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "by": {
+            "type": "number"
+          },
+          "look": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "room",
+          "group",
+          "by"
+        ]
+      }
+    },
     "alike-tulip": {
       "src": "../prop/alike_tulip.png",
       "canEnter": false

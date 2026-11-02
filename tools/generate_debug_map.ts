@@ -6,7 +6,9 @@
 //
 // To the right of it, walled off and reached by a portal at the top, the
 // GROUPS area: the puzzles run by finite groups (ideas/groups.md), each
-// in a bay of its own, with a RESET to play them again.
+// in a bay of its own, with a RESET to play them again. From the GROUPS
+// a portal leads to the Cayley rooms, the next blocks east
+// (tools/generate_cayley_map.ts, written by this script too).
 //
 // It also links the block from the start island: a "DEBUG" portal room
 // is carved to the left of the start corridor (mirroring the tutorial
@@ -16,6 +18,7 @@
 import { loadCatalog } from "../model/catalog.ts"
 import { validate } from "../util/json-schema.ts"
 import { ODD_FAMILIES, unlikeType } from "../model/odd-families.ts"
+import * as CAYLEY from "./generate_cayley_map.ts"
 import {
   type Arrangement,
   type Cycles,
@@ -144,6 +147,15 @@ const SAMPLE_DATA: Record<string, unknown> = {
   "group-moai": { group: "debug-moai" },
   "group-door": { group: "debug-group", id: "debug-group", target: [1, 0] },
   "group-bell": { group: "debug-group" },
+  // the parts of the Cayley rooms (the CAYLEY map has them at work): a
+  // lever of Z2 and its gate of e, open at first
+  "cayley-gate": {
+    room: "debug-cayley",
+    group: "2.1",
+    el: 0,
+    alcove: [BI, BJ],
+  },
+  "cayley-lever": { room: "debug-cayley", group: "2.1", by: 1 },
   // undoes the goals above (their ids start with "debug")
   "goal-reset": {
     prefix: "debug",
@@ -576,6 +588,21 @@ prop(GX + 6, GY + 3, "goal-reset", {
   to: [BI + GROUPS_ARRIVAL.i, BJ + GROUPS_ARRIVAL.j],
 })
 sign(GX + 7, GY + 3, "RESET: THE GROUP PUZZLES BACK AS NEW, TO PLAY AGAIN")
+// the way to the Cayley rooms (tools/generate_cayley_map.ts), and back
+// here: the cell left of this portal
+prop(GX + 50, GY + 3, "portal", {
+  i: CAYLEY.BI + CAYLEY.ARRIVAL.i,
+  j: CAYLEY.BJ + CAYLEY.ARRIVAL.j,
+})
+sign(
+  GX + 51,
+  GY + 3,
+  "PORTAL: TO THE CAYLEY ROOMS (EVERY GROUP OF ORDER 1 TO 20, A GATE FOR EACH ELEMENT)",
+)
+if (
+  CAYLEY.GROUPS_RETURN.i !== BI + GX + 49 ||
+  CAYLEY.GROUPS_RETURN.j !== BJ + GY + 3
+) throw new Error("the Cayley rooms' portal back lands off its place")
 
 /** A bay: (x, y) its top left wall, open at the bottom middle */
 type Bay = { x: number; y: number; w: number; h: number; group: string }
@@ -989,6 +1016,7 @@ await Deno.writeTextFile(
   new URL(`../static/map/block_${BI}.${BJ}.json`, import.meta.url),
   JSON.stringify(json, null, 2),
 )
+await CAYLEY.generateCayleyMap()
 console.log(
   `generated block_${BI}.${BJ}.json (debug map: ${ACTOR_TYPES.length} actors, ${ITEM_TYPES.length} items, ${PROP_TYPES.length} props)`,
 )
