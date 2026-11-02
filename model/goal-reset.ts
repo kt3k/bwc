@@ -5,7 +5,7 @@
 //
 // - the goals done and their letters: the collected ids "ring.<id>",
 //   "odd.<id>", "bell.<id>", "pair.<id>", "clear.<id>", "gaze.<id>",
-//   "beacon.<id>", "fold.<id>", "group.<id>", "chain.<id>" (and its links given,
+//   "beacon.<id>", "fold.<id>", "group.<id>", "cayley.<id>", "chain.<id>" (and its links given,
 //   "chain.<id>.link<k>") and "<...>.reward" whose goal id starts with the map's
 //   prefix (the GOALS map names its goals "goals-...", the WILDS name
 //   theirs by their cell, "<x>.<y>", so they never match), and the
@@ -36,7 +36,7 @@ export type GoalResetData = {
 /**
  * The goal kinds whose ids a reset matches (model/ring.ts, odd-one.ts,
  * bell.ts, pair.ts, clear.ts, gaze.ts, beacon.ts, fold.ts, chain.ts,
- * group-lever.ts)
+ * group-lever.ts, cayley-room.ts)
  */
 const GOAL_KINDS = [
   "ring",
@@ -49,6 +49,7 @@ const GOAL_KINDS = [
   "fold",
   "chain",
   "group",
+  "cayley",
 ]
 
 /** The cell a spawn-like collected id names, if any */

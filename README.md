@@ -35,7 +35,13 @@ the catalog with `deno task generate-debug`. To its right, walled off and
 reached by its "TO THE GROUPS" portal (or `#10109,-9995`), the GROUPS area:
 puzzles run by finite groups (S3, S4, Z4, D4, Z2xZ2, Z6, ...) built from a few
 parts, levers that swap or turn standing stones and a Moai, a mural and a door
-(ideas/groups.md).
+(ideas/groups.md). From the GROUPS, the "TO THE CAYLEY ROOMS" portal (or
+`#10202,-9996`) leads to the CAYLEY map (block_10200.-10000 and
+block_10200.-9800): a Cayley room for every group of order 1 to 20 (54, with
+their tables copied from kt3k/group), a gate per element with exactly one open
+and a lever per generator moving the opening from g to g·x, the gates laid out
+as the group's Cayley graph (tools/generate_cayley_map.ts, written by
+`deno task generate-debug` too; docs/group-representations.md).
 
 `http://localhost:8000/#10402,-9996` is the GOALS map (block_10400.-10000), for
 trying the goals: a bay for every signature of the missing ring (each a real
