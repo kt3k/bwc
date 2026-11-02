@@ -26,8 +26,8 @@
 目標の元の門の奥に読めない文字。
 
 - 置き場所: DEBUG の右隣の CAYLEY (block_10200.-10000 と
-  block_10200.-9800)。GROUPS の区画の `PORTAL: TO THE CAYLEY ROOMS` から。 位数
-  1〜20 の 54 群すべてと、Z₆ をもう 1 部屋 (Z₃×Z₂ として)。
+  block_10200.-9800)。GROUPS の区画の `CAYLEY` のポータル (START の島にも)
+  から。 位数 1〜20 の 54 群すべてと、Z₆ をもう 1 部屋 (Z₃×Z₂ として)。
 - 部品: `cayley-gate` (2 状態)、`cayley-lever` (GROUPS のレバーの絵)。
 - コード: model/cayley.ts (表と状態)、model/cayley-room.ts (プロップ)、
   tools/cayley_rooms.ts (並べ方)、tools/generate_cayley_map.ts (地図)。

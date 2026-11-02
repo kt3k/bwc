@@ -3,8 +3,8 @@
 WILDS に動物の棲家を置く。棲家ごとに、そこの動物とのつきあい方
 (手なずける、追い込む、出し抜く、留守を狙う) が 1 つずつある。 コードは
 model/den.ts、絵は tools/draw_dens.ts、置き場所は tools/generate_wilds.ts
-の「animal homes」。デバッグマップの入口の 「TO THE ANIMAL
-HOMES」のポータルから、4 つ全部を試せる。
+の「animal homes」。デバッグマップの入口の 「HOMES」と 地面に書いたポータル
+(START の島の広間にもある) から、4 つ全部を試せる。
 
 一度もらったご褒美は、拾ったアイテムと同じくセーブに残る
 (`warren.<id>`、`pen.<id>`、`den.<id>`、`hive.<id>`)。

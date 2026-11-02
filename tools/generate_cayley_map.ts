@@ -110,7 +110,12 @@ export function buildCayleyMap() {
   rect(1, 1, right, bottom, "0")
 
   // the arrival: the title, the portal back, the reset
-  for (const [n, ch] of [..."cayley"].entries()) prop(2 + n, 2, `${ch}_white`)
+  const letters = (i: number, j: number, word: string) => {
+    for (const [n, ch] of [...word.toLowerCase()].entries()) {
+      prop(i + n, j, `${ch}_white`)
+    }
+  }
+  letters(2, 2, "CAYLEY")
   sign(
     9,
     2,
@@ -118,7 +123,7 @@ export function buildCayleyMap() {
   )
   prop(ARRIVAL.i, ARRIVAL.j, "portal-out")
   prop(5, 4, "portal", { i: GROUPS_RETURN.i, j: GROUPS_RETURN.j })
-  sign(6, 4, "PORTAL: BACK TO THE GROUPS")
+  letters(5, 5, "GROUPS")
   prop(9, 4, "goal-reset", {
     prefix: PREFIX,
     box: [BI, BJ, BI + SIZE - 1, BJ + HEIGHT - 1],
@@ -239,7 +244,7 @@ export async function generateCayleyMap() {
     }
     await Deno.writeTextFile(
       new URL(`../static/map/block_${BI}.${j}.json`, import.meta.url),
-      JSON.stringify(json, null, 2),
+      JSON.stringify(json, null, 2) + "\n",
     )
   }
   console.log(

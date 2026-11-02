@@ -433,7 +433,7 @@ export function buildGoalsMap(
   )
   prop(ARRIVAL.i, ARRIVAL.j, "portal-out")
   prop(5, 4, "portal", { i: START.i, j: START.j })
-  sign(6, 4, "PORTAL: BACK TO THE START ISLAND")
+  letters(5, 5, "START")
   reset(10, 4)
   sign(
     11,

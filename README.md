@@ -29,19 +29,18 @@ each drawn as in the game (noise, variants, flips, the base edge of walls), its
 image, its properties, and the maps that use it.
 
 `http://localhost:8000/#10002,-9996` is the debug map: every actor / item / prop
-of the catalog listed at once with a labeled sign. It is also linked by the
-"DEBUG" portal to the left of the start corridor. Regenerate it after changing
+of the catalog listed at once with a labeled sign. Regenerate it after changing
 the catalog with `deno task generate-debug`. To its right, walled off and
-reached by its "TO THE GROUPS" portal (or `#10109,-9995`), the GROUPS area:
-puzzles run by finite groups (S3, S4, Z4, D4, Z2xZ2, Z6, ...) built from a few
-parts, levers that swap or turn standing stones and a Moai, a mural and a door
-(ideas/groups.md). From the GROUPS, the "TO THE CAYLEY ROOMS" portal (or
-`#10202,-9996`) leads to the CAYLEY map (block_10200.-10000 and
-block_10200.-9800): a Cayley room for every group of order 1 to 20 (54, with
-their tables copied from kt3k/group), a gate per element with exactly one open
-and a lever per generator moving the opening from g to g·x, the gates laid out
-as the group's Cayley graph (tools/generate_cayley_map.ts, written by
-`deno task generate-debug` too; docs/group-representations.md).
+reached by its "GROUPS" portal (or `#10109,-9995`), the GROUPS area: puzzles run
+by finite groups (S3, S4, Z4, D4, Z2xZ2, Z6, ...) built from a few parts, levers
+that swap or turn standing stones and a Moai, a mural and a door
+(ideas/groups.md). From the GROUPS, the "CAYLEY" portal (or `#10202,-9996`)
+leads to the CAYLEY map (block_10200.-10000 and block_10200.-9800): a Cayley
+room for every group of order 1 to 20 (54, with their tables copied from
+kt3k/group), a gate per element with exactly one open and a lever per generator
+moving the opening from g to g·x, the gates laid out as the group's Cayley graph
+(tools/generate_cayley_map.ts, written by `deno task generate-debug` too;
+docs/group-representations.md).
 
 `http://localhost:8000/#10402,-9996` is the GOALS map (block_10400.-10000), for
 trying the goals: a bay for every signature of the missing ring (each a real
@@ -58,11 +57,21 @@ watched. Goals done there count and give letters like the WILDS' ones (so the
 Odradeks turn up, the first in the hall of waystones). The RESET in the map
 undoes the goals of this map only (their ids start with `goals-`), takes back
 their letters and reloads the map; the WILDS' goals are kept. It is linked by
-the "GOALS" portal room, past the DEBUG room along its bottom row. Regenerate it
-with `deno task generate-goals` (a few minutes: it draws and solves thousands of
+the "GOALS" portal of the start island. Regenerate it with
+`deno task generate-goals` (a few minutes: it draws and solves thousands of
 rings, bells, pairs, daises, statues and patrols' ways; `--drafts N`,
 `--bell-drafts N`, `--pair-drafts N`, `--clear-drafts N`, `--gaze-drafts N` and
 `--patrol-drafts N` draw fewer extra ones).
+
+All the debug places have a portal on the start island, side by side in one
+small hall off the start corridor (west, across from the free roam room), each
+named on the ground in white letters: DEBUG, GROUPS, CAYLEY, GOALS, ZOO (the
+preview zoo, `#10010,10004`), TOWN (the zoo's town square), BAIT and HOMES (the
+DEBUG map's rooms of the tools and of the animals). The hall is built by
+tools/start_portals.ts alone; `deno task generate-debug`, `generate-goals` and
+`generate-zoo` rebuild it after writing their maps, and
+`deno -A tools/start_portals.ts` rebuilds it by itself. In the debug maps, the
+portals are named on the ground the same way (START, GROUPS, DEBUG, ...).
 
 # vscode extensions
 

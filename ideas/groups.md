@@ -5,8 +5,9 @@ kt3k/group のスイッチの考え方をそのまま仕掛けにする: 「状�
 ここでは状態は **石の並び**、ボタンは **レバー**。
 
 置き場所: DEBUG マップ (block_10000.-10000) の右側、ほかと壁で隔てた GROUPS
-の区画。DEBUG マップ上の行の `PORTAL: TO THE GROUPS` (DEBUG の 到着点の右)
-から入る。直接なら `http://localhost:8000/#10109,-9995`。
+の区画。DEBUG マップ上の行の `GROUPS` と地面に書いたポータル (DEBUG の
+到着点の右) か、START の島のデバッグポータルの広間の `GROUPS` から入る。直接なら
+`http://localhost:8000/#10109,-9995`。
 区画の入口に、区画のパズルだけをやり直せる RESET (`goal-reset`, prefix
 `groups-`) がある。作るのは tools/generate_debug_map.ts
 (`deno task generate-debug`)、絵は tools/draw_groups.ts。
@@ -84,8 +85,8 @@ GOAL_KINDS に `group`) ので、遊びなおしても数が積み上がらな�
 docs/group-representations.md。
 
 置き場所: DEBUG の右隣の 2 ブロック (block_10200.-10000 と、その下の
-block_10200.-9800、地続き)。GROUPS の区画の上の行の
-`PORTAL: TO THE CAYLEY ROOMS` から入る (直接なら
+block_10200.-9800、地続き)。GROUPS の区画の上の行の `CAYLEY`
+と地面に書いたポータルか、START の島の `CAYLEY` から入る (直接なら
 `http://localhost:8000/#10202,-9996`)。到着点の横に戻りの PORTAL と RESET
 (`goal-reset`, prefix `cayley-`)。作るのは tools/generate_cayley_map.ts
 (`deno task generate-debug` が一緒に書く)、並べ方は tools/cayley_rooms.ts、 絵は

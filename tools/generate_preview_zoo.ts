@@ -1,11 +1,14 @@
 // Generates the preview zoo (block_10000.10000): a showcase block
 // where every cell, item, prop and actor of the catalog is placed live
 // with a labeled sign, so their behaviors can be tried in the real
-// game. Reached from static/preview.html (hash #10010,10004).
+// game. Reached from static/preview.html (hash #10010,10004), and from
+// the hall of the debug portals on the start island (its ZOO and TOWN
+// portals, tools/start_portals.ts).
 //
 // Usage: deno -A tools/generate_preview_zoo.ts
 import { createRooms } from "./rooms.ts"
 import { loadCatalog } from "../model/catalog.ts"
+import { linkStartPortals } from "./start_portals.ts"
 
 const SIZE = 200
 const BI = 10000
@@ -482,7 +485,10 @@ sign(36, 99, "TOWN: BUMP INTO PEOPLE TO TALK")
 // the arrival from the start island, and the way back
 prop(TOWN_ARRIVAL.i, TOWN_ARRIVAL.j, "portal-out")
 prop(TOWN_ARRIVAL.i - 3, TOWN_ARRIVAL.j, "portal", START)
-sign(TOWN_ARRIVAL.i - 4, TOWN_ARRIVAL.j - 1, "BACK TO THE START ISLAND")
+// its name on the ground under it
+for (const [n, ch] of [..."start"].entries()) {
+  prop(TOWN_ARRIVAL.i - 3 + n, TOWN_ARRIVAL.j + 1, `${ch}_white`)
+}
 const house = (
   x0: number,
   y0: number,
@@ -602,68 +608,13 @@ const json = {
 }
 await Deno.writeTextFile(
   new URL("../static/map/block_10000.10000.json", import.meta.url),
-  JSON.stringify(json, null, 2),
+  JSON.stringify(json, null, 2) + "\n",
 )
 console.log("generated block_10000.10000.json (preview zoo)")
 
 // ---------------------------------------------------------------------
-// the town portal room on the start island (block_-10000.-10000)
-//
-// Mirrors the free roam room across the start corridor (as the debug
-// room mirrors the tutorial room): a passage opens to the left at the
-// same row, marked with a red cell, a "T" label and a sign, leading to
-// a walled room with the portal to the town square.
+// the debug portals on the start island (block_-10000.-10000): the hall
+// with a portal to every debug place, the ZOO and the TOWN among them
+// (tools/start_portals.ts)
 
-type BlockJson = { i: number; j: number; props: Spawn[]; field: string[] }
-const startPath = new URL(
-  "../static/map/block_-10000.-10000.json",
-  import.meta.url,
-)
-const start = JSON.parse(await Deno.readTextFile(startPath)) as BlockJson
-const sgrid = start.field.map((row) => [...row])
-const carve = (
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number,
-  cell: string,
-) => {
-  for (let y = y0; y <= y1; y++) {
-    for (let x = x0; x <= x1; x++) sgrid[y][x] = cell
-  }
-}
-carve(24, 36, 28, 40, "3") // the room ring
-carve(25, 37, 27, 39, "6") // the room floor
-carve(29, 36, 32, 40, "0") // the passage
-carve(33, 38, 33, 38, "0") // the opening from the start corridor
-carve(31, 38, 31, 38, "r") // the red marker cell
-start.field = sgrid.map((row) => row.join(""))
-const startLocal = (i: number, j: number) => ({
-  i: start.i + i,
-  j: start.j + j,
-})
-for (
-  const add of [
-    {
-      ...startLocal(26, 38),
-      type: "portal",
-      data: { i: BI + TOWN_ARRIVAL.i, j: BJ + TOWN_ARRIVAL.j },
-    },
-    { ...startLocal(31, 38), type: "r_white" },
-    { ...startLocal(30, 38), type: "t" },
-    {
-      ...startLocal(29, 36),
-      type: "sign",
-      data: { text: "TOWN: WHERE THE TOWNSFOLK LIVE" },
-    },
-  ]
-) {
-  const index = start.props.findIndex((p) => p.i === add.i && p.j === add.j)
-  if (index >= 0) {
-    start.props[index] = add
-  } else {
-    start.props.push(add)
-  }
-}
-await Deno.writeTextFile(startPath, JSON.stringify(start, null, 2))
-console.log("linked the town from the start island")
+await linkStartPortals()

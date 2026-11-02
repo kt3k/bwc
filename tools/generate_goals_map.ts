@@ -8,8 +8,8 @@
 // tools/folds.ts makes, a few chains of trades tools/chains.ts makes (up
 // to CHAINS_PER_LENGTH of 2 links and as many of 3, a signature each), an
 // odd one for every family, Odradek's room and a reset that undoes the goals of this map
-// only. It is linked from the start island by a
-// "GOALS" portal room, to the left of the DEBUG room.
+// only. It is linked from the start island by its "GOALS" portal in the
+// hall of the debug portals (tools/start_portals.ts).
 //
 // The rings are real: drawn and solved by tools/rings.ts. First the very
 // pool the WILDS draw theirs from (the same seed and draws as
@@ -45,10 +45,8 @@ import {
   PATROL_AIMS,
 } from "./patrols.ts"
 import {
-  ARRIVAL,
   BI,
   BJ,
-  type BlockJson,
   buildGoalsMap,
   type GoalBell,
   type GoalChain,
@@ -58,8 +56,8 @@ import {
   type GoalPair,
   type GoalPatrol,
   type GoalRing,
-  type Spawn,
 } from "./goals_map.ts"
+import { linkStartPortals } from "./start_portals.ts"
 
 const args = parseArgs(Deno.args, {
   string: [
@@ -516,67 +514,8 @@ console.log(
 )
 
 // ---------------------------------------------------------------------
-// the GOALS portal room on the start island (block_-10000.-10000)
-//
-// To the left of the DEBUG room (tools/generate_debug_map.ts), the same
-// shape: a walled room with the portal, and a passage with a red cell, a
-// "G" label and a sign. It opens on the DEBUG room's bottom row, which is
-// walked along from the DEBUG passage (a sign there points the way).
+// the debug portals on the start island (block_-10000.-10000): the hall
+// with a portal to every debug place, the GOALS among them
+// (tools/start_portals.ts)
 
-const startPath = new URL(
-  "../static/map/block_-10000.-10000.json",
-  import.meta.url,
-)
-const start = JSON.parse(await Deno.readTextFile(startPath)) as BlockJson
-const sgrid = start.field.map((row) => [...row])
-const carve = (
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number,
-  cell: string,
-) => {
-  for (let y = y0; y <= y1; y++) {
-    for (let x = x0; x <= x1; x++) sgrid[y][x] = cell
-  }
-}
-carve(14, 23, 18, 27, "3") // the room ring
-carve(15, 24, 17, 26, "6") // the room floor
-carve(19, 23, 22, 27, "0") // the passage
-carve(23, 27, 23, 27, "0") // the opening onto the DEBUG room
-carve(22, 27, 22, 27, "r") // the red marker cell
-start.field = sgrid.map((row) => row.join(""))
-
-const local = (i: number, j: number) => ({ i: start.i + i, j: start.j + j })
-const additions: Spawn[] = [
-  {
-    ...local(16, 25),
-    type: "portal",
-    data: { i: BI + ARRIVAL.i, j: BJ + ARRIVAL.j },
-  },
-  { ...local(22, 27), type: "r_white" },
-  { ...local(21, 27), type: "g" },
-  {
-    ...local(19, 23),
-    type: "sign",
-    data: {
-      text: "GOALS MAP: EVERY RING, BELL, PAIR, DAIS, STATUE, PATROL, FOLD, " +
-        "CHAIN AND ODD ONE, AND A RESET",
-    },
-  },
-  {
-    ...local(32, 27),
-    type: "sign",
-    data: { text: "GOALS MAP: WEST, ALONG THE FOOT OF THE DEBUG ROOM" },
-  },
-]
-for (const add of additions) {
-  const index = start.props.findIndex((p) => p.i === add.i && p.j === add.j)
-  if (index >= 0) {
-    start.props[index] = add
-  } else {
-    start.props.push(add)
-  }
-}
-await Deno.writeTextFile(startPath, JSON.stringify(start, null, 2) + "\n")
-console.log("linked the goals map from the start island")
+await linkStartPortals()

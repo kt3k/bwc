@@ -10,15 +10,16 @@
 // a portal leads to the Cayley rooms, the next blocks east
 // (tools/generate_cayley_map.ts, written by this script too).
 //
-// It also links the block from the start island: a "DEBUG" portal room
-// is carved to the left of the start corridor (mirroring the tutorial
-// portal room on the right).
+// Then it links the debug places from the start island: the hall of the
+// debug portals (tools/start_portals.ts), a portal to each named on the
+// ground.
 //
 // Usage: deno -A tools/generate_debug_map.ts
 import { loadCatalog } from "../model/catalog.ts"
 import { validate } from "../util/json-schema.ts"
 import { ODD_FAMILIES, unlikeType } from "../model/odd-families.ts"
 import * as CAYLEY from "./generate_cayley_map.ts"
+import { linkStartPortals } from "./start_portals.ts"
 import {
   type Arrangement,
   type Cycles,
@@ -236,7 +237,7 @@ letters(2, 2, "DEBUG")
 sign(8, 2, "DEBUG MAP: EVERY ACTOR, ITEM AND PROP OF THE CATALOG")
 prop(ARRIVAL.i, ARRIVAL.j, "portal-out")
 prop(5, 4, "portal", { i: START.i, j: START.j })
-sign(6, 4, "PORTAL: BACK TO THE START ISLAND")
+letters(5, 5, "START")
 
 // actors: one fenced pen each, in rows
 letters(2, ACTORS_Y, "ACTORS")
@@ -427,7 +428,7 @@ PLOTS.forEach(([text, fill], n) => {
 letters(2, BAIT_Y, "BAIT")
 sign(7, BAIT_Y, "BAIT: X (OR THE BUTTONS) CHOOSES WHAT TO PUT. SPACE PUTS IT")
 prop(14, 4, "portal", { i: BI + 3, j: BJ + BAIT_Y + 2 })
-sign(15, 4, "PORTAL: TO THE BAIT ROOMS (THE TOOLS)")
+letters(14, 5, "BAIT")
 prop(2, BAIT_Y + 2, "portal", { i: BI + 13, j: BJ + 4 })
 sign(4, BAIT_Y + 2, "SUPPLIES. A FISH COMES BACK WHEN YOU COME BACK")
 for (let x = 6; x <= 11; x++) item(x, BAIT_Y + 2, "apple")
@@ -497,7 +498,7 @@ rect(20, BAIT_Y + 1, 23, BAIT_Y + 2, "w")
 letters(2, HOMES_Y, "HOMES")
 sign(8, HOMES_Y, "ANIMAL HOMES: A WARREN, A PEN, A DEN AND A HIVE")
 prop(22, 4, "portal", { i: BI + 3, j: BJ + HOMES_Y + 2 })
-sign(23, 4, "PORTAL: TO THE ANIMAL HOMES")
+letters(22, 5, "HOMES")
 prop(2, HOMES_Y + 2, "portal", { i: BI + 21, j: BJ + 4 })
 rect(1, HOMES_Y + 4, 60, HOMES_Y + 17, "6")
 {
@@ -573,9 +574,9 @@ sign(
   "GROUPS: PUZZLES RUN BY FINITE GROUPS. A LEVER SWAPS OR TURNS THE STONES IT IS TIED TO. MATCH THE MURAL",
 )
 prop(30, 4, "portal", { i: BI + GROUPS_ARRIVAL.i, j: BJ + GROUPS_ARRIVAL.j })
-sign(31, 4, "PORTAL: TO THE GROUPS (PUZZLES RUN BY FINITE GROUPS)")
+letters(30, 5, "GROUPS")
 prop(GX, GY + 3, "portal", { i: BI + 29, j: BJ + 4 })
-sign(GX + 1, GY + 3, "PORTAL: BACK TO THE DEBUG MAP")
+letters(GX, GY + 4, "DEBUG")
 prop(GROUPS_ARRIVAL.i, GROUPS_ARRIVAL.j, "portal-out")
 prop(GX + 6, GY + 3, "goal-reset", {
   prefix: GROUPS_PREFIX,
@@ -594,11 +595,7 @@ prop(GX + 50, GY + 3, "portal", {
   i: CAYLEY.BI + CAYLEY.ARRIVAL.i,
   j: CAYLEY.BJ + CAYLEY.ARRIVAL.j,
 })
-sign(
-  GX + 51,
-  GY + 3,
-  "PORTAL: TO THE CAYLEY ROOMS (EVERY GROUP OF ORDER 1 TO 20, A GATE FOR EACH ELEMENT)",
-)
+letters(GX + 50, GY + 4, "CAYLEY")
 if (
   CAYLEY.GROUPS_RETURN.i !== BI + GX + 49 ||
   CAYLEY.GROUPS_RETURN.j !== BJ + GY + 3
@@ -1014,7 +1011,7 @@ const json = {
 }
 await Deno.writeTextFile(
   new URL(`../static/map/block_${BI}.${BJ}.json`, import.meta.url),
-  JSON.stringify(json, null, 2),
+  JSON.stringify(json, null, 2) + "\n",
 )
 await CAYLEY.generateCayleyMap()
 console.log(
@@ -1022,63 +1019,7 @@ console.log(
 )
 
 // ---------------------------------------------------------------------
-// the debug portal room on the start island (block_-10000.-10000)
-//
-// Mirrors the tutorial portal room across the start corridor: a
-// passage opens to the left at the same row, marked with a red cell,
-// a "D" label and a sign, leading to a walled room with the portal.
+// the debug portals on the start island (block_-10000.-10000): the hall
+// with a portal to every debug place, rebuilt from the maps as they are now
 
-interface BlockJson {
-  i: number
-  j: number
-  actors: Spawn[]
-  items: Spawn[]
-  props: Spawn[]
-  field: string[]
-}
-
-const startPath = new URL(
-  "../static/map/block_-10000.-10000.json",
-  import.meta.url,
-)
-const start = JSON.parse(await Deno.readTextFile(startPath)) as BlockJson
-const sgrid = start.field.map((row) => [...row])
-const carve = (
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number,
-  cell: string,
-) => {
-  for (let y = y0; y <= y1; y++) {
-    for (let x = x0; x <= x1; x++) sgrid[y][x] = cell
-  }
-}
-carve(24, 23, 28, 27, "3") // the room ring
-carve(25, 24, 27, 26, "6") // the room floor
-carve(29, 23, 32, 27, "0") // the passage
-carve(33, 25, 33, 25, "0") // the opening from the start corridor
-carve(31, 25, 31, 25, "r") // the red marker cell
-start.field = sgrid.map((row) => row.join(""))
-
-const local = (i: number, j: number) => ({ i: start.i + i, j: start.j + j })
-const additions: Spawn[] = [
-  {
-    ...local(26, 25),
-    type: "portal",
-    data: { i: BI + ARRIVAL.i, j: BJ + ARRIVAL.j },
-  },
-  { ...local(31, 25), type: "r_white" },
-  { ...local(30, 25), type: "d" },
-  { ...local(29, 23), type: "sign", data: { text: "DEBUG MAP: EVERY SPAWN" } },
-]
-for (const add of additions) {
-  const index = start.props.findIndex((p) => p.i === add.i && p.j === add.j)
-  if (index >= 0) {
-    start.props[index] = add
-  } else {
-    start.props.push(add)
-  }
-}
-await Deno.writeTextFile(startPath, JSON.stringify(start, null, 2))
-console.log("linked the debug map from the start island")
+await linkStartPortals()
