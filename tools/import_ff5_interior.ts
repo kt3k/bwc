@@ -108,9 +108,9 @@ const PIECES: Piece[] = [
   cell("stool_round", 128, 208, { sheet: "castle", tones: LIFT }),
   // the writing desk, an open book on it and a drawer below
   cell("desk", 144, 224, { sheet: "castle" }),
-  // the kitchen: the dish shelf (hung on the wall) over the counter,
-  // the stove with its kettle, the big pot and the cauldron
-  cell("dish_shelf", 32, 0),
+  // the kitchen: the counter, the stove with its kettle, the big pot and
+  // the cauldron. The dish shelf over the counter is drawn by hand
+  // (tools/draw_furniture.ts): the tile here was the FF5 treasure chest
   cell("counter", 32, 16),
   cell("stove", 64, 32),
   cell("kettle", 80, 16),
