@@ -8,7 +8,9 @@
 // GROUPS area: the puzzles run by finite groups (ideas/groups.md), each
 // in a bay of its own, with a RESET to play them again. From the GROUPS
 // a portal leads to the Cayley rooms, the next blocks east
-// (tools/generate_cayley_map.ts, written by this script too).
+// (tools/generate_cayley_map.ts, written by this script too). It writes
+// the LAMPS map too (tools/generate_lamp_map.ts, reached from the START
+// island).
 //
 // Then it links the debug places from the start island: the hall of the
 // debug portals (tools/start_portals.ts), a portal to each named on the
@@ -19,6 +21,7 @@ import { loadCatalog } from "../model/catalog.ts"
 import { validate } from "../util/json-schema.ts"
 import { ODD_FAMILIES, unlikeType } from "../model/odd-families.ts"
 import * as CAYLEY from "./generate_cayley_map.ts"
+import { generateLampMap } from "./generate_lamp_map.ts"
 import { linkStartPortals } from "./start_portals.ts"
 import {
   type Arrangement,
@@ -157,6 +160,10 @@ const SAMPLE_DATA: Record<string, unknown> = {
     alcove: [BI, BJ],
   },
   "cayley-lever": { room: "debug-cayley", group: "2.1", by: 1 },
+  // the parts of the lamp grids (the LAMPS map has them at work): the
+  // lamp of thing 1 at place 1, lit at first, and a lit plaque
+  "lamp-cell": { group: "debug-group", row: 0, col: 0 },
+  "lamp-plaque": { lit: true },
   // undoes the goals above (their ids start with "debug")
   "goal-reset": {
     prefix: "debug",
@@ -1014,6 +1021,7 @@ await Deno.writeTextFile(
   JSON.stringify(json, null, 2) + "\n",
 )
 await CAYLEY.generateCayleyMap()
+await generateLampMap()
 console.log(
   `generated block_${BI}.${BJ}.json (debug map: ${ACTOR_TYPES.length} actors, ${ITEM_TYPES.length} items, ${PROP_TYPES.length} props)`,
 )

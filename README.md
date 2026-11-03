@@ -42,6 +42,15 @@ moving the opening from g to g·x, the gates laid out as the group's Cayley grap
 (tools/generate_cayley_map.ts, written by `deno task generate-debug` too;
 docs/group-representations.md).
 
+`http://localhost:8000/#10602,-9996` is the LAMPS map (block_10600.-10000):
+groups of permutations shown as permutation matrices of two-state floor lamps.
+In each room n x n lamps (row = thing, column = place, exactly one lit in each
+row and column, at first the diagonal), levers that permute the columns (S3, D3,
+Z3, S4, A4, D4, Z4, Z2xZ2, S5, A5), the target as a plaque grid beside them and
+a door that opens on a letter the first time the lamps match it
+(tools/generate_lamp_map.ts, written by `deno task generate-debug` too; its
+RESET undoes the goals starting with `lamps-`).
+
 `http://localhost:8000/#10402,-9996` is the GOALS map (block_10400.-10000), for
 trying the goals: a bay for every signature of the missing ring (each a real
 ring drawn and solved by tools/rings.ts, the WILDS' own first, with signs naming
@@ -67,9 +76,9 @@ All the debug places have a portal on the start island, side by side in one
 small hall off the start corridor (west, across from the free roam room), each
 named on the ground in white letters: DEBUG, GROUPS, CAYLEY, GOALS, ZOO (the
 preview zoo, `#10010,10004`), TOWN (the zoo's town square), BAIT and HOMES (the
-DEBUG map's rooms of the tools and of the animals). The hall is built by
-tools/start_portals.ts alone; `deno task generate-debug`, `generate-goals` and
-`generate-zoo` rebuild it after writing their maps, and
+DEBUG map's rooms of the tools and of the animals) and LAMPS. The hall is built
+by tools/start_portals.ts alone; `deno task generate-debug`, `generate-goals`
+and `generate-zoo` rebuild it after writing their maps, and
 `deno -A tools/start_portals.ts` rebuilds it by itself. In the debug maps, the
 portals are named on the ground the same way (START, GROUPS, DEBUG, ...).
 

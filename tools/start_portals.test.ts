@@ -5,6 +5,7 @@
 import { assert, assertEquals } from "@std/assert"
 import { loadCatalog } from "../model/catalog.ts"
 import { DESTINATIONS, resolve, slot } from "./start_portals.ts"
+import * as LAMPS from "./generate_lamp_map.ts"
 
 // deno-lint-ignore no-explicit-any
 type Spawn = { i: number; j: number; type: string; data?: any }
@@ -38,9 +39,29 @@ const propAt = (b: Block, i: number, j: number) =>
 Deno.test("start portals: the debug places are the ones the maps have", () => {
   assertEquals(
     places.map((p) => p.name),
-    ["DEBUG", "GROUPS", "CAYLEY", "GOALS", "ZOO", "TOWN", "BAIT", "HOMES"],
+    [
+      "DEBUG",
+      "GROUPS",
+      "CAYLEY",
+      "GOALS",
+      "ZOO",
+      "TOWN",
+      "BAIT",
+      "HOMES",
+      "LAMPS",
+    ],
   )
   assertEquals(places.length, DESTINATIONS.length)
+})
+
+Deno.test("start portals: LAMPS leads to the lamp grids' arrival, named on the ground", () => {
+  const to = { i: LAMPS.BI + LAMPS.ARRIVAL.i, j: LAMPS.BJ + LAMPS.ARRIVAL.j }
+  const portal = portals.find((p) => p.data.i === to.i && p.data.j === to.j)
+  assert(portal, "no portal to the LAMPS")
+  const word = [..."lamps"].map((_, k) =>
+    propAt(start, portal.i + 1 + k, portal.j)[0]?.type
+  )
+  assertEquals(word, [..."lamps"].map((ch) => `${ch}_white`))
 })
 
 Deno.test("start portals: one portal on START to each place, named on the ground", () => {

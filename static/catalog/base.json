@@ -1944,6 +1944,14 @@
       "src": "../prop/3_white.png",
       "canEnter": true
     },
+    "4_white": {
+      "src": "../prop/4_white.png",
+      "canEnter": true
+    },
+    "5_white": {
+      "src": "../prop/5_white.png",
+      "canEnter": true
+    },
     "lamp-post": {
       "src": "../prop/lamp-post.png",
       "canEnter": false
@@ -2769,6 +2777,9 @@
                 "type": "number"
               }
             ]
+          },
+          "text": {
+            "type": "string"
           }
         },
         "required": [
@@ -2956,6 +2967,58 @@
           "room",
           "group",
           "by"
+        ]
+      }
+    },
+    "lamp-cell": {
+      "src": "../prop/lamp_cell.png",
+      "canEnter": false,
+      "growth": {
+        "stages": [
+          "../prop/lamp_cell.png",
+          "../prop/lamp_cell_lit.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string"
+          },
+          "row": {
+            "type": "number"
+          },
+          "col": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "group",
+          "row",
+          "col"
+        ]
+      }
+    },
+    "lamp-plaque": {
+      "src": "../prop/lamp_plaque.png",
+      "canEnter": false,
+      "growth": {
+        "stages": [
+          "../prop/lamp_plaque.png",
+          "../prop/lamp_plaque_lit.png"
+        ],
+        "interval": 100000000
+      },
+      "dataSchema": {
+        "type": "object",
+        "properties": {
+          "lit": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "lit"
         ]
       }
     },

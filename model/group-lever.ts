@@ -258,6 +258,8 @@ type DoorData = {
   target?: Arrangement
   /** Where its letter comes up (behind it) */
   reward?: [number, number]
+  /** Its message when it opens (DOOR_TEXT if none) */
+  text?: string
 }
 
 /** The message when a group's door opens */
@@ -268,7 +270,7 @@ export const DOOR_TEXT = "THE STONES ARE IN PLACE"
  * time it is, the goal is done and it stays open (kept in the save)
  */
 export function stepGroupDoor(prop: Prop, field: IField) {
-  const { group, id, target, reward } = (prop.data ?? {}) as DoorData
+  const { group, id, target, reward, text } = (prop.data ?? {}) as DoorData
   if (typeof group !== "string" || !id || !Array.isArray(target)) return
   if (isSolved(id)) {
     if (!prop.isOpen) prop.setOpen(true, false)
@@ -280,7 +282,7 @@ export function stepGroupDoor(prop: Prop, field: IField) {
   if (!same(arrangementOf(group), target)) return
   prop.setOpen(true, false)
   prop.showStage(1)
-  solve(field, prop, id, DOOR_TEXT, reward)
+  solve(field, prop, id, text ?? DOOR_TEXT, reward)
 }
 
 type BellData = {

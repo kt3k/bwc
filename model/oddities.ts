@@ -81,6 +81,7 @@ import {
   stepCayleyGate,
   stepCayleyLever,
 } from "./cayley-room.ts"
+import { stepLampCell, stepLampPlaque } from "./lamp-room.ts"
 import { ODD_FAMILIES, unlikeType } from "./odd-families.ts"
 import type { Actor } from "./actor.ts"
 
@@ -983,6 +984,8 @@ export const ODD_PROP_STEP: Record<
   "group-mural": stepGroupMural,
   "cayley-gate": stepCayleyGate,
   "cayley-lever": stepCayleyLever,
+  "lamp-cell": stepLampCell,
+  "lamp-plaque": stepLampPlaque,
   ...Object.fromEntries(ODD_FAMILIES.map((f) => [unlikeType(f), stepUnlike])),
 }
 

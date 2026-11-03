@@ -7,7 +7,8 @@
 // The places: the DEBUG map, its BAIT rooms, its animal HOMES and its
 // GROUPS area (tools/generate_debug_map.ts), the CAYLEY rooms
 // (tools/generate_cayley_map.ts), the GOALS map (tools/goals_map.ts), the
-// preview ZOO and its TOWN (tools/generate_preview_zoo.ts).
+// preview ZOO and its TOWN (tools/generate_preview_zoo.ts), the LAMPS
+// (tools/generate_lamp_map.ts).
 //
 // Built here only: the generators of those maps call linkStartPortals()
 // after writing their blocks, and it rebuilds the whole hall from the
@@ -18,6 +19,7 @@
 // Usage: deno -A tools/start_portals.ts (relinks the hall only)
 import * as CAYLEY from "./generate_cayley_map.ts"
 import * as GOALS from "./goals_map.ts"
+import * as LAMPS from "./generate_lamp_map.ts"
 
 type Spawn = { i: number; j: number; type: string; data?: unknown }
 type BlockJson = {
@@ -59,6 +61,10 @@ export const DESTINATIONS: Destination[] = [
   // the catalog is long, so taken from the map's own portals to them
   { name: "BAIT", via: { block: DEBUG_BLOCK, i: 10014, j: -9996 } },
   { name: "HOMES", via: { block: DEBUG_BLOCK, i: 10022, j: -9996 } },
+  {
+    name: "LAMPS",
+    to: { i: LAMPS.BI + LAMPS.ARRIVAL.i, j: LAMPS.BJ + LAMPS.ARRIVAL.j },
+  },
 ]
 
 /** The START island's block */
@@ -80,7 +86,7 @@ const MAX_NAME = 6
  */
 const CLEARED: [number, number, number, number][] = [
   [14, 23, 33, 27],
-  [14, 36, 33, 48],
+  [14, 36, 33, 50],
 ]
 
 /** The hall's last row (its south ring) for so many places */

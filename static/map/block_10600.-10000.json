@@ -1,0 +1,4497 @@
+{
+  "i": 10600,
+  "j": -10000,
+  "name": "LAMPS",
+  "catalogs": [
+    "../catalog/base.json"
+  ],
+  "config": {
+    "showsExitButton": true
+  },
+  "actors": [],
+  "items": [],
+  "props": [
+    {
+      "i": 10602,
+      "j": -9998,
+      "type": "l_white"
+    },
+    {
+      "i": 10603,
+      "j": -9998,
+      "type": "a_white"
+    },
+    {
+      "i": 10604,
+      "j": -9998,
+      "type": "m_white"
+    },
+    {
+      "i": 10605,
+      "j": -9998,
+      "type": "p_white"
+    },
+    {
+      "i": 10606,
+      "j": -9998,
+      "type": "s_white"
+    },
+    {
+      "i": 10608,
+      "j": -9998,
+      "type": "sign",
+      "data": {
+        "text": "LAMP GRIDS: AN ORDER OF N THINGS AS N x N LAMPS. ROW = THING, COLUMN = PLACE, ONE LAMP LIT IN EACH ROW AND EACH COLUMN. THE LEVERS MOVE THE COLUMNS"
+      }
+    },
+    {
+      "i": 10602,
+      "j": -9996,
+      "type": "portal-out"
+    },
+    {
+      "i": 10605,
+      "j": -9996,
+      "type": "portal",
+      "data": {
+        "i": -9964,
+        "j": -9981
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9995,
+      "type": "s_white"
+    },
+    {
+      "i": 10606,
+      "j": -9995,
+      "type": "t_white"
+    },
+    {
+      "i": 10607,
+      "j": -9995,
+      "type": "a_white"
+    },
+    {
+      "i": 10608,
+      "j": -9995,
+      "type": "r_white"
+    },
+    {
+      "i": 10609,
+      "j": -9995,
+      "type": "t_white"
+    },
+    {
+      "i": 10611,
+      "j": -9996,
+      "type": "goal-reset",
+      "data": {
+        "prefix": "lamps-",
+        "box": [
+          10600,
+          -10000,
+          10799,
+          -9801
+        ],
+        "to": [
+          10602,
+          -9996
+        ]
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9996,
+      "type": "sign",
+      "data": {
+        "text": "RESET: THE LAMP ROOMS BACK AS NEW, TO PLAY AGAIN"
+      }
+    },
+    {
+      "i": 10603,
+      "j": -9992,
+      "type": "s_white"
+    },
+    {
+      "i": 10604,
+      "j": -9992,
+      "type": "3_white"
+    },
+    {
+      "i": 10604,
+      "j": -9990,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s3",
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "i": 10609,
+      "j": -9990,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9990,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s3",
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "i": 10610,
+      "j": -9990,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9990,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s3",
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9990,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9989,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s3",
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "i": 10609,
+      "j": -9989,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9989,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s3",
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "i": 10610,
+      "j": -9989,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9989,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s3",
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9989,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9988,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s3",
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "i": 10609,
+      "j": -9988,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9988,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s3",
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "i": 10610,
+      "j": -9988,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9988,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s3",
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9988,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9987,
+      "type": "1_white"
+    },
+    {
+      "i": 10609,
+      "j": -9987,
+      "type": "1_white"
+    },
+    {
+      "i": 10605,
+      "j": -9987,
+      "type": "2_white"
+    },
+    {
+      "i": 10610,
+      "j": -9987,
+      "type": "2_white"
+    },
+    {
+      "i": 10606,
+      "j": -9987,
+      "type": "3_white"
+    },
+    {
+      "i": 10611,
+      "j": -9987,
+      "type": "3_white"
+    },
+    {
+      "i": 10614,
+      "j": -9989,
+      "type": "group-door",
+      "data": {
+        "group": "lamps-s3",
+        "id": "lamps-s3",
+        "target": [
+          1,
+          2,
+          0
+        ],
+        "reward": [
+          10614,
+          -9990
+        ],
+        "text": "THE LAMPS ARE LIT AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10609,
+      "j": -9985,
+      "type": "a_white"
+    },
+    {
+      "i": 10609,
+      "j": -9984,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-s3",
+        "cycles": [
+          [
+            0,
+            1
+          ]
+        ],
+        "name": "a",
+        "look": 0
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9985,
+      "type": "b_white"
+    },
+    {
+      "i": 10611,
+      "j": -9984,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-s3",
+        "cycles": [
+          [
+            1,
+            2
+          ]
+        ],
+        "name": "b",
+        "look": 0
+      }
+    },
+    {
+      "i": 10603,
+      "j": -9981,
+      "type": "sign",
+      "data": {
+        "text": "S3, THE SYMMETRIC GROUP, OF ORDER 6: 6 OF THE 6 PATTERNS OF 3x3 LAMPS LIGHT. LEVERS (COLUMNS): A (1 2), B (2 3). IT DOES NOT COMMUTE. ALL 6 ORDERS OF 3 THINGS. A THEN B IS NOT B THEN A: TRY BOTH FROM THE START"
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9981,
+      "type": "sign",
+      "data": {
+        "text": "ROW = THING, COLUMN = PLACE: ONE LAMP LIT IN EACH ROW AND EACH COLUMN. A LEVER SWAPS THE COLUMNS IT IS TIED TO, (1 2 3) TURNS THEM ROUND, 1 TO 2 TO 3 TO 1. LIGHT THE LAMPS AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10616,
+      "j": -9981,
+      "type": "sign",
+      "data": {
+        "text": "DEBUG: SOLUTION A B (B A LIGHTS ANOTHER PATTERN: THE ORDER MATTERS)"
+      }
+    },
+    {
+      "i": 10620,
+      "j": -9992,
+      "type": "d_white"
+    },
+    {
+      "i": 10621,
+      "j": -9992,
+      "type": "3_white"
+    },
+    {
+      "i": 10621,
+      "j": -9990,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d3",
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9990,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10622,
+      "j": -9990,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d3",
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "i": 10627,
+      "j": -9990,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10623,
+      "j": -9990,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d3",
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "i": 10628,
+      "j": -9990,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10621,
+      "j": -9989,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d3",
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9989,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10622,
+      "j": -9989,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d3",
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "i": 10627,
+      "j": -9989,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10623,
+      "j": -9989,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d3",
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "i": 10628,
+      "j": -9989,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10621,
+      "j": -9988,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d3",
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9988,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10622,
+      "j": -9988,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d3",
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "i": 10627,
+      "j": -9988,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10623,
+      "j": -9988,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d3",
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "i": 10628,
+      "j": -9988,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10621,
+      "j": -9987,
+      "type": "1_white"
+    },
+    {
+      "i": 10626,
+      "j": -9987,
+      "type": "1_white"
+    },
+    {
+      "i": 10622,
+      "j": -9987,
+      "type": "2_white"
+    },
+    {
+      "i": 10627,
+      "j": -9987,
+      "type": "2_white"
+    },
+    {
+      "i": 10623,
+      "j": -9987,
+      "type": "3_white"
+    },
+    {
+      "i": 10628,
+      "j": -9987,
+      "type": "3_white"
+    },
+    {
+      "i": 10631,
+      "j": -9989,
+      "type": "group-door",
+      "data": {
+        "group": "lamps-d3",
+        "id": "lamps-d3",
+        "target": [
+          2,
+          1,
+          0
+        ],
+        "reward": [
+          10631,
+          -9990
+        ],
+        "text": "THE LAMPS ARE LIT AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9985,
+      "type": "a_white"
+    },
+    {
+      "i": 10626,
+      "j": -9984,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-d3",
+        "cycles": [
+          [
+            0,
+            1
+          ]
+        ],
+        "name": "a",
+        "look": 0
+      }
+    },
+    {
+      "i": 10628,
+      "j": -9985,
+      "type": "b_white"
+    },
+    {
+      "i": 10628,
+      "j": -9984,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-d3",
+        "cycles": [
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        "name": "b",
+        "look": 1
+      }
+    },
+    {
+      "i": 10620,
+      "j": -9981,
+      "type": "sign",
+      "data": {
+        "text": "D3 = S3, THE TRIANGLE'S TURNS AND FLIPS, OF ORDER 6: 6 OF THE 6 PATTERNS OF 3x3 LAMPS LIGHT. LEVERS (COLUMNS): A (1 2), B (1 2 3). IT DOES NOT COMMUTE. THE SAME 6 PATTERNS AS THE S3 ROOM FROM A SWAP AND A TURN OF ALL THREE"
+      }
+    },
+    {
+      "i": 10621,
+      "j": -9981,
+      "type": "sign",
+      "data": {
+        "text": "ROW = THING, COLUMN = PLACE: ONE LAMP LIT IN EACH ROW AND EACH COLUMN. A LEVER SWAPS THE COLUMNS IT IS TIED TO, (1 2 3) TURNS THEM ROUND, 1 TO 2 TO 3 TO 1. LIGHT THE LAMPS AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10633,
+      "j": -9981,
+      "type": "sign",
+      "data": {
+        "text": "DEBUG: SOLUTION A B (B A LIGHTS ANOTHER PATTERN: THE ORDER MATTERS)"
+      }
+    },
+    {
+      "i": 10637,
+      "j": -9992,
+      "type": "z_white"
+    },
+    {
+      "i": 10638,
+      "j": -9992,
+      "type": "3_white"
+    },
+    {
+      "i": 10638,
+      "j": -9990,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z3",
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "i": 10643,
+      "j": -9990,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10639,
+      "j": -9990,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z3",
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "i": 10644,
+      "j": -9990,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10640,
+      "j": -9990,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z3",
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "i": 10645,
+      "j": -9990,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10638,
+      "j": -9989,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z3",
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "i": 10643,
+      "j": -9989,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10639,
+      "j": -9989,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z3",
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "i": 10644,
+      "j": -9989,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10640,
+      "j": -9989,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z3",
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "i": 10645,
+      "j": -9989,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10638,
+      "j": -9988,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z3",
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "i": 10643,
+      "j": -9988,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10639,
+      "j": -9988,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z3",
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "i": 10644,
+      "j": -9988,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10640,
+      "j": -9988,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z3",
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "i": 10645,
+      "j": -9988,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10638,
+      "j": -9987,
+      "type": "1_white"
+    },
+    {
+      "i": 10643,
+      "j": -9987,
+      "type": "1_white"
+    },
+    {
+      "i": 10639,
+      "j": -9987,
+      "type": "2_white"
+    },
+    {
+      "i": 10644,
+      "j": -9987,
+      "type": "2_white"
+    },
+    {
+      "i": 10640,
+      "j": -9987,
+      "type": "3_white"
+    },
+    {
+      "i": 10645,
+      "j": -9987,
+      "type": "3_white"
+    },
+    {
+      "i": 10648,
+      "j": -9989,
+      "type": "group-door",
+      "data": {
+        "group": "lamps-z3",
+        "id": "lamps-z3",
+        "target": [
+          1,
+          2,
+          0
+        ],
+        "reward": [
+          10648,
+          -9990
+        ],
+        "text": "THE LAMPS ARE LIT AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10644,
+      "j": -9985,
+      "type": "a_white"
+    },
+    {
+      "i": 10644,
+      "j": -9984,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-z3",
+        "cycles": [
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        "name": "a",
+        "look": 1
+      }
+    },
+    {
+      "i": 10637,
+      "j": -9981,
+      "type": "sign",
+      "data": {
+        "text": "Z3, THE CYCLIC GROUP, OF ORDER 3: 3 OF THE 6 PATTERNS OF 3x3 LAMPS LIGHT. LEVERS (COLUMNS): A (1 2 3). IT COMMUTES. ONLY 3 OF THE 6 PATTERNS EVER LIGHT: A TURN NEVER SWAPS JUST TWO. THREE PULLS AND IT IS BACK"
+      }
+    },
+    {
+      "i": 10638,
+      "j": -9981,
+      "type": "sign",
+      "data": {
+        "text": "ROW = THING, COLUMN = PLACE: ONE LAMP LIT IN EACH ROW AND EACH COLUMN. A LEVER SWAPS THE COLUMNS IT IS TIED TO, (1 2 3) TURNS THEM ROUND, 1 TO 2 TO 3 TO 1. LIGHT THE LAMPS AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10650,
+      "j": -9981,
+      "type": "sign",
+      "data": {
+        "text": "DEBUG: SOLUTION A A IN ANY ORDER"
+      }
+    },
+    {
+      "i": 10603,
+      "j": -9978,
+      "type": "s_white"
+    },
+    {
+      "i": 10604,
+      "j": -9978,
+      "type": "4_white"
+    },
+    {
+      "i": 10604,
+      "j": -9976,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "i": 10610,
+      "j": -9976,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9976,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9976,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9976,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9976,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10607,
+      "j": -9976,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 0,
+        "col": 3
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9976,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9975,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "i": 10610,
+      "j": -9975,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9975,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9975,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9975,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9975,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10607,
+      "j": -9975,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 1,
+        "col": 3
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9975,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9974,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "i": 10610,
+      "j": -9974,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9974,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9974,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9974,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9974,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10607,
+      "j": -9974,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 2,
+        "col": 3
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9974,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9973,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 3,
+        "col": 0
+      }
+    },
+    {
+      "i": 10610,
+      "j": -9973,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9973,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 3,
+        "col": 1
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9973,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9973,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 3,
+        "col": 2
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9973,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10607,
+      "j": -9973,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s4",
+        "row": 3,
+        "col": 3
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9973,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9972,
+      "type": "1_white"
+    },
+    {
+      "i": 10610,
+      "j": -9972,
+      "type": "1_white"
+    },
+    {
+      "i": 10605,
+      "j": -9972,
+      "type": "2_white"
+    },
+    {
+      "i": 10611,
+      "j": -9972,
+      "type": "2_white"
+    },
+    {
+      "i": 10606,
+      "j": -9972,
+      "type": "3_white"
+    },
+    {
+      "i": 10612,
+      "j": -9972,
+      "type": "3_white"
+    },
+    {
+      "i": 10607,
+      "j": -9972,
+      "type": "4_white"
+    },
+    {
+      "i": 10613,
+      "j": -9972,
+      "type": "4_white"
+    },
+    {
+      "i": 10616,
+      "j": -9975,
+      "type": "group-door",
+      "data": {
+        "group": "lamps-s4",
+        "id": "lamps-s4",
+        "target": [
+          3,
+          2,
+          1,
+          0
+        ],
+        "reward": [
+          10616,
+          -9976
+        ],
+        "text": "THE LAMPS ARE LIT AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10609,
+      "j": -9970,
+      "type": "a_white"
+    },
+    {
+      "i": 10609,
+      "j": -9969,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-s4",
+        "cycles": [
+          [
+            0,
+            1
+          ]
+        ],
+        "name": "a",
+        "look": 0
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9970,
+      "type": "b_white"
+    },
+    {
+      "i": 10611,
+      "j": -9969,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-s4",
+        "cycles": [
+          [
+            1,
+            2
+          ]
+        ],
+        "name": "b",
+        "look": 0
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9970,
+      "type": "c_white"
+    },
+    {
+      "i": 10613,
+      "j": -9969,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-s4",
+        "cycles": [
+          [
+            2,
+            3
+          ]
+        ],
+        "name": "c",
+        "look": 0
+      }
+    },
+    {
+      "i": 10603,
+      "j": -9966,
+      "type": "sign",
+      "data": {
+        "text": "S4, THE SYMMETRIC GROUP, OF ORDER 24: 24 OF THE 24 PATTERNS OF 4x4 LAMPS LIGHT. LEVERS (COLUMNS): A (1 2), B (2 3), C (3 4). IT DOES NOT COMMUTE. ALL 24 ORDERS OF 4 THINGS FROM SWAPS OF NEIGHBOURS. THE PLAQUES: REVERSED"
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9966,
+      "type": "sign",
+      "data": {
+        "text": "ROW = THING, COLUMN = PLACE: ONE LAMP LIT IN EACH ROW AND EACH COLUMN. A LEVER SWAPS THE COLUMNS IT IS TIED TO, (1 2 3) TURNS THEM ROUND, 1 TO 2 TO 3 TO 1. LIGHT THE LAMPS AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10618,
+      "j": -9966,
+      "type": "sign",
+      "data": {
+        "text": "DEBUG: SOLUTION A B A C B A"
+      }
+    },
+    {
+      "i": 10622,
+      "j": -9978,
+      "type": "a_white"
+    },
+    {
+      "i": 10623,
+      "j": -9978,
+      "type": "4_white"
+    },
+    {
+      "i": 10623,
+      "j": -9976,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9976,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10624,
+      "j": -9976,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "i": 10630,
+      "j": -9976,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9976,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "i": 10631,
+      "j": -9976,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9976,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 0,
+        "col": 3
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9976,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10623,
+      "j": -9975,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9975,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10624,
+      "j": -9975,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "i": 10630,
+      "j": -9975,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9975,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "i": 10631,
+      "j": -9975,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9975,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 1,
+        "col": 3
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9975,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10623,
+      "j": -9974,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9974,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10624,
+      "j": -9974,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "i": 10630,
+      "j": -9974,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9974,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "i": 10631,
+      "j": -9974,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9974,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 2,
+        "col": 3
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9974,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10623,
+      "j": -9973,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 3,
+        "col": 0
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9973,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10624,
+      "j": -9973,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 3,
+        "col": 1
+      }
+    },
+    {
+      "i": 10630,
+      "j": -9973,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9973,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 3,
+        "col": 2
+      }
+    },
+    {
+      "i": 10631,
+      "j": -9973,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9973,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a4",
+        "row": 3,
+        "col": 3
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9973,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10623,
+      "j": -9972,
+      "type": "1_white"
+    },
+    {
+      "i": 10629,
+      "j": -9972,
+      "type": "1_white"
+    },
+    {
+      "i": 10624,
+      "j": -9972,
+      "type": "2_white"
+    },
+    {
+      "i": 10630,
+      "j": -9972,
+      "type": "2_white"
+    },
+    {
+      "i": 10625,
+      "j": -9972,
+      "type": "3_white"
+    },
+    {
+      "i": 10631,
+      "j": -9972,
+      "type": "3_white"
+    },
+    {
+      "i": 10626,
+      "j": -9972,
+      "type": "4_white"
+    },
+    {
+      "i": 10632,
+      "j": -9972,
+      "type": "4_white"
+    },
+    {
+      "i": 10635,
+      "j": -9975,
+      "type": "group-door",
+      "data": {
+        "group": "lamps-a4",
+        "id": "lamps-a4",
+        "target": [
+          1,
+          0,
+          3,
+          2
+        ],
+        "reward": [
+          10635,
+          -9976
+        ],
+        "text": "THE LAMPS ARE LIT AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9970,
+      "type": "a_white"
+    },
+    {
+      "i": 10629,
+      "j": -9969,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-a4",
+        "cycles": [
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        "name": "a",
+        "look": 1
+      }
+    },
+    {
+      "i": 10631,
+      "j": -9970,
+      "type": "b_white"
+    },
+    {
+      "i": 10631,
+      "j": -9969,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-a4",
+        "cycles": [
+          [
+            1,
+            2,
+            3
+          ]
+        ],
+        "name": "b",
+        "look": 1
+      }
+    },
+    {
+      "i": 10622,
+      "j": -9966,
+      "type": "sign",
+      "data": {
+        "text": "A4, THE ALTERNATING GROUP, OF ORDER 12: 12 OF THE 24 PATTERNS OF 4x4 LAMPS LIGHT. LEVERS (COLUMNS): A (1 2 3), B (2 3 4). IT DOES NOT COMMUTE. ONLY 12 OF THE 24 PATTERNS LIGHT: TWO SWAPS AT ONCE, AS ON THE PLAQUES, BUT NEVER ONE SWAP (THE ODD PATTERNS)"
+      }
+    },
+    {
+      "i": 10623,
+      "j": -9966,
+      "type": "sign",
+      "data": {
+        "text": "ROW = THING, COLUMN = PLACE: ONE LAMP LIT IN EACH ROW AND EACH COLUMN. A LEVER SWAPS THE COLUMNS IT IS TIED TO, (1 2 3) TURNS THEM ROUND, 1 TO 2 TO 3 TO 1. LIGHT THE LAMPS AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10637,
+      "j": -9966,
+      "type": "sign",
+      "data": {
+        "text": "DEBUG: SOLUTION B A (A B LIGHTS ANOTHER PATTERN: THE ORDER MATTERS)"
+      }
+    },
+    {
+      "i": 10641,
+      "j": -9978,
+      "type": "d_white"
+    },
+    {
+      "i": 10642,
+      "j": -9978,
+      "type": "4_white"
+    },
+    {
+      "i": 10642,
+      "j": -9976,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "i": 10648,
+      "j": -9976,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10643,
+      "j": -9976,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "i": 10649,
+      "j": -9976,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10644,
+      "j": -9976,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "i": 10650,
+      "j": -9976,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10645,
+      "j": -9976,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 0,
+        "col": 3
+      }
+    },
+    {
+      "i": 10651,
+      "j": -9976,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10642,
+      "j": -9975,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "i": 10648,
+      "j": -9975,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10643,
+      "j": -9975,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "i": 10649,
+      "j": -9975,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10644,
+      "j": -9975,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "i": 10650,
+      "j": -9975,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10645,
+      "j": -9975,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 1,
+        "col": 3
+      }
+    },
+    {
+      "i": 10651,
+      "j": -9975,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10642,
+      "j": -9974,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "i": 10648,
+      "j": -9974,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10643,
+      "j": -9974,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "i": 10649,
+      "j": -9974,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10644,
+      "j": -9974,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "i": 10650,
+      "j": -9974,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10645,
+      "j": -9974,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 2,
+        "col": 3
+      }
+    },
+    {
+      "i": 10651,
+      "j": -9974,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10642,
+      "j": -9973,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 3,
+        "col": 0
+      }
+    },
+    {
+      "i": 10648,
+      "j": -9973,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10643,
+      "j": -9973,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 3,
+        "col": 1
+      }
+    },
+    {
+      "i": 10649,
+      "j": -9973,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10644,
+      "j": -9973,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 3,
+        "col": 2
+      }
+    },
+    {
+      "i": 10650,
+      "j": -9973,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10645,
+      "j": -9973,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-d4",
+        "row": 3,
+        "col": 3
+      }
+    },
+    {
+      "i": 10651,
+      "j": -9973,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10642,
+      "j": -9972,
+      "type": "1_white"
+    },
+    {
+      "i": 10648,
+      "j": -9972,
+      "type": "1_white"
+    },
+    {
+      "i": 10643,
+      "j": -9972,
+      "type": "2_white"
+    },
+    {
+      "i": 10649,
+      "j": -9972,
+      "type": "2_white"
+    },
+    {
+      "i": 10644,
+      "j": -9972,
+      "type": "3_white"
+    },
+    {
+      "i": 10650,
+      "j": -9972,
+      "type": "3_white"
+    },
+    {
+      "i": 10645,
+      "j": -9972,
+      "type": "4_white"
+    },
+    {
+      "i": 10651,
+      "j": -9972,
+      "type": "4_white"
+    },
+    {
+      "i": 10654,
+      "j": -9975,
+      "type": "group-door",
+      "data": {
+        "group": "lamps-d4",
+        "id": "lamps-d4",
+        "target": [
+          3,
+          2,
+          1,
+          0
+        ],
+        "reward": [
+          10654,
+          -9976
+        ],
+        "text": "THE LAMPS ARE LIT AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10648,
+      "j": -9970,
+      "type": "a_white"
+    },
+    {
+      "i": 10648,
+      "j": -9969,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-d4",
+        "cycles": [
+          [
+            0,
+            1,
+            2,
+            3
+          ]
+        ],
+        "name": "a",
+        "look": 1
+      }
+    },
+    {
+      "i": 10650,
+      "j": -9970,
+      "type": "b_white"
+    },
+    {
+      "i": 10650,
+      "j": -9969,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-d4",
+        "cycles": [
+          [
+            1,
+            3
+          ]
+        ],
+        "name": "b",
+        "look": 2
+      }
+    },
+    {
+      "i": 10641,
+      "j": -9966,
+      "type": "sign",
+      "data": {
+        "text": "D4, THE SQUARE'S TURNS AND FLIPS, OF ORDER 8: 8 OF THE 24 PATTERNS OF 4x4 LAMPS LIGHT. LEVERS (COLUMNS): A (1 2 3 4), B (2 4). IT DOES NOT COMMUTE. THE COLUMNS ARE THE 4 CORNERS OF A SQUARE, CLOCKWISE: A TURNS IT, B FLIPS IT ON THE DIAGONAL 1 3. 8 OF THE 24"
+      }
+    },
+    {
+      "i": 10642,
+      "j": -9966,
+      "type": "sign",
+      "data": {
+        "text": "ROW = THING, COLUMN = PLACE: ONE LAMP LIT IN EACH ROW AND EACH COLUMN. A LEVER SWAPS THE COLUMNS IT IS TIED TO, (1 2 3) TURNS THEM ROUND, 1 TO 2 TO 3 TO 1. LIGHT THE LAMPS AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10656,
+      "j": -9966,
+      "type": "sign",
+      "data": {
+        "text": "DEBUG: SOLUTION A B (B A LIGHTS ANOTHER PATTERN: THE ORDER MATTERS)"
+      }
+    },
+    {
+      "i": 10603,
+      "j": -9963,
+      "type": "z_white"
+    },
+    {
+      "i": 10604,
+      "j": -9963,
+      "type": "4_white"
+    },
+    {
+      "i": 10604,
+      "j": -9961,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "i": 10610,
+      "j": -9961,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9961,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9961,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9961,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9961,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10607,
+      "j": -9961,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 0,
+        "col": 3
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9961,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9960,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "i": 10610,
+      "j": -9960,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9960,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9960,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9960,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9960,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10607,
+      "j": -9960,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 1,
+        "col": 3
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9960,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9959,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "i": 10610,
+      "j": -9959,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9959,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9959,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9959,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9959,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10607,
+      "j": -9959,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 2,
+        "col": 3
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9959,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9958,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 3,
+        "col": 0
+      }
+    },
+    {
+      "i": 10610,
+      "j": -9958,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9958,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 3,
+        "col": 1
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9958,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9958,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 3,
+        "col": 2
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9958,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10607,
+      "j": -9958,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z4",
+        "row": 3,
+        "col": 3
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9958,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9957,
+      "type": "1_white"
+    },
+    {
+      "i": 10610,
+      "j": -9957,
+      "type": "1_white"
+    },
+    {
+      "i": 10605,
+      "j": -9957,
+      "type": "2_white"
+    },
+    {
+      "i": 10611,
+      "j": -9957,
+      "type": "2_white"
+    },
+    {
+      "i": 10606,
+      "j": -9957,
+      "type": "3_white"
+    },
+    {
+      "i": 10612,
+      "j": -9957,
+      "type": "3_white"
+    },
+    {
+      "i": 10607,
+      "j": -9957,
+      "type": "4_white"
+    },
+    {
+      "i": 10613,
+      "j": -9957,
+      "type": "4_white"
+    },
+    {
+      "i": 10616,
+      "j": -9960,
+      "type": "group-door",
+      "data": {
+        "group": "lamps-z4",
+        "id": "lamps-z4",
+        "target": [
+          2,
+          3,
+          0,
+          1
+        ],
+        "reward": [
+          10616,
+          -9961
+        ],
+        "text": "THE LAMPS ARE LIT AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9955,
+      "type": "a_white"
+    },
+    {
+      "i": 10611,
+      "j": -9954,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-z4",
+        "cycles": [
+          [
+            0,
+            1,
+            2,
+            3
+          ]
+        ],
+        "name": "a",
+        "look": 1
+      }
+    },
+    {
+      "i": 10603,
+      "j": -9951,
+      "type": "sign",
+      "data": {
+        "text": "Z4, THE CYCLIC GROUP, OF ORDER 4: 4 OF THE 24 PATTERNS OF 4x4 LAMPS LIGHT. LEVERS (COLUMNS): A (1 2 3 4). IT COMMUTES. 4 PATTERNS, ONE LEVER. LOOK AT THE Z2XZ2 ROOM NEXT DOOR"
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9951,
+      "type": "sign",
+      "data": {
+        "text": "ROW = THING, COLUMN = PLACE: ONE LAMP LIT IN EACH ROW AND EACH COLUMN. A LEVER SWAPS THE COLUMNS IT IS TIED TO, (1 2 3) TURNS THEM ROUND, 1 TO 2 TO 3 TO 1. LIGHT THE LAMPS AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10618,
+      "j": -9951,
+      "type": "sign",
+      "data": {
+        "text": "DEBUG: SOLUTION A A IN ANY ORDER"
+      }
+    },
+    {
+      "i": 10622,
+      "j": -9963,
+      "type": "z_white"
+    },
+    {
+      "i": 10623,
+      "j": -9963,
+      "type": "2_white"
+    },
+    {
+      "i": 10624,
+      "j": -9963,
+      "type": "x_white"
+    },
+    {
+      "i": 10625,
+      "j": -9963,
+      "type": "z_white"
+    },
+    {
+      "i": 10626,
+      "j": -9963,
+      "type": "2_white"
+    },
+    {
+      "i": 10623,
+      "j": -9961,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9961,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10624,
+      "j": -9961,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "i": 10630,
+      "j": -9961,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9961,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "i": 10631,
+      "j": -9961,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9961,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 0,
+        "col": 3
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9961,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10623,
+      "j": -9960,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9960,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10624,
+      "j": -9960,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "i": 10630,
+      "j": -9960,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9960,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "i": 10631,
+      "j": -9960,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9960,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 1,
+        "col": 3
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9960,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10623,
+      "j": -9959,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9959,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10624,
+      "j": -9959,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "i": 10630,
+      "j": -9959,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9959,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "i": 10631,
+      "j": -9959,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9959,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 2,
+        "col": 3
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9959,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10623,
+      "j": -9958,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 3,
+        "col": 0
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9958,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10624,
+      "j": -9958,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 3,
+        "col": 1
+      }
+    },
+    {
+      "i": 10630,
+      "j": -9958,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9958,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 3,
+        "col": 2
+      }
+    },
+    {
+      "i": 10631,
+      "j": -9958,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9958,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-z2xz2",
+        "row": 3,
+        "col": 3
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9958,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10623,
+      "j": -9957,
+      "type": "1_white"
+    },
+    {
+      "i": 10629,
+      "j": -9957,
+      "type": "1_white"
+    },
+    {
+      "i": 10624,
+      "j": -9957,
+      "type": "2_white"
+    },
+    {
+      "i": 10630,
+      "j": -9957,
+      "type": "2_white"
+    },
+    {
+      "i": 10625,
+      "j": -9957,
+      "type": "3_white"
+    },
+    {
+      "i": 10631,
+      "j": -9957,
+      "type": "3_white"
+    },
+    {
+      "i": 10626,
+      "j": -9957,
+      "type": "4_white"
+    },
+    {
+      "i": 10632,
+      "j": -9957,
+      "type": "4_white"
+    },
+    {
+      "i": 10635,
+      "j": -9960,
+      "type": "group-door",
+      "data": {
+        "group": "lamps-z2xz2",
+        "id": "lamps-z2xz2",
+        "target": [
+          1,
+          0,
+          3,
+          2
+        ],
+        "reward": [
+          10635,
+          -9961
+        ],
+        "text": "THE LAMPS ARE LIT AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9955,
+      "type": "a_white"
+    },
+    {
+      "i": 10629,
+      "j": -9954,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-z2xz2",
+        "cycles": [
+          [
+            0,
+            1
+          ]
+        ],
+        "name": "a",
+        "look": 0
+      }
+    },
+    {
+      "i": 10631,
+      "j": -9955,
+      "type": "b_white"
+    },
+    {
+      "i": 10631,
+      "j": -9954,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-z2xz2",
+        "cycles": [
+          [
+            2,
+            3
+          ]
+        ],
+        "name": "b",
+        "look": 0
+      }
+    },
+    {
+      "i": 10622,
+      "j": -9951,
+      "type": "sign",
+      "data": {
+        "text": "Z2xZ2, THE KLEIN FOUR GROUP, OF ORDER 4: 4 OF THE 24 PATTERNS OF 4x4 LAMPS LIGHT. LEVERS (COLUMNS): A (1 2), B (3 4). IT COMMUTES. 4 PATTERNS TOO, BUT ANOTHER GROUP: EACH LEVER TWICE IS BACK, AND THEIR ORDER NEVER MATTERS"
+      }
+    },
+    {
+      "i": 10623,
+      "j": -9951,
+      "type": "sign",
+      "data": {
+        "text": "ROW = THING, COLUMN = PLACE: ONE LAMP LIT IN EACH ROW AND EACH COLUMN. A LEVER SWAPS THE COLUMNS IT IS TIED TO, (1 2 3) TURNS THEM ROUND, 1 TO 2 TO 3 TO 1. LIGHT THE LAMPS AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10637,
+      "j": -9951,
+      "type": "sign",
+      "data": {
+        "text": "DEBUG: SOLUTION A B IN ANY ORDER"
+      }
+    },
+    {
+      "i": 10603,
+      "j": -9948,
+      "type": "s_white"
+    },
+    {
+      "i": 10604,
+      "j": -9948,
+      "type": "5_white"
+    },
+    {
+      "i": 10604,
+      "j": -9946,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9946,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9946,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9946,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9946,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9946,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10607,
+      "j": -9946,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 0,
+        "col": 3
+      }
+    },
+    {
+      "i": 10614,
+      "j": -9946,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10608,
+      "j": -9946,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 0,
+        "col": 4
+      }
+    },
+    {
+      "i": 10615,
+      "j": -9946,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9945,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9945,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9945,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9945,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9945,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9945,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10607,
+      "j": -9945,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 1,
+        "col": 3
+      }
+    },
+    {
+      "i": 10614,
+      "j": -9945,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10608,
+      "j": -9945,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 1,
+        "col": 4
+      }
+    },
+    {
+      "i": 10615,
+      "j": -9945,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9944,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9944,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9944,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9944,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9944,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9944,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10607,
+      "j": -9944,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 2,
+        "col": 3
+      }
+    },
+    {
+      "i": 10614,
+      "j": -9944,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10608,
+      "j": -9944,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 2,
+        "col": 4
+      }
+    },
+    {
+      "i": 10615,
+      "j": -9944,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9943,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 3,
+        "col": 0
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9943,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9943,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 3,
+        "col": 1
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9943,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9943,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 3,
+        "col": 2
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9943,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10607,
+      "j": -9943,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 3,
+        "col": 3
+      }
+    },
+    {
+      "i": 10614,
+      "j": -9943,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10608,
+      "j": -9943,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 3,
+        "col": 4
+      }
+    },
+    {
+      "i": 10615,
+      "j": -9943,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9942,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 4,
+        "col": 0
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9942,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10605,
+      "j": -9942,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 4,
+        "col": 1
+      }
+    },
+    {
+      "i": 10612,
+      "j": -9942,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10606,
+      "j": -9942,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 4,
+        "col": 2
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9942,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10607,
+      "j": -9942,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 4,
+        "col": 3
+      }
+    },
+    {
+      "i": 10614,
+      "j": -9942,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10608,
+      "j": -9942,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-s5",
+        "row": 4,
+        "col": 4
+      }
+    },
+    {
+      "i": 10615,
+      "j": -9942,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9941,
+      "type": "1_white"
+    },
+    {
+      "i": 10611,
+      "j": -9941,
+      "type": "1_white"
+    },
+    {
+      "i": 10605,
+      "j": -9941,
+      "type": "2_white"
+    },
+    {
+      "i": 10612,
+      "j": -9941,
+      "type": "2_white"
+    },
+    {
+      "i": 10606,
+      "j": -9941,
+      "type": "3_white"
+    },
+    {
+      "i": 10613,
+      "j": -9941,
+      "type": "3_white"
+    },
+    {
+      "i": 10607,
+      "j": -9941,
+      "type": "4_white"
+    },
+    {
+      "i": 10614,
+      "j": -9941,
+      "type": "4_white"
+    },
+    {
+      "i": 10608,
+      "j": -9941,
+      "type": "5_white"
+    },
+    {
+      "i": 10615,
+      "j": -9941,
+      "type": "5_white"
+    },
+    {
+      "i": 10618,
+      "j": -9945,
+      "type": "group-door",
+      "data": {
+        "group": "lamps-s5",
+        "id": "lamps-s5",
+        "target": [
+          2,
+          3,
+          1,
+          4,
+          0
+        ],
+        "reward": [
+          10618,
+          -9946
+        ],
+        "text": "THE LAMPS ARE LIT AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10611,
+      "j": -9939,
+      "type": "a_white"
+    },
+    {
+      "i": 10611,
+      "j": -9938,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-s5",
+        "cycles": [
+          [
+            0,
+            1
+          ]
+        ],
+        "name": "a",
+        "look": 0
+      }
+    },
+    {
+      "i": 10613,
+      "j": -9939,
+      "type": "b_white"
+    },
+    {
+      "i": 10613,
+      "j": -9938,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-s5",
+        "cycles": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        ],
+        "name": "b",
+        "look": 1
+      }
+    },
+    {
+      "i": 10603,
+      "j": -9935,
+      "type": "sign",
+      "data": {
+        "text": "S5, THE SYMMETRIC GROUP, OF ORDER 120: 120 OF THE 120 PATTERNS OF 5x5 LAMPS LIGHT. LEVERS (COLUMNS): A (1 2), B (1 2 3 4 5). IT DOES NOT COMMUTE. ALL 120 ORDERS OF 5 THINGS FROM ONE SWAP AND ONE TURN OF ALL FIVE"
+      }
+    },
+    {
+      "i": 10604,
+      "j": -9935,
+      "type": "sign",
+      "data": {
+        "text": "ROW = THING, COLUMN = PLACE: ONE LAMP LIT IN EACH ROW AND EACH COLUMN. A LEVER SWAPS THE COLUMNS IT IS TIED TO, (1 2 3) TURNS THEM ROUND, 1 TO 2 TO 3 TO 1. LIGHT THE LAMPS AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10620,
+      "j": -9935,
+      "type": "sign",
+      "data": {
+        "text": "DEBUG: SOLUTION A B A B B (B B A B A LIGHTS ANOTHER PATTERN: THE ORDER MATTERS)"
+      }
+    },
+    {
+      "i": 10624,
+      "j": -9948,
+      "type": "a_white"
+    },
+    {
+      "i": 10625,
+      "j": -9948,
+      "type": "5_white"
+    },
+    {
+      "i": 10625,
+      "j": -9946,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9946,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9946,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "i": 10633,
+      "j": -9946,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10627,
+      "j": -9946,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "i": 10634,
+      "j": -9946,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10628,
+      "j": -9946,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 0,
+        "col": 3
+      }
+    },
+    {
+      "i": 10635,
+      "j": -9946,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9946,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 0,
+        "col": 4
+      }
+    },
+    {
+      "i": 10636,
+      "j": -9946,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9945,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9945,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9945,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "i": 10633,
+      "j": -9945,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10627,
+      "j": -9945,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "i": 10634,
+      "j": -9945,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10628,
+      "j": -9945,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 1,
+        "col": 3
+      }
+    },
+    {
+      "i": 10635,
+      "j": -9945,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9945,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 1,
+        "col": 4
+      }
+    },
+    {
+      "i": 10636,
+      "j": -9945,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9944,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9944,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9944,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "i": 10633,
+      "j": -9944,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10627,
+      "j": -9944,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "i": 10634,
+      "j": -9944,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10628,
+      "j": -9944,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 2,
+        "col": 3
+      }
+    },
+    {
+      "i": 10635,
+      "j": -9944,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9944,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 2,
+        "col": 4
+      }
+    },
+    {
+      "i": 10636,
+      "j": -9944,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9943,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 3,
+        "col": 0
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9943,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9943,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 3,
+        "col": 1
+      }
+    },
+    {
+      "i": 10633,
+      "j": -9943,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10627,
+      "j": -9943,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 3,
+        "col": 2
+      }
+    },
+    {
+      "i": 10634,
+      "j": -9943,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10628,
+      "j": -9943,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 3,
+        "col": 3
+      }
+    },
+    {
+      "i": 10635,
+      "j": -9943,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9943,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 3,
+        "col": 4
+      }
+    },
+    {
+      "i": 10636,
+      "j": -9943,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9942,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 4,
+        "col": 0
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9942,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": true
+      }
+    },
+    {
+      "i": 10626,
+      "j": -9942,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 4,
+        "col": 1
+      }
+    },
+    {
+      "i": 10633,
+      "j": -9942,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10627,
+      "j": -9942,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 4,
+        "col": 2
+      }
+    },
+    {
+      "i": 10634,
+      "j": -9942,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10628,
+      "j": -9942,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 4,
+        "col": 3
+      }
+    },
+    {
+      "i": 10635,
+      "j": -9942,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10629,
+      "j": -9942,
+      "type": "lamp-cell",
+      "data": {
+        "group": "lamps-a5",
+        "row": 4,
+        "col": 4
+      }
+    },
+    {
+      "i": 10636,
+      "j": -9942,
+      "type": "lamp-plaque",
+      "data": {
+        "lit": false
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9941,
+      "type": "1_white"
+    },
+    {
+      "i": 10632,
+      "j": -9941,
+      "type": "1_white"
+    },
+    {
+      "i": 10626,
+      "j": -9941,
+      "type": "2_white"
+    },
+    {
+      "i": 10633,
+      "j": -9941,
+      "type": "2_white"
+    },
+    {
+      "i": 10627,
+      "j": -9941,
+      "type": "3_white"
+    },
+    {
+      "i": 10634,
+      "j": -9941,
+      "type": "3_white"
+    },
+    {
+      "i": 10628,
+      "j": -9941,
+      "type": "4_white"
+    },
+    {
+      "i": 10635,
+      "j": -9941,
+      "type": "4_white"
+    },
+    {
+      "i": 10629,
+      "j": -9941,
+      "type": "5_white"
+    },
+    {
+      "i": 10636,
+      "j": -9941,
+      "type": "5_white"
+    },
+    {
+      "i": 10639,
+      "j": -9945,
+      "type": "group-door",
+      "data": {
+        "group": "lamps-a5",
+        "id": "lamps-a5",
+        "target": [
+          4,
+          1,
+          3,
+          2,
+          0
+        ],
+        "reward": [
+          10639,
+          -9946
+        ],
+        "text": "THE LAMPS ARE LIT AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10632,
+      "j": -9939,
+      "type": "a_white"
+    },
+    {
+      "i": 10632,
+      "j": -9938,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-a5",
+        "cycles": [
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        "name": "a",
+        "look": 1
+      }
+    },
+    {
+      "i": 10634,
+      "j": -9939,
+      "type": "b_white"
+    },
+    {
+      "i": 10634,
+      "j": -9938,
+      "type": "group-lever",
+      "data": {
+        "group": "lamps-a5",
+        "cycles": [
+          [
+            2,
+            3,
+            4
+          ]
+        ],
+        "name": "b",
+        "look": 1
+      }
+    },
+    {
+      "i": 10624,
+      "j": -9935,
+      "type": "sign",
+      "data": {
+        "text": "A5, THE ALTERNATING GROUP, OF ORDER 60: 60 OF THE 120 PATTERNS OF 5x5 LAMPS LIGHT. LEVERS (COLUMNS): A (1 2 3), B (3 4 5). IT DOES NOT COMMUTE. 60 OF THE 120: THE EVEN ONES. THE SMALLEST GROUP THAT CANNOT BE BROKEN INTO SMALLER ONES"
+      }
+    },
+    {
+      "i": 10625,
+      "j": -9935,
+      "type": "sign",
+      "data": {
+        "text": "ROW = THING, COLUMN = PLACE: ONE LAMP LIT IN EACH ROW AND EACH COLUMN. A LEVER SWAPS THE COLUMNS IT IS TIED TO, (1 2 3) TURNS THEM ROUND, 1 TO 2 TO 3 TO 1. LIGHT THE LAMPS AS ON THE PLAQUES"
+      }
+    },
+    {
+      "i": 10641,
+      "j": -9935,
+      "type": "sign",
+      "data": {
+        "text": "DEBUG: SOLUTION A A B A B (B A B A A LIGHTS ANOTHER PATTERN: THE ORDER MATTERS)"
+      }
+    }
+  ],
+  "field": [
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10111111111111111101111111111111111011111111111111110000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000101000000000000001010000000000000010000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000001110101000000000011101010000000000111010000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000001010101000000000010101010000000000101010000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000001010101000000000010101010000000000101010000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000101000000000000001010000000000000010000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000101000000000000001010000000000000010000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000101000000000000001010000000000000010000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000101000000000000001010000000000000010000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000101000000000000001010000000000000010000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000101000000000000001010000000000000010000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10111111100011111101111111000111111011111110001111110000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10111111111111111111011111111111111111101111111111111111110111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000101000000000000000010111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000011101010000000000001110101000000000000111010111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000010101010000000000001010101000000000000101010111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000010101010000000000001010101000000000000101010111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000101000000000000000010111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000101000000000000000010111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000101000000000000000010111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000101000000000000000010111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000101000000000000000010111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000101000000000000000010111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000101000000000000000010111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10111111110001111111011111111000111111101111111100011111110111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10111111111111111111011111111111111111100000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000100000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000011101010000000000001110100000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000010101010000000000001010100000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000010101010000000000001010100000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000100000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000100000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000100000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000100000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000100000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000100000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000001010000000000000000100000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10111111110001111111011111111000111111100000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10111111111111111111110111111111111111111110000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000000010100000000000000000010000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000111010100000000000000111010000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000101010100000000000000101010000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000101010100000000000000101010000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000000010100000000000000000010000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000000010100000000000000000010000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000000010100000000000000000010000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000000010100000000000000000010000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000000010100000000000000000010000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000000010100000000000000000010000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000000010100000000000000000010000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10100000000000000000010100000000000000000010000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10111111111000111111110111111111000111111110000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "10000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+  ]
+}
