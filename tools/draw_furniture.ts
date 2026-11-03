@@ -4,7 +4,7 @@
 // white cloth), a wooden chair with a backrest, the toilet, and the
 // bathroom and household pieces - bathtub, shower, washbasin, mirror,
 // towel rail, wardrobe, hearth, rug, broom and window, and the dish
-// shelf of the kitchen.
+// shelf and the counter of the kitchen.
 //
 // Usage: deno -A tools/draw_furniture.ts
 import { picture, write } from "./draw_waystones.ts"
@@ -299,6 +299,28 @@ const DISH_SHELF = [
   "KKKKKKKKKKKKKKKK",
 ]
 
+// the kitchen counter: a cutting board and a bowl on the top, two
+// cupboard doors below (the FF5 tile it was cut from was the FF5
+// treasure chest, opened)
+const COUNTER = [
+  "KKKKKKKKKKKKKKKK",
+  "K11111111111111K",
+  "K1KKKKK111WWW11K",
+  "K1K222K11W222W1K",
+  "K1K2W2K11W222W1K",
+  "K1KKKKK111WWW11K",
+  "K11111111111111K",
+  "K44444444444444K",
+  "KKKKKKKKKKKKKKKK",
+  "K3333333K333333K",
+  "K3444443K344444K",
+  "K34444W3K3W4444K",
+  "K3444443K344444K",
+  "K3444443K344444K",
+  "K3333333K333333K",
+  "KKKKKKKKKKKKKKKK",
+]
+
 /** Mirrors a picture left-right */
 const mirror = (rows: string[]) =>
   rows.map((row) => [...row].reverse().join(""))
@@ -320,4 +342,5 @@ if (import.meta.main) {
   await write("prop/broom.png", picture(BROOM))
   await write("prop/window.png", picture(WINDOW))
   await write("prop/dish_shelf.png", picture(DISH_SHELF))
+  await write("prop/counter.png", picture(COUNTER))
 }
